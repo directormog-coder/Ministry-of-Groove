@@ -23,7 +23,7 @@
             overflow-x: hidden;
         }
 
-        /* Directorate Readability Overlay */
+        /* Readability Overlay */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(5, 5, 5, 0.96); z-index: -1;
@@ -61,7 +61,6 @@
                     </div>
                 </div>
                 <div class="flex gap-4 items-center">
-                    <button @click="requestNotify()" class="text-[8px] border border-blue-500/30 px-3 py-1 text-blue-400 uppercase font-black hover:bg-blue-500 hover:text-white transition-all">Enable Alerts</button>
                     <button @click="logout()" class="text-[9px] text-red-500 font-black uppercase tracking-widest border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all">Disconnect</button>
                 </div>
             </header>
@@ -69,17 +68,17 @@
             <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
                 <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[78vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
                     
-                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
                         <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex animate-in slide-in-from-bottom-2">
+                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex">
                                 <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" 
                                      class="max-w-[80%] p-5 rounded-3xl shadow-xl">
                                     <template x-if="msg.image_url">
-                                        <div class="mb-3 overflow-hidden rounded-xl border border-white/10">
-                                            <img :src="msg.image_url" class="max-h-64 w-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-500">
+                                        <div class="mb-3 overflow-hidden rounded-xl">
+                                            <img :src="msg.image_url" class="max-h-64 w-full object-cover">
                                         </div>
                                     </template>
-                                    <p class="text-xs font-medium leading-relaxed tracking-wide" x-text="msg.text"></p>
+                                    <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
                                     <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                                 </div>
                             </div>
@@ -91,8 +90,8 @@
                             <i data-lucide="paperclip" size="22"></i>
                             <input type="file" class="hidden" @change="uploadImage($event)" accept="image/*">
                         </label>
-                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 transition-all uppercase tracking-widest">
-                        <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] hover:bg-white transition-all italic uppercase shadow-lg">Transmit</button>
+                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest">
+                        <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic">Transmit</button>
                     </form>
                 </div>
             </main>
@@ -115,9 +114,6 @@
                 </form>
 
                 <template x-if="authView !== 'set_passkey'">
-                    <button @click="loginWithGoogle()" class="w-full mt-4 py-5 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-2xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
-                        <i data-lucide="chrome" size="14"></i> GOOGLE_UPLINK
-                    </button>
                     <div class="mt-10 flex justify-center gap-8 text-[9px] uppercase font-black tracking-widest opacity-30">
                         <button type="button" class="hover:text-gold transition-all" @click="authView = 'login'">Login</button>
                         <button type="button" class="hover:text-gold transition-all" @click="authView = 'register'">Register</button>
@@ -147,16 +143,10 @@
                         if (e === 'SIGNED_OUT') { location.reload(); }
                     });
                     lucide.createIcons();
-                    if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js')); }
                 },
 
                 async handleAuthSuccess(user) {
                     this.user = user;
-                    if (!user.confirmed_at) {
-                        alert("UPLINK DENIED: Email verification pending. Check your inbox.");
-                        await this.supabase.auth.signOut();
-                        return;
-                    }
                     let { data: profile } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
                     if (!profile) {
                         const { data } = await this.supabase.from('members').insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }]).select().single();
@@ -168,7 +158,6 @@
                         this.$nextTick(() => lucide.createIcons());
                     } else {
                         this.authView = null;
-                        this.startUplink();
                         this.fetchData();
                         this.subscribeToMessages();
                     }
@@ -177,22 +166,17 @@
                 async uploadImage(e) {
                     const file = e.target.files[0]; if (!file) return;
                     const path = `chat/${Date.now()}-${file.name}`;
-                    const { data } = await this.supabase.storage.from('chat-attachments').upload(path, await file.arrayBuffer(), { contentType: file.type });
+                    const { data } = await this.supabase.storage.from('chat-attachments').upload(path, file);
                     if (data) {
                         const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
-                        await this.supabase.from('messages').insert([{ image_url: publicUrl, user_id: this.user.id, text: `IMAGE_TRANSMISSION: ${file.name.toUpperCase()}` }]);
+                        await this.supabase.from('messages').insert([{ image_url: publicUrl, user_id: this.user.id, text: `IMAGE_TRANSMISSION` }]);
                     }
                 },
-
-                async requestNotify() { if (await Notification.requestPermission() === 'granted') alert("Alert Protocol Active."); },
 
                 subscribeToMessages() {
                     if (this.channel) return;
                     this.channel = this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
                         this.messages.push(p.new);
-                        if (p.new.user_id !== this.user?.id && Notification.permission === 'granted') {
-                            new Notification("NCC: NEW TRANSMISSION", { body: p.new.text, icon: 'logo.png' });
-                        }
                         this.scrollToBottom();
                     }).subscribe();
                 },
@@ -205,16 +189,14 @@
 
                 async finalizeSecurity() {
                     if (this.passkey.length < 6) return alert("Security Breach: Passkey must be 6+ characters.");
-                    const { error: authErr } = await this.supabase.auth.updateUser({ password: this.passkey });
                     const { error: dbErr } = await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
-                    if (!authErr && !dbErr) { location.reload(); }
+                    if (!dbErr) { location.reload(); }
                 },
 
                 async handleLogin() { const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password }); if (error) alert(error.message); },
                 async handleRegister() { const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password }); if (error) alert(error.message); else alert("Check your email for the uplink link."); },
                 async fetchData() { const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }); this.messages = data || []; this.scrollToBottom(); },
                 async sendMessage() { if (!this.newMessage.trim()) return; await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); this.newMessage = ''; },
-                async loginWithGoogle() { await this.supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); },
                 logout() { this.supabase.auth.signOut(); },
                 startUplink() { this.appState = 'grid'; this.$nextTick(() => { lucide.createIcons(); this.scrollToBottom(); }); },
                 scrollToBottom() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); }
