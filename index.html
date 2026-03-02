@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | GOOGLE UPLINK</title>
+    <title>MINISTRY OF GROOVE | THE OPEN GRID</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -16,154 +16,163 @@
         body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.98); z-index: -1; }
         .glass-panel { background: rgba(13, 13, 13, 0.94); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.2); }
         .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4)); }
+        .admin-border { border: 2px solid #D4AF37 !important; box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); }
         [x-cloak] { display: none !important; }
-        .announcement-bar { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent); border-bottom: 1px solid rgba(212,175,55,0.2); }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
 
-    <template x-if="appState === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-6 bg-black">
-            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-[0_0_80px_rgba(212,175,55,0.1)] border-gold/20">
-                <img src="logo.png" class="h-32 w-32 mx-auto mb-10 gold-glow animate-pulse">
-                <h1 class="text-white text-2xl tracking-[0.5em] font-black uppercase italic mb-10">Ministry of Groove</h1>
-                
-                <p class="text-[9px] text-gold/50 tracking-[0.4em] uppercase mb-8">Establish Google Uplink</p>
-                
-                <button @click="loginWithGoogle()" 
-                        :disabled="loading"
-                        class="w-full py-5 bg-white text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl flex items-center justify-center gap-4 hover:bg-gold transition-all active:scale-95">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="h-5 w-5">
-                    <span x-text="loading ? 'Initializing...' : 'Authorize Access'"></span>
-                </button>
+    <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
+        <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-all" @click="settingsModal = true">
+                <div class="h-10 w-10 bg-gold/10 rounded-full flex items-center justify-center border border-gold/30">
+                    <i data-lucide="user" size="20"></i>
+                </div>
+                <div>
+                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="guestName"></h2>
+                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="isAdmin ? 'COMMAND_DIRECTOR' : 'PUBLIC_UPLINK'"></p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <template x-if="isAdmin">
+                    <button @click="adminView = true" class="text-[9px] text-gold border border-gold/30 px-4 py-2 rounded-xl hover:bg-gold hover:text-black transition-all font-black uppercase">Admin_Console</button>
+                </template>
+                <button @click="settingsModal = true" class="p-2 text-gold/50 hover:text-gold transition-all"><i data-lucide="settings" size="18"></i></button>
+            </div>
+        </header>
+
+        <template x-if="announcement">
+            <div class="bg-gold/10 py-3 px-6 border-b border-gold/20 flex items-center justify-between animate-pulse">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="megaphone" class="text-gold" size="14"></i>
+                    <p class="text-[10px] text-white font-bold tracking-[0.2em] uppercase italic" x-text="announcement.content"></p>
+                </div>
+                <template x-if="isAdmin">
+                    <button @click="clearAnnouncement()" class="text-red-500"><i data-lucide="x" size="12"></i></button>
+                </template>
+            </div>
+        </template>
+
+        <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
+            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[78vh] flex flex-col overflow-hidden shadow-2xl" :class="isAdmin ? 'admin-border' : ''">
+                <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
+                    <template x-for="msg in messages" :key="msg.id">
+                        <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex group">
+                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
+                                <template x-if="isAdmin">
+                                    <button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button>
+                                </template>
+                                <div class="text-[8px] mb-1 opacity-50 font-black tracking-widest uppercase italic" x-text="msg.author_name"></div>
+                                <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
+                                <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
+                    <input x-model="newMessage" placeholder="ENTER TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
+                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <template x-if="settingsModal">
+        <div class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
+            <div class="max-w-md w-full glass-panel p-10 rounded-[3rem] text-center border-gold/30">
+                <h3 class="text-gold text-xs font-black tracking-[0.5em] mb-10 uppercase italic">Identity_Terminal</h3>
+                <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-5 text-white text-xs text-center mb-6 outline-none focus:border-gold" placeholder="NEW_ALIAS">
+                <div class="flex gap-4">
+                    <button @click="settingsModal = false" class="flex-1 py-4 text-[9px] text-white/40 uppercase font-black">Abort</button>
+                    <button @click="saveName()" class="flex-1 py-4 bg-gold text-black rounded-xl text-[9px] font-black uppercase">Sync_Alias</button>
+                </div>
             </div>
         </div>
     </template>
 
-    <template x-if="appState === 'grid'">
-        <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
-            <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
-                <div class="flex items-center gap-4">
-                    <img src="logo.png" class="h-10 w-10 gold-glow">
-                    <div>
-                        <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="profile?.full_name || 'Agent'"></h2>
-                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="profile?.role === 'admin' ? 'COMMAND_DIRECTOR' : 'Sector_eMalahleni'"></p>
-                    </div>
-                </div>
-                <div class="flex gap-3">
-                    <template x-if="profile?.role === 'admin'">
-                        <button @click="openAdmin()" class="text-[9px] text-gold border border-gold/30 px-4 py-2 rounded-xl hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest">Console</button>
-                    </template>
-                    <button @click="logout()" class="text-[9px] text-red-500 border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all font-black uppercase tracking-widest">Disconnect</button>
-                </div>
-            </header>
-            
-            <template x-if="announcement">
-                <div class="announcement-bar py-3 px-6 flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="megaphone" class="text-gold animate-pulse" size="14"></i>
-                        <p class="text-[10px] text-white font-bold tracking-widest uppercase italic" x-text="announcement.content"></p>
-                    </div>
-                    <template x-if="profile?.role === 'admin'">
-                        <button @click="clearAnnouncement()" class="text-red-500 hover:text-white transition-all"><i data-lucide="x-circle" size="14"></i></button>
-                    </template>
-                </div>
-            </template>
-
-            <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
-                <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[75vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
-                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
-                        <template x-if="hasMore"><button @click="loadMore()" class="w-full text-[7px] text-gold/40 hover:text-gold py-4 uppercase tracking-[0.5em]">Load_History</button></template>
-                        <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex group">
-                                <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl shadow-xl relative">
-                                    <template x-if="profile?.role === 'admin'"><button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button></template>
-                                    <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
-                                    <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                    <div class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
-                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
-                        <button @click="sendMessage()" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic">Transmit</button>
-                    </div>
-                </div>
-            </main>
+    <template x-if="adminView">
+        <div class="fixed inset-0 z-[200] bg-black/98 flex items-center justify-center p-4 backdrop-blur-2xl">
+            <div class="max-w-md w-full glass-panel p-10 rounded-[3rem] text-center">
+                <h3 class="text-gold text-xs font-black tracking-[0.5em] mb-10 uppercase">Director_Console</h3>
+                <textarea x-model="newAnnouncement" rows="3" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-5 text-white text-xs mb-6 outline-none focus:border-gold" placeholder="NEW_DIRECTIVE..."></textarea>
+                <button @click="sendAnnouncement()" class="w-full bg-gold text-black py-5 rounded-xl text-[10px] font-black uppercase mb-4">Broadcast_Announcement</button>
+                <button @click="adminView = false" class="text-white/30 uppercase text-[9px] font-black">Exit_Console</button>
+            </div>
         </div>
     </template>
 
     <script>
         function app() {
             return {
-                appState: 'auth', user: null, profile: null, loading: false,
-                newMessage: '', messages: [], page: 0, pageSize: 25, hasMore: true,
-                announcement: null, adminView: false, membersList: [],
+                guestId: '', guestName: '', tempName: '', isAdmin: false,
+                newMessage: '', messages: [], announcement: null,
+                newAnnouncement: '', adminView: false, settingsModal: false,
                 supabase: null,
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    
-                    const { data: { session } } = await this.supabase.auth.getSession();
-                    if (session) await this.handleAuthSuccess(session.user);
-                    
-                    this.supabase.auth.onAuthStateChange(async (e, s) => { 
-                        if (e === 'SIGNED_IN' && s) await this.handleAuthSuccess(s.user); 
-                        if (e === 'SIGNED_OUT') this.appState = 'auth';
-                    });
-                    lucide.createIcons();
-                },
 
-                async loginWithGoogle() {
-                    this.loading = true;
-                    await this.supabase.auth.signInWithOAuth({ 
-                        provider: 'google',
-                        options: { redirectTo: window.location.origin }
-                    });
-                },
+                    this.guestId = localStorage.getItem('mog_guest_id') || 'G-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                    this.guestName = localStorage.getItem('mog_guest_name') || 'AGENT_' + this.guestId.split('-')[1];
+                    this.tempName = this.guestName;
+                    this.isAdmin = localStorage.getItem('mog_is_admin') === 'true';
+                    
+                    localStorage.setItem('mog_guest_id', this.guestId);
+                    localStorage.setItem('mog_guest_name', this.guestName);
 
-                async handleAuthSuccess(user) {
-                    this.user = user;
-                    // Auto-sync profile for Google Users
-                    let { data: p } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
-                    if (!p) {
-                        const { data: newP } = await this.supabase.from('members').insert([{ 
-                            user_id: user.id, 
-                            full_name: user.user_metadata.full_name || user.email.split('@')[0], 
-                            gate_two_complete: true // Gates are gone
-                        }]).select().single();
-                        p = newP;
-                    }
-                    this.profile = p;
-                    this.appState = 'grid';
                     this.fetchData();
                     this.fetchAnnouncements();
                     this.subscribeToMessages();
+                    lucide.createIcons();
                 },
 
-                async fetchData() {
-                    const start = this.page * this.pageSize;
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: false }).range(start, start + this.pageSize - 1);
-                    if (data) {
-                        this.messages = [...data.reverse(), ...this.messages];
-                        this.hasMore = data.length === this.pageSize;
-                        this.$nextTick(() => this.scrollToBottom());
-                    }
+                saveName() {
+                    if (this.tempName.trim().length < 2) return alert("ALIAS_TOO_SHORT");
+                    this.guestName = this.tempName.toUpperCase();
+                    localStorage.setItem('mog_guest_name', this.guestName);
+                    this.settingsModal = false;
                 },
 
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
-                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]);
+                    
+                    if (this.newMessage === '@MOGProtocol2026') {
+                        this.isAdmin = true;
+                        localStorage.setItem('mog_is_admin', 'true');
+                        alert("DIRECTOR_AUTHORIZED");
+                        this.newMessage = '';
+                        return;
+                    }
+
+                    await this.supabase.from('messages').insert([{ 
+                        text: this.newMessage.toUpperCase(), 
+                        guest_id: this.guestId,
+                        author_name: this.guestName
+                    }]);
                     this.newMessage = '';
                 },
 
+                async fetchData() {
+                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(50);
+                    if (data) { this.messages = data.reverse(); this.$nextTick(() => this.scrollToBottom()); }
+                },
+
                 subscribeToMessages() {
-                    this.supabase.channel('hq').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
+                    this.supabase.channel('public-grid').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
                         if (p.eventType === 'INSERT') { this.messages.push(p.new); this.scrollToBottom(); }
-                        if (p.eventType === 'DELETE') this.messages = this.messages.filter(m => m.id !== p.old.id);
+                        if (p.eventType === 'DELETE') { this.messages = this.messages.filter(m => m.id !== p.old.id); }
                     }).subscribe();
+                },
+
+                async sendAnnouncement() {
+                    if (!this.newAnnouncement.trim()) return;
+                    await this.supabase.from('announcements').insert([{ content: this.newAnnouncement.toUpperCase() }]);
+                    this.newAnnouncement = '';
+                    this.adminView = false;
+                    this.fetchAnnouncements();
                 },
 
                 async fetchAnnouncements() {
@@ -171,7 +180,15 @@
                     this.announcement = data;
                 },
 
-                logout() { this.supabase.auth.signOut(); },
+                async clearAnnouncement() {
+                    if (this.announcement) await this.supabase.from('announcements').delete().eq('id', this.announcement.id);
+                    this.announcement = null;
+                },
+
+                async deleteMsg(id) {
+                    if (confirm("PURGE?")) await this.supabase.from('messages').delete().eq('id', id);
+                },
+
                 scrollToBottom() { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }
             }
         }
