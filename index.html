@@ -1,144 +1,274 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
-    <title>MINISTRY OF GROOVE | OMEGA SINGULARITY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MINISTRY OF GROOVE | National Command Center</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
-        @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700&f[]=satoshi@400,900&display=swap');
-        :root { --mog-gold: #D4AF37; --mog-blue: #00d4ff; --mog-bg: #030508; --mog-panel: rgba(13, 20, 28, 0.98); }
-        * { transition: all 0.3s ease; font-family: Satoshi, sans-serif; box-sizing: border-box; }
-        body { background: var(--mog-bg); color: var(--mog-gold); overflow-x: hidden; margin: 0; padding-bottom: 4rem; }
-        
-        .mainframe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 1.5rem; padding: 1rem; max-width: 1800px; margin: 0 auto; }
-        .command-tile { background: var(--mog-panel); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 30px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.8); position: relative; }
-        .hero-track { display: flex; overflow-x: auto; gap: 1.5rem; padding: 1rem; scrollbar-width: none; }
-        .hero-card { min-width: 300px; aspect-video: 16/9; background: #000; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
-        .msg-stream { height: 400px; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 12px; }
-        .bubble { max-width: 85%; padding: 14px; border-radius: 20px; color: #fff; cursor: pointer; }
-        .sent { align-self: flex-end; background: #005c4b; }
-        .received { align-self: flex-start; background: #202c33; }
-        #visualizer { position: fixed; inset: 0; opacity: 0.15; pointer-events: none; z-index: 1; }
-        footer a:hover { color: var(--mog-gold); transform: translateY(-5px); text-shadow: 0 0 15px var(--mog-gold); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #D4AF37; overflow-x: hidden; }
+        .glass-panel { background: rgba(13, 13, 13, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.1); }
+        .gold-glow { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.2)); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body>
-    <canvas id="visualizer"></canvas>
+<body x-data="app()" x-init="init()" x-cloak>
 
-    <div class="mt-10 px-4 relative z-10">
-        <header class="text-center mb-10">
-            <img src="https://raw.githubusercontent.com/directormog-coder/Ministry-of-Groove/main/logo.png" class="h-24 mx-auto mb-4 hover:scale-110 cursor-pointer">
-            <h1 class="text-3xl md:text-6xl font-black uppercase italic tracking-tighter">Ministry of Groove</h1>
-        </header>
-
-        <div class="mainframe-grid">
-            <section class="command-tile p-6 md:col-span-2 lg:col-span-3">
-                <h3 class="text-white font-black uppercase text-[10px] mb-4 border-l-4 border-gold pl-4">Legacy Visualizer</h3>
-                <div id="hero-carousel" class="hero-track"></div>
-            </section>
-
-            <section class="command-tile p-8">
-                <div id="auth-container" class="space-y-4 text-center">
-                    <h3 class="text-white font-black text-[10px] border-l-4 border-gold pl-4 text-left uppercase">DNA Matrix</h3>
-                    <input id="auth-user" type="text" placeholder="GRID EMAIL" class="w-full p-4 bg-white/5 rounded-xl text-white outline-none border-none">
-                    <input id="auth-pass" type="password" placeholder="PASSCODE" class="w-full p-4 bg-white/5 rounded-xl text-white outline-none border-none">
-                    <button onclick="executeAuth()" class="w-full bg-blue-500 text-black font-black py-4 rounded-xl uppercase text-xs hover:bg-white tracking-widest">Authorize Access</button>
-                </div>
-                <div id="active-op-badge" class="hidden text-center py-4">
-                    <h2 id="display-op-id" class="text-xl text-white font-black uppercase italic">OPERATIVE</h2>
-                    <div class="text-[10px] text-blue-400 font-black mt-2 uppercase tracking-widest">DNA PKTS: <span id="display-packets" class="text-white text-lg">0</span></div>
-                </div>
-            </section>
-
-            <section class="command-tile md:col-span-2">
-                <div id="chat-stream" class="msg-stream"></div>
-                <div class="p-4 bg-white/5 flex gap-2 border-t border-white/10">
-                    <input id="chat-msg" type="text" placeholder="Transmit packet..." class="flex-1 bg-transparent text-white border-none focus:ring-0">
-                    <button onclick="sendMessage()" class="bg-blue-600 w-12 h-12 rounded-full text-black flex items-center justify-center hover:scale-110 active:scale-95"><i class="fa-solid fa-paper-plane"></i></button>
-                </div>
-            </section>
-
-            <section class="command-tile p-8">
-                <h3 class="text-white font-black uppercase text-[10px] italic border-l-4 border-blue-400 pl-4 mb-6">Leaderboard</h3>
-                <div id="leaderboard-list" class="space-y-3"></div>
-            </section>
+    <template x-if="appState === 'landing'">
+        <div class="h-screen w-screen flex flex-col items-center justify-center p-6 text-center bg-black">
+            <div @click="startUplink()" class="cursor-pointer group">
+                <img src="/logo.png" class="h-48 w-48 mx-auto mb-8 gold-glow animate-pulse group-hover:scale-105 transition-transform duration-700">
+                <h1 class="text-white text-3xl md:text-5xl tracking-[0.4em] font-black uppercase italic">Ministry of Groove</h1>
+                <p class="text-gold/40 text-[9px] tracking-[1em] mt-6 uppercase">Initialize National Grid</p>
+            </div>
         </div>
-    </div>
+    </template>
 
-    <footer class="mt-20 py-12 text-center border-t border-white/5 bg-black/50 backdrop-blur-md">
-        <div class="flex justify-center gap-8 mb-8">
-            <a href="#" class="text-2xl opacity-40 hover:opacity-100 transition"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="text-2xl opacity-40 hover:opacity-100 transition"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="#" class="text-2xl opacity-40 hover:opacity-100 transition"><i class="fa-brands fa-youtube"></i></a>
-            <a href="#" class="text-2xl opacity-40 hover:opacity-100 transition"><i class="fa-brands fa-discord"></i></a>
+    <template x-if="appState === 'grid'">
+        <div class="min-h-screen flex flex-col">
+            <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+                <div class="flex items-center gap-4">
+                    <img src="/logo.png" class="h-10 w-10">
+                    <h2 class="text-white text-[10px] font-black uppercase tracking-[0.2em] hidden md:block">National Command Center // eMalahleni</h2>
+                </div>
+                <div class="flex gap-4">
+                    <button @click="exportDossier()" class="text-[9px] border border-gold/30 px-4 py-2 uppercase font-black hover:bg-gold hover:text-black transition-all">Export Dossier</button>
+                    <button @click="supabase.auth.signOut()" class="text-[9px] text-red-500 uppercase font-bold tracking-widest">Disconnect</button>
+                </div>
+            </header>
+
+            <main class="flex-grow grid grid-cols-1 md:grid-cols-12 p-4 md:p-8 gap-6">
+                <aside class="md:col-span-3 space-y-4">
+                    <div class="glass-panel p-6 rounded-3xl h-[450px] flex flex-col border-blue-500/10">
+                        <h3 class="text-[9px] uppercase tracking-widest text-gold/50 mb-4 font-bold italic">Active_Operatives</h3>
+                        <div class="overflow-y-auto space-y-2 pr-2">
+                            <template x-for="m in members">
+                                <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/20 transition-all">
+                                    <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span class="text-[10px] text-white uppercase font-bold" x-text="m.full_name || 'Classified'"></span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="md:col-span-9 glass-panel rounded-3xl flex flex-col h-[75vh] md:h-[80vh] overflow-hidden shadow-2xl">
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+                        <template x-for="msg in messages">
+                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex animate-in slide-in-from-bottom-2">
+                                <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" 
+                                     class="max-w-[80%] p-4 rounded-2xl shadow-xl">
+                                    <p class="text-xs font-medium leading-relaxed" x-text="msg.text"></p>
+                                    <div class="text-[7px] mt-2 opacity-50 uppercase font-black text-right" x-text="new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <form @submit.prevent="sendMessage()" class="p-4 bg-black/60 border-t border-white/5 flex gap-2">
+                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold/40 transition-all uppercase tracking-widest">
+                        <button class="bg-gold text-black px-8 rounded-xl font-black text-xs hover:bg-white transition-all italic tracking-tighter">SEND</button>
+                    </form>
+                </div>
+            </main>
         </div>
-        <p class="text-[9px] uppercase tracking-[0.4em] opacity-30 font-bold italic">© 2026 Ministry of Groove | Omega Singularity Restoration</p>
-    </footer>
+    </template>
+    
+    <template x-if="authView">
+        <div class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
+            <div class="max-w-md w-full p-8 glass-panel rounded-[2.5rem] text-center shadow-[0_0_50px_rgba(212,175,55,0.1)]">
+                <div class="mb-6">
+                    <template x-if="authView === 'set_passkey'">
+                        <i data-lucide="fingerprint" class="mx-auto text-blue-500 animate-pulse" size="48"></i>
+                    </template>
+                    <template x-if="authView !== 'set_passkey'">
+                        <i data-lucide="shield-check" class="mx-auto text-gold animate-flicker" size="48"></i>
+                    </template>
+                </div>
+                
+                <h2 class="text-white tracking-[0.4em] uppercase font-black mb-2 text-sm" x-text="authView.replace('_', ' ')"></h2>
+                <p class="text-gold/40 text-[8px] uppercase tracking-widest mb-8">Directorate Security Protocol</p>
+                
+                <form @submit.prevent="authView === 'login' ? handleLogin() : (authView === 'register' ? handleRegister() : finalizeSecurity())" class="space-y-4">
+                    <template x-if="authView !== 'set_passkey'">
+                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    </template>
+                    
+                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" 
+                           :placeholder="authView === 'set_passkey' ? 'ESTABLISH_NEW_PASSKEY' : 'SECURITY_CODE'" 
+                           required class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    
+                    <button class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white hover:scale-[1.02] transition-all duration-300">
+                        Execute_Protocol
+                    </button>
+                </form>
+
+                <template x-if="authView !== 'set_passkey'">
+                    <div class="mt-4">
+                        <div class="flex items-center gap-4 my-6 opacity-20"><div class="h-[1px] bg-white flex-grow"></div><span class="text-[8px] font-black">OR</span><div class="h-[1px] bg-white flex-grow"></div></div>
+                        <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                            <i data-lucide="chrome" size="14"></i> Sign in with Google
+                        </button>
+                    </div>
+                </template>
+
+                <div class="mt-8 flex justify-center gap-6 text-[9px] uppercase font-bold tracking-tighter opacity-40">
+                    <span class="cursor-pointer hover:text-gold transition-colors" @click="authView = 'login'">Login Access</span>
+                    <span class="cursor-pointer hover:text-gold transition-colors" @click="authView = 'register'">New Operative</span>
+                </div>
+            </div>
+        </div>
+    </template>
 
     <script>
-        const MOG_CFG = { U: "https://hzelmkthdqtbxcffsstl.supabase.co", K: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6ZWxta3RoZHF0YmN4ZmZzc3RsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MDExOTksImV4cCI6MjA4NzM3NzE5OX0.Hx-dlAnPYqn-1GAmkS0ZNJIuvhutYdJ2_fLxAn3MTfY" };
-        const db = window.supabase.createClient(MOG_CFG.U, MOG_CFG.K);
-        let currentOp = null, audioCtx, analyser;
+        function app() {
+            return {
+                appState: 'landing', authView: 'login', user: null, profile: null,
+                email: '', password: '', passkey: '', newMessage: '',
+                messages: [], members: [], supabase: null,
 
-        async function executeAuth() {
-            const e = document.getElementById('auth-user').value, p = document.getElementById('auth-pass').value;
-            const { data, error } = await db.auth.signInWithPassword({ email: e, password: p });
-            if (!error) {
-                currentOp = data.user;
-                document.getElementById('auth-container').classList.add('hidden');
-                document.getElementById('active-op-badge').classList.remove('hidden');
-                document.getElementById('display-op-id').innerText = currentOp.user_metadata.full_name;
-                initVisualizer(); syncRealtime();
+                async init() {
+                    // Replace with your actual credentials
+                    this.supabase = window.supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+                    
+                    const { data: { session } } = await this.supabase.auth.getSession();
+                    if (session) await this.handleAuthSuccess(session.user);
+
+                    this.supabase.auth.onAuthStateChange(async (event, session) => {
+                        if (event === 'SIGNED_IN' && session) {
+                            await this.handleAuthSuccess(session.user);
+                        }
+                        if (event === 'SIGNED_OUT') {
+                            this.user = null;
+                            this.appState = 'landing';
+                            this.authView = 'login';
+                        }
+                    });
+                    lucide.createIcons();
+                },
+
+                async loginWithGoogle() {
+                    await this.supabase.auth.signInWithOAuth({ 
+                        provider: 'google',
+                        options: { redirectTo: window.location.origin }
+                    });
+                },
+
+                async handleLogin() {
+                    const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
+                    if (error) alert(error.message);
+                },
+
+                async handleRegister() {
+                    const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
+                    if (error) alert("Check email for verification link.");
+                    else this.authView = 'login';
+                },
+
+                async handleAuthSuccess(user) {
+                    this.user = user;
+                    
+                    let { data: profile, error } = await this.supabase
+                        .from('members')
+                        .select('*')
+                        .eq('user_id', user.id)
+                        .single();
+                    
+                    if (error && error.code === 'PGRST116') {
+                        const { data: newProfile } = await this.supabase
+                            .from('members')
+                            .insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }])
+                            .select().single();
+                        profile = newProfile;
+                    }
+                    
+                    this.profile = profile;
+                    
+                    if (!profile?.gate_two_complete) {
+                        this.authView = 'set_passkey';
+                        this.$nextTick(() => lucide.createIcons());
+                    } else {
+                        this.authView = null;
+                        this.startUplink();
+                    }
+                    this.fetchData();
+                    this.subscribeToMessages();
+                },
+
+                async finalizeSecurity() {
+                    const { error: authError } = await this.supabase.auth.updateUser({ password: this.passkey });
+                    const { error: dbError } = await this.supabase
+                        .from('members')
+                        .update({ gate_two_complete: true })
+                        .eq('user_id', this.user.id);
+
+                    if (!authError && !dbError) {
+                        this.authView = null;
+                        this.startUplink();
+                    } else {
+                        alert("Gate Two Security Protocol Failure.");
+                    }
+                },
+
+                async fetchData() {
+                    const { data: m } = await this.supabase.from('members').select('*');
+                    this.members = m || [];
+                    const { data: msg } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true });
+                    this.messages = msg || [];
+                    this.scrollToBottom();
+                },
+
+                subscribeToMessages() {
+                    this.supabase.channel('hq_freq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                        this.messages.push(p.new);
+                        this.scrollToBottom();
+                    }).subscribe();
+                },
+
+                async sendMessage() {
+                    if (!this.newMessage.trim()) return;
+                    await this.supabase.from('messages').insert([{ 
+                        text: this.newMessage.toUpperCase(), 
+                        user_id: this.user.id,
+                        sender_name: this.profile?.full_name 
+                    }]);
+                    this.newMessage = '';
+                },
+
+                startUplink() {
+                    this.appState = 'grid';
+                    this.$nextTick(() => {
+                        lucide.createIcons();
+                        this.scrollToBottom();
+                    });
+                },
+
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('chat-stream');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    });
+                },
+
+                exportDossier() {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.setFillColor(5, 5, 5); doc.rect(0, 0, 210, 297, 'F');
+                    doc.setTextColor(212, 175, 55); doc.setFontSize(22);
+                    doc.text("MINISTRY OF GROOVE", 105, 40, { align: "center" });
+                    doc.setFontSize(10); doc.text("OFFICIAL INTELLIGENCE REPORT // WITBANK HQ", 105, 50, { align: "center" });
+                    doc.save("MOG_Dossier_Intel.pdf");
+                }
             }
-        }
-
-        function initVisualizer() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            const canvas = document.getElementById('visualizer'), ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-            function render() {
-                requestAnimationFrame(render);
-                const data = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(data);
-                ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#D4AF37';
-                for(let i=0; i<data.length; i++) { ctx.fillRect(i*10, canvas.height-(data[i]*2.5), 8, data[i]*2.5); }
-            } render();
-        }
-
-        async function syncRealtime() {
-            db.channel('global').on('postgres_changes', { event: '*', schema: 'public' }, () => updateUI()).subscribe();
-            updateUI();
-        }
-
-        async function updateUI() {
-            const { data: stats } = await db.from('operative_stats').select('balance').eq('alias', currentOp.user_metadata.full_name).single();
-            if(stats) document.getElementById('display-packets').innerText = stats.balance;
-            const { data: lead } = await db.from('leaderboard').select('*');
-            if(lead) document.getElementById('leaderboard-list').innerHTML = lead.map((o,i) => `<div class='flex justify-between bg-white/5 p-3 rounded-xl border border-white/5'><span class='text-xs font-bold'>${i+1}. ${o.alias}</span><span class='text-blue-400 font-black'>${o.balance} PKTS</span></div>`).join('');
-            const { data: msgs } = await db.from('messages').select('*').order('created_at', { ascending: true });
-            if(msgs) {
-                document.getElementById('chat-stream').innerHTML = msgs.map(m => `<div class="bubble ${m.user_id === currentOp.id ? 'sent' : 'received'}" onclick="yogaPacket('${m.alias}')"><span class="text-[9px] font-black text-blue-400 block">${m.alias}</span>${m.content}</div>`).join('');
-                const s = document.getElementById('chat-stream'); s.scrollTop = s.scrollHeight;
-            }
-            const { data: bounties } = await db.from('bounty_archives').select('*');
-            if(bounties) document.getElementById('hero-carousel').innerHTML = bounties.map(b => `<div class="hero-card"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${b.reward_url}" frameborder="0"></iframe></div>`).join('');
-        }
-
-        async function yogaPacket(receiver) {
-            if(currentOp.user_metadata.full_name === receiver) return;
-            const { error } = await db.rpc('transfer_packets', { receiver_alias: receiver, amount: 5 });
-            if(!error) { confetti({ particleCount: 150, colors: ['#D4AF37', '#00d4ff'] }); }
-        }
-
-        async function sendMessage() {
-            const i = document.getElementById('chat-msg'); if(!i.value) return;
-            await db.from('messages').insert([{ content: i.value, user_id: currentOp.id, alias: currentOp.user_metadata.full_name }]);
-            i.value = '';
         }
     </script>
 </body>
