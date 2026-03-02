@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.O.G. | Auth</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background: #000; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: #111; padding: 30px; border-radius: 15px; border: 1px solid #D4AF37; width: 90%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #D4AF37; color: black; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <img src="logo.png" style="width: 80px; margin-bottom: 20px;">
+        <h2 style="color:#D4AF37; margin-bottom: 20px;">OPERATIVE LOGIN</h2>
+        <input type="email" id="email" placeholder="Operative Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="handleLogin()">ACCESS GRID</button>
+        <p id="err" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+    </div>
+
+    <script>
+        const SB_URL = "https://quzwygjbqpkuqjhrmsjp.supabase.co";
+        const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU"; 
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        async function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
+            const { error } = await _supabase.auth.signInWithPassword({ email, password });
+            if (error) { document.getElementById('err').textContent = error.message; } 
+            else { window.location.href = 'index.html'; }
+        }
+    </script>
+</body>
+</html>
