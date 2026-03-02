@@ -1,6 +1,11 @@
 {
-  "short_name": "MOG_NCC",
-  "name": "Ministry of Groove: National Command Center",
+  "name": "Ministry of Groove",
+  "short_name": "M.O.G.",
+  "description": "National Grid Operative Uplink",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#D4AF37",
   "icons": [
     {
       "src": "logo.png",
@@ -12,9 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "start_url": "/",
-  "background_color": "#050505",
-  "display": "standalone",
-  "theme_color": "#D4AF37"
+  ]
 }
