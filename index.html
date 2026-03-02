@@ -93,6 +93,7 @@
                     <template x-if="authView !== 'set_passkey'"><i data-lucide="shield-check" class="mx-auto text-gold animate-flicker" size="48"></i></template>
                 </div>
                 <h2 class="text-white tracking-[0.4em] uppercase font-black mb-2 text-sm" x-text="authView.replace('_', ' ')"></h2>
+                
                 <form @submit.prevent="authAction()" class="space-y-4">
                     <template x-if="authView !== 'set_passkey'">
                         <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
@@ -100,6 +101,7 @@
                     <input type="password" x-model="authView === 'set_passkey' ? passkey : password" required :placeholder="authView === 'set_passkey' ? 'ESTABLISH_NEW_PASSKEY' : 'SECURITY_CODE'" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
                     <button type="submit" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white transition-all">Execute_Protocol</button>
                 </form>
+
                 <template x-if="authView !== 'set_passkey'">
                     <div class="mt-4">
                         <div class="flex items-center gap-4 my-6 opacity-20"><div class="h-[1px] bg-white flex-grow"></div><span class="text-[8px] font-black">OR</span><div class="h-[1px] bg-white flex-grow"></div></div>
@@ -108,14 +110,10 @@
                         </button>
                     </div>
                 </template>
-                <div class="mt-8 flex justify-center gap-6 text-[9px] uppercase font-bold opacity-40">
-                    <span class="cursor-pointer hover:text-gold" @click="authView = 'login'">Login</span>
-                    <span class="cursor-pointer hover:text-gold" @click="authView = 'register'">Register</span>
-                </div>
             </div>
         </div>
     </template>
-
+    
     <script>
         function app() {
             return {
@@ -151,13 +149,20 @@
                 async handleAuthSuccess(user) {
                     this.user = user;
                     let { data: profile, error } = await this.supabase.from('members').select('*').eq('user_id', user.id).single();
+                    
                     if (error && error.code === 'PGRST116') {
                         const { data: newProfile } = await this.supabase.from('members').insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }]).select().single();
                         profile = newProfile;
                     }
                     this.profile = profile;
-                    if (!profile?.gate_two_complete) { this.authView = 'set_passkey'; this.$nextTick(() => lucide.createIcons()); }
-                    else { this.authView = null; this.startUplink(); }
+                    
+                    if (!profile?.gate_two_complete) { 
+                        this.authView = 'set_passkey'; 
+                        this.$nextTick(() => lucide.createIcons()); 
+                    } else { 
+                        this.authView = null; 
+                        this.startUplink(); 
+                    }
                     this.fetchData();
                     this.subscribeToMessages();
                 },
@@ -172,16 +177,33 @@
                     const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
                     if (error) alert(error.message);
                 },
-        
+
                 async handleRegister() {
                     const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
                     if (error) alert("Check email for link."); else this.authView = 'login';
                 },
 
                 async finalizeSecurity() {
-                    await this.supabase.auth.updateUser({ password: this.passkey });
-                    await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
-                    this.authView = null; this.startUplink();
+                    try {
+                        // 1. Update Passkey
+                        const { error: authError } = await this.supabase.auth.updateUser({ password: this.passkey });
+                        if (authError) throw authError;
+
+                        // 2. Mark Gate Two as complete
+                        const { error: dbError } = await this.supabase
+                            .from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
+                        if (dbError) throw dbError;
+
+                        // 3. REFRESH PROFILE
+                        const { data: refreshedProfile } = await this.supabase
+                            .from('members').select('*').eq('user_id', this.user.id).single();
+                        
+                        this.profile = refreshedProfile;
+                        this.authView = null; 
+                        this.startUplink();
+                    } catch (err) {
+                        alert("Security Finalization Failed: " + err.message);
+                    }
                 },
 
                 async fetchData() {
