@@ -1,99 +1,225 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>M.O.G. | National Command Center</title>
-    <link rel="manifest" href="/manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MINISTRY OF GROOVE | NCC TITANIUM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root { --mog-gold: #D4AF37; --mog-black: #0a0a0a; --mog-grey: #1a1a1a; }
-        body { background: var(--mog-black); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        #loading-screen { position: fixed; inset: 0; background: black; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s ease; }
-        .logo-glow { width: 220px; filter: drop-shadow(0 0 20px var(--mog-gold)); }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#050505">
 
-        #chat-interface { display: none; flex-direction: column; height: 100%; opacity: 0; transition: opacity 1s ease; }
-        .header { padding: 15px; background: var(--mog-grey); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 12px; border-radius: 10px; background: #222; border-left: 4px solid var(--mog-gold); max-width: 85%; }
-        .input-area { padding: 15px; background: var(--mog-grey); display: flex; gap: 10px; border-top: 1px solid #333; }
-        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #444; background: #000; color: white; outline: none; }
-        .send-btn { background: var(--mog-gold); color: black; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { 
+            background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
+            background-image: url('logo.png'); background-repeat: no-repeat;
+            background-position: center; background-attachment: fixed; background-size: 30%;
+            overflow-x: hidden;
+        }
+
+        /* Directorate Readability Overlay */
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 5, 0.96); z-index: -1;
+        }
+
+        .glass-panel { background: rgba(13, 13, 13, 0.92); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3)); }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+
+        [x-cloak] { display: none !important; }
     </style>
 </head>
-<body>
+<body x-data="app()" x-init="init()" x-cloak>
 
-    <div id="loading-screen">
-        <img src="logo.png" alt="M.O.G." class="logo-glow">
-        <p style="color: var(--mog-gold); margin-top: 25px; letter-spacing: 4px; font-weight: bold;">AUTHENTICATING UPLINK...</p>
-    </div>
+    <template x-if="appState === 'landing'">
+        <div class="h-screen flex flex-col items-center justify-center text-center p-6 bg-black">
+            <div @click="startUplink()" class="cursor-pointer group active:scale-95 transition-all">
+                <img src="logo.png" class="h-48 w-48 mx-auto mb-10 gold-glow animate-pulse">
+                <h1 class="text-white text-4xl md:text-6xl tracking-[0.5em] font-black uppercase italic">Ministry of Groove</h1>
+                <p class="text-gold/40 text-[10px] tracking-[1.2em] mt-8 uppercase">Initialize National Grid</p>
+            </div>
+        </div>
+    </template>
 
-    <div id="chat-interface">
-        <div class="header">
-            <span style="font-weight: bold; color: var(--mog-gold);">MINISTRY OF GROOVE</span>
-            <button onclick="logout()" style="background:none; border:none; color:#555; font-size: 10px;">DISCONNECT</button>
+    <template x-if="appState === 'grid'">
+        <div class="min-h-screen flex flex-col animate-in fade-in duration-1000">
+            <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+                <div class="flex items-center gap-4">
+                    <img src="logo.png" class="h-10 w-10 gold-glow">
+                    <div class="hidden md:block">
+                        <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic">National Command Center</h2>
+                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest">Sector_eMalahleni_Titanium</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <button @click="requestNotify()" class="text-[8px] border border-blue-500/30 px-3 py-1 text-blue-400 uppercase font-black hover:bg-blue-500 hover:text-white transition-all">Enable Alerts</button>
+                    <button @click="logout()" class="text-[9px] text-red-500 font-black uppercase tracking-widest border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all">Disconnect</button>
+                </div>
+            </header>
+
+            <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
+                <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[78vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
+                    
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+                        <template x-for="msg in messages" :key="msg.id">
+                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex animate-in slide-in-from-bottom-2">
+                                <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" 
+                                     class="max-w-[80%] p-5 rounded-3xl shadow-xl">
+                                    <template x-if="msg.image_url">
+                                        <div class="mb-3 overflow-hidden rounded-xl border border-white/10">
+                                            <img :src="msg.image_url" class="max-h-64 w-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-500">
+                                        </div>
+                                    </template>
+                                    <p class="text-xs font-medium leading-relaxed tracking-wide" x-text="msg.text"></p>
+                                    <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
+                        <label class="cursor-pointer text-gold/50 hover:text-gold transition-all p-2">
+                            <i data-lucide="paperclip" size="22"></i>
+                            <input type="file" class="hidden" @change="uploadImage($event)" accept="image/*">
+                        </label>
+                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 transition-all uppercase tracking-widest">
+                        <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] hover:bg-white transition-all italic uppercase shadow-lg">Transmit</button>
+                    </form>
+                </div>
+            </main>
         </div>
-        <div id="messages"></div>
-        <div class="input-area">
-            <input type="text" id="msgInput" placeholder="Secure Transmission...">
-            <button class="send-btn" onclick="sendMessage()"><i data-lucide="send"></i></button>
+    </template>
+    
+    <template x-if="authView">
+        <div class="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 backdrop-blur-xl">
+            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-[0_0_80px_rgba(212,175,55,0.1)] border-gold/20">
+                <i :data-lucide="authView === 'set_passkey' ? 'fingerprint' : 'shield-alert'" class="mx-auto text-gold mb-8 animate-pulse" size="56"></i>
+                <h2 class="text-white tracking-[0.4em] uppercase font-black mb-10 text-sm" x-text="authView.replace('_', ' ')"></h2>
+                
+                <form @submit.prevent="runAuthAction()" class="space-y-5">
+                    <template x-if="authView !== 'set_passkey'">
+                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    </template>
+                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" 
+                           placeholder="SECURITY_CODE (MIN 6 CHARS)" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    <button type="submit" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl hover:bg-white transition-all">Execute_Protocol</button>
+                </form>
+
+                <template x-if="authView !== 'set_passkey'">
+                    <button @click="loginWithGoogle()" class="w-full mt-4 py-5 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-2xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                        <i data-lucide="chrome" size="14"></i> GOOGLE_UPLINK
+                    </button>
+                    <div class="mt-10 flex justify-center gap-8 text-[9px] uppercase font-black tracking-widest opacity-30">
+                        <button type="button" class="hover:text-gold transition-all" @click="authView = 'login'">Login</button>
+                        <button type="button" class="hover:text-gold transition-all" @click="authView = 'register'">Register</button>
+                    </div>
+                </template>
+            </div>
         </div>
-    </div>
+    </template>
 
     <script>
-        const SB_URL = "https://quzwygjbqpkuqjhrmsjp.supabase.co";
-        const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU";
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
+        function app() {
+            return {
+                appState: 'landing', authView: 'login', user: null, profile: null,
+                email: '', password: '', passkey: '', newMessage: '',
+                messages: [], supabase: null, channel: null,
 
-        async function init() {
-            lucide.createIcons();
-            const { data: { session } } = await _supabase.auth.getSession();
-            
-            if (session) {
-                // Successful Handshake
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    document.getElementById('chat-interface').style.display = 'flex';
-                    document.getElementById('chat-interface').style.opacity = '1';
-                }, 800);
-                loadHistory();
-                subscribe();
-            } else {
-                window.location.href = 'login.html'; 
+                async init() {
+                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
+                    
+                    const { data: { session } } = await this.supabase.auth.getSession();
+                    if (session) await this.handleAuthSuccess(session.user);
+                    
+                    this.supabase.auth.onAuthStateChange(async (e, s) => { 
+                        if (e === 'SIGNED_IN' && s) await this.handleAuthSuccess(s.user); 
+                        if (e === 'SIGNED_OUT') { location.reload(); }
+                    });
+                    lucide.createIcons();
+                    if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js')); }
+                },
+
+                async handleAuthSuccess(user) {
+                    this.user = user;
+                    if (!user.confirmed_at) {
+                        alert("UPLINK DENIED: Email verification pending. Check your inbox.");
+                        await this.supabase.auth.signOut();
+                        return;
+                    }
+                    let { data: profile } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
+                    if (!profile) {
+                        const { data } = await this.supabase.from('members').insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }]).select().single();
+                        profile = data;
+                    }
+                    this.profile = profile;
+                    if (!profile.gate_two_complete) {
+                        this.authView = 'set_passkey';
+                        this.$nextTick(() => lucide.createIcons());
+                    } else {
+                        this.authView = null;
+                        this.startUplink();
+                        this.fetchData();
+                        this.subscribeToMessages();
+                    }
+                },
+
+                async uploadImage(e) {
+                    const file = e.target.files[0]; if (!file) return;
+                    const path = `chat/${Date.now()}-${file.name}`;
+                    const { data } = await this.supabase.storage.from('chat-attachments').upload(path, await file.arrayBuffer(), { contentType: file.type });
+                    if (data) {
+                        const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
+                        await this.supabase.from('messages').insert([{ image_url: publicUrl, user_id: this.user.id, text: `IMAGE_TRANSMISSION: ${file.name.toUpperCase()}` }]);
+                    }
+                },
+
+                async requestNotify() { if (await Notification.requestPermission() === 'granted') alert("Alert Protocol Active."); },
+
+                subscribeToMessages() {
+                    if (this.channel) return;
+                    this.channel = this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                        this.messages.push(p.new);
+                        if (p.new.user_id !== this.user?.id && Notification.permission === 'granted') {
+                            new Notification("NCC: NEW TRANSMISSION", { body: p.new.text, icon: 'logo.png' });
+                        }
+                        this.scrollToBottom();
+                    }).subscribe();
+                },
+
+                runAuthAction() {
+                    if (this.authView === 'login') this.handleLogin();
+                    else if (this.authView === 'register') this.handleRegister();
+                    else this.finalizeSecurity();
+                },
+
+                async finalizeSecurity() {
+                    if (this.passkey.length < 6) return alert("Security Breach: Passkey must be 6+ characters.");
+                    const { error: authErr } = await this.supabase.auth.updateUser({ password: this.passkey });
+                    const { error: dbErr } = await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
+                    if (!authErr && !dbErr) { location.reload(); }
+                },
+
+                async handleLogin() { const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password }); if (error) alert(error.message); },
+                async handleRegister() { const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password }); if (error) alert(error.message); else alert("Check your email for the uplink link."); },
+                async fetchData() { const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }); this.messages = data || []; this.scrollToBottom(); },
+                async sendMessage() { if (!this.newMessage.trim()) return; await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); this.newMessage = ''; },
+                async loginWithGoogle() { await this.supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); },
+                logout() { this.supabase.auth.signOut(); },
+                startUplink() { this.appState = 'grid'; this.$nextTick(() => { lucide.createIcons(); this.scrollToBottom(); }); },
+                scrollToBottom() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); }
             }
         }
-
-        function subscribe() {
-            _supabase.channel('messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                render(payload.new);
-            }).subscribe();
-        }
-
-        async function loadHistory() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: true });
-            if (data) data.forEach(render);
-        }
-
-        function render(msg) {
-            const d = document.createElement('div');
-            d.className = 'msg';
-            d.textContent = msg.content;
-            document.getElementById('messages').appendChild(d);
-            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-        }
-
-        async function sendMessage() {
-            const i = document.getElementById('msgInput');
-            if (!i.value.trim()) return;
-            const text = i.value; i.value = '';
-            await _supabase.from('messages').insert([{ content: text }]);
-        }
-
-        async function logout() { await _supabase.auth.signOut(); window.location.reload(); }
-        init();
     </script>
 </body>
 </html>
