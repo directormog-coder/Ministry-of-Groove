@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | NCC UNMASKED</title>
+    <title>MINISTRY OF GROOVE | NCC UNLOCKED</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#050505">
+    <meta name="theme-color" content="#D4AF37">
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
@@ -20,6 +20,7 @@
             background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
             background-image: url('logo.png'); background-repeat: no-repeat;
             background-position: center; background-attachment: fixed; background-size: 30%;
+            overflow-x: hidden;
         }
 
         /* Directorate Readability Overlay */
@@ -34,162 +35,112 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
 
-        section { border-bottom: 1px solid rgba(212, 175, 55, 0.1); }
+        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .animate-status { animation: pulse-slow 3s infinite; }
     </style>
 </head>
 <body x-data="app()" x-init="init()">
 
-    <section id="landing" class="h-screen flex flex-col items-center justify-center text-center p-6">
-        <div class="group transition-all">
-            <img src="logo.png" class="h-56 w-56 mx-auto mb-10 gold-glow animate-pulse group-hover:scale-105 duration-700">
-            <h1 class="text-white text-4xl md:text-6xl tracking-[0.5em] font-black uppercase italic mb-4">Ministry of Groove</h1>
-            <p class="text-gold/40 text-[10px] tracking-[1.2em] mt-8 uppercase opacity-60">National Command Center // v4.0 Unmasked</p>
-        </div>
-    </section>
-
-    <section id="auth" class="min-h-screen flex items-center justify-center p-4 bg-black/30">
-        <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-2xl border-gold/20">
-            <div class="mb-8">
-                <i data-lucide="shield-alert" class="mx-auto text-gold" size="56"></i>
-            </div>
-            <h2 class="text-white tracking-[0.4em] uppercase font-black mb-10 text-sm" x-text="authMode.toUpperCase() + '_PROTOCOL'"></h2>
-            
-            <form @submit.prevent="runAuthAction()" class="space-y-5">
-                <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900/50 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
-                
-                <input type="password" x-model="password" placeholder="SECURITY_CODE (MIN 6 CHARS)" required class="w-full bg-zinc-900/50 p-5 rounded-2xl text-white text-[11px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
-                
-                <button type="submit" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl hover:bg-white transition-all shadow-xl">
-                    Execute_Protocol
-                </button>
-            </form>
-
-            <div class="mt-4">
-                <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-2xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
-                    <i data-lucide="chrome" size="14"></i> GOOGLE_UPLINK
-                </button>
-            </div>
-
-            <div class="mt-10 flex justify-center gap-10 text-[9px] uppercase font-black tracking-widest opacity-30">
-                <button type="button" class="hover:text-gold transition-all" @click="authMode = 'login'">Login Access</button>
-                <button type="button" class="hover:text-gold transition-all" @click="authMode = 'register'">New Operative</button>
-            </div>
-        </div>
-    </section>
-
-    <section id="grid" class="min-h-screen flex flex-col">
-        <header class="p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+    <div class="min-h-screen flex flex-col">
+        <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
             <div class="flex items-center gap-4">
                 <img src="logo.png" class="h-10 w-10 gold-glow">
-                <div class="hidden md:block">
-                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic">NCC // Sector_eMalahleni</h2>
-                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest">Titanium_Stability_Active</p>
+                <div>
+                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic">National Command Center</h2>
+                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest animate-status">Sector_eMalahleni_Unlocked_Titanium</p>
                 </div>
             </div>
             <div class="flex gap-4 items-center">
-                <button @click="requestNotify()" class="text-[9px] border border-blue-500/30 px-3 py-1 text-blue-400 uppercase font-black hover:bg-blue-500 hover:text-white transition-all">Enable Alerts</button>
-                <button @click="logout()" class="text-[9px] text-red-500 font-black uppercase tracking-widest border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all">Disconnect</button>
+                <button @click="requestNotify()" class="text-[9px] border border-blue-500/30 px-4 py-2 text-blue-400 uppercase font-black hover:bg-blue-500 hover:text-white transition-all">Enable Alerts</button>
             </div>
         </header>
 
         <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
-            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[80vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
+            <div class="w-full max-w-6xl glass-panel rounded-[2.5rem] h-[80vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
                 
                 <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
                     <template x-for="msg in messages" :key="msg.id">
-                        <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex">
-                            <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" 
-                                 class="max-w-[80%] p-5 rounded-3xl shadow-xl">
+                        <div class="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
+                            <div class="bg-zinc-900 text-zinc-300 rounded-[2rem] rounded-tl-none border border-white/5 max-w-[85%] md:max-w-[70%] p-5 shadow-xl">
                                 
                                 <template x-if="msg.image_url">
-                                    <div class="mb-3 overflow-hidden rounded-xl border border-white/10">
-                                        <img :src="msg.image_url" class="max-h-64 w-full object-cover cursor-zoom-in hover:scale-105 transition-all">
+                                    <div class="mb-3 overflow-hidden rounded-2xl border border-white/10">
+                                        <img :src="msg.image_url" class="max-h-72 w-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-700">
                                     </div>
                                 </template>
                                 
                                 <p class="text-xs font-medium leading-relaxed tracking-wide" x-text="msg.text"></p>
-                                <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+                                <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right tracking-tighter" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
-                    <label class="cursor-pointer text-gold/50 hover:text-gold transition-all p-2">
-                        <i data-lucide="paperclip" size="22"></i>
+                <form @submit.prevent="sendMessage()" class="p-5 bg-black/80 border-t border-white/5 flex items-center gap-4">
+                    <label class="cursor-pointer text-gold/40 hover:text-gold transition-all p-3 hover:bg-white/5 rounded-full">
+                        <i data-lucide="paperclip" size="24"></i>
                         <input type="file" class="hidden" @change="uploadImage($event)" accept="image/*">
                     </label>
-                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 transition-all uppercase tracking-widest">
-                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] hover:bg-white transition-all italic uppercase">Transmit</button>
+                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 transition-all uppercase tracking-widest placeholder-zinc-700">
+                    <button type="submit" class="bg-gold text-black px-12 py-4 rounded-2xl font-black text-[10px] hover:bg-white transition-all italic uppercase tracking-tighter shadow-lg">Transmit</button>
                 </form>
             </div>
         </main>
-    </section>
-
-    <script>
+    </div>
+        <script>
         function app() {
             return {
-                user: null, authMode: 'login', email: '', password: '', newMessage: '',
-                messages: [], supabase: null, channel: null,
+                newMessage: '',
+                messages: [],
+                supabase: null,
+                channel: null,
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+                    
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     
-                    const { data: { session } } = await this.supabase.auth.getSession();
-                    if (session) {
-                        this.user = session.user;
-                        this.fetchData();
-                        this.subscribeToMessages();
-                    }
-                    
-                    this.supabase.auth.onAuthStateChange((e, s) => {
-                        if (e === 'SIGNED_IN' && s) {
-                            this.user = s.user;
-                            this.fetchData();
-                            this.subscribeToMessages();
-                        }
-                    });
-                    
+                    this.fetchData();
+                    this.subscribeToMessages();
                     lucide.createIcons();
-                    if ('serviceWorker' in navigator) { window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js')); }
-                },
-
-                runAuthAction() {
-                    if (this.authMode === 'login') this.handleLogin();
-                    else this.handleRegister();
-                },
-
-                async handleLogin() {
-                    const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
-                    if (error) alert(error.message);
-                },
-
-                async handleRegister() {
-                    const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
-                    if (error) alert(error.message);
-                    else alert("Recruitment Request Sent. Verify your email uplink.");
+                    
+                    // Register Service Worker for PWA Offline Support
+                    if ('serviceWorker' in navigator) { 
+                        window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js')); 
+                    }
                 },
 
                 async uploadImage(e) {
-                    const file = e.target.files[0]; if (!file) return;
+                    const file = e.target.files[0];
+                    if (!file) return;
                     const path = `chat/${Date.now()}-${file.name}`;
-                    const { data } = await this.supabase.storage.from('chat-attachments').upload(path, await file.arrayBuffer(), { contentType: file.type });
+                    const buffer = await file.arrayBuffer();
+                    
+                    const { data, error } = await this.supabase.storage.from('chat-attachments').upload(path, buffer, { contentType: file.type });
+                    
                     if (data) {
                         const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
-                        await this.supabase.from('messages').insert([{ image_url: publicUrl, user_id: this.user.id, text: `MEDIA_UPLINK: ${file.name.toUpperCase()}` }]);
+                        await this.supabase.from('messages').insert([{ 
+                            image_url: publicUrl, 
+                            text: `MEDIA_TRANSMISSION: ${file.name.toUpperCase()}` 
+                        }]);
+                    } else {
+                        alert("Uplink Error: " + error.message);
                     }
                 },
 
-                async requestNotify() { if (await Notification.requestPermission() === 'granted') alert("Alert Protocol Active."); },
+                async requestNotify() {
+                    if (await Notification.requestPermission() === 'granted') alert("Protocol Enabled: Alerts active.");
+                },
 
                 subscribeToMessages() {
                     if (this.channel) return;
                     this.channel = this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
                         this.messages.push(p.new);
-                        if (p.new.user_id !== this.user?.id && Notification.permission === 'granted') {
-                            new Notification("NCC: NEW TRANSMISSION", { body: p.new.text, icon: 'logo.png' });
+                        // Desktop Push Notifications
+                        if (Notification.permission === 'granted') {
+                            new Notification("NCC TRANSMISSION", { body: p.new.text, icon: 'logo.png' });
                         }
                         this.scrollToBottom();
                     }).subscribe();
@@ -202,15 +153,19 @@
                 },
 
                 async sendMessage() {
-                    if (!this.newMessage.trim() || !this.user) return;
+                    if (!this.newMessage.trim()) return;
                     const txt = this.newMessage.toUpperCase();
                     this.newMessage = '';
-                    await this.supabase.from('messages').insert([{ text: txt, user_id: this.user.id }]);
+                    await this.supabase.from('messages').insert([{ text: txt }]);
+                    this.fetchData();
                 },
 
-                async loginWithGoogle() { await this.supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); },
-                logout() { this.supabase.auth.signOut(); location.reload(); },
-                scrollToBottom() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); }
+                scrollToBottom() {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('chat-stream');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    });
+                }
             }
         }
     </script>
