@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | NCC TITANIUM</title>
+    <title>MINISTRY OF GROOVE | DECRYPTING THECULTURE. SYNCHRONIZING THE GRID </title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -23,7 +23,6 @@
             overflow-x: hidden;
         }
 
-        /* Readability Overlay */
         body::before {
             content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(5, 5, 5, 0.96); z-index: -1;
@@ -97,7 +96,7 @@
             </main>
         </div>
     </template>
-    
+
     <template x-if="authView">
         <div class="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 backdrop-blur-xl">
             <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-[0_0_80px_rgba(212,175,55,0.1)] border-gold/20">
@@ -122,7 +121,7 @@
             </div>
         </div>
     </template>
-
+    
     <script>
         function app() {
             return {
@@ -147,29 +146,54 @@
 
                 async handleAuthSuccess(user) {
                     this.user = user;
-                    let { data: profile } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
-                    if (!profile) {
-                        const { data } = await this.supabase.from('members').insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }]).select().single();
-                        profile = data;
-                    }
-                    this.profile = profile;
-                    if (!profile.gate_two_complete) {
-                        this.authView = 'set_passkey';
-                        this.$nextTick(() => lucide.createIcons());
-                    } else {
-                        this.authView = null;
-                        this.fetchData();
-                        this.subscribeToMessages();
+                    try {
+                        let { data: profile, error } = await this.supabase
+                            .from('members')
+                            .select('*')
+                            .eq('user_id', user.id)
+                            .maybeSingle();
+
+                        if (!profile) {
+                            const { data: newProfile, error: insertError } = await this.supabase
+                                .from('members')
+                                .insert([{ 
+                                    user_id: user.id, 
+                                    full_name: user.email.split('@')[0],
+                                    gate_two_complete: false 
+                                }])
+                                .select()
+                                .single();
+                            
+                            if (insertError) throw insertError;
+                            profile = newProfile;
+                        }
+
+                        this.profile = profile;
+
+                        if (profile && !profile.gate_two_complete) {
+                            this.authView = 'set_passkey';
+                            this.$nextTick(() => lucide.createIcons());
+                        } else {
+                            this.authView = null;
+                            this.startUplink();
+                            this.fetchData();
+                            this.subscribeToMessages();
+                        }
+                    } catch (err) {
+                        console.error("Titanium Uplink Error:", err);
+                        alert("Database Synchronization Error. Please ensure the 'members' table is created in Supabase.");
                     }
                 },
 
                 async uploadImage(e) {
                     const file = e.target.files[0]; if (!file) return;
                     const path = `chat/${Date.now()}-${file.name}`;
-                    const { data } = await this.supabase.storage.from('chat-attachments').upload(path, file);
+                    const { data, error } = await this.supabase.storage.from('chat-attachments').upload(path, file);
                     if (data) {
                         const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
                         await this.supabase.from('messages').insert([{ image_url: publicUrl, user_id: this.user.id, text: `IMAGE_TRANSMISSION` }]);
+                    } else {
+                        console.error("Upload Error:", error);
                     }
                 },
 
@@ -190,13 +214,32 @@
                 async finalizeSecurity() {
                     if (this.passkey.length < 6) return alert("Security Breach: Passkey must be 6+ characters.");
                     const { error: dbErr } = await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
-                    if (!dbErr) { location.reload(); }
+                    if (!dbErr) { location.reload(); } else { alert("Passkey save failed."); }
                 },
 
-                async handleLogin() { const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password }); if (error) alert(error.message); },
-                async handleRegister() { const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password }); if (error) alert(error.message); else alert("Check your email for the uplink link."); },
-                async fetchData() { const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }); this.messages = data || []; this.scrollToBottom(); },
-                async sendMessage() { if (!this.newMessage.trim()) return; await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); this.newMessage = ''; },
+                async handleLogin() { 
+                    const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password }); 
+                    if (error) alert(error.message); 
+                },
+
+                async handleRegister() { 
+                    const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password }); 
+                    if (error) alert(error.message); 
+                    else alert("Check your email for the uplink link."); 
+                },
+
+                async fetchData() { 
+                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }); 
+                    this.messages = data || []; 
+                    this.scrollToBottom(); 
+                },
+
+                async sendMessage() { 
+                    if (!this.newMessage.trim()) return; 
+                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); 
+                    this.newMessage = ''; 
+                },
+
                 logout() { this.supabase.auth.signOut(); },
                 startUplink() { this.appState = 'grid'; this.$nextTick(() => { lucide.createIcons(); this.scrollToBottom(); }); },
                 scrollToBottom() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); }
