@@ -19,6 +19,8 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
         [x-cloak] { display: none !important; }
+        @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .animate-flicker { animation: flicker 2s infinite; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
@@ -28,7 +30,7 @@
             <div @click="startUplink()" class="cursor-pointer group">
                 <img src="/logo.png" class="h-48 w-48 mx-auto mb-8 gold-glow animate-pulse group-hover:scale-105 transition-transform duration-700">
                 <h1 class="text-white text-3xl md:text-5xl tracking-[0.4em] font-black uppercase italic">Ministry of Groove</h1>
-                <p class="text-gold/40 text-[9px] tracking-[1em] mt-6 uppercase">Initialize National Grid</p>
+                <p class="text-gold/40 text-[9px] tracking-[1em] mt-6 uppercase animate-flicker">Initialize National Grid</p>
             </div>
         </div>
     </template>
@@ -42,7 +44,7 @@
                 </div>
                 <div class="flex gap-4">
                     <button @click="exportDossier()" class="text-[9px] border border-gold/30 px-4 py-2 uppercase font-black hover:bg-gold hover:text-black transition-all">Export Dossier</button>
-                    <button @click="supabase.auth.signOut()" class="text-[9px] text-red-500 uppercase font-bold tracking-widest">Disconnect</button>
+                    <button @click="logout()" class="text-[9px] text-red-500 uppercase font-bold tracking-widest">Disconnect</button>
                 </div>
             </header>
 
@@ -51,7 +53,7 @@
                     <div class="glass-panel p-6 rounded-3xl h-[450px] flex flex-col border-blue-500/10">
                         <h3 class="text-[9px] uppercase tracking-widest text-gold/50 mb-4 font-bold italic">Active_Operatives</h3>
                         <div class="overflow-y-auto space-y-2 pr-2">
-                            <template x-for="m in members">
+                            <template x-for="m in members" :key="m.id">
                                 <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-gold/20 transition-all">
                                     <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
                                     <span class="text-[10px] text-white uppercase font-bold" x-text="m.full_name || 'Classified'"></span>
@@ -63,7 +65,7 @@
 
                 <div class="md:col-span-9 glass-panel rounded-3xl flex flex-col h-[75vh] md:h-[80vh] overflow-hidden shadow-2xl">
                     <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-                        <template x-for="msg in messages">
+                        <template x-for="msg in messages" :key="msg.id">
                             <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex animate-in slide-in-from-bottom-2">
                                 <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" 
                                      class="max-w-[80%] p-4 rounded-2xl shadow-xl">
@@ -82,48 +84,33 @@
             </main>
         </div>
     </template>
-    
+
     <template x-if="authView">
         <div class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 backdrop-blur-md">
             <div class="max-w-md w-full p-8 glass-panel rounded-[2.5rem] text-center shadow-[0_0_50px_rgba(212,175,55,0.1)]">
                 <div class="mb-6">
-                    <template x-if="authView === 'set_passkey'">
-                        <i data-lucide="fingerprint" class="mx-auto text-blue-500 animate-pulse" size="48"></i>
-                    </template>
-                    <template x-if="authView !== 'set_passkey'">
-                        <i data-lucide="shield-check" class="mx-auto text-gold animate-flicker" size="48"></i>
-                    </template>
+                    <template x-if="authView === 'set_passkey'"><i data-lucide="fingerprint" class="mx-auto text-blue-500 animate-pulse" size="48"></i></template>
+                    <template x-if="authView !== 'set_passkey'"><i data-lucide="shield-check" class="mx-auto text-gold animate-flicker" size="48"></i></template>
                 </div>
-                
                 <h2 class="text-white tracking-[0.4em] uppercase font-black mb-2 text-sm" x-text="authView.replace('_', ' ')"></h2>
-                <p class="text-gold/40 text-[8px] uppercase tracking-widest mb-8">Directorate Security Protocol</p>
-                
-                <form @submit.prevent="authView === 'login' ? handleLogin() : (authView === 'register' ? handleRegister() : finalizeSecurity())" class="space-y-4">
+                <form @submit.prevent="authAction()" class="space-y-4">
                     <template x-if="authView !== 'set_passkey'">
                         <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
                     </template>
-                    
-                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" 
-                           :placeholder="authView === 'set_passkey' ? 'ESTABLISH_NEW_PASSKEY' : 'SECURITY_CODE'" 
-                           required class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
-                    
-                    <button class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white hover:scale-[1.02] transition-all duration-300">
-                        Execute_Protocol
-                    </button>
+                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" required :placeholder="authView === 'set_passkey' ? 'ESTABLISH_NEW_PASSKEY' : 'SECURITY_CODE'" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    <button type="submit" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-xl hover:bg-white transition-all">Execute_Protocol</button>
                 </form>
-
                 <template x-if="authView !== 'set_passkey'">
                     <div class="mt-4">
                         <div class="flex items-center gap-4 my-6 opacity-20"><div class="h-[1px] bg-white flex-grow"></div><span class="text-[8px] font-black">OR</span><div class="h-[1px] bg-white flex-grow"></div></div>
-                        <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
-                            <i data-lucide="chrome" size="14"></i> Sign in with Google
+                        <button type="button" @click="loginWithGoogle()" class="w-full py-4 bg-white/5 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl border border-white/10 flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                            <i data-lucide="chrome" size="14"></i> SIGN IN WITH GOOGLE
                         </button>
                     </div>
                 </template>
-
-                <div class="mt-8 flex justify-center gap-6 text-[9px] uppercase font-bold tracking-tighter opacity-40">
-                    <span class="cursor-pointer hover:text-gold transition-colors" @click="authView = 'login'">Login Access</span>
-                    <span class="cursor-pointer hover:text-gold transition-colors" @click="authView = 'register'">New Operative</span>
+                <div class="mt-8 flex justify-center gap-6 text-[9px] uppercase font-bold opacity-40">
+                    <span class="cursor-pointer hover:text-gold" @click="authView = 'login'">Login</span>
+                    <span class="cursor-pointer hover:text-gold" @click="authView = 'register'">Register</span>
                 </div>
             </div>
         </div>
@@ -134,89 +121,67 @@
             return {
                 appState: 'landing', authView: 'login', user: null, profile: null,
                 email: '', password: '', passkey: '', newMessage: '',
-                messages: [], members: [], supabase: null,
+                messages: [], members: [], 
+                supabase: null,
 
                 async init() {
-                    // Replace with your actual credentials
-                    this.supabase = window.supabase.createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+                    // INTEGRATED CREDENTIALS
+                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+                    
+                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     
                     const { data: { session } } = await this.supabase.auth.getSession();
                     if (session) await this.handleAuthSuccess(session.user);
 
                     this.supabase.auth.onAuthStateChange(async (event, session) => {
-                        if (event === 'SIGNED_IN' && session) {
-                            await this.handleAuthSuccess(session.user);
-                        }
-                        if (event === 'SIGNED_OUT') {
-                            this.user = null;
-                            this.appState = 'landing';
-                            this.authView = 'login';
-                        }
+                        if (event === 'SIGNED_IN' && session) await this.handleAuthSuccess(session.user);
+                        if (event === 'SIGNED_OUT') { this.user = null; this.appState = 'landing'; this.authView = 'login'; }
                     });
                     lucide.createIcons();
                 },
 
                 async loginWithGoogle() {
                     await this.supabase.auth.signInWithOAuth({ 
-                        provider: 'google',
-                        options: { redirectTo: window.location.origin }
+                        provider: 'google', 
+                        options: { redirectTo: window.location.origin } 
                     });
+                },
+
+                async handleAuthSuccess(user) {
+                    this.user = user;
+                    let { data: profile, error } = await this.supabase.from('members').select('*').eq('user_id', user.id).single();
+                    if (error && error.code === 'PGRST116') {
+                        const { data: newProfile } = await this.supabase.from('members').insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }]).select().single();
+                        profile = newProfile;
+                    }
+                    this.profile = profile;
+                    if (!profile?.gate_two_complete) { this.authView = 'set_passkey'; this.$nextTick(() => lucide.createIcons()); }
+                    else { this.authView = null; this.startUplink(); }
+                    this.fetchData();
+                    this.subscribeToMessages();
+                },
+
+                authAction() {
+                    if (this.authView === 'login') this.handleLogin();
+                    else if (this.authView === 'register') this.handleRegister();
+                    else if (this.authView === 'set_passkey') this.finalizeSecurity();
                 },
 
                 async handleLogin() {
                     const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
                     if (error) alert(error.message);
                 },
-
+        
                 async handleRegister() {
                     const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
-                    if (error) alert("Check email for verification link.");
-                    else this.authView = 'login';
-                },
-
-                async handleAuthSuccess(user) {
-                    this.user = user;
-                    
-                    let { data: profile, error } = await this.supabase
-                        .from('members')
-                        .select('*')
-                        .eq('user_id', user.id)
-                        .single();
-                    
-                    if (error && error.code === 'PGRST116') {
-                        const { data: newProfile } = await this.supabase
-                            .from('members')
-                            .insert([{ user_id: user.id, full_name: user.email.split('@')[0], gate_two_complete: false }])
-                            .select().single();
-                        profile = newProfile;
-                    }
-                    
-                    this.profile = profile;
-                    
-                    if (!profile?.gate_two_complete) {
-                        this.authView = 'set_passkey';
-                        this.$nextTick(() => lucide.createIcons());
-                    } else {
-                        this.authView = null;
-                        this.startUplink();
-                    }
-                    this.fetchData();
-                    this.subscribeToMessages();
+                    if (error) alert("Check email for link."); else this.authView = 'login';
                 },
 
                 async finalizeSecurity() {
-                    const { error: authError } = await this.supabase.auth.updateUser({ password: this.passkey });
-                    const { error: dbError } = await this.supabase
-                        .from('members')
-                        .update({ gate_two_complete: true })
-                        .eq('user_id', this.user.id);
-
-                    if (!authError && !dbError) {
-                        this.authView = null;
-                        this.startUplink();
-                    } else {
-                        alert("Gate Two Security Protocol Failure.");
-                    }
+                    await this.supabase.auth.updateUser({ password: this.passkey });
+                    await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
+                    this.authView = null; this.startUplink();
                 },
 
                 async fetchData() {
@@ -228,45 +193,27 @@
                 },
 
                 subscribeToMessages() {
-                    this.supabase.channel('hq_freq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                        this.messages.push(p.new);
-                        this.scrollToBottom();
+                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                        this.messages.push(p.new); this.scrollToBottom();
                     }).subscribe();
                 },
 
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
-                    await this.supabase.from('messages').insert([{ 
-                        text: this.newMessage.toUpperCase(), 
-                        user_id: this.user.id,
-                        sender_name: this.profile?.full_name 
-                    }]);
+                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id, sender_name: this.profile?.full_name }]);
                     this.newMessage = '';
                 },
 
-                startUplink() {
-                    this.appState = 'grid';
-                    this.$nextTick(() => {
-                        lucide.createIcons();
-                        this.scrollToBottom();
-                    });
-                },
-
-                scrollToBottom() {
-                    this.$nextTick(() => {
-                        const el = document.getElementById('chat-stream');
-                        if (el) el.scrollTop = el.scrollHeight;
-                    });
-                },
-
+                async logout() { await this.supabase.auth.signOut(); },
+                startUplink() { this.appState = 'grid'; this.$nextTick(() => { lucide.createIcons(); this.scrollToBottom(); }); },
+                scrollToBottom() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); },
+                
                 exportDossier() {
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF();
                     doc.setFillColor(5, 5, 5); doc.rect(0, 0, 210, 297, 'F');
-                    doc.setTextColor(212, 175, 55); doc.setFontSize(22);
-                    doc.text("MINISTRY OF GROOVE", 105, 40, { align: "center" });
-                    doc.setFontSize(10); doc.text("OFFICIAL INTELLIGENCE REPORT // WITBANK HQ", 105, 50, { align: "center" });
-                    doc.save("MOG_Dossier_Intel.pdf");
+                    doc.setTextColor(212, 175, 55); doc.text("MINISTRY OF GROOVE // INTEL", 105, 40, { align: "center" });
+                    doc.save(`MOG_Dossier_${Date.now()}.pdf`);
                 }
             }
         }
