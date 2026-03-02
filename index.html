@@ -1,174 +1,103 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | NCC UNLOCKED</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ministry of Groove | M.O.G.</title>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#D4AF37">
-
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        :root { --mog-gold: #D4AF37; --mog-black: #0a0a0a; --mog-grey: #1a1a1a; }
+        body { background: var(--mog-black); color: white; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        body { 
-            background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
-            background-image: url('logo.png'); background-repeat: no-repeat;
-            background-position: center; background-attachment: fixed; background-size: 30%;
-            overflow-x: hidden;
-        }
+        #loading-screen { position: fixed; inset: 0; background: black; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease; }
+        .logo-glow { width: 180px; filter: drop-shadow(0 0 20px var(--mog-gold)); animation: pulse 2s infinite ease-in-out; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.95); } }
 
-        /* Directorate Readability Overlay */
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(5, 5, 5, 0.96); z-index: -1;
-        }
-
-        .glass-panel { background: rgba(13, 13, 13, 0.92); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3)); }
-        
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
-
-        @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .animate-status { animation: pulse-slow 3s infinite; }
+        #chat-interface { display: none; flex-direction: column; height: 100%; }
+        .header { padding: 15px; background: var(--mog-grey); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 12px; max-width: 80%; background: #222; border-left: 3px solid var(--mog-gold); align-self: flex-start; font-size: 0.95rem; }
+        .input-area { padding: 15px; background: var(--mog-grey); display: flex; gap: 10px; border-top: 1px solid #333; }
+        input { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #444; background: #000; color: white; outline: none; padding-left: 20px; }
+        .send-btn { background: var(--mog-gold); color: black; border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 </head>
-<body x-data="app()" x-init="init()">
+<body>
 
-    <div class="min-h-screen flex flex-col">
-        <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
-            <div class="flex items-center gap-4">
-                <img src="logo.png" class="h-10 w-10 gold-glow">
-                <div>
-                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic">National Command Center</h2>
-                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest animate-status">Sector_eMalahleni_Unlocked_Titanium</p>
-                </div>
-            </div>
-            <div class="flex gap-4 items-center">
-                <button @click="requestNotify()" class="text-[9px] border border-blue-500/30 px-4 py-2 text-blue-400 uppercase font-black hover:bg-blue-500 hover:text-white transition-all">Enable Alerts</button>
-            </div>
-        </header>
-
-        <main class="flex-grow p-4 md:p-8 flex flex-col items-center">
-            <div class="w-full max-w-6xl glass-panel rounded-[2.5rem] h-[80vh] flex flex-col overflow-hidden shadow-2xl border-white/5">
-                
-                <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-                    <template x-for="msg in messages" :key="msg.id">
-                        <div class="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
-                            <div class="bg-zinc-900 text-zinc-300 rounded-[2rem] rounded-tl-none border border-white/5 max-w-[85%] md:max-w-[70%] p-5 shadow-xl">
-                                
-                                <template x-if="msg.image_url">
-                                    <div class="mb-3 overflow-hidden rounded-2xl border border-white/10">
-                                        <img :src="msg.image_url" class="max-h-72 w-full object-cover cursor-zoom-in hover:scale-105 transition-all duration-700">
-                                    </div>
-                                </template>
-                                
-                                <p class="text-xs font-medium leading-relaxed tracking-wide" x-text="msg.text"></p>
-                                <div class="text-[7px] mt-2 opacity-40 uppercase font-black text-right tracking-tighter" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <form @submit.prevent="sendMessage()" class="p-5 bg-black/80 border-t border-white/5 flex items-center gap-4">
-                    <label class="cursor-pointer text-gold/40 hover:text-gold transition-all p-3 hover:bg-white/5 rounded-full">
-                        <i data-lucide="paperclip" size="24"></i>
-                        <input type="file" class="hidden" @change="uploadImage($event)" accept="image/*">
-                    </label>
-                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 transition-all uppercase tracking-widest placeholder-zinc-700">
-                    <button type="submit" class="bg-gold text-black px-12 py-4 rounded-2xl font-black text-[10px] hover:bg-white transition-all italic uppercase tracking-tighter shadow-lg">Transmit</button>
-                </form>
-            </div>
-        </main>
+    <div id="loading-screen">
+        <img src="logo.png" alt="M.O.G." class="logo-glow">
+        <div style="color: var(--mog-gold); margin-top: 30px; font-weight: bold; letter-spacing: 3px; font-size: 0.8rem;">TITANIUM UPLINK ACTIVE</div>
     </div>
 
-        <script>
-        function app() {
-            return {
-                newMessage: '',
-                messages: [],
-                supabase: null,
-                channel: null,
+    <div id="chat-interface">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="logo.png" style="width: 30px;">
+                <span style="font-weight: bold; color: var(--mog-gold);">M.O.G. HUB</span>
+            </div>
+            <button onclick="logout()" style="background:none; border:none; color:#777; font-size: 11px;">OFFLINE</button>
+        </div>
+        <div id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="msgInput" placeholder="Message National Grid...">
+            <button class="send-btn" onclick="sendMessage()"><i data-lucide="send"></i></button>
+        </div>
+    </div>
 
-                async init() {
-                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-                    
-                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    
-                    this.fetchData();
-                    this.subscribeToMessages();
-                    lucide.createIcons();
-                    
-                    // Register Service Worker for PWA Offline Support
-                    if ('serviceWorker' in navigator) { 
-                        window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js')); 
-                    }
-                },
+    <script>
+        const SB_URL = "https://quzwygjbqpkuqjhrmsjp.supabase.co";
+        const SB_KEY = "EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU"; 
+        const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-                async uploadImage(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const path = `chat/${Date.now()}-${file.name}`;
-                    const buffer = await file.arrayBuffer();
-                    
-                    const { data, error } = await this.supabase.storage.from('chat-attachments').upload(path, buffer, { contentType: file.type });
-                    
-                    if (data) {
-                        const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
-                        await this.supabase.from('messages').insert([{ 
-                            image_url: publicUrl, 
-                            text: `MEDIA_TRANSMISSION: ${file.name.toUpperCase()}` 
-                        }]);
-                    } else {
-                        alert("Uplink Error: " + error.message);
-                    }
-                },
-
-                async requestNotify() {
-                    if (await Notification.requestPermission() === 'granted') alert("Protocol Enabled: Alerts active.");
-                },
-
-                subscribeToMessages() {
-                    if (this.channel) return;
-                    this.channel = this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                        this.messages.push(p.new);
-                        // Desktop Push Notifications
-                        if (Notification.permission === 'granted') {
-                            new Notification("NCC TRANSMISSION", { body: p.new.text, icon: 'logo.png' });
-                        }
-                        this.scrollToBottom();
-                    }).subscribe();
-                },
-
-                async fetchData() {
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true });
-                    this.messages = data || [];
-                    this.scrollToBottom();
-                },
-
-                async sendMessage() {
-                    if (!this.newMessage.trim()) return;
-                    const txt = this.newMessage.toUpperCase();
-                    this.newMessage = '';
-                    await this.supabase.from('messages').insert([{ text: txt }]);
-                    this.fetchData();
-                },
-
-                scrollToBottom() {
-                    this.$nextTick(() => {
-                        const el = document.getElementById('chat-stream');
-                        if (el) el.scrollTop = el.scrollHeight;
-                    });
-                }
+        async function init() {
+            lucide.createIcons();
+            const { data: { session } } = await _supabase.auth.getSession();
+            
+            if (session) {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('chat-interface').style.display = 'flex';
+                }, 600);
+                loadHistory();
+                subscribeToMessages();
+            } else {
+                window.location.href = 'login.html'; 
             }
         }
+
+        function subscribeToMessages() {
+            _supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                displayMessage(payload.new);
+            }).subscribe();
+        }
+
+        async function loadHistory() {
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
+            if (data) data.forEach(displayMessage);
+        }
+
+        function displayMessage(msg) {
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.textContent = msg.content;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('msgInput');
+            if (!input.value.trim()) return;
+            const text = input.value;
+            input.value = '';
+            await _supabase.from('messages').insert([{ content: text }]);
+        }
+
+        async function logout() { await _supabase.auth.signOut(); window.location.reload(); }
+        init();
     </script>
 </body>
 </html>
