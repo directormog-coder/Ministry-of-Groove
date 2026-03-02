@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | SUPREME COMMAND</title>
+    <title>MINISTRY OF GROOVE | COMMAND CENTER</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -18,7 +18,7 @@
         .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4)); }
         .admin-border { border: 2px solid #D4AF37 !important; box-shadow: 0 0 30px rgba(212, 175, 55, 0.1); }
         [x-cloak] { display: none !important; }
-        .announcement-bar { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent); border-y: 1px solid rgba(212,175,55,0.2); }
+        .announcement-bar { background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent); border-bottom: 1px solid rgba(212,175,55,0.2); }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
@@ -40,12 +40,12 @@
                     <img src="logo.png" class="h-10 w-10 gold-glow">
                     <div>
                         <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="profile?.full_name || 'Agent'"></h2>
-                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="profile?.role === 'admin' ? 'DIRECTOR' : 'Sector_eMalahleni'"></p>
+                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="profile?.role === 'admin' ? 'COMMAND_DIRECTOR' : 'Sector_eMalahleni'"></p>
                     </div>
                 </div>
                 <div class="flex gap-3">
                     <template x-if="profile?.role === 'admin'">
-                        <button @click="openAdmin()" class="text-[9px] text-gold border border-gold/30 px-4 py-2 rounded-xl hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest">Console</button>
+                        <button @click="openAdmin()" class="text-[9px] text-gold border border-gold/30 px-4 py-2 rounded-xl hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest">Admin_Console</button>
                     </template>
                     <button @click="logout()" class="text-[9px] text-red-500 border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all font-black uppercase tracking-widest">Disconnect</button>
                 </div>
@@ -96,6 +96,33 @@
         </div>
     </template>
 
+    <template x-if="authView">
+        <div class="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 backdrop-blur-xl">
+            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-[0_0_80px_rgba(212,175,55,0.1)] border-gold/20">
+                <i :data-lucide="authView === 'set_passkey' ? 'fingerprint' : 'shield-alert'" class="mx-auto text-gold mb-8 animate-pulse" size="56"></i>
+                <h2 class="text-white tracking-[0.4em] uppercase font-black mb-10 text-sm" x-text="authView.replace('_', ' ')"></h2>
+                
+                <form @submit.prevent="runAuthAction()" class="space-y-5">
+                    <template x-if="authView !== 'set_passkey'">
+                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    </template>
+                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" placeholder="SECURITY_CODE" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
+                    <button type="submit" :disabled="loading" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl transition-all">
+                        <span x-show="!loading">Execute_Protocol</span>
+                        <span x-show="loading" class="animate-pulse">Syncing...</span>
+                    </button>
+                </form>
+
+                <template x-if="authView !== 'set_passkey'">
+                    <div class="mt-10 flex justify-center gap-8 text-[9px] uppercase font-black tracking-widest opacity-30">
+                        <button type="button" @click="authView = 'login'">Login</button>
+                        <button type="button" @click="authView = 'register'">Register</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </template>
+
     <template x-if="adminView">
         <div class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4">
             <div class="max-w-4xl w-full h-[80vh] glass-panel rounded-[3rem] p-10 flex flex-col">
@@ -113,15 +140,13 @@
                 </div>
 
                 <div class="flex-grow overflow-y-auto">
-                    <table class="w-full text-left">
-                        <thead class="text-[8px] text-gold/40 uppercase tracking-widest border-b border-white/5">
-                            <tr><th class="pb-4">Alias</th><th class="pb-4">Role</th><th class="pb-4">Status</th></tr>
-                        </thead>
-                        <tbody class="text-xs text-white/80">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-[8px] text-gold/40 uppercase tracking-widest"><tr><th class="pb-4">Alias</th><th class="pb-4">Role</th><th class="pb-4">Gate</th></tr></thead>
+                        <tbody>
                             <template x-for="m in membersList" :key="m.id">
                                 <tr class="border-b border-white/5">
-                                    <td class="py-4 font-black italic" x-text="m.full_name"></td>
-                                    <td class="py-4 uppercase font-black text-blue-400" x-text="m.role"></td>
+                                    <td class="py-4 italic font-black" x-text="m.full_name"></td>
+                                    <td class="py-4 font-black uppercase text-blue-400" x-text="m.role"></td>
                                     <td class="py-4" x-text="m.gate_two_complete ? 'SYNCED' : 'OFFLINE'"></td>
                                 </tr>
                             </template>
@@ -131,43 +156,15 @@
             </div>
         </div>
     </template>
-
-    <template x-if="authView">
-        <div class="fixed inset-0 z-[100] bg-black/98 flex items-center justify-center p-4 backdrop-blur-xl">
-            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-[0_0_80px_rgba(212,175,55,0.1)] border-gold/20">
-                <i :data-lucide="authView === 'set_passkey' ? 'fingerprint' : 'shield-alert'" class="mx-auto text-gold mb-8 animate-pulse" size="56"></i>
-                <h2 class="text-white tracking-[0.4em] uppercase font-black mb-10 text-sm" x-text="authView.replace('_', ' ')"></h2>
-                
-                <form @submit.prevent="runAuthAction()" class="space-y-5">
-                    <template x-if="authView !== 'set_passkey'">
-                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
-                    </template>
-                    <input type="password" x-model="authView === 'set_passkey' ? passkey : password" placeholder="SECURITY_CODE" required class="w-full bg-zinc-900 p-5 rounded-2xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest">
-                    <button type="submit" :disabled="loading" :class="loading ? 'opacity-50' : 'hover:bg-white'" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl transition-all">
-                        <span x-show="!loading">Execute_Protocol</span>
-                        <span x-show="loading" class="animate-pulse">Syncing...</span>
-                    </button>
-                </form>
-
-                <template x-if="authView !== 'set_passkey'">
-                    <div class="mt-10 flex justify-center gap-8 text-[9px] uppercase font-black tracking-widest opacity-30">
-                        <button type="button" @click="authView = 'login'">Login</button>
-                        <button type="button" @click="authView = 'register'">Register</button>
-                    </div>
-                </template>
-            </div>
-        </div>
-    </template>
-
-        <script>
+    
+    <script>
         function app() {
             return {
                 appState: 'landing', authView: 'login', user: null, profile: null, loading: false,
                 email: '', password: '', passkey: '', newMessage: '', messages: [], 
                 page: 0, pageSize: 20, hasMore: true, isTyping: false, typingUsers: [], 
                 presenceChannel: null, profileModal: false, adminView: false, membersList: [],
-                announcement: null, newAnnouncement: '',
-                profileForm: { full_name: '', bio: '' }, supabase: null,
+                announcement: null, newAnnouncement: '', supabase: null,
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
@@ -197,11 +194,20 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
+                runAuthAction() {
+                    if (this.authView === 'login') this.handleLogin();
+                    else if (this.authView === 'register') this.handleRegister();
+                    else if (this.authView === 'set_passkey') this.finalizeSecurity();
+                },
+
                 async finalizeSecurity() {
                     this.loading = true;
+                    // ADMIN PROTOCOL
                     if (this.email === 'director.mog@gmail.com' && this.passkey !== '@MOGProtocol2026') {
-                        alert("Invalid Admin Passkey."); this.loading = false; return;
+                        alert("ADMIN ACCESS DENIED"); this.loading = false; return;
                     }
+                    if (this.passkey.length < 6) { alert("MIN 6 CHARACTERS"); this.loading = false; return; }
+                    
                     const { error } = await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
                     if (!error) { this.profile.gate_two_complete = true; this.handleAuthSuccess(this.user); }
                     this.loading = false;
@@ -221,7 +227,7 @@
                 async fetchAnnouncements() {
                     const { data } = await this.supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
                     this.announcement = data;
-                    this.supabase.channel('announcements-realtime').on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (p) => {
+                    this.supabase.channel('announcements').on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (p) => {
                         if (p.eventType === 'INSERT') this.announcement = p.new;
                         if (p.eventType === 'DELETE') this.announcement = null;
                     }).subscribe();
@@ -234,17 +240,18 @@
                 },
 
                 async clearAnnouncement() {
-                    if (this.announcement) await this.supabase.from('announcements').delete().eq('id', this.announcement.id);
+                    await this.supabase.from('announcements').delete().eq('id', this.announcement.id);
                 },
 
                 async deleteMsg(id) {
-                    if (confirm("Purge transmission?")) await this.supabase.from('messages').delete().eq('id', id);
+                    if (confirm("PURGE?")) await this.supabase.from('messages').delete().eq('id', id);
                 },
 
-                runAuthAction() {
-                    if (this.authView === 'login') this.handleLogin();
-                    else if (this.authView === 'register') this.handleRegister();
-                    else if (this.authView === 'set_passkey') this.finalizeSecurity();
+                async sendMessage() { 
+                    if (!this.newMessage.trim() || this.loading) return; 
+                    this.loading = true;
+                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); 
+                    this.newMessage = ''; this.loading = false;
                 },
 
                 handleTyping() {
@@ -256,13 +263,6 @@
                             this.presenceChannel.track({ user_id: this.user.id, username: this.profile?.full_name, is_typing: false });
                         }, 3000);
                     }
-                },
-
-                async sendMessage() { 
-                    if (!this.newMessage.trim() || this.loading) return; 
-                    this.loading = true;
-                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]); 
-                    this.newMessage = ''; this.loading = false;
                 },
 
                 subscribeToMessages() {
@@ -282,11 +282,6 @@
                     });
                 },
 
-                async openAdmin() {
-                    const { data } = await this.supabase.from('members').select('*');
-                    this.membersList = data; this.adminView = true;
-                },
-
                 async handleLogin() { 
                     this.loading = true;
                     const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password }); 
@@ -297,7 +292,12 @@
                     this.loading = true;
                     const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password }); 
                     if (error) { alert(error.message); this.loading = false; }
-                    else { alert("Check email for uplink."); this.loading = false; }
+                    else { alert("REGISTERED. LOG IN NOW."); this.loading = false; }
+                },
+
+                async openAdmin() {
+                    const { data } = await this.supabase.from('members').select('*');
+                    this.membersList = data; this.adminView = true;
                 },
 
                 logout() { this.supabase.auth.signOut(); },
