@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | DIRECT ACCESS</title>
+    <title>MINISTRY OF GROOVE | OPEN ACCESS</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -29,45 +29,46 @@
 <body x-data="app()" x-init="init()" x-cloak>
 
     <div class="h-screen flex flex-col">
-        <header class="p-4 border-b border-gold/10 glass-panel flex justify-between items-center">
-            <div class="flex items-center gap-4">
+        <header class="p-4 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center gap-4 cursor-pointer" @click="settingsModal = true">
                 <img src="logo.png" class="h-10 w-10">
                 <div>
                     <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="agentName"></h2>
-                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest">Sector_eMalahleni_Titanium</p>
+                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="isAdmin ? 'COMMAND_DIRECTOR' : 'PUBLIC_GRID_ACTIVE'"></p>
                 </div>
             </div>
-            <button @click="openSettings = true" class="p-2 text-gold/50 hover:text-gold transition-all"><i data-lucide="settings"></i></button>
+            <button @click="settingsModal = true" class="p-2 text-gold/50 hover:text-gold transition-all"><i data-lucide="settings"></i></button>
         </header>
 
         <main class="flex-grow p-4 md:p-8 flex flex-col items-center justify-center">
             <div class="w-full max-w-5xl glass-panel rounded-[2rem] h-[80vh] flex flex-col overflow-hidden shadow-2xl">
                 <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4">
                     <template x-for="msg in messages" :key="msg.id">
-                        <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex">
-                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white' : 'bg-zinc-900 text-zinc-300'" class="max-w-[80%] p-4 rounded-2xl relative shadow-lg">
+                        <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex group">
+                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-4 rounded-2xl relative shadow-lg">
                                 <div class="text-[8px] mb-1 opacity-50 font-black uppercase italic" x-text="msg.author_name"></div>
                                 <p class="text-xs" x-text="msg.text"></p>
+                                <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                             </div>
                         </div>
                     </template>
                 </div>
 
                 <form @submit.prevent="sendMessage()" class="p-4 bg-black/40 border-t border-white/5 flex gap-3">
-                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
+                    <input x-model="newMessage" placeholder="ENTER TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
                     <button type="submit" class="bg-gold text-black px-8 rounded-xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
                 </form>
             </div>
         </main>
     </div>
-    
-    <template x-if="openSettings">
+
+    <template x-if="settingsModal">
         <div class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
             <div class="max-w-sm w-full glass-panel p-8 rounded-[2rem] text-center border-gold/30">
                 <h3 class="text-gold text-xs font-black mb-6 uppercase tracking-widest italic">Identity Terminal</h3>
                 <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-4 text-white text-xs mb-6 text-center outline-none focus:border-gold" placeholder="NEW_ALIAS">
                 <div class="flex gap-4">
-                    <button @click="openSettings = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Abort</button>
+                    <button @click="settingsModal = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Abort</button>
                     <button @click="saveName()" class="flex-1 bg-gold text-black py-4 rounded-xl text-[9px] font-black uppercase">Sync_Alias</button>
                 </div>
             </div>
@@ -77,17 +78,19 @@
     <script>
         function app() {
             return {
-                guestId: '', agentName: '', tempName: '', newMessage: '', messages: [], openSettings: false, supabase: null,
+                guestId: '', agentName: '', tempName: '', newMessage: '', messages: [], 
+                settingsModal: false, isAdmin: false, supabase: null,
                 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-                    // Restore or generate a unique ID for this browser
+                    // Restore or generate local ID
                     this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
                     this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
                     this.tempName = this.agentName;
+                    this.isAdmin = localStorage.getItem('mog_is_admin') === 'true';
                     
                     localStorage.setItem('mog_id', this.guestId);
                     localStorage.setItem('mog_name', this.agentName);
@@ -98,15 +101,23 @@
                 },
 
                 saveName() {
-                    if (this.tempName.trim().length < 2) return;
                     this.agentName = this.tempName.toUpperCase();
                     localStorage.setItem('mog_name', this.agentName);
-                    this.openSettings = false;
+                    this.settingsModal = false;
                 },
 
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
-                    // Send message to public table using guest identity
+                    
+                    // Secret Admin Activation
+                    if (this.newMessage === '@MOGProtocol2026') {
+                        this.isAdmin = true;
+                        localStorage.setItem('mog_is_admin', 'true');
+                        alert("DIRECTOR_AUTHORIZED");
+                        this.newMessage = '';
+                        return;
+                    }
+
                     await this.supabase.from('messages').insert([{ 
                         text: this.newMessage.toUpperCase(), 
                         guest_id: this.guestId, 
@@ -136,4 +147,4 @@
         }
     </script>
 </body>
-</html>
+</html
