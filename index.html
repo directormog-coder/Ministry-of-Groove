@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | OPEN ACCESS</title>
+    <title>MINISTRY OF GROOVE | DIRECT ACCESS</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif; background-image: url('logo.png'); background-repeat: no-repeat; background-position: center; background-attachment: fixed; background-size: 30%; overflow: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.97); z-index: -1; }
+        body { 
+            background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
+            background-image: url('logo.png'); background-repeat: no-repeat;
+            background-position: center; background-attachment: fixed; background-size: 30%;
+            overflow: hidden;
+        }
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 5, 0.97); z-index: -1;
+        }
         .glass-panel { background: rgba(13, 13, 13, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.2); }
         [x-cloak] { display: none !important; }
     </style>
@@ -24,7 +34,7 @@
                 <img src="logo.png" class="h-10 w-10">
                 <div>
                     <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="agentName"></h2>
-                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest">Sector_eMalahleni_Active</p>
+                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest">Sector_eMalahleni_Titanium</p>
                 </div>
             </div>
             <button @click="openSettings = true" class="p-2 text-gold/50 hover:text-gold transition-all"><i data-lucide="settings"></i></button>
@@ -44,38 +54,41 @@
                 </div>
 
                 <form @submit.prevent="sendMessage()" class="p-4 bg-black/40 border-t border-white/5 flex gap-3">
-                    <input x-model="newMessage" placeholder="ENTER TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
+                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
                     <button type="submit" class="bg-gold text-black px-8 rounded-xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
                 </form>
             </div>
         </main>
     </div>
-
+    
     <template x-if="openSettings">
-        <div class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6">
-            <div class="max-w-sm w-full glass-panel p-8 rounded-[2rem] text-center">
-                <h3 class="text-gold text-xs font-black mb-6 uppercase tracking-widest">Update Identity</h3>
-                <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-4 text-white text-xs mb-6 text-center" placeholder="NEW_ALIAS">
+        <div class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
+            <div class="max-w-sm w-full glass-panel p-8 rounded-[2rem] text-center border-gold/30">
+                <h3 class="text-gold text-xs font-black mb-6 uppercase tracking-widest italic">Identity Terminal</h3>
+                <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-4 text-white text-xs mb-6 text-center outline-none focus:border-gold" placeholder="NEW_ALIAS">
                 <div class="flex gap-4">
-                    <button @click="openSettings = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Close</button>
-                    <button @click="saveName()" class="flex-1 bg-gold text-black py-4 rounded-xl text-[9px] font-black uppercase">Save</button>
+                    <button @click="openSettings = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Abort</button>
+                    <button @click="saveName()" class="flex-1 bg-gold text-black py-4 rounded-xl text-[9px] font-black uppercase">Sync_Alias</button>
                 </div>
             </div>
         </div>
     </template>
-    
+
     <script>
         function app() {
             return {
                 guestId: '', agentName: '', tempName: '', newMessage: '', messages: [], openSettings: false, supabase: null,
+                
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-                    this.guestId = localStorage.getItem('mog_id') || 'G' + Math.random().toString(36).substr(2, 4).toUpperCase();
-                    this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId;
+                    // Restore or generate a unique ID for this browser
+                    this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+                    this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
                     this.tempName = this.agentName;
+                    
                     localStorage.setItem('mog_id', this.guestId);
                     localStorage.setItem('mog_name', this.agentName);
 
@@ -83,28 +96,42 @@
                     this.subscribe();
                     lucide.createIcons();
                 },
+
                 saveName() {
+                    if (this.tempName.trim().length < 2) return;
                     this.agentName = this.tempName.toUpperCase();
                     localStorage.setItem('mog_name', this.agentName);
                     this.openSettings = false;
                 },
+
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
-                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), guest_id: this.guestId, author_name: this.agentName }]);
+                    // Send message to public table using guest identity
+                    await this.supabase.from('messages').insert([{ 
+                        text: this.newMessage.toUpperCase(), 
+                        guest_id: this.guestId, 
+                        author_name: this.agentName 
+                    }]);
                     this.newMessage = '';
                 },
+
                 async fetchData() {
                     const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
                     if (data) this.messages = data;
                     this.$nextTick(() => this.scroll());
                 },
+
                 subscribe() {
-                    this.supabase.channel('room1').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                    this.supabase.channel('public-grid').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
                         this.messages.push(p.new);
                         this.scroll();
                     }).subscribe();
                 },
-                scroll() { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }
+
+                scroll() { 
+                    const el = document.getElementById('chat-stream'); 
+                    if (el) el.scrollTop = el.scrollHeight; 
+                }
             }
         }
     </script>
