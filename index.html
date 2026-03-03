@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | DIRECT_UPLINK</title>
+    <title>MINISTRY OF GROOVE | NATIONAL COMMAND</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -12,151 +12,161 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { 
-            background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
-            background-image: url('logo.png'); background-repeat: no-repeat;
-            background-position: center; background-attachment: fixed; background-size: 30%;
-            overflow: hidden;
-        }
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(5, 5, 5, 0.98); z-index: -1;
-        }
-        .glass-panel { background: rgba(13, 13, 13, 0.96); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.25); }
+        body { background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif; background-image: url('logo.png'); background-repeat: no-repeat; background-position: center; background-attachment: fixed; background-size: 30%; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.98); z-index: -1; }
+        .glass-panel { background: rgba(13, 13, 13, 0.94); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.2); }
         .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4)); }
-        .admin-active { border: 2px solid #D4AF37 !important; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); }
         [x-cloak] { display: none !important; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
 
-    <div class="h-screen flex flex-col animate-in fade-in duration-500">
-        <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
-            <div class="flex items-center gap-4 cursor-pointer" @click="settingsModal = true">
-                <img src="logo.png" class="h-10 w-10 gold-glow">
-                <div>
-                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="agentName"></h2>
-                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="isAdmin ? 'COMMAND_DIRECTOR' : 'PUBLIC_SECTOR_ACTIVE'"></p>
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <template x-if="isAdmin">
-                    <button @click="adminConsole = true" class="text-[9px] text-gold border border-gold/30 px-4 py-2 rounded-xl hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest">Console</button>
-                </template>
-                <button @click="settingsModal = true" class="p-2 text-gold/60 hover:text-gold transition-all"><i data-lucide="settings"></i></button>
-            </div>
-        </header>
-
-        <template x-if="announcement">
-            <div class="bg-gold/10 py-3 px-6 border-b border-gold/20 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="megaphone" class="text-gold animate-pulse" size="14"></i>
-                    <p class="text-[10px] text-white font-bold tracking-[0.2em] uppercase italic" x-text="announcement.content"></p>
-                </div>
-            </div>
-        </template>
-
-        <main class="flex-grow p-4 md:p-8 flex flex-col items-center justify-center">
-            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[80vh] flex flex-col overflow-hidden shadow-2xl" :class="isAdmin ? 'admin-active' : ''">
+    <template x-if="appState === 'auth'">
+        <div class="h-screen flex items-center justify-center p-6 backdrop-blur-xl">
+            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-2xl border-gold/20">
+                <img src="logo.png" class="h-24 w-24 mx-auto mb-8 gold-glow animate-pulse">
+                <h1 class="text-white text-xl tracking-[0.5em] font-black uppercase italic mb-8">Ministry of Groove</h1>
                 
-                <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
-                    <template x-for="msg in messages" :key="msg.id">
-                        <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex group">
-                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
-                                <template x-if="isAdmin">
-                                    <button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button>
-                                </template>
-                                <div class="text-[8px] mb-1 opacity-50 font-black uppercase tracking-widest italic" x-text="msg.author_name"></div>
-                                <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
-                                <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
-                            </div>
-                        </div>
+                <button @click="loginWithGoogle()" :disabled="loading" class="w-full py-4 bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl flex items-center justify-center gap-3 hover:bg-gold transition-all mb-6">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="h-4 w-4">
+                    <span x-text="loading ? 'SYNCHRONIZING...' : 'Uplink via Google'"></span>
+                </button>
+
+                <div class="flex items-center gap-4 mb-6 opacity-20"><hr class="flex-grow border-white/50"><span class="text-[8px] font-black">OR</span><hr class="flex-grow border-white/50"></div>
+
+                <form @submit.prevent="runAuthAction()" class="space-y-4">
+                    <template x-if="authMode !== 'passkey'">
+                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest uppercase">
                     </template>
-                </div>
-
-                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
-                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
-                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
+                    <input type="password" x-model="authMode === 'passkey' ? passkey : password" :placeholder="authMode === 'passkey' ? 'SECURITY_CODE' : 'PASSWORD'" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest uppercase">
+                    
+                    <button type="submit" :disabled="loading" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl transition-all">
+                        <span x-text="loading ? 'PROCESSING...' : 'Execute_Protocol'"></span>
+                    </button>
                 </form>
-            </div>
-        </main>
-    </div>
 
-    <template x-if="settingsModal">
-        <div class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
-            <div class="max-w-sm w-full glass-panel p-10 rounded-[3rem] text-center border-gold/30">
-                <h3 class="text-gold text-xs font-black mb-8 uppercase tracking-[0.4em] italic">Identity_Terminal</h3>
-                <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-5 text-white text-xs text-center mb-8 outline-none focus:border-gold uppercase" placeholder="NEW_ALIAS">
-                <div class="flex gap-4">
-                    <button @click="settingsModal = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Abort</button>
-                    <button @click="saveName()" class="flex-1 bg-gold text-black py-4 rounded-xl text-[9px] font-black uppercase">Sync_Alias</button>
-                </div>
+                <template x-if="authMode !== 'passkey'">
+                    <div class="mt-8 flex justify-center gap-6 text-[8px] uppercase font-black tracking-widest opacity-40">
+                        <button @click="authMode = 'login'" :class="authMode === 'login' ? 'text-gold opacity-100' : ''">Login</button>
+                        <button @click="authMode = 'register'" :class="authMode === 'register' ? 'text-gold opacity-100' : ''">Register</button>
+                    </div>
+                </template>
             </div>
         </div>
     </template>
 
-    <template x-if="adminConsole">
-        <div class="fixed inset-0 z-[200] bg-black/98 flex items-center justify-center p-6 backdrop-blur-2xl">
-            <div class="max-w-md w-full glass-panel p-10 rounded-[3rem] text-center">
-                <h3 class="text-gold text-xs font-black mb-10 uppercase tracking-[0.5em]">Director_Console</h3>
-                <textarea x-model="newAnnouncement" rows="3" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-5 text-white text-xs mb-6 outline-none focus:border-gold" placeholder="NEW_DIRECTIVE..."></textarea>
-                <button @click="sendAnnouncement()" class="w-full bg-gold text-black py-5 rounded-xl text-[10px] font-black uppercase mb-4">Broadcast</button>
-                <button @click="adminConsole = false" class="text-white/30 uppercase text-[9px] font-black">Exit</button>
-            </div>
+    <template x-if="appState === 'grid'">
+        <div class="min-h-screen flex flex-col">
+            <header class="p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+                <div class="flex items-center gap-4">
+                    <img src="logo.png" class="h-10 w-10 gold-glow">
+                    <div>
+                        <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="profile?.full_name || 'Agent'"></h2>
+                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="profile?.role === 'admin' ? 'COMMAND_DIRECTOR' : 'Sector_eMalahleni'"></p>
+                    </div>
+                </div>
+                <button @click="logout()" class="text-[9px] text-red-500 border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all font-black uppercase">Disconnect</button>
+            </header>
+
+            <main class="flex-grow p-4 md:p-8 flex items-center justify-center">
+                <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[75vh] flex flex-col overflow-hidden shadow-2xl">
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
+                        <template x-for="msg in messages" :key="msg.id">
+                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex">
+                                <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
+                                    <p class="text-xs font-medium" x-text="msg.text"></p>
+                                    <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex gap-3">
+                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
+                        <button type="submit" class="bg-gold text-black px-10 rounded-2xl font-black text-[10px] uppercase italic">Transmit</button>
+                    </form>
+                </div>
+            </main>
         </div>
     </template>
 
     <script>
         function app() {
             return {
-                guestId: '', agentName: '', tempName: '', newMessage: '', messages: [], 
-                settingsModal: false, adminConsole: false, isAdmin: false,
-                announcement: null, newAnnouncement: '', supabase: null,
-                
+                appState: 'auth', authMode: 'login', user: null, profile: null, loading: false,
+                email: '', password: '', passkey: '', newMessage: '', messages: [], supabase: null,
+
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-
-                    // Standard Persistence: Browser remembers you without login
-                    this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
-                    this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
-                    this.tempName = this.agentName;
-                    this.isAdmin = localStorage.getItem('mog_is_admin') === 'true';
                     
-                    localStorage.setItem('mog_id', this.guestId);
-                    localStorage.setItem('mog_name', this.agentName);
-
-                    this.fetchData();
-                    this.fetchAnnouncements();
-                    this.subscribe();
+                    const { data: { session } } = await this.supabase.auth.getSession();
+                    if (session) await this.handleAuthSuccess(session.user);
+                    
+                    this.supabase.auth.onAuthStateChange(async (e, s) => { 
+                        if (e === 'SIGNED_IN' && s) await this.handleAuthSuccess(s.user); 
+                        if (e === 'SIGNED_OUT') location.reload();
+                    });
                     lucide.createIcons();
                 },
 
-                saveName() {
-                    this.agentName = this.tempName.toUpperCase();
-                    localStorage.setItem('mog_name', this.agentName);
-                    this.settingsModal = false;
+                async loginWithGoogle() {
+                    this.loading = true;
+                    await this.supabase.auth.signInWithOAuth({ 
+                        provider: 'google', options: { redirectTo: window.location.origin } 
+                    });
                 },
 
-                async sendMessage() {
-                    if (!this.newMessage.trim()) return;
+                async handleAuthSuccess(user) {
+                    this.user = user;
+                    let { data: p } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
                     
-                    // Admin Trigger: Typing secret key into chat box unlocks the console
-                    if (this.newMessage === '@MOGProtocol2026') {
-                        this.isAdmin = true;
-                        localStorage.setItem('mog_is_admin', 'true');
-                        alert("DIRECTOR_AUTHORIZED");
-                        this.newMessage = '';
-                        return;
+                    if (!p) {
+                        const isDirector = user.email === 'director.mog@gmail.com';
+                        const { data: newP } = await this.supabase.from('members').insert([{ 
+                            user_id: user.id, 
+                            full_name: user.user_metadata.full_name || user.email.split('@')[0],
+                            role: isDirector ? 'admin' : 'member',
+                            gate_two_complete: isDirector // Auto-pass for Director
+                        }]).select().single();
+                        p = newP;
                     }
 
-                    await this.supabase.from('messages').insert([{ 
-                        text: this.newMessage.toUpperCase(), 
-                        guest_id: this.guestId, 
-                        author_name: this.agentName 
-                    }]);
-                    this.newMessage = '';
+                    this.profile = p;
+                    if (p.gate_two_complete) {
+                        this.appState = 'grid'; this.fetchData(); this.subscribe();
+                    } else {
+                        this.authMode = 'passkey';
+                    }
+                    this.loading = false;
+                },
+
+                runAuthAction() {
+                    if (this.authMode === 'login') this.handleLogin();
+                    else if (this.authMode === 'register') this.handleRegister();
+                    else this.finalizePasskey();
+                },
+
+                async handleLogin() {
+                    this.loading = true;
+                    const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
+                    if (error) { alert(error.message); this.loading = false; }
+                },
+
+                async handleRegister() {
+                    this.loading = true;
+                    const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
+                    if (error) { alert(error.message); this.loading = false; }
+                    else alert("Verification Email Sent.");
+                },
+
+                async finalizePasskey() {
+                    this.loading = true;
+                    if (this.user.email === 'director.mog@gmail.com' && this.passkey !== '@MOGProtocol2026') {
+                        alert("Invalid Admin Passkey"); this.loading = false; return;
+                    }
+                    await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
+                    location.reload();
                 },
 
                 async fetchData() {
@@ -165,34 +175,20 @@
                     this.$nextTick(() => this.scroll());
                 },
 
+                async sendMessage() {
+                    if (!this.newMessage.trim()) return;
+                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]);
+                    this.newMessage = '';
+                },
+
                 subscribe() {
-                    this.supabase.channel('public-grid').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
-                        if (p.eventType === 'INSERT') { this.messages.push(p.new); this.scroll(); }
-                        if (p.eventType === 'DELETE') { this.messages = this.messages.filter(m => m.id !== p.old.id); }
+                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
+                        this.messages.push(p.new); this.scroll();
                     }).subscribe();
                 },
 
-                async sendAnnouncement() {
-                    if (!this.newAnnouncement.trim()) return;
-                    await this.supabase.from('announcements').insert([{ content: this.newAnnouncement.toUpperCase() }]);
-                    this.newAnnouncement = '';
-                    this.adminConsole = false;
-                    this.fetchAnnouncements();
-                },
-
-                async fetchAnnouncements() {
-                    const { data } = await this.supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-                    this.announcement = data;
-                },
-
-                async deleteMsg(id) {
-                    if (confirm("PURGE TRANSMISSION?")) await this.supabase.from('messages').delete().eq('id', id);
-                },
-
-                scroll() { 
-                    const el = document.getElementById('chat-stream'); 
-                    if (el) el.scrollTop = el.scrollHeight; 
-                }
+                logout() { this.supabase.auth.signOut(); },
+                scroll() { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }
             }
         }
     </script>
