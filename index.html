@@ -32,7 +32,7 @@
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
 
-    <div class="h-screen flex flex-col animate-in fade-in duration-500">
+    <div class="h-screen flex flex-col animate-in fade-in duration-700">
         <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
             <div class="flex items-center gap-4 cursor-pointer" @click="settingsModal = true">
                 <img src="logo.png" class="h-10 w-10 gold-glow" :class="isAdmin ? 'animate-spin-slow' : ''">
@@ -43,39 +43,30 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button @click="openMap()" class="text-[8px] border border-gold/50 text-gold px-3 py-2 uppercase font-black hover:bg-gold rounded-lg transition-all">Sector Map</button>
-                <button @click="copyInviteLink()" class="text-[8px] border border-blue-500/50 text-blue-400 px-3 py-2 uppercase font-black hover:bg-blue-500 rounded-lg transition-all">Invite</button>
+                <button @click="openMap()" class="text-[8px] border border-gold/50 text-gold px-3 py-2 uppercase font-black hover:bg-gold hover:text-black transition-all rounded-lg">Sector Map</button>
+                <button @click="copyInviteLink()" class="text-[8px] border border-blue-500/50 text-blue-400 px-3 py-2 uppercase font-black hover:bg-blue-500 rounded-lg">Invite Link</button>
                 
                 <template x-if="isAdmin">
-                    <button @click="adminView = true" class="text-[8px] text-gold border border-gold/30 px-3 py-2 rounded-lg font-black uppercase shadow-[0_0_10px_rgba(212,175,55,0.2)]">Admin Console</button>
+                    <button @click="adminView = true" class="text-[8px] text-gold border border-gold/30 px-3 py-2 rounded-lg font-black uppercase shadow-[0_0_15px_rgba(212,175,55,0.1)]">Admin Console</button>
                 </template>
                 
-                <button @click="settingsModal = true" class="p-2 text-gold/60 hover:text-gold transition-all"><i data-lucide="settings" size="18"></i></button>
+                <button @click="settingsModal = true" class="p-2 text-gold/60"><i data-lucide="settings" size="18"></i></button>
             </div>
         </header>
-
-        <template x-if="announcement">
-            <div class="bg-gold/10 py-3 px-6 border-b border-gold/20 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="megaphone" class="text-gold animate-pulse" size="14"></i>
-                    <p class="text-[10px] text-white font-bold tracking-[0.2em] uppercase italic" x-text="announcement.content"></p>
-                </div>
-            </div>
-        </template>
-
+        
         <main class="flex-grow p-4 md:p-8 flex flex-col items-center justify-center">
             <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[82vh] flex flex-col overflow-hidden shadow-2xl relative" :class="isAdmin ? 'admin-active' : ''">
                 
                 <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
                     <template x-for="msg in messages" :key="msg.id">
                         <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex group">
-                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
+                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl relative">
                                 <template x-if="isAdmin">
                                     <button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button>
                                 </template>
                                 <div class="text-[8px] mb-1 opacity-50 font-black uppercase italic tracking-widest" x-text="msg.author_name"></div>
-                                <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
-                                <div class="text-[7px] mt-2 opacity-30 text-right font-black tracking-widest" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+                                <p class="text-xs font-medium" x-text="msg.text"></p>
+                                <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                             </div>
                         </div>
                     </template>
@@ -88,7 +79,7 @@
             </div>
         </main>
     </div>
-    
+
     <template x-if="settingsModal">
         <div class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
             <div class="max-w-sm w-full glass-panel p-10 rounded-[3rem] text-center">
@@ -114,7 +105,7 @@
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-                    // Restore or generate local persistent identity
+                    // Persistence: Store ID in browser, skip login
                     this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
                     this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
                     this.tempName = this.agentName;
@@ -124,7 +115,6 @@
                     localStorage.setItem('mog_name', this.agentName);
 
                     this.fetchData();
-                    this.fetchAnnouncements();
                     this.subscribe();
                     lucide.createIcons();
                 },
@@ -132,11 +122,11 @@
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
                     
-                    // Secret Director Override: Typing the key into the public chat box
+                    // Secret Director Key: Type this to unlock Admin features
                     if (this.newMessage === '@MOGProtocol2026') {
                         this.isAdmin = true;
                         localStorage.setItem('mog_is_admin', 'true');
-                        alert("DIRECTOR_AUTHORIZED: GRID UNLOCKED");
+                        alert("DIRECTOR_AUTHORIZED");
                         this.newMessage = '';
                         return;
                     }
@@ -163,19 +153,14 @@
                     }).subscribe();
                 },
 
-                async fetchAnnouncements() {
-                    const { data } = await this.supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
-                    this.announcement = data;
-                },
-
                 copyInviteLink() {
                     const inviteUrl = `https://mog-directorate.vercel.app/enlist?sector=emalahleni&ref=${this.isAdmin ? 'DIRECTOR' : this.guestId}`;
                     navigator.clipboard.writeText(inviteUrl);
-                    alert("INVITE_COPIED TO CLIPBOARD");
+                    alert("INVITE_URL_COPIED");
                 },
 
                 async deleteMsg(id) {
-                    if (confirm("PURGE TRANSMISSION?")) await this.supabase.from('messages').delete().eq('id', id);
+                    if (confirm("PURGE?")) await this.supabase.from('messages').delete().eq('id', id);
                 },
 
                 saveName() {
