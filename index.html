@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | SUPREME COMMAND</title>
+    <title>MOG | DIRECT_COMMAND</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -16,7 +16,7 @@
             background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
             background-image: url('logo.png'); background-repeat: no-repeat;
             background-position: center; background-attachment: fixed; background-size: 30%;
-            overflow-x: hidden;
+            overflow: hidden;
         }
         body::before {
             content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -24,49 +24,36 @@
         }
         .glass-panel { background: rgba(13, 13, 13, 0.94); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.2); }
         .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4)); }
-        .admin-border { border: 2px solid #D4AF37 !important; box-shadow: 0 0 40px rgba(212, 175, 55, 0.2); }
+        .admin-active { border: 2px solid #D4AF37 !important; box-shadow: 0 0 40px rgba(212, 175, 55, 0.2); }
         [x-cloak] { display: none !important; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
-        .redacted { background: #D4AF37; color: #000; padding: 0 4px; font-weight: 900; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
 
-    <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
+    <div class="h-screen flex flex-col animate-in fade-in duration-500">
         <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
             <div class="flex items-center gap-4 cursor-pointer" @click="settingsModal = true">
-                <img src="logo.png" class="h-10 w-10 gold-glow" :class="isAdmin ? 'animate-spin-slow' : ''">
+                <img src="logo.png" class="h-10 w-10 gold-glow">
                 <div>
                     <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="agentName"></h2>
                     <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="isAdmin ? 'SUPREME_COMMANDER' : 'PUBLIC_SECTOR_ACTIVE'"></p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 md:gap-4">
-                <button @click="openMap()" class="text-[8px] border border-gold/50 text-gold px-3 py-2 uppercase font-black hover:bg-gold hover:text-black transition-all rounded-lg">Sector Map</button>
-                <button @click="copyInviteLink()" class="text-[8px] border border-blue-500/50 text-blue-400 px-3 py-2 uppercase font-black hover:bg-blue-500 hover:text-white transition-all rounded-lg">Generate Invite</button>
+            <div class="flex items-center gap-2">
+                <button @click="openMap()" class="text-[8px] border border-gold/50 text-gold px-3 py-2 uppercase font-black hover:bg-gold rounded-lg">Sector Map</button>
+                <button @click="copyInviteLink()" class="text-[8px] border border-blue-500/50 text-blue-400 px-3 py-2 uppercase font-black hover:bg-blue-500 rounded-lg">Invite</button>
                 <template x-if="isAdmin">
-                    <button @click="openAdmin()" class="text-[8px] text-gold border border-gold/30 px-3 py-2 rounded-lg hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest italic">Admin Console</button>
+                    <button @click="adminView = true" class="text-[8px] text-gold border border-gold/30 px-3 py-2 rounded-lg font-black uppercase">Admin Console</button>
                 </template>
-                <button @click="settingsModal = true" class="p-2 text-gold/60 hover:text-gold transition-all"><i data-lucide="settings" size="18"></i></button>
+                <button @click="settingsModal = true" class="p-2 text-gold/60"><i data-lucide="settings" size="18"></i></button>
             </div>
         </header>
 
-        <template x-if="announcement">
-            <div class="bg-gold/10 py-3 px-6 border-b border-gold/20 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <i data-lucide="megaphone" class="text-gold animate-pulse" size="14"></i>
-                    <p class="text-[10px] text-white font-bold tracking-[0.2em] uppercase italic" x-text="announcement.content"></p>
-                </div>
-                <template x-if="isAdmin">
-                    <button @click="clearAnnouncement()" class="text-red-500 hover:text-white transition-all"><i data-lucide="x-circle" size="14"></i></button>
-                </template>
-            </div>
-        </template>
-
         <main class="flex-grow p-4 md:p-8 flex flex-col items-center justify-center">
-            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[78vh] flex flex-col overflow-hidden shadow-2xl relative" :class="isAdmin ? 'admin-border' : ''">
+            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[82vh] flex flex-col overflow-hidden shadow-2xl relative" :class="isAdmin ? 'admin-active' : ''">
                 
                 <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
                     <template x-for="msg in messages" :key="msg.id">
@@ -75,49 +62,30 @@
                                 <template x-if="isAdmin">
                                     <button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button>
                                 </template>
-                                <div class="text-[8px] mb-1 opacity-50 font-black uppercase italic tracking-widest flex items-center gap-2">
-                                    <span x-text="msg.author_name"></span>
-                                    <template x-if="msg.is_redacted">
-                                        <span class="text-[6px] text-red-500">[FILTER_TRIGGERED]</span>
-                                    </template>
-                                </div>
-                                <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
+                                <div class="text-[8px] mb-1 opacity-50 font-black uppercase italic tracking-widest" x-text="msg.author_name"></div>
+                                <p class="text-xs font-medium" x-text="msg.text"></p>
                                 <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                             </div>
                         </div>
                     </template>
                 </div>
-                
-                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
-                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
-                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
+
+                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex gap-3">
+                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-xl text-xs text-white outline-none border border-white/10 focus:border-gold uppercase">
+                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
                 </form>
             </div>
         </main>
     </div>
 
-    <template x-if="adminView">
-        <div class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4 backdrop-blur-2xl">
-            <div class="max-w-5xl w-full h-[85vh] glass-panel rounded-[3rem] p-10 flex flex-col">
-                <div class="flex border-b border-white/10 mb-6">
-                    <button @click="adminTab = 'recruits'" :class="adminTab === 'recruits' ? 'border-gold text-gold' : 'text-white/40'" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all">Operatives</button>
-                    <button @click="fetchLogs()" :class="adminTab === 'logs' ? 'border-gold text-gold' : 'text-white/40'" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all">Security_Logs</button>
-                    <div class="flex-grow"></div>
-                    <button @click="adminView = false" class="p-4 text-white/40"><i data-lucide="x"></i></button>
-                </div>
-                <div class="flex-grow overflow-y-auto pr-4">
-                    <template x-if="adminTab === 'recruits'">
-                        <table class="w-full text-left text-[10px] uppercase">
-                            <thead class="text-gold/40 border-b border-white/5"><tr><th class="pb-4">Alias</th><th class="pb-4">Recruiter</th><th class="pb-4">Sector</th></tr></thead>
-                            <tbody class="text-white/80"><template x-for="m in membersList"><tr class="border-b border-white/5"><td class="py-4 font-black italic" x-text="m.full_name"></td><td class="py-4" x-text="m.recruited_by || 'DIRECTOR'"></td><td class="py-4 text-blue-400" x-text="m.sector"></td></tr></template></tbody>
-                        </table>
-                    </template>
-                    <template x-if="adminTab === 'logs'">
-                        <table class="w-full text-left text-[9px] uppercase">
-                            <thead class="text-red-500/40 border-b border-white/5"><tr><th class="pb-4">Agent</th><th class="pb-4">Device_Fingerprint</th><th class="pb-4">Timestamp</th></tr></thead>
-                            <tbody class="text-white/60"><template x-for="l in securityLogs"><tr class="border-b border-white/5"><td class="py-4 font-black" x-text="l.agent_name"></td><td class="py-4 italic" x-text="l.device_info.substring(0,60)"></td><td class="py-4" x-text="new Date(l.access_time).toLocaleString()"></td></tr></template></tbody>
-                        </table>
-                    </template>
+    <template x-if="settingsModal">
+        <div class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-6 backdrop-blur-md">
+            <div class="max-w-sm w-full glass-panel p-10 rounded-[3rem] text-center">
+                <h3 class="text-gold text-xs font-black mb-8 uppercase tracking-widest italic">Identity_Terminal</h3>
+                <input x-model="tempName" class="w-full bg-zinc-900 border border-white/10 rounded-xl p-5 text-white text-xs text-center mb-8 outline-none focus:border-gold uppercase">
+                <div class="flex gap-4">
+                    <button @click="settingsModal = false" class="flex-1 text-[9px] text-white/40 uppercase font-black">Abort</button>
+                    <button @click="saveName()" class="flex-1 bg-gold text-black py-4 rounded-xl text-[9px] font-black uppercase">Sync_Alias</button>
                 </div>
             </div>
         </div>
@@ -126,106 +94,78 @@
     <script>
         function app() {
             return {
-                guestId: '', agentName: '', isAdmin: false, newMessage: '', messages: [], 
-                announcement: null, adminView: false, adminTab: 'recruits', 
-                securityLogs: [], membersList: [], mapView: false, sectorStats: [], 
-                settingsModal: false, supabase: null,
-                
-                // Neural Filter Config
-                forbiddenWords: ['spam', 'hack', 'admin_bypass', 'leak'], 
+                guestId: '', agentName: '', tempName: '', isAdmin: false,
+                newMessage: '', messages: [], adminView: false, settingsModal: false,
+                mapView: false, sectorStats: [], membersList: [], supabase: null,
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-                    const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
+                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
+                    // Local Device Identity - No password needed
                     this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
                     this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
+                    this.tempName = this.agentName;
                     this.isAdmin = localStorage.getItem('mog_is_admin') === 'true';
                     
                     localStorage.setItem('mog_id', this.guestId);
                     localStorage.setItem('mog_name', this.agentName);
 
-                    this.logAccess();
                     this.fetchData();
-                    this.fetchAnnouncements();
                     this.subscribe();
                     lucide.createIcons();
-                },
-
-                async logAccess() {
-                    await this.supabase.from('security_logs').insert([{
-                        agent_id: this.guestId,
-                        agent_name: this.agentName,
-                        device_info: navigator.userAgent
-                    }]);
                 },
 
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
                     
-                    // Admin Unlock Code
+                    // Secret Director Override: Type this to unlock Admin Console
                     if (this.newMessage === '@MOGProtocol2026') {
                         this.isAdmin = true;
                         localStorage.setItem('mog_is_admin', 'true');
-                        alert("DIRECTOR_AUTHORIZED");
+                        alert("DIRECTOR_AUTHORIZED: CONSOLE UNLOCKED");
                         this.newMessage = '';
                         return;
                     }
 
-                    // Content Filtering Logic
-                    let textToTransmit = this.newMessage.toUpperCase();
-                    let redactedTrigger = false;
-                    
-                    this.forbiddenWords.forEach(word => {
-                        if (textToTransmit.includes(word.toUpperCase())) {
-                            textToTransmit = textToTransmit.replace(word.toUpperCase(), "[REDACTED_BY_DIRECTORATE]");
-                            redactedTrigger = true;
-                        }
-                    });
-
                     await this.supabase.from('messages').insert([{ 
-                        text: textToTransmit, 
+                        text: this.newMessage.toUpperCase(), 
                         guest_id: this.guestId, 
-                        author_name: this.agentName,
-                        is_redacted: redactedTrigger
+                        author_name: this.agentName 
                     }]);
                     this.newMessage = '';
                 },
 
-                copyInviteLink() {
-                    const refId = this.isAdmin ? 'DIRECTOR' : this.guestId;
-                    const inviteUrl = `https://mog-directorate.vercel.app/enlist?sector=emalahleni&ref=${refId}`;
-                    navigator.clipboard.writeText(inviteUrl);
-                    alert("INVITE_COPIED: " + inviteUrl);
-                },
-
                 async fetchData() {
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(60);
+                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
                     this.messages = data || [];
-                    this.$nextTick(() => this.scroll());
+                    this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; });
                 },
 
                 subscribe() {
                     this.supabase.channel('public').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
-                        if (p.eventType === 'INSERT') { this.messages.push(p.new); this.scroll(); }
-                        if (p.eventType === 'DELETE') { this.messages = this.messages.filter(m => m.id !== p.old.id); }
+                        if (p.eventType === 'INSERT') this.messages.push(p.new);
+                        if (p.eventType === 'DELETE') this.messages = this.messages.filter(m => m.id !== p.old.id);
+                        this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; });
                     }).subscribe();
                 },
-
-                async openAdmin() {
-                    const { data } = await this.supabase.from('members').select('*');
-                    this.membersList = data || [];
-                    this.adminView = true;
+                
+                copyInviteLink() {
+                    const inviteUrl = `https://mog-directorate.vercel.app/enlist?sector=emalahleni&ref=${this.isAdmin ? 'DIRECTOR' : this.guestId}`;
+                    navigator.clipboard.writeText(inviteUrl);
+                    alert("INVITE_COPIED");
                 },
 
-                async fetchLogs() {
-                    this.adminTab = 'logs';
-                    const { data } = await this.supabase.from('security_logs').select('*').order('access_time', { ascending: false }).limit(50);
-                    this.securityLogs = data || [];
+                async deleteMsg(id) {
+                    if (confirm("PURGE?")) await this.supabase.from('messages').delete().eq('id', id);
                 },
 
-                scroll() { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }
+                saveName() {
+                    this.agentName = this.tempName.toUpperCase();
+                    localStorage.setItem('mog_name', this.agentName);
+                    this.settingsModal = false;
+                }
             }
         }
     </script>
