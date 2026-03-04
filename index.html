@@ -4,73 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MINISTRY OF GROOVE | SOVEREIGN COMMAND</title>
+    
+    <meta name="theme-color" content="#050505">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="logo.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:italic,wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    
     <style>
         :root { --gold: #D4AF37; --blue: #007BFF; --noir: #050505; }
-        body { background-color: var(--noir); color: white; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--noir); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .serif { font-family: 'Playfair Display', serif; }
         .gold-gradient { background: linear-gradient(to right, #D4AF37, #F3E5AB, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .auth-input { background: #111; border: 1px solid #333; padding: 12px; border-radius: 12px; width: 100%; color: white; margin-top: 10px; outline: none; }
-        .btn-gold { background: var(--gold); color: black; font-weight: 900; padding: 14px; border-radius: 12px; width: 100%; margin-top: 15px; cursor: pointer; text-transform: uppercase; width: 100%; }
+        .auth-input { background: #111; border: 1px solid #333; padding: 12px; border-radius: 12px; width: 100%; color: white; margin-top: 10px; outline: none; transition: border 0.3s; }
+        .auth-input:focus { border-color: var(--gold); }
+        .btn-gold { background: var(--gold); color: black; font-weight: 900; padding: 14px; border-radius: 12px; width: 100%; margin-top: 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
     </style>
 </head>
-<body class="p-6">
-    <nav class="fixed top-0 w-full left-0 glass z-[100] px-10 py-8 flex justify-between items-center border-b border-blue-500/20">
-        <div class="serif text-2xl gold-gradient italic flex items-center gap-4">
-            <img src="logo.png" class="w-8 h-8 rounded-full border border-gold/20"> M.O.G.
-        </div>
-        <div class="text-[8px] text-[#007BFF] font-black uppercase tracking-[0.4em] animate-pulse">Frequency Locked</div>
-    </nav>
+<body>
 
-    <main class="pt-40 max-w-7xl mx-auto text-center">
-        <h1 class="text-5xl serif italic gold-gradient mb-24">The Ministry</h1>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div id="auth-tile" class="glass p-10 text-left rounded-[3rem] border-blue-500/10 min-h-[350px] flex flex-col justify-center">
-                <div id="unauthorized-view">
-                    <p class="text-[9px] text-[#007BFF] font-black uppercase tracking-widest">Identity</p>
-                    <h3 class="serif text-2xl mt-2 gold-gradient italic mb-4">Uplink</h3>
-                    <input type="email" id="email" class="auth-input" placeholder="Operative Email">
-                    <input type="password" id="pass" class="auth-input" placeholder="Secret Passkey">
-                    <button onclick="handleAuth()" class="btn-gold">Establish Link</button>
-                    <button onclick="googleLogin()" class="mt-4 w-full text-[8px] text-zinc-500 uppercase tracking-widest">Link via Google</button>
+    <div id="main-interface">
+        <nav class="fixed top-0 w-full glass z-[100] px-10 py-8 flex justify-between items-center border-b border-blue-500/20">
+            <div class="serif text-2xl gold-gradient italic flex items-center gap-4">
+                <img src="logo.png" class="w-8 h-8 rounded-full border border-gold/20" alt="M.O.G."> M.O.G.
+            </div>
+            <div class="text-[8px] text-[#007BFF] font-black uppercase tracking-[0.4em] animate-pulse">Frequency Locked</div>
+        </nav>
+
+        <main class="pt-48 pb-60 px-6 max-w-7xl mx-auto text-center">
+            <h1 class="text-6xl sm:text-8xl font-serif italic gold-gradient mb-24 leading-tight">The Ministry</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <div id="auth-tile" class="glass p-10 text-left rounded-[3rem] border-blue-500/10 min-h-[350px] flex flex-col justify-center">
+                    <div id="unauthorized-view">
+                        <p class="text-[9px] text-[#007BFF] font-black uppercase tracking-widest">Identity</p>
+                        <h3 class="serif text-2xl mt-2 gold-gradient italic mb-4">Uplink</h3>
+                        <input type="email" id="email" class="auth-input" placeholder="Operative Email">
+                        <input type="password" id="pass" class="auth-input" placeholder="Secret Passkey">
+                        <button onclick="handleAuth()" class="btn-gold w-full">Establish Link</button>
+                        <button onclick="googleLogin()" class="mt-4 w-full text-[8px] text-zinc-500 uppercase tracking-widest hover:text-white transition-all">Link via Google Account</button>
+                    </div>
+                    
+                    <div id="authorized-view" class="hidden">
+                        <p class="text-[9px] text-green-500 font-black uppercase tracking-widest">Linked Operative</p>
+                        <h3 id="user-display" class="serif text-2xl mt-2 gold-gradient italic truncate">Sector Access</h3>
+                        <p id="operative-rank" class="text-[9px] text-[#D4AF37] font-black uppercase mt-2 tracking-[0.2em]">Identifying...</p>
+                        <button onclick="logout()" class="mt-12 text-[9px] text-red-900 font-black uppercase tracking-widest hover:text-red-500 transition-all">Terminate Uplink</button>
+                    </div>
                 </div>
-                <div id="authorized-view" class="hidden">
-                    <p class="text-[9px] text-green-500 font-black uppercase tracking-widest">Linked Operative</p>
-                    <h3 id="user-display" class="serif text-2xl mt-2 gold-gradient italic truncate">Sector Access</h3>
-                    <p id="operative-rank" class="text-[9px] text-[#D4AF37] font-black uppercase mt-2 tracking-[0.2em]">Identifying...</p>
-                    <button onclick="logout()" class="mt-12 text-[9px] text-red-900 font-black uppercase">Terminate Uplink</button>
+
+                <div onclick="window.location.href='tos'" class="glass p-10 text-left rounded-[3rem] border-white/5 hover:border-white transition-all cursor-pointer">
+                    <p class="text-[9px] text-[#D4AF37] font-black uppercase tracking-widest">Directives</p>
+                    <h3 class="serif text-2xl mt-2 gold-gradient italic">Briefing</h3>
+                </div>
+
+                <div onclick="window.location.href='privacy'" class="glass p-10 text-left rounded-[3rem] border-zinc-800 hover:border-blue-500 transition-all cursor-pointer">
+                    <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Security</p>
+                    <h3 class="serif text-2xl mt-2 gold-gradient italic">POPIA Prot.</h3>
                 </div>
             </div>
-            <div onclick="window.location.href='tos.html'" class="glass p-10 text-left rounded-[3rem] cursor-pointer"><h3 class="serif text-2xl gold-gradient italic">Briefing</h3></div>
-            <div onclick="window.location.href='privacy.html'" class="glass p-10 text-left rounded-[3rem] cursor-pointer"><h3 class="serif text-2xl gold-gradient italic">Security</h3></div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <script>
-        const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+        // INTEGRATED CREDENTIALS FOR PROJECT: qqwvliqculscmllqtggt
+        const SB_URL = 'https://qqwvliqculscmllqtggt.supabase.co';
+        const SB_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxd3ZsaXFjdWxzY21sbHF0Z2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MTYwNzUsImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU'; 
+        
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
         window.onload = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             updateUI(session);
+            if (session) initOneSignal(session);
         };
 
         async function updateUI(session) {
+            const unauth = document.getElementById('unauthorized-view');
+            const auth = document.getElementById('authorized-view');
+            const display = document.getElementById('user-display');
+            const rankEl = document.getElementById('operative-rank');
+
             if (session) {
-                document.getElementById('unauthorized-view').classList.add('hidden');
-                document.getElementById('authorized-view').classList.remove('hidden');
-                const emailPrefix = session.user.email.split('@')[0];
-                document.getElementById('user-display').innerText = `Operative ${emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)}`;
+                unauth.classList.add('hidden');
+                auth.classList.remove('hidden');
                 
-                const { data: profile } = await supabase.from('profiles').select('rank').eq('id', session.user.id).single();
-                if (profile) document.getElementById('operative-rank').innerText = profile.rank;
+                const emailPrefix = session.user.email.split('@')[0];
+                display.innerText = `Operative ${emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)}`;
+                
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('rank')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                if (profile && rankEl) {
+                    rankEl.innerText = profile.rank;
+                }
+            } else {
+                unauth.classList.remove('hidden');
+                auth.classList.add('hidden');
             }
         }
 
@@ -78,15 +117,37 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('pass').value;
             const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) await supabase.auth.signUp({ email, password });
+            
+            if (error) {
+                const signup = await supabase.auth.signUp({ email, password });
+                if (signup.error) alert("Authorization Failed: " + signup.error.message);
+            }
             location.reload();
         }
 
         async function googleLogin() {
-            await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) console.error("OAuth Interrupt:", error.message);
         }
 
-        async function logout() { await supabase.auth.signOut(); location.reload(); }
+        async function logout() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
+
+        function initOneSignal(session) {
+            window.OneSignalDeferred = window.OneSignalDeferred || [];
+            OneSignalDeferred.push(async function(OneSignal) {
+                await OneSignal.init({
+                    appId: "sb_publishable_hoRrB9bJwXuYg8uk1WtEYg_zHSSfAeS", 
+                    notifyButton: { enable: true },
+                });
+                OneSignal.login(session.user.id);
+            });
+        }
     </script>
 </body>
 </html>
