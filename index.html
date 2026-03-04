@@ -40,7 +40,6 @@
             <h1 class="text-6xl sm:text-8xl font-serif italic gold-gradient mb-24 leading-tight">The Ministry</h1>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                
                 <div id="auth-tile" class="glass p-10 text-left rounded-[3rem] border-blue-500/10 min-h-[350px] flex flex-col justify-center">
                     <div id="unauthorized-view">
                         <p class="text-[9px] text-[#007BFF] font-black uppercase tracking-widest">Identity</p>
@@ -58,7 +57,7 @@
                         <button onclick="logout()" class="mt-12 text-[9px] text-red-900 font-black uppercase tracking-widest hover:text-red-500 transition-all">Terminate Uplink</button>
                     </div>
                 </div>
-
+                
                 <div onclick="window.location.href='tos'" class="glass p-10 text-left rounded-[3rem] border-white/5 hover:border-white transition-all cursor-pointer">
                     <p class="text-[9px] text-[#D4AF37] font-black uppercase tracking-widest">Directives</p>
                     <h3 class="serif text-2xl mt-2 gold-gradient italic">Briefing</h3>
@@ -73,64 +72,61 @@
     </div>
 
     <script>
-        // INTEGRATED CREDENTIALS FOR PROJECT: qqwvliqculscmllqtggt
+        // PROJECT: qqwvliqculscmllqtggt
         const SB_URL = 'https://qqwvliqculscmllqtggt.supabase.co';
         const SB_KEY = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxd3ZsaXFjdWxzY21sbHF0Z2d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MTYwNzUsImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU'; 
         
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+        let supabase;
 
-        window.onload = async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                supabase = window.supabase.createClient(SB_URL, SB_KEY);
+                console.log("MOG Systems: Online");
+                checkSession();
+            } catch (e) {
+                console.error("MOG Systems: Critical Boot Error", e);
+            }
+        });
+
+        async function checkSession() {
             const { data: { session } } = await supabase.auth.getSession();
             updateUI(session);
             if (session) initOneSignal(session);
-        };
+        }
 
         async function updateUI(session) {
             const unauth = document.getElementById('unauthorized-view');
             const auth = document.getElementById('authorized-view');
-            const display = document.getElementById('user-display');
-            const rankEl = document.getElementById('operative-rank');
-
             if (session) {
                 unauth.classList.add('hidden');
                 auth.classList.remove('hidden');
-                
                 const emailPrefix = session.user.email.split('@')[0];
-                display.innerText = `Operative ${emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)}`;
+                document.getElementById('user-display').innerText = `Operative ${emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1)}`;
                 
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('rank')
-                    .eq('id', session.user.id)
-                    .single();
-                
-                if (profile && rankEl) {
-                    rankEl.innerText = profile.rank;
-                }
-            } else {
-                unauth.classList.remove('hidden');
-                auth.classList.add('hidden');
+                const { data: profile } = await supabase.from('profiles').select('rank').eq('id', session.user.id).single();
+                if (profile) document.getElementById('operative-rank').innerText = profile.rank;
             }
         }
 
         async function handleAuth() {
+            console.log("Attempting Standard Uplink...");
             const email = document.getElementById('email').value;
             const password = document.getElementById('pass').value;
             const { error } = await supabase.auth.signInWithPassword({ email, password });
-            
             if (error) {
                 const signup = await supabase.auth.signUp({ email, password });
-                if (signup.error) alert("Authorization Failed: " + signup.error.message);
+                if (signup.error) alert("Access Denied: " + signup.error.message);
             }
             location.reload();
         }
 
         async function googleLogin() {
+            console.log("Attempting Google Redirection...");
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.origin }
             });
-            if (error) console.error("OAuth Interrupt:", error.message);
+            if (error) alert("OAuth Error: " + error.message);
         }
 
         async function logout() {
@@ -142,7 +138,7 @@
             window.OneSignalDeferred = window.OneSignalDeferred || [];
             OneSignalDeferred.push(async function(OneSignal) {
                 await OneSignal.init({
-                    appId: "sb_publishable_hoRrB9bJwXuYg8uk1WtEYg_zHSSfAeS", 
+                    appId: "sb_publishable_hoRrB9bJwXuYg8uk1WtEYg_zHSSfAeS",
                     notifyButton: { enable: true },
                 });
                 OneSignal.login(session.user.id);
