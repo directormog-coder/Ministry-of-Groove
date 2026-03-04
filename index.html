@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | NATIONAL COMMAND</title>
+    <title>MINISTRY OF GROOVE | SUPREME COMMAND</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -12,182 +12,219 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif; background-image: url('logo.png'); background-repeat: no-repeat; background-position: center; background-attachment: fixed; background-size: 30%; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5, 5, 5, 0.98); z-index: -1; }
+        body { 
+            background-color: #050505; color: #D4AF37; font-family: 'Inter', sans-serif;
+            background-image: url('logo.png'); background-repeat: no-repeat;
+            background-position: center; background-attachment: fixed; background-size: 30%;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 5, 0.98); z-index: -1;
+        }
         .glass-panel { background: rgba(13, 13, 13, 0.94); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.2); }
         .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.4)); }
+        .admin-border { border: 2px solid #D4AF37 !important; box-shadow: 0 0 40px rgba(212, 175, 55, 0.2); }
         [x-cloak] { display: none !important; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+        .redacted { background: #D4AF37; color: #000; padding: 0 4px; font-weight: 900; }
     </style>
 </head>
 <body x-data="app()" x-init="init()" x-cloak>
 
-    <template x-if="appState === 'auth'">
-        <div class="h-screen flex items-center justify-center p-6 backdrop-blur-xl">
-            <div class="max-w-md w-full p-10 glass-panel rounded-[3rem] text-center shadow-2xl border-gold/20">
-                <img src="logo.png" class="h-24 w-24 mx-auto mb-8 gold-glow animate-pulse">
-                <h1 class="text-white text-xl tracking-[0.5em] font-black uppercase italic mb-8">Ministry of Groove</h1>
-                
-                <button @click="loginWithGoogle()" :disabled="loading" class="w-full py-4 bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] rounded-2xl flex items-center justify-center gap-3 hover:bg-gold transition-all mb-6">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="h-4 w-4">
-                    <span x-text="loading ? 'SYNCHRONIZING...' : 'Uplink via Google'"></span>
-                </button>
+    <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
+        <header class="p-4 md:p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
+            <div class="flex items-center gap-4 cursor-pointer" @click="settingsModal = true">
+                <img src="logo.png" class="h-10 w-10 gold-glow" :class="isAdmin ? 'animate-spin-slow' : ''">
+                <div>
+                    <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="agentName"></h2>
+                    <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="isAdmin ? 'SUPREME_COMMANDER' : 'PUBLIC_SECTOR_ACTIVE'"></p>
+                </div>
+            </div>
 
-                <div class="flex items-center gap-4 mb-6 opacity-20"><hr class="flex-grow border-white/50"><span class="text-[8px] font-black">OR</span><hr class="flex-grow border-white/50"></div>
+            <div class="flex items-center gap-2 md:gap-4">
+                <button @click="openMap()" class="text-[8px] border border-gold/50 text-gold px-3 py-2 uppercase font-black hover:bg-gold hover:text-black transition-all rounded-lg">Sector Map</button>
+                <button @click="copyInviteLink()" class="text-[8px] border border-blue-500/50 text-blue-400 px-3 py-2 uppercase font-black hover:bg-blue-500 hover:text-white transition-all rounded-lg">Generate Invite</button>
+                <template x-if="isAdmin">
+                    <button @click="openAdmin()" class="text-[8px] text-gold border border-gold/30 px-3 py-2 rounded-lg hover:bg-gold hover:text-black transition-all font-black uppercase tracking-widest italic">Admin Console</button>
+                </template>
+                <button @click="settingsModal = true" class="p-2 text-gold/60 hover:text-gold transition-all"><i data-lucide="settings" size="18"></i></button>
+            </div>
+        </header>
 
-                <form @submit.prevent="runAuthAction()" class="space-y-4">
-                    <template x-if="authMode !== 'passkey'">
-                        <input type="email" x-model="email" placeholder="ACCESS_EMAIL" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest uppercase">
-                    </template>
-                    <input type="password" x-model="authMode === 'passkey' ? passkey : password" :placeholder="authMode === 'passkey' ? 'SECURITY_CODE' : 'PASSWORD'" class="w-full bg-zinc-900/50 p-4 rounded-xl text-white text-[10px] border border-white/10 outline-none focus:border-gold/50 tracking-widest uppercase">
-                    
-                    <button type="submit" :disabled="loading" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl transition-all">
-                        <span x-text="loading ? 'PROCESSING...' : 'Execute_Protocol'"></span>
-                    </button>
-                </form>
-
-                <template x-if="authMode !== 'passkey'">
-                    <div class="mt-8 flex justify-center gap-6 text-[8px] uppercase font-black tracking-widest opacity-40">
-                        <button @click="authMode = 'login'" :class="authMode === 'login' ? 'text-gold opacity-100' : ''">Login</button>
-                        <button @click="authMode = 'register'" :class="authMode === 'register' ? 'text-gold opacity-100' : ''">Register</button>
-                    </div>
+        <template x-if="announcement">
+            <div class="bg-gold/10 py-3 px-6 border-b border-gold/20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="megaphone" class="text-gold animate-pulse" size="14"></i>
+                    <p class="text-[10px] text-white font-bold tracking-[0.2em] uppercase italic" x-text="announcement.content"></p>
+                </div>
+                <template x-if="isAdmin">
+                    <button @click="clearAnnouncement()" class="text-red-500 hover:text-white transition-all"><i data-lucide="x-circle" size="14"></i></button>
                 </template>
             </div>
-        </div>
-    </template>
+        </template>
 
-    <template x-if="appState === 'grid'">
-        <div class="min-h-screen flex flex-col">
-            <header class="p-6 border-b border-gold/10 glass-panel flex justify-between items-center sticky top-0 z-50">
-                <div class="flex items-center gap-4">
-                    <img src="logo.png" class="h-10 w-10 gold-glow">
-                    <div>
-                        <h2 class="text-white text-[11px] font-black uppercase tracking-widest italic" x-text="profile?.full_name || 'Agent'"></h2>
-                        <p class="text-[7px] text-blue-400 font-bold uppercase tracking-widest" x-text="profile?.role === 'admin' ? 'COMMAND_DIRECTOR' : 'Sector_eMalahleni'"></p>
-                    </div>
-                </div>
-                <button @click="logout()" class="text-[9px] text-red-500 border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500 hover:text-white transition-all font-black uppercase">Disconnect</button>
-            </header>
-
-            <main class="flex-grow p-4 md:p-8 flex items-center justify-center">
-                <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[75vh] flex flex-col overflow-hidden shadow-2xl">
-                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
-                        <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.user_id === user?.id ? 'justify-end' : 'justify-start'" class="flex">
-                                <div :class="msg.user_id === user?.id ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
-                                    <p class="text-xs font-medium" x-text="msg.text"></p>
-                                    <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
+        <main class="flex-grow p-4 md:p-8 flex flex-col items-center justify-center">
+            <div class="w-full max-w-5xl glass-panel rounded-[2.5rem] h-[78vh] flex flex-col overflow-hidden shadow-2xl relative" :class="isAdmin ? 'admin-border' : ''">
+                
+                <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
+                    <template x-for="msg in messages" :key="msg.id">
+                        <div :class="msg.guest_id === guestId ? 'justify-end' : 'justify-start'" class="flex group">
+                            <div :class="msg.guest_id === guestId ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-zinc-900 text-zinc-300 rounded-tl-none border border-white/5'" class="max-w-[80%] p-5 rounded-3xl relative shadow-xl">
+                                <template x-if="isAdmin">
+                                    <button @click="deleteMsg(msg.id)" class="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" size="12"></i></button>
+                                </template>
+                                <div class="text-[8px] mb-1 opacity-50 font-black uppercase italic tracking-widest flex items-center gap-2">
+                                    <span x-text="msg.author_name"></span>
+                                    <template x-if="msg.is_redacted">
+                                        <span class="text-[6px] text-red-500">[FILTER_TRIGGERED]</span>
+                                    </template>
                                 </div>
+                                <p class="text-xs font-medium tracking-wide" x-text="msg.text"></p>
+                                <div class="text-[7px] mt-2 opacity-30 text-right font-black" x-text="new Date(msg.created_at).toLocaleTimeString()"></div>
                             </div>
-                        </template>
-                    </div>
-                    <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex gap-3">
-                        <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
-                        <button type="submit" class="bg-gold text-black px-10 rounded-2xl font-black text-[10px] uppercase italic">Transmit</button>
-                    </form>
+                        </div>
+                    </template>
                 </div>
-            </main>
+                
+                <form @submit.prevent="sendMessage()" class="p-5 bg-black/60 border-t border-white/5 flex items-center gap-3">
+                    <input x-model="newMessage" placeholder="INPUT TRANSMISSION..." class="flex-grow bg-zinc-900/50 p-4 rounded-2xl text-xs text-white outline-none border border-white/10 focus:border-gold/50 tracking-widest uppercase">
+                    <button type="submit" class="bg-gold text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase italic active:scale-95 transition-all">Transmit</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <template x-if="adminView">
+        <div class="fixed inset-0 z-[200] bg-black/95 flex items-center justify-center p-4 backdrop-blur-2xl">
+            <div class="max-w-5xl w-full h-[85vh] glass-panel rounded-[3rem] p-10 flex flex-col">
+                <div class="flex border-b border-white/10 mb-6">
+                    <button @click="adminTab = 'recruits'" :class="adminTab === 'recruits' ? 'border-gold text-gold' : 'text-white/40'" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all">Operatives</button>
+                    <button @click="fetchLogs()" :class="adminTab === 'logs' ? 'border-gold text-gold' : 'text-white/40'" class="px-6 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all">Security_Logs</button>
+                    <div class="flex-grow"></div>
+                    <button @click="adminView = false" class="p-4 text-white/40"><i data-lucide="x"></i></button>
+                </div>
+                <div class="flex-grow overflow-y-auto pr-4">
+                    <template x-if="adminTab === 'recruits'">
+                        <table class="w-full text-left text-[10px] uppercase">
+                            <thead class="text-gold/40 border-b border-white/5"><tr><th class="pb-4">Alias</th><th class="pb-4">Recruiter</th><th class="pb-4">Sector</th></tr></thead>
+                            <tbody class="text-white/80"><template x-for="m in membersList"><tr class="border-b border-white/5"><td class="py-4 font-black italic" x-text="m.full_name"></td><td class="py-4" x-text="m.recruited_by || 'DIRECTOR'"></td><td class="py-4 text-blue-400" x-text="m.sector"></td></tr></template></tbody>
+                        </table>
+                    </template>
+                    <template x-if="adminTab === 'logs'">
+                        <table class="w-full text-left text-[9px] uppercase">
+                            <thead class="text-red-500/40 border-b border-white/5"><tr><th class="pb-4">Agent</th><th class="pb-4">Device_Fingerprint</th><th class="pb-4">Timestamp</th></tr></thead>
+                            <tbody class="text-white/60"><template x-for="l in securityLogs"><tr class="border-b border-white/5"><td class="py-4 font-black" x-text="l.agent_name"></td><td class="py-4 italic" x-text="l.device_info.substring(0,60)"></td><td class="py-4" x-text="new Date(l.access_time).toLocaleString()"></td></tr></template></tbody>
+                        </table>
+                    </template>
+                </div>
+            </div>
         </div>
     </template>
 
     <script>
         function app() {
             return {
-                appState: 'auth', authMode: 'login', user: null, profile: null, loading: false,
-                email: '', password: '', passkey: '', newMessage: '', messages: [], supabase: null,
+                guestId: '', agentName: '', isAdmin: false, newMessage: '', messages: [], 
+                announcement: null, adminView: false, adminTab: 'recruits', 
+                securityLogs: [], membersList: [], mapView: false, sectorStats: [], 
+                settingsModal: false, supabase: null,
+                
+                // Neural Filter Config
+                forbiddenWords: ['spam', 'hack', 'admin_bypass', 'leak'], 
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+                    const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+                    this.guestId = localStorage.getItem('mog_id') || 'G-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+                    this.agentName = localStorage.getItem('mog_name') || 'AGENT_' + this.guestId.split('-')[1];
+                    this.isAdmin = localStorage.getItem('mog_is_admin') === 'true';
                     
-                    const { data: { session } } = await this.supabase.auth.getSession();
-                    if (session) await this.handleAuthSuccess(session.user);
-                    
-                    this.supabase.auth.onAuthStateChange(async (e, s) => { 
-                        if (e === 'SIGNED_IN' && s) await this.handleAuthSuccess(s.user); 
-                        if (e === 'SIGNED_OUT') location.reload();
-                    });
+                    localStorage.setItem('mog_id', this.guestId);
+                    localStorage.setItem('mog_name', this.agentName);
+
+                    this.logAccess();
+                    this.fetchData();
+                    this.fetchAnnouncements();
+                    this.subscribe();
                     lucide.createIcons();
                 },
 
-                async loginWithGoogle() {
-                    this.loading = true;
-                    await this.supabase.auth.signInWithOAuth({ 
-                        provider: 'google', options: { redirectTo: window.location.origin } 
-                    });
-                },
-
-                async handleAuthSuccess(user) {
-                    this.user = user;
-                    let { data: p } = await this.supabase.from('members').select('*').eq('user_id', user.id).maybeSingle();
-                    
-                    if (!p) {
-                        const isDirector = user.email === 'director.mog@gmail.com';
-                        const { data: newP } = await this.supabase.from('members').insert([{ 
-                            user_id: user.id, 
-                            full_name: user.user_metadata.full_name || user.email.split('@')[0],
-                            role: isDirector ? 'admin' : 'member',
-                            gate_two_complete: isDirector // Auto-pass for Director
-                        }]).select().single();
-                        p = newP;
-                    }
-
-                    this.profile = p;
-                    if (p.gate_two_complete) {
-                        this.appState = 'grid'; this.fetchData(); this.subscribe();
-                    } else {
-                        this.authMode = 'passkey';
-                    }
-                    this.loading = false;
-                },
-
-                runAuthAction() {
-                    if (this.authMode === 'login') this.handleLogin();
-                    else if (this.authMode === 'register') this.handleRegister();
-                    else this.finalizePasskey();
-                },
-
-                async handleLogin() {
-                    this.loading = true;
-                    const { error } = await this.supabase.auth.signInWithPassword({ email: this.email, password: this.password });
-                    if (error) { alert(error.message); this.loading = false; }
-                },
-
-                async handleRegister() {
-                    this.loading = true;
-                    const { error } = await this.supabase.auth.signUp({ email: this.email, password: this.password });
-                    if (error) { alert(error.message); this.loading = false; }
-                    else alert("Verification Email Sent.");
-                },
-
-                async finalizePasskey() {
-                    this.loading = true;
-                    if (this.user.email === 'director.mog@gmail.com' && this.passkey !== '@MOGProtocol2026') {
-                        alert("Invalid Admin Passkey"); this.loading = false; return;
-                    }
-                    await this.supabase.from('members').update({ gate_two_complete: true }).eq('user_id', this.user.id);
-                    location.reload();
-                },
-
-                async fetchData() {
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                    if (data) this.messages = data;
-                    this.$nextTick(() => this.scroll());
+                async logAccess() {
+                    await this.supabase.from('security_logs').insert([{
+                        agent_id: this.guestId,
+                        agent_name: this.agentName,
+                        device_info: navigator.userAgent
+                    }]);
                 },
 
                 async sendMessage() {
                     if (!this.newMessage.trim()) return;
-                    await this.supabase.from('messages').insert([{ text: this.newMessage.toUpperCase(), user_id: this.user.id }]);
+                    
+                    // Admin Unlock Code
+                    if (this.newMessage === '@MOGProtocol2026') {
+                        this.isAdmin = true;
+                        localStorage.setItem('mog_is_admin', 'true');
+                        alert("DIRECTOR_AUTHORIZED");
+                        this.newMessage = '';
+                        return;
+                    }
+
+                    // Content Filtering Logic
+                    let textToTransmit = this.newMessage.toUpperCase();
+                    let redactedTrigger = false;
+                    
+                    this.forbiddenWords.forEach(word => {
+                        if (textToTransmit.includes(word.toUpperCase())) {
+                            textToTransmit = textToTransmit.replace(word.toUpperCase(), "[REDACTED_BY_DIRECTORATE]");
+                            redactedTrigger = true;
+                        }
+                    });
+
+                    await this.supabase.from('messages').insert([{ 
+                        text: textToTransmit, 
+                        guest_id: this.guestId, 
+                        author_name: this.agentName,
+                        is_redacted: redactedTrigger
+                    }]);
                     this.newMessage = '';
                 },
 
+                copyInviteLink() {
+                    const refId = this.isAdmin ? 'DIRECTOR' : this.guestId;
+                    const inviteUrl = `https://mog-directorate.vercel.app/enlist?sector=emalahleni&ref=${refId}`;
+                    navigator.clipboard.writeText(inviteUrl);
+                    alert("INVITE_COPIED: " + inviteUrl);
+                },
+
+                async fetchData() {
+                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(60);
+                    this.messages = data || [];
+                    this.$nextTick(() => this.scroll());
+                },
+
                 subscribe() {
-                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                        this.messages.push(p.new); this.scroll();
+                    this.supabase.channel('public').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (p) => {
+                        if (p.eventType === 'INSERT') { this.messages.push(p.new); this.scroll(); }
+                        if (p.eventType === 'DELETE') { this.messages = this.messages.filter(m => m.id !== p.old.id); }
                     }).subscribe();
                 },
 
-                logout() { this.supabase.auth.signOut(); },
+                async openAdmin() {
+                    const { data } = await this.supabase.from('members').select('*');
+                    this.membersList = data || [];
+                    this.adminView = true;
+                },
+
+                async fetchLogs() {
+                    this.adminTab = 'logs';
+                    const { data } = await this.supabase.from('security_logs').select('*').order('access_time', { ascending: false }).limit(50);
+                    this.securityLogs = data || [];
+                },
+
                 scroll() { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }
             }
         }
