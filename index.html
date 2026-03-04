@@ -34,7 +34,6 @@
             border: 1px solid rgba(212, 175, 55, 0.15); 
         }
         
-        /* Main Interface is now visible by default */
         #main-interface { opacity: 1; filter: none; transition: all 1s ease; }
     </style>
 </head>
@@ -50,7 +49,7 @@
             </div>
             <div class="flex flex-col items-end text-[8px] text-[#007BFF] font-black uppercase tracking-[0.4em]">
                 <span class="animate-pulse">Frequency Locked</span>
-                <span class="text-zinc-500 mt-1">Sovereign v45.4 Live</span>
+                <span class="text-zinc-500 mt-1">Sovereign v45.5 Live</span>
             </div>
         </nav>
 
@@ -60,11 +59,7 @@
                 <p class="text-[#007BFF] text-[10px] sm:text-xs tracking-[0.6em] uppercase font-black">Sovereign Restoration Protocol</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div onclick="window.location.href='origin54.html'" class="glass p-10 text-left rounded-[3rem] border-blue-500/10 hover:border-[#007BFF] transition-all cursor-pointer">
-                    <p class="text-[9px] text-[#007BFF] font-black uppercase tracking-widest">Identity</p>
-                    <h3 class="serif text-2xl mt-2 gold-gradient italic">Origin 54</h3>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div onclick="window.location.href='tos.html'" class="glass p-10 text-left rounded-[3rem] border-white/5 hover:border-white transition-all cursor-pointer">
                     <p class="text-[9px] text-[#D4AF37] font-black uppercase tracking-widest">Directives</p>
                     <h3 class="serif text-2xl mt-2 gold-gradient italic">Briefing</h3>
@@ -92,14 +87,12 @@
     </div>
 
     <script>
-        // 1. SERVICE WORKER (PWA Engine)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js');
             });
         }
 
-        // 2. ONESIGNAL (Push Notifications)
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
             await OneSignal.init({
