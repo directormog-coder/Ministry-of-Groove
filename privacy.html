@@ -1,18 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><title>Privacy Policy | Ministry of Groove</title>
-    <style>body { background: #050505; color: #D4AF37; font-family: sans-serif; padding: 40px; line-height: 1.6; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURITY PROTOCOL | MINISTRY OF GROOVE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:italic,wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background-color: var(--noir); color: white; font-family: 'Inter', sans-serif; line-height: 1.6; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .gold-gradient { background: linear-gradient(to right, #D4AF37, #F3E5AB, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.15); }
+    </style>
 </head>
-<body>
-    <h1>Privacy Policy</h1>
-    <p>Effective Date: March 2, 2026</p>
-    <hr style="border: 0; border-top: 1px solid #D4AF37;">
-    <h3>1. Data Collection</h3>
-    <p>We collect your email address and authentication data via Supabase and Google OAuth solely for the purpose of granting access to the eMalahleni HQ National Command Center.</p>
-    <h3>2. POPIA Compliance (South Africa)</h3>
-    <p>In accordance with the Protection of Personal Information Act (POPIA), we ensure that your personal data is stored securely in encrypted databases and is never shared with third parties for marketing purposes.</p>
-    <h3>3. Data Deletion</h3>
-    <p>Operatives may request the deletion of their profile at any time by contacting the Directorate at director.mog@gmail.com.</p>
+<body class="p-6 sm:p-20">
+
+    <nav class="mb-20">
+        <a href="index.html" class="text-[10px] text-zinc-500 uppercase tracking-[0.4em] hover:text-[#D4AF37] transition-all">← Return to Command</a>
+    </nav>
+
+    <main class="max-w-3xl mx-auto">
+        <header class="mb-16 border-b border-gold/20 pb-10">
+            <h1 class="text-4xl sm:text-6xl serif italic gold-gradient">Security Protocol</h1>
+            <p class="text-zinc-500 text-[10px] uppercase tracking-widest mt-4">POPIA Ref: eMalahleni HQ | Effective: 2026-03-02</p>
+        </header>
+
+        <section class="glass p-10 rounded-[2.5rem] space-y-12">
+            <div>
+                <h2 class="serif text-xl gold-gradient italic mb-4">I. Intelligence Gathering</h2>
+                <p class="text-[11px] text-zinc-400 leading-relaxed uppercase tracking-wider">
+                    We collect operative email addresses and biometric-grade authentication data via Supabase and Google OAuth. This is used exclusively for eMalahleni HQ access.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="serif text-xl gold-gradient italic mb-4">II. National Grid Protection</h2>
+                <p class="text-[11px] text-zinc-400 leading-relaxed uppercase tracking-wider">
+                    In compliance with POPIA, operative data is stored within the National Grid using AES-256 encryption. Third-party marketing infiltration is strictly prohibited.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="serif text-xl gold-gradient italic mb-4">III. Uplink Deletion</h2>
+                <p class="text-[11px] text-zinc-400 leading-relaxed uppercase tracking-wider">
+                    Operatives may terminate their dossier at any time by contacting the Directorate at <span class="text-gold">director.mog@gmail.com</span>.
+                </p>
+            </div>
+        </section>
+    </main>
+
 </body>
 </html>
