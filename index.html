@@ -17,7 +17,6 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:italic,wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     
     <style>
@@ -35,39 +34,13 @@
             border: 1px solid rgba(212, 175, 55, 0.15); 
         }
         
-        /* The Gatekeeper UI */
-        #auth-overlay {
-            position: fixed; inset: 0; background: rgba(5,5,5,0.99);
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
-            transition: opacity 0.8s ease;
-        }
-        .auth-card { 
-            background: #0a0a0a; border: 1px solid var(--gold); 
-            padding: 3rem; border-radius: 2rem; width: 90%; max-width: 400px;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.1);
-        }
-        input { background: #111; border: 1px solid #333; padding: 1rem; width: 100%; border-radius: 0.75rem; color: white; margin-bottom: 1rem; outline: none; }
-        
-        /* Main Dashboard State */
-        #main-interface { opacity: 0; filter: blur(20px); transition: all 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .unlocked #main-interface { opacity: 1; filter: blur(0); }
+        /* Main Interface is now visible by default */
+        #main-interface { opacity: 1; filter: none; transition: all 1s ease; }
     </style>
 </head>
 <body class="selection:bg-[#007BFF] selection:text-white">
 
     <audio id="mandateAudio" loop><source src="/mandate_mix.mp3" type="audio/mpeg"></audio>
-
-    <div id="auth-overlay">
-        <div class="auth-card text-center">
-            <img src="/logo.png" class="w-20 h-20 mx-auto rounded-full mb-6 border border-gold/30">
-            <h2 id="auth-title" class="serif text-3xl gold-gradient italic mb-8">Uplink Required</h2>
-            <input type="email" id="email" placeholder="Operative Email">
-            <input type="password" id="pass" placeholder="Secret Passkey">
-            <button onclick="handleAuth()" id="auth-btn" class="w-full bg-[#007BFF] text-white py-4 rounded-xl font-black tracking-widest uppercase hover:bg-blue-600 transition-all">Establish Link</button>
-            <p id="auth-toggle" onclick="toggleAuthMode()" class="mt-6 text-[10px] text-zinc-500 uppercase tracking-widest cursor-pointer hover:text-white">Request New Operative Access</p>
-            <p id="auth-msg" class="mt-4 text-[10px] italic text-red-500"></p>
-        </div>
-    </div>
 
     <div id="main-interface">
         <nav class="fixed top-0 w-full glass z-[100] px-10 py-8 flex justify-between items-center border-b border-blue-500/20">
@@ -77,7 +50,7 @@
             </div>
             <div class="flex flex-col items-end text-[8px] text-[#007BFF] font-black uppercase tracking-[0.4em]">
                 <span class="animate-pulse">Frequency Locked</span>
-                <span class="text-zinc-500 mt-1">Sovereign v45.3 Live</span>
+                <span class="text-zinc-500 mt-1">Sovereign v45.4 Live</span>
             </div>
         </nav>
 
@@ -100,13 +73,13 @@
                     <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Security</p>
                     <h3 class="serif text-2xl mt-2 gold-gradient italic">POPIA Prot.</h3>
                 </div>
-                <div class="glass p-10 text-left rounded-[3rem] border-red-900/10 transition-all cursor-pointer">
+                <div class="glass p-10 text-left rounded-[3rem] border-red-900/10 transition-all">
                     <p class="text-[9px] text-red-900 font-black uppercase tracking-widest">Status</p>
                     <h3 class="serif text-2xl mt-2 gold-gradient italic">Online</h3>
                 </div>
             </div>
-    </main>
-    
+        </main>
+
         <footer class="fixed bottom-0 w-full glass py-12 px-10 border-t border-gold/10 z-[100]">
             <div class="max-w-7xl mx-auto flex flex-col items-center gap-8 text-[8px] text-zinc-600 uppercase tracking-[0.3em]">
                 <div class="flex gap-16 text-[#D4AF37] opacity-60">
@@ -119,52 +92,14 @@
     </div>
 
     <script>
-        // 1. SERVICE WORKER INTEGRATION (PWA Engine)
+        // 1. SERVICE WORKER (PWA Engine)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                .then(reg => console.log('Uplink: Service Worker Active'))
-                .catch(err => console.log('Uplink Error:', err));
+                navigator.serviceWorker.register('/service-worker.js');
             });
         }
 
-        // 2. SUPABASE AUTH ENGINE
-        const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-        let isLogin = true;
-
-        function toggleAuthMode() {
-            isLogin = !isLogin;
-            document.getElementById('auth-title').innerText = isLogin ? 'Uplink Required' : 'Enlist Operative';
-            document.getElementById('auth-btn').innerText = isLogin ? 'Establish Link' : 'Secure Access';
-        }
-
-        async function handleAuth() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
-            const msg = document.getElementById('auth-msg');
-
-            const { data, error } = isLogin 
-                ? await supabase.auth.signInWithPassword({ email, password })
-                : await supabase.auth.signUp({ email, password });
-
-            if (error) {
-                msg.innerText = error.message;
-            } else {
-                unlockInterface();
-            }
-        }
-
-        function unlockInterface() {
-            document.getElementById('auth-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.body.classList.add('unlocked');
-            }, 800);
-        }
-
-        // 3. ONESIGNAL (Push Notifications)
+        // 2. ONESIGNAL (Push Notifications)
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
             await OneSignal.init({
