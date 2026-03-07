@@ -3,75 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MINISTRY OF GROOVE | NCC BYPASS</title>
+    <title>MINISTRY OF GROOVE | NCC MASTER</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({ appId: "3ef253d3-a093-42f5-bc88-91dd7576cf34" });
+      });
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.2); }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; }
+        
+        .glass { background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
+        
+        /* Mobile UI Optimization */
+        #chat-stream::-webkit-scrollbar { width: 3px; }
+        #chat-stream::-webkit-scrollbar-thumb { background: var(--gold); }
+        
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+        .scanline { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: rgba(212, 175, 55, 0.05); animation: scanline 4s linear infinite; pointer-events: none; }
     </style>
 </head>
-<body x-data="ministry()" x-init="init()" x-cloak class="min-h-screen">
+<body x-data="ministry()" x-init="init()" x-cloak>
 
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-6 bg-black text-center">
-            <img src="logo.png" class="h-32 w-32 mb-6 animate-pulse" @click="bypass()">
-            <h1 class="text-white text-2xl font-black uppercase tracking-widest mb-2">Ministry of Groove</h1>
-            
-            <div class="max-w-xs w-full mt-8 space-y-4">
-                <button @click="bypass()" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase rounded-xl">
-                    Manual Override (Bypass)
+        <div class="h-screen flex flex-col items-center justify-center p-8 bg-black relative">
+            <div class="scanline"></div>
+            <img src="logo.png" class="h-44 w-44 mb-10 gold-glow animate-pulse cursor-pointer" @click="bypass()">
+            <h1 class="text-white text-4xl font-black uppercase tracking-[0.4em] italic text-center">Ministry of Groove</h1>
+            <div class="mt-12 space-y-4 text-center">
+                <button @click="bypass()" class="px-12 py-5 border border-gold/40 text-gold font-black text-[10px] uppercase rounded-full hover:bg-gold hover:text-black transition-all">
+                    Initialize Bypass Protocol
                 </button>
-                <p class="text-[8px] text-zinc-500 uppercase tracking-widest">Tap logo or button to enter</p>
+                <p class="text-[7px] text-gold/30 uppercase tracking-[0.5em] font-bold">Secure Frequency: Locked</p>
             </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="flex flex-col min-h-screen">
-            <header class="p-6 border-b border-gold/10 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" class="h-8 w-8">
-                    <span class="text-[10px] font-black uppercase text-white" x-text="'OPERATIVE: ' + username"></span>
+        <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
+            <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50 rounded-none">
+                <div class="flex items-center gap-4">
+                    <img src="logo.png" class="h-10 w-10 gold-glow">
+                    <div>
+                        <p class="text-[10px] font-black uppercase text-white tracking-widest italic" x-text="username"></p>
+                        <p class="text-[7px] text-gold/50 uppercase font-bold tracking-tighter">Status: Frequency Locked</p>
+                    </div>
                 </div>
-                <button @click="location.reload()" class="text-[8px] text-red-500 font-black uppercase">Exit</button>
+                <button @click="location.reload()" class="p-2 border border-red-900/30 text-red-500 rounded-lg">
+                    <i data-lucide="power" size="16"></i>
+                </button>
             </header>
 
-            <main class="p-6 flex-grow max-w-lg mx-auto w-full">
-                <div class="glass rounded-3xl h-[450px] flex flex-col overflow-hidden">
-                    <div id="chat-stream" class="flex-grow overflow-y-auto p-4 space-y-3">
+            <main class="p-6 space-y-8 max-w-5xl mx-auto w-full pb-32 overflow-y-auto">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'border-gold bg-gold/5' : ''" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
+                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest block">The Grid</span>
+                    </div>
+                    <div @click="window.location.href='gallery.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
+                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest block">Gallery</span>
+                    </div>
+                    <div @click="window.open('https://music.youtube.com', '_blank')" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
+                        <i data-lucide="music" class="mx-auto mb-4 text-red-500"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest block">Music</span>
+                    </div>
+                    <div @click="window.location.href='archives.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
+                        <i data-lucide="database" class="mx-auto mb-4 text-gold"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest block">Vault</span>
+                    </div>
+                </div>
+
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[55vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95">
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
                         <template x-for="msg in messages" :key="msg.id">
-                            <div class="p-3 rounded-lg bg-white/5 border-l-2 border-gold/30">
-                                <p class="text-[7px] font-bold text-gold uppercase" x-text="msg.username"></p>
-                                <p class="text-xs text-zinc-200" x-text="msg.content"></p>
+                            <div :class="msg.username === 'DIRECTOR_MOG' ? 'ml-auto items-end' : 'mr-auto items-start'" class="max-w-[85%] flex flex-col gap-1">
+                                <span class="text-[7px] font-black uppercase px-2" :class="msg.username === 'DIRECTOR_MOG' ? 'text-gold' : 'text-zinc-500'" x-text="msg.username"></span>
+                                <div :class="msg.username === 'DIRECTOR_MOG' ? 'bg-gold/10 border-gold/20 rounded-l-2xl rounded-tr-2xl' : 'bg-white/5 border-white/5 rounded-r-2xl rounded-tl-2xl'" class="p-4 border">
+                                    <p class="text-sm text-zinc-100 font-medium" x-text="msg.content"></p>
+                                </div>
                             </div>
                         </template>
                     </div>
-                    
-                    <form @submit.prevent="send()" class="p-3 border-t border-gold/10 flex gap-2">
-                        <input x-model="msgInput" placeholder="TYPE MESSAGE..." class="flex-grow bg-black/50 text-white text-xs p-3 rounded-xl outline-none border border-white/5">
-                        <button type="submit" class="bg-gold text-black px-4 rounded-xl font-bold text-[10px]">SEND</button>
+                    <form @submit.prevent="send()" class="p-5 bg-black/40 border-t border-gold/10 flex gap-4">
+                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-sm text-white p-2 outline-none">
+                        <button type="submit" class="p-4 bg-gold rounded-2xl text-black active:scale-95 transition-transform"><i data-lucide="send-horizontal" size="20"></i></button>
                     </form>
                 </div>
             </main>
+
+            <footer class="fixed bottom-0 left-0 w-full glass border-t border-gold/20 p-3 z-[100] h-12 flex items-center">
+                <div class="flex items-center gap-3 px-4 overflow-hidden">
+                    <span class="flex h-2 w-2 rounded-full bg-gold animate-ping"></span>
+                    <p class="terminal-font text-[8px] uppercase font-bold tracking-widest text-gold/80 whitespace-nowrap" x-text="systemLog"></p>
+                </div>
+            </footer>
         </div>
     </template>
 
     <script>
         function ministry() {
             return {
-                view: 'auth',
-                username: 'GUEST_PROX',
-                messages: [],
-                msgInput: '',
-                supabase: null,
+                view: 'auth', subView: 'chat', username: 'GUEST_OPERATIVE',
+                messages: [], msgInput: '', supabase: null, 
+                systemLog: '[SYSTEM_IDLE] SEARCHING FOR FREQUENCY...',
+                
+                // SOUND ENGINE
+                sounds: {
+                    bypass: new Audio('https://www.soundjay.com/buttons/button-20.mp3'),
+                    transmit: new Audio('https://www.soundjay.com/buttons/button-50.mp3')
+                },
 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
@@ -79,12 +133,21 @@
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     this.fetch();
                     this.subscribe();
-                    lucide.createIcons();
+                    setTimeout(() => lucide.createIcons(), 200);
                 },
 
                 bypass() {
+                    this.sounds.bypass.volume = 0.2;
+                    this.sounds.bypass.play();
                     this.view = 'grid';
                     this.username = 'DIRECTOR_MOG';
+                    this.updateLog('[UPLINK_ESTABLISHED] WELCOME DIRECTOR.');
+                    setTimeout(() => lucide.createIcons(), 100);
+                },
+
+                updateLog(text) {
+                    this.systemLog = text;
+                    setTimeout(() => { if(this.systemLog === text) this.systemLog = '[NCC_IDLE] LISTENING...'; }, 5000);
                 },
 
                 async fetch() {
@@ -92,34 +155,38 @@
                     this.messages = data || [];
                     this.scroll();
                 },
-        
+
                 subscribe() {
-                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (p) => {
-                        this.messages.push(p.new);
+                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                        this.messages.push(payload.new);
+                        this.updateLog(`[SIGNAL_DETECTED] FROM: ${payload.new.username}`);
                         this.scroll();
                     }).subscribe();
                 },
 
                 async send() {
                     if (!this.msgInput.trim()) return;
+                    this.sounds.transmit.volume = 0.1;
+                    this.sounds.transmit.play();
                     
-                    // Sending to your database using the 'content' column
+                    const text = this.msgInput.toUpperCase();
+                    this.msgInput = '';
+                    this.updateLog('[TRANSMITTING_SIGNAL] ENCRYPTING...');
+                    
                     const { error } = await this.supabase.from('messages').insert([{ 
-                        content: this.msgInput, 
-                        username: this.username,
-                        is_admin: true
+                        content: text, username: this.username, is_admin: true
                     }]);
                     
                     if (error) {
-                        console.error(error);
-                        alert("Database Error: " + error.message);
+                        this.updateLog('[UPLINK_FAILURE] RETRY COMMAND.');
+                    } else {
+                        this.updateLog('[SUCCESS] SIGNAL BROADCASTED.');
                     }
-                    this.msgInput = '';
                 },
 
-                scroll() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTop = el.scrollHeight; }); }
+                scroll() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }); }
             }
         }
     </script>
 </body>
-</html>
+                                        </html>
