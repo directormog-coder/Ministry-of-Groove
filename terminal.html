@@ -5,114 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>DIRECTORATE TERMINAL | MOG HQ</title>
     
-    <link rel="icon" type="image/png" href="1000219947.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/jpeg" href="1000225933.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
-    </style>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');</style>
     <link rel="stylesheet" href="style.css">
     
     <style>
-        :root { --gold: #D4AF37; --noir: #050505; --red: #8b0000; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; margin: 0; }
         .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4)); }
-        .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
 <body x-data="terminal()" x-init="init()" x-cloak>
 
     <template x-if="!authenticated">
-        <div class="h-screen flex flex-col items-center justify-center p-10 bg-black animate-in fade-in duration-700">
-            <img src="1000219947.png" class="h-24 w-24 mb-10 gold-glow animate-pulse rounded-full">
-            <div class="w-full max-w-xs space-y-4 text-center">
-                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] mb-6 text-white">Directorate Secure Login</h2>
-                <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none focus:border-gold terminal-font text-center">
-                <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none focus:border-gold terminal-font text-center">
-                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">Authorize Terminal</button>
-                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[8px] uppercase font-black italic mt-4"></p>
+        <div class="h-screen w-full relative flex flex-col items-center justify-center overflow-hidden">
+            <video autoplay muted loop playsinline class="absolute z-0 w-auto min-w-full min-h-full max-w-none opacity-20 grayscale">
+                <source src="1000211769.mp4" type="video/mp4">
+            </video>
+
+            <div class="relative z-10 flex flex-col items-center p-10 glass rounded-[3rem] border-gold/20 max-w-xs w-full">
+                <img src="1000225933.jpg" class="h-24 w-24 mb-10 gold-glow rounded-full">
+                <div class="w-full space-y-4 text-center">
+                    <h2 class="text-[10px] font-black uppercase tracking-[0.4em] mb-6 text-white">Directorate Terminal</h2>
+                    <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-black/40 border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none terminal-font text-center">
+                    <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-black/40 border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none terminal-font text-center">
+                    <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg">Authorize</button>
+                </div>
             </div>
         </div>
     </template>
 
     <template x-if="authenticated">
-        <div class="min-h-screen p-6 pb-[120px] animate-in slide-in-from-bottom-4 duration-700">
-            
+        <div class="min-h-screen p-6 pb-[120px]">
             <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
                 <div class="flex items-center gap-4">
-                    <img src="1000219947.png" class="h-12 w-12 gold-glow rounded-full">
-                    <div>
-                        <h1 class="text-xl font-black uppercase tracking-tighter text-white italic leading-tight">MOG_COMMAND</h1>
-                        <p class="text-[7px] terminal-font text-gold/50 uppercase">STATUS: <span class="text-green-500 animate-pulse">ENCRYPTED</span></p>
-                    </div>
+                    <img src="1000225933.jpg" class="h-12 w-12 gold-glow rounded-full">
+                    <h1 class="text-xl font-black uppercase tracking-tighter text-white italic">MOG_COMMAND</h1>
                 </div>
                 <button @click="logout()" class="p-3 glass rounded-2xl border-red-900/40 text-red-500"><i data-lucide="log-out" size="18"></i></button>
             </header>
 
             <main class="space-y-6 max-w-2xl mx-auto">
-                
-                <section class="glass p-6 rounded-[2.5rem] border-gold/10">
-                    <div class="flex items-center justify-between mb-4 px-2">
-                        <h2 class="text-[9px] font-black uppercase tracking-widest text-white italic">Live Grid Operatives</h2>
-                        <span class="text-[10px] bg-gold/10 text-gold px-3 py-1 rounded-full font-bold terminal-font" x-text="operatives.length">0</span>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto pr-2">
-                        <template x-for="op in operatives" :key="op.id">
-                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
-                                <span class="text-[9px] font-bold text-white uppercase tracking-tight" x-text="op.username"></span>
-                                <span class="flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                <section class="glass p-6 rounded-[2.5rem]">
+                    <h2 class="text-[9px] font-black uppercase tracking-widest text-white mb-4">Grid Operatives</h2>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
+                        <template x-for="op in operatives">
+                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
+                                <span class="text-[10px] font-bold text-white uppercase" x-text="op.username"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-500"></span>
                             </div>
                         </template>
                     </div>
                 </section>
 
-                <section class="grid grid-cols-2 gap-4">
-                    <button @click="toggle('livestream')" :class="isLive ? 'border-red-500 bg-red-500/10' : 'border-white/5 bg-white/5'" class="glass p-6 rounded-[2rem] text-center transition-all border">
-                        <i data-lucide="radio" :class="isLive ? 'text-red-500 animate-pulse' : 'text-zinc-600'" class="mx-auto mb-2" size="20"></i>
-                        <p class="text-[8px] font-black uppercase text-white tracking-widest">Signal</p>
-                    </button>
-                    <button @click="toggle('lockdown')" :class="isLockdown ? 'border-red-900 bg-red-900/30' : 'border-white/5 bg-white/5'" class="glass p-6 rounded-[2rem] text-center transition-all border">
-                        <i data-lucide="shield-alert" :class="isLockdown ? 'text-red-700' : 'text-zinc-600'" class="mx-auto mb-2" size="20"></i>
-                        <p class="text-[8px] font-black uppercase text-white tracking-widest">Lockdown</p>
-                    </button>
-                </section>
-
                 <section class="glass p-8 rounded-[3rem]">
-                    <h2 class="text-[9px] font-black uppercase text-white tracking-[0.2em] mb-4">Signal Transmission</h2>
+                    <h2 class="text-[10px] font-black uppercase text-white tracking-[0.2em] mb-6 text-center italic">Global Transmission</h2>
                     <div class="space-y-4">
                         <input x-model="bTitle" placeholder="HEADING..." class="w-full bg-black border border-gold/20 p-4 rounded-xl text-[10px] text-white uppercase outline-none terminal-font">
                         <textarea x-model="bMsg" placeholder="SIGNAL MESSAGE..." class="w-full bg-black border border-gold/20 p-4 rounded-xl text-[10px] text-white uppercase outline-none min-h-[100px] terminal-font"></textarea>
-                        <button @click="broadcast()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
+                        <button @click="broadcast()" class="w-full py-6 bg-gold text-black font-black text-[11px] uppercase rounded-full shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
                             <i data-lucide="zap" size="14"></i> Transmit Signal
                         </button>
-                        <p x-text="status" class="text-[7px] text-center uppercase opacity-50 tracking-widest font-black"></p>
+                        <p x-text="status" class="text-[7px] text-center uppercase opacity-50 tracking-widest font-black h-2"></p>
                     </div>
                 </section>
-
             </main>
 
-            <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
+            <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 fixed bottom-0 w-full left-0 z-[100]">
                 <div class="flex flex-col items-center sm:items-start gap-1">
                     <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
                     <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
-                        <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a> | 
-                        <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
+                        <a href="tos.html">Protocol TOS</a> | <a href="privacy.html">Privacy Shield</a>
                     </div>
-                </div>
-                <div class="flex gap-6 text-white/40">
-                    <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
-                    <a href="https://tiktok.com/@ministryofgroove" target="_blank"><i data-lucide="music-2" size="20"></i></a>
-                    <a href="https://www.facebook.com/share/1HT1J3Kazp/" target="_blank"><i data-lucide="facebook" size="20"></i></a>
-                    <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank"><i data-lucide="youtube" size="20"></i></a>
                 </div>
             </footer>
         </div>
@@ -121,10 +93,8 @@
     <script>
         function terminal() {
             return {
-                authenticated: false, loginEmail: '', loginPass: '', errorMsg: '',
-                isLive: false, isLockdown: false, bTitle: '', bMsg: '', status: '', 
-                operatives: [], 
-                
+                authenticated: false, loginEmail: '', loginPass: '', 
+                operatives: [], bTitle: '', bMsg: '', status: '',
                 async init() {
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
                         this.authenticated = true;
@@ -137,9 +107,6 @@
                         this.authenticated = true;
                         sessionStorage.setItem('mog_terminal_auth', 'true');
                         this.setupSupabase();
-                    } else {
-                        this.errorMsg = "INVALID PROTOCOL";
-                        setTimeout(() => this.errorMsg = '', 3000);
                     }
                 },
                 logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); },
@@ -148,7 +115,6 @@
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     this.fetchPresence();
-                    this.fetchSystem();
                     setInterval(() => this.fetchPresence(), 5000);
                     setTimeout(() => lucide.createIcons(), 200);
                 },
@@ -156,23 +122,9 @@
                     const { data } = await this.supabase.from('presence').select('*').gt('last_seen', new Date(Date.now() - 300000).toISOString());
                     this.operatives = data || [];
                 },
-                async fetchSystem() {
-                    const { data } = await this.supabase.from('system_status').select('*');
-                    if (data) {
-                        this.isLive = data.find(i => i.id === 'livestream')?.is_active;
-                        this.isLockdown = data.find(i => i.id === 'lockdown')?.is_active;
-                    }
-                },
-                async toggle(type) {
-                    const val = type === 'livestream' ? !this.isLive : !this.isLockdown;
-                    if(type === 'livestream') this.isLive = val; else this.isLockdown = val;
-                    await this.supabase.from('system_status').update({ is_active: val }).eq('id', type);
-                    this.status = `[${type.toUpperCase()}_SYNCED]`;
-                    lucide.createIcons();
-                },
                 async broadcast() {
                     if(!this.bTitle || !this.bMsg) return;
-                    this.status = "UPLINKING...";
+                    this.status = "UPLINKING SIGNAL...";
                     const res = await fetch('https://onesignal.com/api/v1/notifications', {
                         method: 'POST',
                         headers: { 'Authorization': 'Basic Mzg0ZmI0MjUtYzYxZi00ODlhLWE1YzEtODQ1ZDQ4MDZiZWM4', 'Content-Type': 'application/json' },
@@ -183,10 +135,7 @@
                             contents: { "en": this.bMsg.toUpperCase() }
                         })
                     });
-                    if(res.ok) {
-                        this.status = "SIGNAL TRANSMITTED";
-                        this.bTitle = ''; this.bMsg = '';
-                    } else { this.status = "UPLINK ERROR"; }
+                    if(res.ok) { this.status = "SIGNAL TRANSMITTED"; this.bTitle = ''; this.bMsg = ''; }
                 }
             }
         }
