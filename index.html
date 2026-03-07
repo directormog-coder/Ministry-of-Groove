@@ -10,6 +10,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    </style>
+    <link rel="stylesheet" href="index.css">
+    <style>
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; }
         .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
@@ -228,9 +231,11 @@
                 },
                 updateClock() {
                     const now = new Date();
-                    document.getElementById('sast-clock').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
+                    const clockEl = document.getElementById('sast-clock');
+                    if(clockEl) clockEl.innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
                     fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true').then(r=>r.json()).then(d=>{
-                        document.getElementById('weather-display').innerText = `${Math.round(d.current_weather.temperature)}°C • EMALAHLENI`;
+                        const weatherEl = document.getElementById('weather-display');
+                        if(weatherEl) weatherEl.innerText = `${Math.round(d.current_weather.temperature)}°C • EMALAHLENI`;
                     }).catch(()=>{});
                 },
                 acceptProtocols() { localStorage.setItem('mog_rules_accepted', 'true'); this.showRules = false; },
