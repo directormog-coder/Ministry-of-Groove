@@ -4,54 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>OPERATIVE DOSSIER | MOG NCC</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');</style>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    </style>
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; margin: 0; }
+        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body x-data="dossier()" x-init="init()" class="p-6 pb-[120px] bg-black text-gold">
+<body x-data="dossier()" x-init="init()" x-cloak class="p-6 pb-[140px]">
 
     <header class="flex justify-between items-center mb-10 sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
-        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all text-white">
             <i data-lucide="chevron-left"></i>
         </button>
         <div class="flex items-center gap-3">
             <div class="text-right">
                 <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
-                <p class="text-[7px] text-gold/40 uppercase font-black italic">Identity Authenticated</p>
+                <p class="text-[7px] text-gold/40 uppercase font-black italic">Grid Identity Sync</p>
             </div>
-            <img src="logo.png" class="h-8 w-8 rounded-full border border-gold/20">
+            <img src="logo.png" class="h-8 w-8 rounded-full border border-gold/20 gold-glow">
         </div>
     </header>
 
     <main class="max-w-xl mx-auto space-y-6">
-        <div class="glass p-8 rounded-[3rem] border-gold/20 relative overflow-hidden">
+        <div class="glass p-8 rounded-[3.5rem] border-gold/20 relative overflow-hidden">
             <div class="flex items-center gap-6 relative z-10">
-                <div class="h-16 w-16 rounded-full border-2 border-gold/30 flex items-center justify-center bg-gold/5">
-                    <i data-lucide="user" size="32" class="text-gold/50"></i>
+                <div class="h-20 w-20 rounded-full border-2 border-gold/30 flex items-center justify-center bg-gold/5 overflow-hidden">
+                    <template x-if="handle === 'DIRECTORATE'">
+                        <img src="1000219947.png" class="h-full w-full object-cover">
+                    </template>
+                    <template x-if="handle !== 'DIRECTORATE'">
+                        <i data-lucide="user" size="32" class="text-gold/50"></i>
+                    </template>
                 </div>
                 <div>
-                    <h2 class="text-lg font-black uppercase text-white italic" x-text="handle"></h2>
-                    <p class="text-[8px] font-black uppercase text-gold/60 tracking-widest mt-1" x-text="rank"></p>
+                    <h2 class="text-xl font-black uppercase text-white italic tracking-tighter" x-text="handle"></h2>
+                    <p class="text-[8px] font-black uppercase text-gold tracking-[0.3em] mt-1" x-text="rank"></p>
+                </div>
+            </div>
+            <div class="absolute -right-4 -bottom-4 opacity-5 rotate-12">
+                <i data-lucide="shield-check" size="120"></i>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass p-6 rounded-[2.5rem] text-center">
+                <p class="text-[7px] font-black uppercase text-gold/40 mb-1">Signal Count</p>
+                <p class="text-2xl font-black text-white italic" x-text="stats.messages"></p>
+            </div>
+            <div class="glass p-6 rounded-[2.5rem] text-center">
+                <p class="text-[7px] font-black uppercase text-gold/40 mb-1">Assets Synced</p>
+                <p class="text-2xl font-black text-white italic" x-text="stats.gallery"></p>
+            </div>
+        </div>
+
+        <div class="glass p-8 rounded-[3rem] space-y-4">
+            <h3 class="text-[9px] font-black uppercase text-white tracking-widest mb-4">Grid Clearances</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center px-2">
+                    <span class="text-[10px] uppercase font-bold text-zinc-400">Main Grid Access</span>
+                    <i data-lucide="check-circle-2" class="text-green-500" size="14"></i>
+                </div>
+                <div class="flex justify-between items-center px-2">
+                    <span class="text-[10px] uppercase font-bold text-zinc-400">Asset Transmission</span>
+                    <i data-lucide="check-circle-2" class="text-green-500" size="14"></i>
+                </div>
+                <div class="flex justify-between items-center px-2">
+                    <span class="text-[10px] uppercase font-bold text-zinc-400">Directorate Uplink</span>
+                    <i :data-lucide="handle === 'DIRECTORATE' ? 'check-circle-2' : 'lock'" 
+                       :class="handle === 'DIRECTORATE' ? 'text-green-500' : 'text-red-900/40'" size="14"></i>
                 </div>
             </div>
         </div>
-        </main>
+
+        <button @click="logout()" class="w-full py-5 bg-white/5 border border-red-900/20 text-red-500 font-black text-[9px] uppercase rounded-full hover:bg-red-900/10 transition-all">
+            Terminate Session
+        </button>
+    </main>
 
     <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
         <div class="flex flex-col items-center sm:items-start gap-1">
             <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
             <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
-                <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a> | 
+                <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a>
+                <span>|</span>
                 <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
             </div>
         </div>
         <div class="flex gap-6 text-white/40">
             <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
-            </div>
+            <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
+            <a href="https://tiktok.com/@ministryofgroove" target="_blank"><i data-lucide="music-2" size="20"></i></a>
+            <a href="https://www.facebook.com/share/1HT1J3Kazp/" target="_blank"><i data-lucide="facebook" size="20"></i></a>
+            <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank"><i data-lucide="youtube" size="20"></i></a>
+        </div>
     </footer>
-    <script>/* [Original dossier() JS logic here] */</script>
+
+    <script>
+        function dossier() {
+            return {
+                handle: 'GUEST_USER',
+                rank: 'GRID_INITIATE',
+                stats: { messages: 0, gallery: 0 },
+                async init() {
+                    const saved = localStorage.getItem('mog_handle');
+                    if(saved) {
+                        this.handle = saved;
+                        this.rank = saved === 'DIRECTORATE' ? 'SUPREME_DIRECTOR' : 'OPERATIVE_LEVEL_1';
+                    }
+                    
+                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
+                    
+                    this.fetchStats();
+                    lucide.createIcons();
+                },
+                async fetchStats() {
+                    const { count: msgCount } = await this.supabase.from('messages').select('*', { count: 'exact', head: true }).eq('username', this.handle);
+                    const { count: imgCount } = await this.supabase.from('gallery').select('*', { count: 'exact', head: true }).eq('owner', this.handle);
+                    this.stats.messages = msgCount || 0;
+                    this.stats.gallery = imgCount || 0;
+                },
+                logout() {
+                    localStorage.removeItem('mog_handle');
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+    </script>
 </body>
 </html>
