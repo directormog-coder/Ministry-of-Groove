@@ -4,111 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY OF GROOVE | NCC MASTER</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({ appId: "3ef253d3-a093-42f5-bc88-91dd7576cf34" });
-      });
-    </script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; }
-        
         .glass { background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
-        .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
-        
-        /* Mobile UI Optimization */
-        #chat-stream::-webkit-scrollbar { width: 3px; }
-        #chat-stream::-webkit-scrollbar-thumb { background: var(--gold); }
-        
-        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
-        .scanline { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: rgba(212, 175, 55, 0.05); animation: scanline 4s linear infinite; pointer-events: none; }
     </style>
 </head>
 <body x-data="ministry()" x-init="init()" x-cloak>
 
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-8 bg-black relative">
-            <div class="scanline"></div>
-            <img src="logo.png" class="h-44 w-44 mb-10 gold-glow animate-pulse cursor-pointer" @click="bypass()">
-            <h1 class="text-white text-4xl font-black uppercase tracking-[0.4em] italic text-center">Ministry of Groove</h1>
-            <div class="mt-12 space-y-4 text-center">
-                <button @click="bypass()" class="px-12 py-5 border border-gold/40 text-gold font-black text-[10px] uppercase rounded-full hover:bg-gold hover:text-black transition-all">
-                    Initialize Bypass Protocol
-                </button>
-                <p class="text-[7px] text-gold/30 uppercase tracking-[0.5em] font-bold">Secure Frequency: Locked</p>
-            </div>
+        <div class="h-screen flex flex-col items-center justify-center bg-black">
+            <img src="logo.png" class="h-40 w-40 mb-10 gold-glow animate-pulse cursor-pointer" @click="bypass()">
+            <button @click="bypass()" class="px-10 py-4 border border-gold/40 text-gold font-black text-[10px] uppercase rounded-full">Initialize Bypass Protocol</button>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
-            <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50 rounded-none">
+        <div class="min-h-screen flex flex-col">
+            <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" class="h-10 w-10 gold-glow">
                     <div>
-                        <p class="text-[10px] font-black uppercase text-white tracking-widest italic" x-text="username"></p>
-                        <p class="text-[7px] text-gold/50 uppercase font-bold tracking-tighter">Status: Frequency Locked</p>
+                        <p class="text-[10px] font-black uppercase text-white italic" x-text="username"></p>
+                        <p id="weather" class="text-[7px] text-gold/50 uppercase font-black">SYNCING...</p>
                     </div>
                 </div>
-                <button @click="location.reload()" class="p-2 border border-red-900/30 text-red-500 rounded-lg">
-                    <i data-lucide="power" size="16"></i>
-                </button>
+                <div class="text-right flex items-center gap-4">
+                    <div class="hidden sm:block">
+                        <p id="clock" class="text-[11px] font-bold text-white tracking-widest">00:00:00</p>
+                        <p class="text-[6px] text-gold/40 uppercase font-black">SAST • EMALAHLENI</p>
+                    </div>
+                    <button @click="location.reload()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="16"></i></button>
+                </div>
             </header>
 
-            <main class="p-6 space-y-8 max-w-5xl mx-auto w-full pb-32 overflow-y-auto">
+            <main class="p-6 space-y-6 max-w-5xl mx-auto w-full pb-32 overflow-y-auto">
+                <template x-if="isLive">
+                    <div @click="window.open('https://www.youtube.com/@MinistryofGroove-m1q/live', '_blank')" class="glass p-6 rounded-[2rem] border-red-500 bg-red-500/10 animate-pulse text-center cursor-pointer">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2">
+                            <i data-lucide="radio"></i> DIRECTOR'S LIVE FEED ACTIVE
+                        </span>
+                    </div>
+                </template>
+
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'border-gold bg-gold/5' : ''" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
-                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-400"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest block">The Grid</span>
-                    </div>
-                    <div @click="window.location.href='gallery.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
-                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-400"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest block">Gallery</span>
-                    </div>
-                    <div @click="window.open('https://music.youtube.com', '_blank')" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
-                        <i data-lucide="music" class="mx-auto mb-4 text-red-500"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest block">Music</span>
-                    </div>
-                    <div @click="window.location.href='archives.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer hover:border-gold/50 transition-all">
-                        <i data-lucide="database" class="mx-auto mb-4 text-gold"></i>
-                        <span class="text-[10px] font-black uppercase tracking-widest block">Vault</span>
-                    </div>
+                    <div @click="subView = 'chat'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i><span class="text-[9px] font-black uppercase">Grid</span></div>
+                    <div @click="window.location.href='gallery.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i><span class="text-[9px] font-black uppercase">Gallery</span></div>
+                    <div @click="window.open('https://music.youtube.com', '_blank')" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="music" class="mx-auto mb-2 text-red-500"></i><span class="text-[9px] font-black uppercase">Music</span></div>
+                    <div @click="window.location.href='archives.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="database" class="mx-auto mb-2 text-gold"></i><span class="text-[9px] font-black uppercase">Vault</span></div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[55vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95">
-                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
-                        <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.username === 'DIRECTOR_MOG' ? 'ml-auto items-end' : 'mr-auto items-start'" class="max-w-[85%] flex flex-col gap-1">
-                                <span class="text-[7px] font-black uppercase px-2" :class="msg.username === 'DIRECTOR_MOG' ? 'text-gold' : 'text-zinc-500'" x-text="msg.username"></span>
-                                <div :class="msg.username === 'DIRECTOR_MOG' ? 'bg-gold/10 border-gold/20 rounded-l-2xl rounded-tr-2xl' : 'bg-white/5 border-white/5 rounded-r-2xl rounded-tl-2xl'" class="p-4 border">
-                                    <p class="text-sm text-zinc-100 font-medium" x-text="msg.content"></p>
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden">
+                    <div id="chat" class="flex-grow overflow-y-auto p-6 space-y-6">
+                        <template x-for="msg in messages">
+                            <div :class="msg.username === 'director.mog@gmail.com' ? 'ml-auto items-end' : 'mr-auto items-start'" class="max-w-[85%] flex flex-col">
+                                <div class="flex items-center gap-1 mb-1 px-2">
+                                    <template x-if="msg.username === 'director.mog@gmail.com'"><img src="1000219947.png" class="h-3 w-3 gold-glow"></template>
+                                    <span class="text-[7px] font-black uppercase text-zinc-500" x-text="msg.username"></span>
                                 </div>
+                                <div :class="msg.username === 'director.mog@gmail.com' ? 'bg-gold/10 border-gold/20' : 'bg-white/5'" class="p-4 rounded-2xl border text-sm text-white" x-text="msg.content"></div>
                             </div>
                         </template>
                     </div>
-                    <form @submit.prevent="send()" class="p-5 bg-black/40 border-t border-gold/10 flex gap-4">
-                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-sm text-white p-2 outline-none">
-                        <button type="submit" class="p-4 bg-gold rounded-2xl text-black active:scale-95 transition-transform"><i data-lucide="send-horizontal" size="20"></i></button>
+                    <form @submit.prevent="send()" class="p-4 bg-black/40 border-t border-gold/10 flex gap-2">
+                        <input x-model="msgInput" placeholder="TRANSMIT..." class="flex-grow bg-transparent text-sm text-white outline-none">
+                        <button type="submit" class="text-gold"><i data-lucide="send-horizontal"></i></button>
                     </form>
                 </div>
             </main>
-
-            <footer class="fixed bottom-0 left-0 w-full glass border-t border-gold/20 p-3 z-[100] h-12 flex items-center">
-                <div class="flex items-center gap-3 px-4 overflow-hidden">
-                    <span class="flex h-2 w-2 rounded-full bg-gold animate-ping"></span>
-                    <p class="terminal-font text-[8px] uppercase font-bold tracking-widest text-gold/80 whitespace-nowrap" x-text="systemLog"></p>
+            
+            <footer class="fixed bottom-0 w-full glass border-t border-gold/20 p-4 flex justify-between items-center h-14">
+                <p class="text-[7px] font-black uppercase text-gold/80" x-text="log"></p>
+                <div class="flex gap-4">
+                    <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="16"></i></a>
+                    <a href="https://tiktok.com/@ministryofgroove"><i data-lucide="music-2" size="16"></i></a>
+                    <a href="https://www.youtube.com/@MinistryofGroove-m1q"><i data-lucide="youtube" size="16"></i></a>
                 </div>
             </footer>
         </div>
@@ -117,76 +93,44 @@
     <script>
         function ministry() {
             return {
-                view: 'auth', subView: 'chat', username: 'GUEST_OPERATIVE',
-                messages: [], msgInput: '', supabase: null, 
-                systemLog: '[SYSTEM_IDLE] SEARCHING FOR FREQUENCY...',
-                
-                // SOUND ENGINE
-                sounds: {
-                    bypass: new Audio('https://www.soundjay.com/buttons/button-20.mp3'),
-                    transmit: new Audio('https://www.soundjay.com/buttons/button-50.mp3')
-                },
-
+                view: 'auth', subView: 'chat', username: 'GUEST', messages: [], msgInput: '', log: '[IDLE]', isLive: false,
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     this.fetch();
-                    this.subscribe();
-                    setTimeout(() => lucide.createIcons(), 200);
+                    this.syncSystem();
+                    setInterval(() => this.updateClock(), 1000);
+                    this.updateWeather();
+                    lucide.createIcons();
                 },
-
-                bypass() {
-                    this.sounds.bypass.volume = 0.2;
-                    this.sounds.bypass.play();
-                    this.view = 'grid';
-                    this.username = 'DIRECTOR_MOG';
-                    this.updateLog('[UPLINK_ESTABLISHED] WELCOME DIRECTOR.');
-                    setTimeout(() => lucide.createIcons(), 100);
+                bypass() { this.view = 'grid'; this.username = 'director.mog@gmail.com'; localStorage.setItem('isDirector', 'true'); },
+                updateClock() {
+                    const now = new Date();
+                    document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
                 },
-
-                updateLog(text) {
-                    this.systemLog = text;
-                    setTimeout(() => { if(this.systemLog === text) this.systemLog = '[NCC_IDLE] LISTENING...'; }, 5000);
+                async updateWeather() {
+                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true');
+                    const data = await res.json();
+                    document.getElementById('weather').innerText = `${Math.round(data.current_weather.temperature)}°C • EMALAHLENI`;
                 },
-
-                async fetch() {
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true });
-                    this.messages = data || [];
-                    this.scroll();
-                },
-
-                subscribe() {
-                    this.supabase.channel('hq').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-                        this.messages.push(payload.new);
-                        this.updateLog(`[SIGNAL_DETECTED] FROM: ${payload.new.username}`);
-                        this.scroll();
+                async syncSystem() {
+                    const { data } = await this.supabase.from('system_status').select('*').eq('id', 'livestream').single();
+                    this.isLive = data?.is_active;
+                    this.supabase.channel('sys').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, (p) => {
+                        if(p.new.id === 'livestream') this.isLive = p.new.is_active;
                     }).subscribe();
                 },
-
-                async send() {
-                    if (!this.msgInput.trim()) return;
-                    this.sounds.transmit.volume = 0.1;
-                    this.sounds.transmit.play();
-                    
-                    const text = this.msgInput.toUpperCase();
-                    this.msgInput = '';
-                    this.updateLog('[TRANSMITTING_SIGNAL] ENCRYPTING...');
-                    
-                    const { error } = await this.supabase.from('messages').insert([{ 
-                        content: text, username: this.username, is_admin: true
-                    }]);
-                    
-                    if (error) {
-                        this.updateLog('[UPLINK_FAILURE] RETRY COMMAND.');
-                    } else {
-                        this.updateLog('[SUCCESS] SIGNAL BROADCASTED.');
-                    }
+                async fetch() { 
+                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true });
+                    this.messages = data || [];
                 },
-
-                scroll() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' }); }); }
+                async send() {
+                    await this.supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username, is_admin: true }]);
+                    this.msgInput = '';
+                }
             }
         }
     </script>
 </body>
-                                        </html>
+</html>
