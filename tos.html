@@ -1,15 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Terms of Service | Ministry of Groove</title>
-<style>body { background: #050505; color: #D4AF37; font-family: sans-serif; padding: 40px; line-height: 1.6; border: 1px solid #D4AF37; margin: 20px; }</style></head>
-<body>
-    <h1>Terms of Service (Directive 2026-A)</h1>
-    <p>By accessing the National Command Center (NCC) eMalahleni HQ, you agree to:</p>
-    <ul>
-        <li>Maintain absolute confidentiality of all "Ministry of Groove" design intellectual property.</li>
-        <li>Not attempt to bypass Gate Two security protocols.</li>
-        <li>Respect the Directorate's authority over the National Grid.</li>
-    </ul>
-    <p>Failure to comply results in immediate uplink termination.</p>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>PROTOCOL TOU | MOG LEGAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    </style>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="p-6 pb-24 animate-in fade-in duration-1000">
+
+    <header class="flex justify-between items-center mb-10 sticky top-0 z-50 py-2 glass px-4 rounded-2xl">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left"></i>
+        </button>
+        <div class="text-right">
+            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Legal Protocol</h1>
+            <p class="text-[7px] text-gold/40 uppercase font-black tracking-widest italic">Terms of Service</p>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto space-y-8">
+        <div class="glass p-8 rounded-[3rem] border-gold/20">
+            <h2 class="text-lg font-black uppercase tracking-tighter text-white mb-6 italic">Grid Usage Agreement</h2>
+            <div class="space-y-6 text-[11px] text-zinc-400 uppercase leading-relaxed terminal-font">
+                <section>
+                    <h3 class="text-gold font-bold mb-2">01. Authorization</h3>
+                    <p>By accessing the Ministry of Groove (MOG) Grid, you acknowledge that you are an authorized operative. Unsanctioned signal interference is strictly prohibited.</p>
+                </section>
+                <section>
+                    <h3 class="text-gold font-bold mb-2">02. Conduct</h3>
+                    <p>All transmissions must adhere to the Directorate's frequency discipline. Hostile signals or unauthorized data extractions will result in immediate grid exclusion.</p>
+                </section>
+                <section>
+                    <h3 class="text-gold font-bold mb-2">03. Data Privacy</h3>
+                    <p>User handles and signal logs are stored within the Supabase encrypted vault. The Directorate reserves the right to redact any signal that violates protocol.</p>
+                </section>
+            </div>
+        </div>
+
+        <div class="text-center opacity-30">
+            <p class="text-[8px] font-black uppercase tracking-[0.5em]">End of Transmission</p>
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 left-0 w-full glass h-[70px] flex justify-center items-center">
+        <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE | EST. 1000219947</p>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>
