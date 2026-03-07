@@ -8,68 +8,85 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
         .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .terminal-text { font-family: 'JetBrains Mono', monospace; font-size: 9px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .online { background: #10b981; box-shadow: 0 0 12px #10b981; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-6 pb-24">
 
-    <header class="mb-8 flex items-center justify-between">
-        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"></i></button>
+    <header class="mb-10 flex items-center justify-between">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left" size="20"></i>
+        </button>
         <div class="text-right">
-            <h1 class="text-xl font-black italic uppercase text-white">The Vault</h1>
-            <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40">Classified Data</p>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter text-white">The Vault</h1>
+            <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-black">Secure Data Repository</p>
         </div>
     </header>
 
-    <div class="space-y-4">
-        <div class="glass p-6 rounded-[2rem] flex items-center justify-between">
-            <p class="text-[10px] font-black uppercase tracking-widest text-white">Uplink Status</p>
-            <span class="status-dot online"></span>
+    <div class="space-y-6 max-w-xl mx-auto">
+        <div class="glass p-6 rounded-[2.5rem] flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <i data-lucide="activity" class="text-white/20"></i>
+                <div>
+                    <p class="text-[9px] font-black uppercase text-white">Uplink Status</p>
+                    <p class="text-[7px] opacity-40 uppercase font-bold mt-0.5">DB: quzwygjbqpkuqjhrmsjp</p>
+                </div>
+            </div>
+            <span class="status-dot online animate-pulse"></span>
         </div>
 
-        <div class="glass p-6 rounded-[2rem] bg-black/80">
-            <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="terminal" size="14"></i>
-                <span class="text-[8px] font-bold uppercase tracking-[0.2em]">Frequency Stream</span>
+        <div class="glass p-8 rounded-[3rem] bg-black/50">
+            <h3 class="text-[8px] font-black uppercase mb-4 opacity-50 flex items-center gap-2">
+                <i data-lucide="terminal" size="12"></i> System Logs
+            </h3>
+            <div id="logs" class="terminal-font text-[8px] space-y-2 opacity-80">
+                <p>> Initializing Vault...</p>
+                <p>> Checking RSA Handshake...</p>
+                <p class="text-green-500">> Frequency Locked: 54.0MHz</p>
             </div>
-            <div id="terminal-feed" class="terminal-text space-y-2 opacity-70">
-                <p>> Initializing Stream...</p>
-                </div>
+        </div>
+
+        <div class="glass p-8 rounded-[3rem] border-gold/10">
+            <h3 class="text-[9px] font-black uppercase mb-4 text-white">Directorate Communications</h3>
+            <p class="text-[8px] opacity-40 uppercase font-bold mb-6 leading-relaxed">
+                Send an encrypted dispatch directly to the Directorate. Signals are logged via SAST Timestamp.
+            </p>
+            <button onclick="sendDispatch()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
+                <i data-lucide="send" size="14"></i>
+                Send Encrypted Dispatch
+            </button>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-        const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        async function initTerminal() {
-            // 1. Get the last 3 messages immediately
-            const { data } = await supabase.from('messages').select('content').order('created_at', { ascending: false }).limit(3);
-            if (data) data.reverse().forEach(msg => addLog(msg.content));
+        function sendDispatch() {
+            const email = "director.mog@gmail.com";
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
+            
+            const subject = encodeURIComponent(`[MINISTRY_DISPATCH] - ${time} SAST`);
+            const body = encodeURIComponent(
+                "RECIPIENT: DIRECTORATE\n" +
+                "------------------------------------------\n\n" +
+                "[ ENTER MESSAGE HERE ]\n\n\n" +
+                "------------------------------------------\n" +
+                "DIGITAL SIGNATURE VERIFIED:\n" +
+                "HANDLE: director.mog@gmail.com\n" +
+                "LOCATION: EMALAHLENI, MP\n" +
+                `TIMESTAMP: ${time} SAST\n` +
+                "OFFICIAL SEAL: [ 1000219947.png ]"
+            );
 
-            // 2. Subscribe to new messages in real-time
-            supabase.channel('vault-stream').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                addLog(payload.new.content);
-            }).subscribe();
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
         }
-
-        function addLog(text) {
-            const feed = document.getElementById('terminal-feed');
-            const log = document.createElement('p');
-            log.innerHTML = `> REC_TRANS: <span class="text-white">${text}</span>`;
-            feed.appendChild(log);
-            if (feed.children.length > 4) feed.removeChild(feed.children[0]);
-        }
-
-        initTerminal();
     </script>
 </body>
 </html>
