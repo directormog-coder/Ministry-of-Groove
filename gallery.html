@@ -9,16 +9,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
         .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
         .director-border { border: 1px solid rgba(212, 175, 55, 0.4); box-shadow: 0 0 20px rgba(212, 175, 55, 0.1); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
         .gold-glow { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)); }
-        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="p-6 pb-24">
-
     <header class="flex justify-between items-center mb-10">
         <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
             <i data-lucide="arrow-left" size="18"></i>
@@ -59,11 +57,7 @@
                         <button onclick="clearMemo()" class="text-[6px] text-red-500/50 uppercase font-black">Wipe Data</button>
                     </div>
                     <div class="glass director-border p-5 rounded-[2rem]">
-                        <textarea id="memo-field" class="w-full bg-transparent border-none outline-none text-[10px] text-zinc-300 terminal-font min-h-[150px] placeholder:text-zinc-800" placeholder="DEPOSIT THOUGHTS..." oninput="saveMemo(this.value)"></textarea>
-                        <div class="mt-4 flex justify-between items-center opacity-20 text-[6px] font-bold uppercase">
-                            <span>Security: AES-256 Local</span>
-                            <span id="save-status">Auto-Saved</span>
-                        </div>
+                        <textarea id="memo-field" class="w-full bg-transparent border-none outline-none text-[10px] text-zinc-300 terminal-font min-h-[150px]" placeholder="DEPOSIT THOUGHTS..." oninput="saveMemo(this.value)"></textarea>
                     </div>
                 </div>
             </div>
@@ -72,29 +66,11 @@
 
     <script>
         lucide.createIcons();
-        
-        // Director Verification
-        if (localStorage.getItem('isDirector') === 'true') {
-            document.getElementById('director-wing').style.display = 'block';
-        }
-
-        // Memo Persistence
+        if (localStorage.getItem('isDirector') === 'true') document.getElementById('director-wing').style.display = 'block';
         const memoField = document.getElementById('memo-field');
         memoField.value = localStorage.getItem('directorMemo') || '';
-
-        function saveMemo(text) {
-            localStorage.setItem('directorMemo', text);
-            const status = document.getElementById('save-status');
-            status.innerText = 'Syncing...';
-            setTimeout(() => status.innerText = 'Auto-Saved', 800);
-        }
-
-        function clearMemo() {
-            if(confirm("WIPE DIRECTORATE DATA?")) {
-                memoField.value = '';
-                localStorage.removeItem('directorMemo');
-            }
-        }
+        function saveMemo(text) { localStorage.setItem('directorMemo', text); }
+        function clearMemo() { if(confirm("WIPE DIRECTORATE DATA?")) { memoField.value = ''; localStorage.removeItem('directorMemo'); } }
     </script>
 </body>
 </html>
