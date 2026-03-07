@@ -8,17 +8,18 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
     </style>
     <link rel="stylesheet" href="style.css">
+    
     <style>
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; }
         .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
-        footer { z-index: 9999 !important; position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 70px !important; }
         [x-cloak] { display: none !important; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
     </style>
@@ -27,7 +28,7 @@
 
     <template x-if="view === 'auth'">
         <div class="h-screen w-full flex flex-col items-center justify-center bg-black p-10 text-center animate-in fade-in duration-1000">
-            <img src="logo.png" class="h-32 w-32 mb-8 gold-glow animate-pulse cursor-pointer transition-transform active:scale-90" @click="showBypass = !showBypass">
+            <img src="logo.png" class="h-32 w-32 mb-8 gold-glow animate-pulse cursor-pointer transition-transform active:scale-90 rounded-full object-cover" @click="showBypass = !showBypass">
             <div class="w-full max-w-xs space-y-6">
                 
                 <div x-show="!showBypass" class="space-y-4">
@@ -53,25 +54,11 @@
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col relative animate-in fade-in duration-500 pb-[80px]">
+        <div class="min-h-screen flex flex-col relative animate-in fade-in duration-500 pb-[100px]">
             
-            <div x-show="showRules" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 p-6 backdrop-blur-xl">
-                <div class="glass max-w-sm w-full p-8 rounded-[3rem] border-gold/30 text-center space-y-6">
-                    <i data-lucide="shield-alert" class="mx-auto text-gold animate-pulse" size="32"></i>
-                    <h2 class="text-[12px] font-black uppercase tracking-widest text-white italic">Protocol Directive</h2>
-                    <div class="text-[8px] uppercase font-black text-gold/60 space-y-4 leading-relaxed terminal-font text-left px-4">
-                        <p>01. Respect Directorate Authority.</p>
-                        <p>02. Signal Interference is Prohibited.</p>
-                        <p>03. Maintain Frequency Discipline.</p>
-                        <p>04. Secure Grid Synchronization.</p>
-                    </div>
-                    <button @click="acceptProtocols()" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase rounded-2xl active:scale-95 transition-all">Sync Frequency</button>
-                </div>
-            </div>
-
             <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
-                    <img src="logo.png" class="h-10 w-10 gold-glow">
+                    <img src="logo.png" class="h-10 w-10 gold-glow rounded-full object-cover">
                     <p class="text-[10px] font-black uppercase text-white tracking-widest italic leading-tight">Ministry of Groove</p>
                 </div>
                 <div class="flex items-center gap-4">
@@ -97,20 +84,18 @@
                         <i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i>
                         <span class="text-[9px] font-black uppercase tracking-widest text-white">Gallery</span>
                     </div>
-                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer relative border border-gold/10 hover:border-gold/50">
-                        <template x-if="username === 'DIRECTORATE'"><div class="absolute top-4 right-4 h-2 w-2 bg-gold rounded-full animate-ping"></div></template>
+                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10 hover:border-gold/50">
                         <i data-lucide="database" class="mx-auto mb-2 text-gold"></i>
                         <span class="text-[9px] font-black uppercase tracking-widest text-white">Vault</span>
                     </div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5 animate-in slide-in-from-bottom-4">
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5">
                     <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4">
                         <template x-for="msg in messages" :key="msg.id">
                             <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'mr-auto items-start'" class="flex flex-col gap-1 max-w-[85%]">
                                 <div class="flex items-center gap-1">
-                                    <template x-if="username === 'DIRECTORATE'"><button @click="deleteMessage(msg.id)" class="text-red-500 mr-1"><i data-lucide="trash-2" size="10"></i></button></template>
-                                    <template x-if="msg.username === 'DIRECTORATE'"><img src="1000219947.png" class="h-3 w-3 gold-glow"></template>
+                                    <template x-if="msg.username === 'DIRECTORATE'"><img src="1000219947.png" class="h-3 w-3 gold-glow rounded-full"></template>
                                     <span class="text-[7px] font-black text-zinc-500 px-2 uppercase" x-text="msg.username"></span>
                                 </div>
                                 <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20 text-white' : 'bg-white/5 border-white/5 text-white/80'" class="p-4 border rounded-2xl text-[12px]" x-text="msg.content"></div>
@@ -123,7 +108,7 @@
                     </form>
                 </div>
 
-                <div x-show="subView === 'gallery'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5 animate-in slide-in-from-bottom-4 p-6">
+                <div x-show="subView === 'gallery'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5 p-6">
                     <div class="flex justify-between items-center mb-4 px-2">
                         <h3 class="text-[10px] font-black uppercase tracking-widest text-white italic">Visual Archives</h3>
                         <label class="cursor-pointer bg-gold text-black px-4 py-2 rounded-full text-[8px] font-black uppercase active:scale-95 transition-all shadow-lg">
@@ -144,8 +129,15 @@
                 </div>
             </main>
             
-            <footer class="glass border-t border-gold/20 flex justify-between items-center px-6">
-                <p class="terminal-font text-[7px] font-black uppercase text-gold/60" x-text="systemLog"></p>
+            <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
+                <div class="flex flex-col items-center sm:items-start gap-1">
+                    <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
+                    <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
+                        <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a>
+                        <span>|</span>
+                        <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
+                    </div>
+                </div>
                 <div class="flex gap-6 text-white/40">
                     <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
                     <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
@@ -162,7 +154,7 @@
             return {
                 view: 'auth', subView: 'chat', showBypass: false, dirEmail: '', dirPass: '', 
                 username: '', handleInput: '', errorMsg: '', systemLog: '[OFFLINE]', 
-                messages: [], msgInput: '', galleryItems: [], showRules: false,
+                messages: [], msgInput: '', galleryItems: [], 
                 
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
@@ -171,37 +163,25 @@
                     const saved = localStorage.getItem('mog_handle');
                     if(saved) { 
                         this.username = saved; this.view = 'grid'; 
-                        this.showRules = !localStorage.getItem('mog_rules_accepted');
-                        this.systemLog = `[ACTIVE: ${this.username}]`;
                     }
                     this.fetch(); this.fetchGallery();
-                    setInterval(() => { this.updateClock(); if(this.view === 'grid') this.registerPresence(); }, 5000);
+                    setInterval(() => { this.updateClock(); }, 1000);
                     setTimeout(() => lucide.createIcons(), 500);
                 },
                 executeBypass() {
                     if(this.dirEmail === 'director.mog@gmail.com' && this.dirPass === '@MOGProtocol2026') {
                         this.username = 'DIRECTORATE';
                         localStorage.setItem('mog_handle', 'DIRECTORATE');
-                        localStorage.setItem('mog_rules_accepted', 'true');
-                        this.view = 'grid'; this.registerPresence();
-                        this.systemLog = '[BYPASS_SUCCESS]';
+                        this.view = 'grid';
                     } else {
                         this.errorMsg = "INVALID DIRECTORATE SIGNAL";
-                        setTimeout(() => this.errorMsg = '', 3000);
                     }
                 },
                 initializeUser() {
                     if(!this.handleInput.trim()) { this.errorMsg = "ID REQUIRED"; return; }
                     this.username = this.handleInput.trim().toUpperCase();
                     localStorage.setItem('mog_handle', this.username);
-                    this.view = 'grid'; this.showRules = true;
-                    this.registerPresence();
-                    this.supabase.from('messages').insert([{ content: `[SIGNAL_ACQUIRED]: ${this.username}`, username: 'SYSTEM_BOT' }]);
-                },
-                async registerPresence() {
-                    const sID = localStorage.getItem('sessionID') || Math.random().toString(36).substring(7);
-                    localStorage.setItem('sessionID', sID);
-                    await this.supabase.from('presence').upsert({ id: sID, username: this.username, last_seen: new Date().toISOString() });
+                    this.view = 'grid';
                 },
                 async fetch() { 
                     const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
@@ -219,14 +199,12 @@
                 async uploadImage(e) {
                     const file = e.target.files[0];
                     if(!file) return;
-                    this.systemLog = '[UPLOADING_ASSET...]';
                     const fileName = `${Date.now()}-${this.username}`;
                     const { data } = await this.supabase.storage.from('gallery').upload(fileName, file);
                     if(data) {
                         const { data: { publicUrl } } = this.supabase.storage.from('gallery').getPublicUrl(fileName);
                         await this.supabase.from('gallery').insert([{ url: publicUrl, owner: this.username }]);
                         this.fetchGallery();
-                        this.systemLog = '[ASSET_SYNCED]';
                     }
                 },
                 updateClock() {
@@ -237,12 +215,10 @@
                         const weatherEl = document.getElementById('weather-display');
                         if(weatherEl) weatherEl.innerText = `${Math.round(d.current_weather.temperature)}°C • EMALAHLENI`;
                     }).catch(()=>{});
-                },
-                acceptProtocols() { localStorage.setItem('mog_rules_accepted', 'true'); this.showRules = false; },
-                deleteMessage(id) { if(confirm("REDACT SIGNAL?")) { this.supabase.from('messages').delete().eq('id', id).then(()=>this.fetch()); } }
+                }
             }
         }
     </script>
 </body>
-    </html>
-    
+                    </html>
+                    
