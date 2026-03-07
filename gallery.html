@@ -1,105 +1,33 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M.O.G. | THE ARCHIVES</title>
+    <title>MINISTRY GALLERY | NCC VISUALS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background-color: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 15, 15, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .gold-gradient { background: linear-gradient(to right, #D4AF37, #F3E5AB, #D4AF37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .img-card { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-        .img-card:hover { transform: scale(1.02); border-color: var(--gold); }
-        [x-cloak] { display: none !important; }
+        body { background: var(--noir); color: var(--gold); font-family: sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(212, 175, 55, 0.2); }
     </style>
 </head>
-<body x-data="archive()" x-init="init()" class="p-6 md:p-12 min-h-screen">
-
-    <div id="security-check" x-show="!ready" class="fixed inset-0 bg-black z-[100] flex items-center justify-center text-[10px] tracking-[0.5em] uppercase font-black">
-        Decrypting Archives...
-    </div>
-
-    <header class="max-w-7xl mx-auto flex justify-between items-end mb-20">
-        <div>
-            <p class="text-[9px] text-blue-500 font-black uppercase tracking-[0.4em] mb-2">Visual Intelligence</p>
-            <h1 class="text-5xl md:text-7xl font-serif italic gold-gradient">The Archives</h1>
-        </div>
-        <label class="glass px-8 py-4 rounded-2xl cursor-pointer hover:bg-gold hover:text-black transition-all group">
-            <span class="text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
-                <i data-lucide="upload-cloud" size="18"></i> Upload Intel
-            </span>
-            <input type="file" class="hidden" @change="upload($event)" accept="image/*">
-        </label>
+<body class="p-6">
+    <header class="flex justify-between items-center mb-10">
+        <button onclick="window.location.href='index.html'" class="text-gold"><i data-lucide="arrow-left"></i></button>
+        <h1 class="text-[10px] font-black uppercase tracking-[0.5em]">Visual Archives</h1>
+        <div class="w-6"></div>
     </header>
 
-    <main class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <template x-for="item in media" :key="item.id">
-                <div class="glass p-3 rounded-[2rem] img-card group border-white/5">
-                    <div class="overflow-hidden rounded-[1.5rem] h-64 bg-zinc-900">
-                        <img :src="item.image_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
-                    </div>
-                    <div class="p-4 flex justify-between items-center">
-                        <p class="text-[8px] font-black uppercase tracking-widest text-zinc-500" x-text="item.username"></p>
-                        <button @click="window.open(item.image_url, '_blank')" class="text-gold opacity-0 group-hover:opacity-100 transition-opacity">
-                            <i data-lucide="external-link" size="14"></i>
-                        </button>
-                    </div>
-                </div>
-            </template>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="glass aspect-square rounded-2xl overflow-hidden group border-gold/10 hover:border-gold transition-all">
+            <img src="logo.png" class="w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity">
         </div>
-    </main>
+        <div class="glass aspect-square rounded-2xl flex items-center justify-center border-dashed border-gold/20">
+            <span class="text-[8px] uppercase opacity-30">Uplinking...</span>
+        </div>
+    </div>
 
-    <script>
-        function archive() {
-            return {
-                ready: false, media: [], supabase: null, user: null,
-                async init() {
-                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-                    const SB_KEY = 'YOUR_SUPABASE_ANON_KEY';
-                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    
-                    const { data: { session } } = await this.supabase.auth.getSession();
-                    if (!session) { window.location.href = 'index.html'; return; }
-                    this.user = session.user;
-                    this.ready = true;
-                    this.fetch();
-                    lucide.createIcons();
-                },
-
-                async fetch() {
-                    // Pulls from the same 'messages' table where image_url is not null
-                    const { data } = await this.supabase.from('messages')
-                        .select('*')
-                        .not('image_url', 'is', null)
-                        .order('created_at', { ascending: false });
-                    this.media = data || [];
-                    this.$nextTick(() => lucide.createIcons());
-                },
-
-                async upload(e) {
-                    const file = e.target.files[0]; if (!file) return;
-                    const path = `archive/${Date.now()}-${file.name}`;
-                    
-                    const { data, error } = await this.supabase.storage.from('chat-attachments').upload(path, file);
-                    if (data) {
-                        const { data: { publicUrl } } = this.supabase.storage.from('chat-attachments').getPublicUrl(path);
-                        await this.supabase.from('messages').insert([{ 
-                            image_url: publicUrl, 
-                            user_id: this.user.id, 
-                            text: `[ARCHIVE_UPLOAD]`,
-                            username: this.user.email.split('@')[0].toUpperCase()
-                        }]);
-                        this.fetch();
-                    }
-                }
-            }
-        }
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
