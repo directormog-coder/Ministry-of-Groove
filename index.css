@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { 
+    --gold: #D4AF37; 
+    --noir: #050505; 
+}
+
+/* Custom Effects */
+.glass { 
+    background: rgba(20, 20, 20, 0.85); 
+    backdrop-filter: blur(15px); 
+    border: 1px solid rgba(212, 175, 55, 0.15); 
+}
+
+.gold-glow { 
+    filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); 
+}
+
+.terminal-font { 
+    font-family: 'JetBrains Mono', monospace; 
+}
