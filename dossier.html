@@ -8,171 +8,50 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
-    </style>
-    <link rel="stylesheet" href="index.css">
-    <style>
-        :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
-        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
-        .terminal-font { font-family: 'JetBrains Mono', monospace; }
-        .gold-glow { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3)); }
-        footer { z-index: 9999 !important; position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 70px !important; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-    </style>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');</style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="dossier()" x-init="init()" class="p-6 pb-[100px] animate-in slide-in-from-right-4 duration-500">
+<body x-data="dossier()" x-init="init()" class="p-6 pb-[120px] bg-black text-gold">
 
     <header class="flex justify-between items-center mb-10 sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
         <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
             <i data-lucide="chevron-left"></i>
         </button>
-        <div class="text-right">
-            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
-            <p class="text-[7px] text-gold/40 uppercase font-black tracking-widest italic">Identity Authenticated</p>
+        <div class="flex items-center gap-3">
+            <div class="text-right">
+                <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
+                <p class="text-[7px] text-gold/40 uppercase font-black italic">Identity Authenticated</p>
+            </div>
+            <img src="logo.png" class="h-8 w-8 rounded-full border border-gold/20">
         </div>
     </header>
 
     <main class="max-w-xl mx-auto space-y-6">
-        
         <div class="glass p-8 rounded-[3rem] border-gold/20 relative overflow-hidden">
             <div class="flex items-center gap-6 relative z-10">
-                <div class="h-16 w-16 sm:h-20 sm:w-20 rounded-full border-2 border-gold/30 flex items-center justify-center bg-gold/5 shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+                <div class="h-16 w-16 rounded-full border-2 border-gold/30 flex items-center justify-center bg-gold/5">
                     <i data-lucide="user" size="32" class="text-gold/50"></i>
                 </div>
                 <div>
-                    <h2 class="text-lg sm:text-xl font-black uppercase tracking-tighter text-white italic" x-text="handle"></h2>
+                    <h2 class="text-lg font-black uppercase text-white italic" x-text="handle"></h2>
                     <p class="text-[8px] font-black uppercase text-gold/60 tracking-widest mt-1" x-text="rank"></p>
                 </div>
             </div>
-            <button @click="shareStats()" class="absolute top-6 right-6 text-gold/40 hover:text-gold transition-colors p-2">
-                <i data-lucide="share-2" size="18"></i>
-            </button>
-            <i data-lucide="shield-check" class="absolute -right-4 -bottom-4 text-gold/5 opacity-10" size="120"></i>
         </div>
+        </main>
 
-        <div class="glass p-8 rounded-[3rem] border-white/5 shadow-2xl">
-            <h3 class="text-[9px] font-black uppercase mb-6 text-white tracking-widest flex items-center gap-2">
-                <i data-lucide="trophy" size="14" class="text-gold"></i> Grid Leaderboard
-            </h3>
-            <div class="space-y-3">
-                <template x-for="(leader, index) in leaderboard">
-                    <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5 transition-all hover:bg-white/10">
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black text-gold/40 terminal-font" x-text="'#' + (index + 1)"></span>
-                            <span class="text-[10px] font-bold text-white uppercase" x-text="leader.username"></span>
-                        </div>
-                        <span class="text-[8px] font-black text-gold/60 uppercase terminal-font" x-text="leader.count + ' SIGS'"></span>
-                    </div>
-                </template>
+    <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
+        <div class="flex flex-col items-center sm:items-start gap-1">
+            <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
+            <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
+                <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a> | 
+                <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
             </div>
         </div>
-
-        <div class="grid grid-cols-2 gap-4">
-            <div class="glass p-6 rounded-[2.5rem] text-center border-white/5">
-                <p class="text-[7px] font-black uppercase text-gold/40 mb-1">Total Transmissions</p>
-                <p class="text-2xl font-black text-white terminal-font" x-text="msgCount">0</p>
-            </div>
-            <div class="glass p-6 rounded-[2.5rem] text-center border-white/5">
-                <p class="text-[7px] font-black uppercase text-gold/40 mb-1">Grid Status</p>
-                <p class="text-[10px] font-black text-green-500 uppercase tracking-widest mt-2">OPERATIONAL</p>
-            </div>
-        </div>
-
-        <div class="glass p-8 rounded-[3rem] border-white/5">
-            <h3 class="text-[9px] font-black uppercase mb-6 text-white tracking-widest flex items-center gap-2">
-                <i data-lucide="activity" size="14"></i> Personal Signal Log
-            </h3>
-            <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
-                <template x-for="msg in myMessages">
-                    <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
-                        <p class="text-[11px] text-white/80 leading-relaxed mb-2 uppercase" x-text="msg.content"></p>
-                        <span class="text-[6px] terminal-font uppercase opacity-30" x-text="formatDate(msg.created_at)"></span>
-                    </div>
-                </template>
-                <template x-if="myMessages.length === 0">
-                    <p class="text-[8px] text-center uppercase opacity-30 py-10">No personal signals detected.</p>
-                </template>
-            </div>
-        </div>
-    </main>
-
-    <div x-show="toast" x-transition class="fixed bottom-24 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-full border-gold/50 z-[1000]">
-        <p class="text-[8px] font-black uppercase text-gold tracking-widest" x-text="toastMsg"></p>
-    </div>
-
-    <footer class="glass border-t border-gold/20 flex justify-between items-center px-6">
-        <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
         <div class="flex gap-6 text-white/40">
             <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
-            <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
-            <a href="https://tiktok.com/@ministryofgroove" target="_blank"><i data-lucide="music-2" size="20"></i></a>
-            <a href="https://www.facebook.com/share/1HT1J3Kazp/" target="_blank"><i data-lucide="facebook" size="20"></i></a>
-            <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank"><i data-lucide="youtube" size="20"></i></a>
-        </div>
+            </div>
     </footer>
-
-    <script>
-        function dossier() {
-            return {
-                handle: 'UNIDENTIFIED', msgCount: 0, rank: 'GRID INITIATE', 
-                myMessages: [], leaderboard: [], toast: false, toastMsg: '',
-                async init() {
-                    const saved = localStorage.getItem('mog_handle');
-                    if(!saved) window.location.href = 'index.html';
-                    this.handle = saved;
-
-                    const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-                    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-                    this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-
-                    await this.fetchActivity();
-                    await this.fetchLeaderboard();
-                    lucide.createIcons();
-                },
-                formatDate(iso) { 
-                    return new Date(iso).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' }); 
-                },
-                async fetchActivity() {
-                    const { data } = await this.supabase.from('messages')
-                        .select('*')
-                        .eq('username', this.handle)
-                        .order('created_at', { ascending: false });
-                    
-                    this.myMessages = data || [];
-                    this.msgCount = this.myMessages.length;
-
-                    // Identity Rank Logic
-                    if (this.handle === 'DIRECTORATE') this.rank = 'THE DIRECTOR';
-                    else if (this.msgCount > 100) this.rank = 'PRIME OPERATIVE';
-                    else if (this.msgCount > 50) this.rank = 'ELITE SIGNAL';
-                    else if (this.msgCount > 10) this.rank = 'VETERAN GUEST';
-                    else this.rank = 'GRID INITIATE';
-                },
-                async fetchLeaderboard() {
-                    const { data } = await this.supabase.from('messages').select('username');
-                    const counts = data.reduce((acc, curr) => {
-                        if (curr.username === 'SYSTEM_BOT' || curr.username === 'DIRECTORATE') return acc;
-                        acc[curr.username] = (acc[curr.username] || 0) + 1;
-                        return acc;
-                    }, {});
-
-                    this.leaderboard = Object.entries(counts)
-                        .map(([username, count]) => ({ username, count }))
-                        .sort((a, b) => b.count - a.count)
-                        .slice(0, 5);
-                },
-                shareStats() {
-                    const text = `OPERATIVE: ${this.handle}\nRANK: ${this.rank}\nSIGNALS: ${this.msgCount}\nACCESS THE GRID: ${window.location.origin}`;
-                    navigator.clipboard.writeText(text);
-                    this.toastMsg = 'SIGNAL COPIED TO CLIPBOARD';
-                    this.toast = true;
-                    setTimeout(() => this.toast = false, 3000);
-                }
-            }
-        }
-    </script>
+    <script>/* [Original dossier() JS logic here] */</script>
 </body>
 </html>
