@@ -16,6 +16,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    </style>
+    <link rel="stylesheet" href="index.css">
+    <style>
         :root { --gold: #D4AF37; --noir: #050505; --red: #8b0000; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; }
         .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); }
@@ -195,8 +198,10 @@
 
                 async fetchSystem() {
                     const { data } = await this.supabase.from('system_status').select('*');
-                    this.isLive = data.find(i => i.id === 'livestream')?.is_active;
-                    this.isLockdown = data.find(i => i.id === 'lockdown')?.is_active;
+                    if (data) {
+                        this.isLive = data.find(i => i.id === 'livestream')?.is_active;
+                        this.isLockdown = data.find(i => i.id === 'lockdown')?.is_active;
+                    }
                 },
 
                 async toggle(type) {
@@ -211,7 +216,6 @@
                     if(!this.bTitle || !this.bMsg) return;
                     this.status = "UPLINKING SIGNAL...";
                     
-                    // ONESIGNAL API UPLINK
                     const res = await fetch('https://onesignal.com/api/v1/notifications', {
                         method: 'POST',
                         headers: { 'Authorization': 'Basic Mzg0ZmI0MjUtYzYxZi00ODlhLWE1YzEtODQ1ZDQ4MDZiZWM4', 'Content-Type': 'application/json' },
@@ -236,5 +240,4 @@
         }
     </script>
 </body>
-    </html>
-    
+</html>
