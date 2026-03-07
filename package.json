@@ -7,9 +7,6 @@
     "build": "tailwindcss -i ./index.css -o ./style.css",
     "dev": "tailwindcss -i ./index.css -o ./style.css --watch"
   },
-  "keywords": [],
-  "author": "Directorate",
-  "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",
     "autoprefixer": "^10.4.17",
