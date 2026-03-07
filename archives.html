@@ -6,12 +6,17 @@
     <title>MINISTRY VAULT | NCC DATA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
         .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid rgba(212, 175, 55, 0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 8px currentColor; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; transition: all 0.5s ease; }
+        .online { background: #10b981; box-shadow: 0 0 12px #10b981; }
+        .offline { background: #ef4444; box-shadow: 0 0 12px #ef4444; }
+        .pulse { animate: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="p-6 selection:bg-gold selection:text-black">
@@ -27,6 +32,19 @@
     </header>
 
     <div class="space-y-4">
+        <div class="glass p-6 rounded-[2rem] flex items-center justify-between">
+            <div class="flex items-center gap-5">
+                <div class="p-3 bg-zinc-900 rounded-2xl">
+                    <i data-lucide="rss" size="24" class="text-white/20"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-white">Database Uplink</p>
+                    <p id="status-text" class="text-[7px] opacity-40 font-bold mt-1 uppercase italic tracking-tighter">Establishing Handshake...</p>
+                </div>
+            </div>
+            <span id="connection-dot" class="status-dot offline pulse"></span>
+        </div>
+
         <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all">
             <div class="flex items-center gap-5">
                 <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
@@ -37,7 +55,7 @@
                     <p class="text-[7px] opacity-40 font-bold mt-1 uppercase">Supabase • OneSignal • Vercel</p>
                 </div>
             </div>
-            <span class="status-dot text-green-500"></span>
+            <i data-lucide="chevron-right" size="14" class="opacity-10 group-hover:opacity-100 transition-opacity"></i>
         </div>
 
         <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all">
@@ -52,25 +70,41 @@
             </div>
             <i data-lucide="lock" size="14" class="text-gold/20"></i>
         </div>
-
-        <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all border-dashed">
-            <div class="flex items-center gap-5">
-                <div class="p-3 bg-gold/10 rounded-2xl text-gold">
-                    <i data-lucide="activity" size="24"></i>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-white">Frequency Logs</p>
-                    <p class="text-[7px] opacity-40 font-bold mt-1 uppercase">Real-time Stream: Online</p>
-                </div>
-            </div>
-            <span class="text-[8px] font-black opacity-30 uppercase tracking-tighter">v.3.2.0</span>
-        </div>
     </div>
 
     <div class="mt-12 p-6 glass rounded-[2rem] text-center opacity-30">
         <p class="text-[6px] uppercase tracking-[0.5em] font-black italic">Unauthorized access is prohibited by Ministry Decree</p>
     </div>
 
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+
+        async function checkConnection() {
+            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+            const dot = document.getElementById('connection-dot');
+            const statusText = document.getElementById('status-text');
+
+            try {
+                // Test a simple select to check the heartbeat
+                const { error } = await supabase.from('messages').select('id').limit(1);
+                
+                if (error) throw error;
+
+                dot.classList.remove('offline', 'pulse');
+                dot.classList.add('online');
+                statusText.innerText = "Status: Frequency Locked (Online)";
+                statusText.classList.add('text-green-500/50');
+            } catch (err) {
+                dot.classList.add('offline');
+                statusText.innerText = "Status: Uplink Interrupted (Offline)";
+                statusText.classList.add('text-red-500/50');
+                console.error('Connection Failed:', err);
+            }
+        }
+
+        checkConnection();
+    </script>
 </body>
 </html>
