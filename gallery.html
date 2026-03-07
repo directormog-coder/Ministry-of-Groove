@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+    </style>
+    <link rel="stylesheet" href="index.css">
+    <style>
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
         .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
@@ -49,9 +53,9 @@
         lucide.createIcons();
         if (localStorage.getItem('isDirector') === 'true') document.getElementById('director-wing').style.display = 'block';
         const memoField = document.getElementById('memo-field');
-        memoField.value = localStorage.getItem('directorMemo') || '';
+        if (memoField) memoField.value = localStorage.getItem('directorMemo') || '';
         function saveMemo(text) { localStorage.setItem('directorMemo', text); }
-        function clearMemo() { if(confirm("WIPE DATA?")) { memoField.value = ''; localStorage.removeItem('directorMemo'); } }
+        function clearMemo() { if(confirm("WIPE DATA?")) { if(memoField) memoField.value = ''; localStorage.removeItem('directorMemo'); } }
     </script>
 </body>
 </html>
