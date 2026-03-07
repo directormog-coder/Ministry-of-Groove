@@ -9,10 +9,12 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
         body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; }
         .glass { background: rgba(20, 20, 20, 0.75); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -20,25 +22,25 @@
 
     <template x-if="view === 'auth'">
         <div class="h-screen flex flex-col items-center justify-center bg-black">
-            <img src="logo.png" class="h-40 w-40 mb-10 gold-glow animate-pulse cursor-pointer" @click="bypass()">
-            <button @click="bypass()" class="px-10 py-4 border border-gold/40 text-gold font-black text-[10px] uppercase rounded-full">Initialize Bypass Protocol</button>
+            <img src="logo.png" class="h-44 w-44 mb-10 gold-glow animate-pulse cursor-pointer" @click="bypass()">
+            <button @click="bypass()" class="px-12 py-5 border border-gold/40 text-gold font-black text-[10px] uppercase rounded-full">Initialize Bypass Protocol</button>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col">
+        <div class="min-h-screen flex flex-col animate-in fade-in duration-700">
             <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" class="h-10 w-10 gold-glow">
                     <div>
                         <p class="text-[10px] font-black uppercase text-white italic" x-text="username"></p>
-                        <p id="weather" class="text-[7px] text-gold/50 uppercase font-black">SYNCING...</p>
+                        <p id="weather-display" class="text-[7px] text-gold/50 uppercase font-bold tracking-tighter italic">SYNCING EMALAHLENI...</p>
                     </div>
                 </div>
                 <div class="text-right flex items-center gap-4">
-                    <div class="hidden sm:block">
-                        <p id="clock" class="text-[11px] font-bold text-white tracking-widest">00:00:00</p>
-                        <p class="text-[6px] text-gold/40 uppercase font-black">SAST • EMALAHLENI</p>
+                    <div class="hidden sm:block border-r border-gold/20 pr-4">
+                        <p id="sast-clock" class="terminal-font text-[11px] font-bold text-white tracking-widest">00:00:00</p>
+                        <p class="text-[6px] text-gold/40 uppercase font-black">SAST • MP</p>
                     </div>
                     <button @click="location.reload()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="16"></i></button>
                 </div>
@@ -46,54 +48,64 @@
 
             <main class="p-6 space-y-6 max-w-5xl mx-auto w-full pb-32 overflow-y-auto">
                 <template x-if="isLive">
-                    <div @click="window.open('https://www.youtube.com/@MinistryofGroove-m1q/live', '_blank')" class="glass p-6 rounded-[2rem] border-red-500 bg-red-500/10 animate-pulse text-center cursor-pointer">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-white flex items-center justify-center gap-2">
+                    <div @click="window.open('https://www.youtube.com/@MinistryofGroove-m1q/live', '_blank')" class="glass p-6 rounded-[2.5rem] border-red-500 bg-red-500/10 animate-pulse text-center cursor-pointer">
+                        <span class="text-[10px] font-black uppercase text-white flex items-center justify-center gap-2">
                             <i data-lucide="radio"></i> DIRECTOR'S LIVE FEED ACTIVE
                         </span>
                     </div>
                 </template>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div @click="subView = 'chat'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i><span class="text-[9px] font-black uppercase">Grid</span></div>
+                    <div @click="subView = 'chat'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i><span class="text-[9px] font-black uppercase">The Grid</span></div>
                     <div @click="window.location.href='gallery.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i><span class="text-[9px] font-black uppercase">Gallery</span></div>
                     <div @click="window.open('https://music.youtube.com', '_blank')" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="music" class="mx-auto mb-2 text-red-500"></i><span class="text-[9px] font-black uppercase">Music</span></div>
-                    <div @click="window.location.href='archives.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer"><i data-lucide="database" class="mx-auto mb-2 text-gold"></i><span class="text-[9px] font-black uppercase">Vault</span></div>
+                    <div @click="window.location.href='archives.html'" class="glass p-8 rounded-[2.5rem] text-center cursor-pointer relative">
+                         <template x-if="unreadCount > 0 && username.includes('director')">
+                            <span class="absolute top-4 right-4 flex h-3 w-3"><span class="animate-ping absolute h-full w-full rounded-full bg-gold opacity-75"></span><span class="relative rounded-full h-3 w-3 bg-gold"></span></span>
+                        </template>
+                        <i data-lucide="database" class="mx-auto mb-2 text-gold"></i><span class="text-[9px] font-black uppercase">Vault</span>
+                    </div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden">
-                    <div id="chat" class="flex-grow overflow-y-auto p-6 space-y-6">
-                        <template x-for="msg in messages">
-                            <div :class="msg.username === 'director.mog@gmail.com' ? 'ml-auto items-end' : 'mr-auto items-start'" class="max-w-[85%] flex flex-col">
-                                <div class="flex items-center gap-1 mb-1 px-2">
-                                    <template x-if="msg.username === 'director.mog@gmail.com'"><img src="1000219947.png" class="h-3 w-3 gold-glow"></template>
-                                    <span class="text-[7px] font-black uppercase text-zinc-500" x-text="msg.username"></span>
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden shadow-2xl">
+                    <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
+                        <template x-for="msg in messages" :key="msg.id">
+                            <div x-show="!lockdownActive || (lockdownActive && msg.username === 'director.mog@gmail.com')"
+                                 :class="msg.username === 'director.mog@gmail.com' ? 'ml-auto items-end' : 'mr-auto items-start'" 
+                                 class="max-w-[85%] flex flex-col gap-1">
+                                <div class="flex items-center gap-1.5 px-2">
+                                    <template x-if="msg.username === 'director.mog@gmail.com'"><img src="1000219947.png" class="h-4 w-4 gold-glow"></template>
+                                    <span class="text-[7px] font-black uppercase tracking-widest text-zinc-500" x-text="msg.username"></span>
                                 </div>
-                                <div :class="msg.username === 'director.mog@gmail.com' ? 'bg-gold/10 border-gold/20' : 'bg-white/5'" class="p-4 rounded-2xl border text-sm text-white" x-text="msg.content"></div>
+                                <div :class="msg.username === 'director.mog@gmail.com' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-sm text-white" x-text="msg.content"></div>
                             </div>
                         </template>
                     </div>
-                    <form @submit.prevent="send()" class="p-4 bg-black/40 border-t border-gold/10 flex gap-2">
-                        <input x-model="msgInput" placeholder="TRANSMIT..." class="flex-grow bg-transparent text-sm text-white outline-none">
+                    <form @submit.prevent="send()" class="p-5 bg-black/40 border-t border-gold/10 flex gap-4">
+                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-sm text-white outline-none">
                         <button type="submit" class="text-gold"><i data-lucide="send-horizontal"></i></button>
                     </form>
                 </div>
             </main>
-            
+
             <footer class="fixed bottom-0 w-full glass border-t border-gold/20 p-4 flex justify-between items-center h-14">
-                <p class="text-[7px] font-black uppercase text-gold/80" x-text="log"></p>
-                <div class="flex gap-4">
+                <p class="terminal-font text-[7px] font-black uppercase text-gold/80" x-text="systemLog"></p>
+                <div class="flex gap-5 px-4 border-l border-gold/10">
                     <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="16"></i></a>
+                    <a href="https://instagram.com/ministryofgroove_hq?igsh=Y3Rwc24zcmtsY2xj"><i data-lucide="instagram" size="16"></i></a>
                     <a href="https://tiktok.com/@ministryofgroove"><i data-lucide="music-2" size="16"></i></a>
+                    <a href="https://www.facebook.com/share/1HT1J3Kazp/"><i data-lucide="facebook" size="16"></i></a>
                     <a href="https://www.youtube.com/@MinistryofGroove-m1q"><i data-lucide="youtube" size="16"></i></a>
                 </div>
             </footer>
         </div>
     </template>
-
+    
     <script>
         function ministry() {
             return {
-                view: 'auth', subView: 'chat', username: 'GUEST', messages: [], msgInput: '', log: '[IDLE]', isLive: false,
+                view: 'auth', subView: 'chat', username: 'GUEST', messages: [], msgInput: '', systemLog: '[SYSTEM_IDLE]', 
+                isLive: false, lockdownActive: false, unreadCount: 0,
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
@@ -107,18 +119,22 @@
                 bypass() { this.view = 'grid'; this.username = 'director.mog@gmail.com'; localStorage.setItem('isDirector', 'true'); },
                 updateClock() {
                     const now = new Date();
-                    document.getElementById('clock').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
+                    document.getElementById('sast-clock').innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
                 },
                 async updateWeather() {
-                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true');
-                    const data = await res.json();
-                    document.getElementById('weather').innerText = `${Math.round(data.current_weather.temperature)}°C • EMALAHLENI`;
+                    try {
+                        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true');
+                        const data = await res.json();
+                        document.getElementById('weather-display').innerText = `${Math.round(data.current_weather.temperature)}°C • CLEAR • EMALAHLENI`;
+                    } catch(e) { document.getElementById('weather-display').innerText = 'WEATHER OFFLINE'; }
                 },
                 async syncSystem() {
-                    const { data } = await this.supabase.from('system_status').select('*').eq('id', 'livestream').single();
-                    this.isLive = data?.is_active;
-                    this.supabase.channel('sys').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, (p) => {
+                    const { data } = await this.supabase.from('system_status').select('*');
+                    this.isLive = data.find(i => i.id === 'livestream')?.is_active;
+                    this.lockdownActive = data.find(i => i.id === 'lockdown')?.is_active;
+                    this.supabase.channel('sys-ops').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, (p) => {
                         if(p.new.id === 'livestream') this.isLive = p.new.is_active;
+                        if(p.new.id === 'lockdown') this.lockdownActive = p.new.is_active;
                     }).subscribe();
                 },
                 async fetch() { 
@@ -126,8 +142,10 @@
                     this.messages = data || [];
                 },
                 async send() {
-                    await this.supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username, is_admin: true }]);
+                    if(!this.msgInput.trim()) return;
+                    await this.supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
                     this.msgInput = '';
+                    this.fetch();
                 }
             }
         }
