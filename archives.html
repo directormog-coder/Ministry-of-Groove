@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MINISTRY VAULT | NCC DATA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid rgba(212, 175, 55, 0.15); box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 8px currentColor; }
+    </style>
+</head>
+<body class="p-6 selection:bg-gold selection:text-black">
+
+    <header class="mb-10 flex items-center justify-between">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl hover:border-gold/50 transition-all active:scale-90">
+            <i data-lucide="chevron-left" size="20"></i>
+        </button>
+        <div class="text-right">
+            <h1 class="text-xl font-black italic uppercase tracking-tighter text-white">The Vault</h1>
+            <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-bold">Classified Ministry Data</p>
+        </div>
+    </header>
+
+    <div class="space-y-4">
+        <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all">
+            <div class="flex items-center gap-5">
+                <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400">
+                    <i data-lucide="cpu" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-white">System Architecture</p>
+                    <p class="text-[7px] opacity-40 font-bold mt-1 uppercase">Supabase • OneSignal • Vercel</p>
+                </div>
+            </div>
+            <span class="status-dot text-green-500"></span>
+        </div>
+
+        <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all">
+            <div class="flex items-center gap-5">
+                <div class="p-3 bg-red-500/10 rounded-2xl text-red-500">
+                    <i data-lucide="shield-alert" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-white">NCC Protocol 54</p>
+                    <p class="text-[7px] opacity-40 font-bold mt-1 uppercase">Encrypted Handshake Active</p>
+                </div>
+            </div>
+            <i data-lucide="lock" size="14" class="text-gold/20"></i>
+        </div>
+
+        <div class="glass p-6 rounded-[2rem] flex items-center justify-between group hover:bg-gold/5 transition-all border-dashed">
+            <div class="flex items-center gap-5">
+                <div class="p-3 bg-gold/10 rounded-2xl text-gold">
+                    <i data-lucide="activity" size="24"></i>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-white">Frequency Logs</p>
+                    <p class="text-[7px] opacity-40 font-bold mt-1 uppercase">Real-time Stream: Online</p>
+                </div>
+            </div>
+            <span class="text-[8px] font-black opacity-30 uppercase tracking-tighter">v.3.2.0</span>
+        </div>
+    </div>
+
+    <div class="mt-12 p-6 glass rounded-[2rem] text-center opacity-30">
+        <p class="text-[6px] uppercase tracking-[0.5em] font-black italic">Unauthorized access is prohibited by Ministry Decree</p>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>
