@@ -43,6 +43,20 @@
     <template x-if="view === 'grid'">
         <div class="min-h-screen flex flex-col relative animate-in fade-in duration-700">
             
+            <div x-show="showRules" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/95 p-6 backdrop-blur-xl">
+                <div class="glass max-w-sm w-full p-8 rounded-[3rem] border-gold/30 text-center space-y-6">
+                    <i data-lucide="shield-alert" class="mx-auto text-gold animate-pulse" size="32"></i>
+                    <h2 class="text-[12px] font-black uppercase tracking-widest text-white italic">Protocol Directive</h2>
+                    <div class="text-[8px] uppercase font-black text-gold/60 space-y-4 leading-relaxed terminal-font text-left px-4">
+                        <p>01. Respect Directorate Authority.</p>
+                        <p>02. Signal Interference is Prohibited.</p>
+                        <p>03. Maintain Frequency Discipline.</p>
+                        <p>04. Secure Grid Synchronization.</p>
+                    </div>
+                    <button @click="acceptProtocols()" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase rounded-2xl active:scale-95 transition-all">Sync Frequency</button>
+                </div>
+            </div>
+
             <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" class="h-10 w-10 gold-glow">
@@ -61,34 +75,31 @@
             </header>
 
             <main class="p-6 space-y-6 max-w-5xl mx-auto w-full pb-40 overflow-y-auto">
+                <template x-if="isLive">
+                    <div @click="window.open('https://www.youtube.com/@MinistryofGroove-m1q/live', '_blank')" class="glass p-6 rounded-[2.5rem] border-red-500 bg-red-500/10 animate-pulse text-center cursor-pointer">
+                        <span class="text-[10px] font-black uppercase text-white flex items-center justify-center gap-2 italic"><i data-lucide="radio"></i> DIRECTOR LIVE BROADCAST</span>
+                    </div>
+                </template>
+
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div @click="subView = 'chat'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-blue-400/30 transition-all">
-                        <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
-                        <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Grid</span>
-                    </div>
-                    <div @click="window.location.href='dossier.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-green-400/30 transition-all">
-                        <i data-lucide="user-cog" class="mx-auto mb-2 text-green-400"></i>
-                        <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Dossier</span>
-                    </div>
-                    <div @click="window.location.href='gallery.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-purple-400/30 transition-all">
-                        <i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i>
-                        <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Gallery</span>
-                    </div>
-                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer relative hover:border-gold/50 transition-all">
-                        <i data-lucide="database" class="mx-auto mb-2 text-gold"></i>
-                        <span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Vault</span>
-                    </div>
+                    <div @click="subView = 'chat'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-blue-400/30 transition-all"><i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i><span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Grid</span></div>
+                    <div @click="window.location.href='dossier.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-green-400/30 transition-all"><i data-lucide="user-cog" class="mx-auto mb-2 text-green-400"></i><span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Dossier</span></div>
+                    <div @click="window.location.href='gallery.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer hover:border-purple-400/30 transition-all"><i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i><span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Gallery</span></div>
+                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer relative hover:border-gold/50 transition-all"><i data-lucide="database" class="mx-auto mb-2 text-gold"></i><span class="text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white">Vault</span></div>
                 </div>
 
                 <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden shadow-2xl">
                     <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-6">
                         <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'mr-auto items-start'" class="group max-w-[85%] flex flex-col gap-1 animate-in slide-in-from-bottom-2 duration-300">
+                            <div x-show="!lockdownActive || (lockdownActive && msg.username === 'DIRECTORATE')"
+                                 :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'mr-auto items-start'" 
+                                 class="group max-w-[85%] flex flex-col gap-1">
                                 <div class="flex items-center gap-1.5 px-2">
+                                    <template x-if="username === 'DIRECTORATE'"><button @click="deleteMessage(msg.id)" class="opacity-0 group-hover:opacity-100 text-red-500 mr-1"><i data-lucide="trash-2" size="10"></i></button></template>
                                     <template x-if="msg.username === 'DIRECTORATE'"><img src="1000219947.png" class="h-4 w-4 gold-glow"></template>
                                     <span class="text-[7px] font-black uppercase tracking-widest text-zinc-500" x-text="msg.username"></span>
                                 </div>
-                                <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-sm text-white" x-text="msg.content"></div>
+                                <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-sm text-white shadow-sm" x-text="msg.content"></div>
                             </div>
                         </template>
                     </div>
@@ -116,7 +127,7 @@
         function ministry() {
             return {
                 view: 'auth', subView: 'chat', username: '', handleInput: '', errorMsg: '', systemLog: '[OFFLINE]', 
-                messages: [], msgInput: '',
+                showRules: false, isLive: false, lockdownActive: false, messages: [], msgInput: '',
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
@@ -124,24 +135,26 @@
                     const saved = localStorage.getItem('mog_handle');
                     if(saved) { 
                         this.username = saved; this.view = 'grid'; 
+                        this.showRules = !localStorage.getItem('mog_rules_accepted');
                         this.systemLog = `[ID: ${this.username}]`;
                     }
-                    this.fetch();
+                    this.fetch(); this.syncSystem();
                     setInterval(() => { this.updateClock(); if(this.view === 'grid') this.registerPresence(); }, 1000);
                     this.updateWeather();
                     lucide.createIcons();
                 },
                 async initializeUser() {
-                    if(!this.handleInput.trim()) { this.errorMsg = "IDENTIFICATION REQUIRED"; return; }
+                    if(!this.handleInput.trim()) { this.errorMsg = "ID REQUIRED"; return; }
                     this.username = this.handleInput.trim().toUpperCase();
                     localStorage.setItem('mog_handle', this.username);
-                    this.view = 'grid';
+                    this.view = 'grid'; this.showRules = true;
                     await this.registerPresence();
                     this.supabase.from('messages').insert([{ content: `[SIGNAL_ACQUIRED]: OPERATIVE ${this.username} IS ONLINE.`, username: 'SYSTEM_BOT' }]);
                 },
                 bypass() {
                     this.username = 'DIRECTORATE';
                     localStorage.setItem('mog_handle', 'DIRECTORATE');
+                    localStorage.setItem('mog_rules_accepted', 'true');
                     this.view = 'grid'; this.registerPresence();
                 },
                 async registerPresence() {
@@ -157,12 +170,28 @@
                         document.getElementById('weather-display').innerText = `${Math.round(data.current_weather.temperature)}°C • EMALAHLENI`;
                     } catch(e) {}
                 },
+                async syncSystem() {
+                    const { data } = await this.supabase.from('system_status').select('*');
+                    this.isLive = data.find(i => i.id === 'livestream')?.is_active;
+                    this.lockdownActive = data.find(i => i.id === 'lockdown')?.is_active;
+                    this.supabase.channel('sys').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, (p) => {
+                        if(p.new.id === 'livestream') this.isLive = p.new.is_active;
+                        if(p.new.id === 'lockdown') this.lockdownActive = p.new.is_active;
+                    }).subscribe();
+                },
                 async fetch() { const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }); this.messages = data || []; },
                 async send() {
                     if(!this.msgInput.trim()) return;
                     await this.supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
                     this.msgInput = ''; this.fetch();
-                }
+                },
+                async deleteMessage(id) {
+                    if(confirm("REDACT SIGNAL?")) {
+                        await this.supabase.from('messages').delete().eq('id', id);
+                        this.fetch();
+                    }
+                },
+                acceptProtocols() { localStorage.setItem('mog_rules_accepted', 'true'); this.showRules = false; }
             }
         }
     </script>
