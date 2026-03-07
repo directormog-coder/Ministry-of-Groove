@@ -4,72 +4,128 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>DIRECTORATE TERMINAL | MOG HQ</title>
+    
+    <link rel="icon" type="image/png" href="1000219947.png">
+    <link rel="apple-touch-icon" href="1000219947.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; --red: #8b0000; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
 <body x-data="terminal()" x-init="init()" x-cloak>
 
     <template x-if="!authenticated">
-        <div class="h-screen flex flex-col items-center justify-center p-10 bg-black">
-            <img src="1000219947.png" class="h-24 w-24 mb-10 gold-glow">
+        <div class="h-screen flex flex-col items-center justify-center p-10 bg-black animate-in fade-in duration-700">
+            <img src="1000219947.png" class="h-24 w-24 mb-10 gold-glow animate-pulse">
             <div class="w-full max-w-xs space-y-4">
-                <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-transparent border border-gold/20 p-4 rounded-2xl text-[10px] text-white outline-none text-center">
-                <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-transparent border border-gold/20 p-4 rounded-2xl text-[10px] text-white outline-none text-center">
-                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Authorize Access</button>
+                <h2 class="text-[10px] font-black uppercase text-center tracking-[0.4em] mb-6 text-white">Directorate Secure Login</h2>
+                <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none focus:border-gold terminal-font text-center">
+                <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white outline-none focus:border-gold terminal-font text-center">
+                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-[0_0_20px_rgba(212,175,55,0.3)] active:scale-95 transition-all">Authorize Terminal</button>
+                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[8px] text-center uppercase font-black italic mt-4"></p>
             </div>
         </div>
     </template>
 
     <template x-if="authenticated">
-        <div class="p-6 pb-24">
-            <header class="mb-10 flex items-center justify-between">
+        <div class="min-h-screen p-6 pb-32 animate-in slide-in-from-bottom-4 duration-700">
+            
+            <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2">
                 <div class="flex items-center gap-4">
                     <img src="1000219947.png" class="h-12 w-12 gold-glow">
-                    <h1 class="text-xl font-black uppercase tracking-tighter text-white">Directorate Terminal</h1>
+                    <div>
+                        <h1 class="text-xl font-black uppercase tracking-tighter text-white italic leading-tight">MOG_COMMAND</h1>
+                        <p class="text-[7px] terminal-font text-gold/50 uppercase">STATUS: <span class="text-green-500 animate-pulse">ENCRYPTED</span></p>
+                    </div>
                 </div>
-                <button @click="logout()" class="p-3 glass rounded-2xl"><i data-lucide="log-out"></i></button>
+                <button @click="logout()" class="p-3 glass rounded-2xl border-red-900/40 text-red-500"><i data-lucide="log-out" size="18"></i></button>
             </header>
 
-            <main class="space-y-6 max-w-xl mx-auto">
-                <div class="glass p-6 rounded-[2.5rem] border-gold/10">
-                    <h2 class="text-[9px] font-black uppercase text-white mb-4">Live Presence</h2>
-                    <div class="space-y-2">
-                        <template x-for="op in operatives">
-                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-2xl">
-                                <span class="text-[10px] font-bold text-white uppercase" x-text="op.username"></span>
-                                <span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+            <main class="space-y-6 max-w-2xl mx-auto">
+                
+                <section class="glass p-6 rounded-[2.5rem] border-gold/10">
+                    <div class="flex items-center justify-between mb-6 px-2">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="users" class="text-white/40" size="16"></i>
+                            <h2 class="text-[9px] font-black uppercase tracking-widest text-white">Live Grid Operatives</h2>
+                        </div>
+                        <span class="text-[10px] bg-gold/10 text-gold px-3 py-1 rounded-full font-bold terminal-font" x-text="operatives.length">0</span>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto pr-2">
+                        <template x-for="op in operatives" :key="op.id">
+                            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                                <div class="flex items-center gap-2">
+                                    <template x-if="op.username === 'DIRECTORATE'"><i data-lucide="star" size="10" class="fill-gold text-gold"></i></template>
+                                    <span class="text-[10px] font-bold text-white uppercase tracking-tight" x-text="op.username"></span>
+                                </div>
+                                <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
                             </div>
                         </template>
                     </div>
-                </div>
+                </section>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <button @click="toggle('livestream')" :class="isLive ? 'border-red-500 bg-red-500/10' : 'bg-white/5'" class="glass p-6 rounded-[2rem] border">
-                        <i data-lucide="radio" :class="isLive ? 'text-red-500' : 'text-zinc-600'" class="mx-auto mb-2"></i>
-                        <p class="text-[8px] font-black uppercase text-white">Live Feed</p>
+                <section class="grid grid-cols-2 gap-4">
+                    <button @click="toggle('livestream')" 
+                            :class="isLive ? 'border-red-500 bg-red-500/10' : 'border-white/5 bg-white/5'" 
+                            class="glass p-8 rounded-[2.5rem] text-center transition-all border group">
+                        <i data-lucide="radio" :class="isLive ? 'text-red-500 animate-pulse' : 'text-zinc-600'" class="mx-auto mb-3" size="24"></i>
+                        <p class="text-[9px] font-black uppercase text-white tracking-widest" x-text="isLive ? 'SIGNAL LIVE' : 'STREAM OFFLINE'"></p>
                     </button>
-                    <button @click="toggle('lockdown')" :class="isLockdown ? 'border-red-700 bg-red-700/10' : 'bg-white/5'" class="glass p-6 rounded-[2rem] border">
-                        <i data-lucide="shield-alert" :class="isLockdown ? 'text-red-700' : 'text-zinc-600'" class="mx-auto mb-2"></i>
-                        <p class="text-[8px] font-black uppercase text-white">Lockdown</p>
+                    
+                    <button @click="toggle('lockdown')" 
+                            :class="isLockdown ? 'border-red-900 bg-red-900/30' : 'border-white/5 bg-white/5'" 
+                            class="glass p-8 rounded-[2.5rem] text-center transition-all border">
+                        <i data-lucide="shield-alert" :class="isLockdown ? 'text-red-700' : 'text-zinc-600'" class="mx-auto mb-3" size="24"></i>
+                        <p class="text-[9px] font-black uppercase text-white tracking-widest" x-text="isLockdown ? 'LOCKDOWN ACTIVE' : 'GRID OPEN'"></p>
                     </button>
-                </div>
+                </section>
 
-                <div class="glass p-8 rounded-[3rem]">
-                    <div class="space-y-4">
-                        <input x-model="bTitle" placeholder="TITLE..." class="w-full bg-black border border-gold/20 p-4 rounded-2xl text-[10px] uppercase text-white">
-                        <textarea x-model="bMsg" placeholder="MESSAGE..." class="w-full bg-black border border-gold/20 p-4 rounded-2xl text-[10px] uppercase text-white min-h-[100px]"></textarea>
-                        <button @click="broadcast()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Transmit Signal</button>
+                <section class="glass p-8 rounded-[3rem]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="megaphone" class="text-gold" size="18"></i>
+                        <h2 class="text-[10px] font-black uppercase text-white tracking-[0.2em]">Global Signal Transmission</h2>
                     </div>
-                </div>
+                    <div class="space-y-4">
+                        <input x-model="bTitle" placeholder="SIGNAL HEADING..." class="w-full bg-black border border-gold/20 p-5 rounded-2xl text-[10px] text-white uppercase outline-none focus:border-gold terminal-font">
+                        <textarea x-model="bMsg" placeholder="SIGNAL BODY..." class="w-full bg-black border border-gold/20 p-5 rounded-2xl text-[10px] text-white uppercase outline-none min-h-[120px] focus:border-gold terminal-font"></textarea>
+                        <button @click="broadcast()" class="w-full py-6 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all">
+                            <i data-lucide="zap" size="14"></i> Transmit Global Signal
+                        </button>
+                        <p x-text="status" class="text-[7px] text-center uppercase opacity-50 tracking-[0.3em] font-black h-2"></p>
+                    </div>
+                </section>
+
+                <section class="glass p-8 rounded-[3rem] border-white/5">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i data-lucide="database" class="text-white/20" size="16"></i>
+                        <h2 class="text-[10px] font-black uppercase text-white tracking-widest">Broadcast Archive</h2>
+                    </div>
+                    <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
+                        <template x-for="log in broadcastLogs">
+                            <div class="p-5 bg-white/5 rounded-3xl border border-white/5">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="text-[10px] font-black text-gold tracking-tighter" x-text="log.title"></span>
+                                    <span class="text-[7px] terminal-font opacity-40 uppercase" x-text="formatDate(log.created_at)"></span>
+                                </div>
+                                <p class="text-[9px] text-zinc-400 uppercase leading-relaxed font-medium" x-text="log.message"></p>
+                            </div>
+                        </template>
+                    </div>
+                </section>
             </main>
         </div>
     </template>
@@ -77,47 +133,108 @@
     <script>
         function terminal() {
             return {
-                authenticated: false, loginEmail: '', loginPass: '', isLive: false, isLockdown: false, operatives: [],
+                authenticated: false, loginEmail: '', loginPass: '', errorMsg: '',
+                isLive: false, isLockdown: false, bTitle: '', bMsg: '', status: '', 
+                operatives: [], broadcastLogs: [], 
+                
                 async init() {
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
-                        this.authenticated = true; this.setupSupabase();
-                    }
-                    lucide.createIcons();
-                },
-                verifyAccess() {
-                    if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol') {
-                        this.authenticated = true; sessionStorage.setItem('mog_terminal_auth', 'true');
+                        this.authenticated = true;
                         this.setupSupabase();
                     }
+                    setTimeout(() => lucide.createIcons(), 100);
                 },
-                logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); },
+
+                verifyAccess() {
+                    if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol2026') {
+                        this.authenticated = true;
+                        sessionStorage.setItem('mog_terminal_auth', 'true');
+                        this.setupSupabase();
+                    } else {
+                        this.errorMsg = "INVALID DIRECTORATE PROTOCOL";
+                        setTimeout(() => this.errorMsg = '', 3000);
+                    }
+                },
+
+                logout() {
+                    sessionStorage.removeItem('mog_terminal_auth');
+                    location.reload();
+                },
+
                 setupSupabase() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    this.fetchSystem(); this.fetchPresence();
-                    setInterval(() => { this.fetchPresence(); }, 10000);
+                    
+                    this.startHeartbeat();
+                    setTimeout(() => lucide.createIcons(), 200);
                 },
+
+                startHeartbeat() {
+                    this.fetchSystem();
+                    this.fetchPresence();
+                    this.fetchLogs();
+                    setInterval(() => {
+                        this.fetchPresence();
+                    }, 5000); 
+                },
+
+                formatDate(iso) {
+                    return new Date(iso).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+                },
+
                 async fetchPresence() {
-                    const { data } = await this.supabase.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
+                    const { data } = await this.supabase.from('presence').select('*').gt('last_seen', new Date(Date.now() - 300000).toISOString());
                     this.operatives = data || [];
                 },
+
+                async fetchLogs() {
+                    const { data } = await this.supabase.from('broadcast_logs').select('*').order('created_at', { ascending: false });
+                    this.broadcastLogs = data || [];
+                },
+
                 async fetchSystem() {
                     const { data } = await this.supabase.from('system_status').select('*');
                     this.isLive = data.find(i => i.id === 'livestream')?.is_active;
                     this.isLockdown = data.find(i => i.id === 'lockdown')?.is_active;
                 },
+
                 async toggle(type) {
                     const val = type === 'livestream' ? !this.isLive : !this.isLockdown;
                     if(type === 'livestream') this.isLive = val; else this.isLockdown = val;
                     await this.supabase.from('system_status').update({ is_active: val }).eq('id', type);
+                    this.status = `[${type.toUpperCase()}_UPDATED]`;
                     lucide.createIcons();
                 },
+
                 async broadcast() {
-                    // OneSignal broadcast logic (already coded in index for reference)
+                    if(!this.bTitle || !this.bMsg) return;
+                    this.status = "UPLINKING SIGNAL...";
+                    
+                    // ONESIGNAL API UPLINK
+                    const res = await fetch('https://onesignal.com/api/v1/notifications', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Basic Mzg0ZmI0MjUtYzYxZi00ODlhLWE1YzEtODQ1ZDQ4MDZiZWM4', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            app_id: "3ef253d3-a093-42f5-bc88-91dd7576cf34",
+                            included_segments: ["Total Subscriptions"],
+                            headings: { "en": this.bTitle.toUpperCase() },
+                            contents: { "en": this.bMsg.toUpperCase() }
+                        })
+                    });
+
+                    if(res.ok) {
+                        await this.supabase.from('broadcast_logs').insert([{ title: this.bTitle.toUpperCase(), message: this.bMsg.toUpperCase() }]);
+                        this.status = "SIGNAL BROADCASTED SUCCESSFULLY";
+                        this.bTitle = ''; this.bMsg = '';
+                        this.fetchLogs();
+                    } else {
+                        this.status = "BROADCAST FAILED: CHECK API KEY";
+                    }
                 }
             }
         }
     </script>
 </body>
-</html>
+    </html>
+    
