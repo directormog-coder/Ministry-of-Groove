@@ -4,96 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>DIRECTORATE TERMINAL | MOG HQ</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        // ZERO-CONFLICT SECURITY MIDDLEWARE
-        const current_handle = localStorage.getItem('mog_handle');
+        const handle = localStorage.getItem('mog_handle');
         const isAuth = sessionStorage.getItem('mog_terminal_auth');
-        if (current_handle) {
-            const MOG_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-            const MOG_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-            const mog_sb = window.supabase.createClient(MOG_URL, MOG_KEY);
-            mog_sb.from('blacklisted_operatives').select('*').eq('username', current_handle).single()
-              .then(({data}) => {
-                  if(data) { localStorage.clear(); window.location.href = '404.html'; }
-              }).catch(err => console.log("Security Check Bypass:", err));
+        if (handle) {
+            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
+              .then(({data}) => { 
+                  if(data) { localStorage.clear(); window.location.href = '404.html'; } 
+              });
         }
-        if (!current_handle && !isAuth) window.location.href = 'index.html';
+        // Redirect if not logged in at all
+        if (!handle && !isAuth) window.location.href = 'index.html';
     </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; margin: 0; }
+        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        .scanline { width: 100%; height: 100px; z-index: 10000; background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(212, 175, 55, 0.1) 50%, rgba(0,0,0,0) 100%); opacity: 0.1; position: fixed; bottom: 100%; animation: scanline 10s linear infinite; pointer-events: none; }
+        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -100px; } }
+        [x-cloak] { display: none !important; }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="terminal()" x-init="init()" class="bg-black text-gold p-6">
+<body x-data="terminal()" x-init="init()" class="bg-black text-gold">
     <div class="scanline"></div>
 
     <template x-if="!authenticated">
         <div class="h-screen flex flex-col items-center justify-center p-10 text-center animate-in fade-in">
             <img src="logo.png" class="h-24 w-24 mb-10 gold-glow rounded-full border border-gold/20">
-            <h2 class="text-[10px] font-black uppercase text-white mb-6">Directorate Secure Access</h2>
+            <h2 class="text-[10px] font-black uppercase text-white mb-6 tracking-widest">Directorate Secure Access</h2>
             <div class="w-full max-w-xs space-y-4">
                 <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white terminal-font text-center outline-none">
                 <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white terminal-font text-center outline-none">
-                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Authorize</button>
+                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">Authorize Terminal</button>
             </div>
         </div>
     </template>
 
     <template x-if="authenticated">
-        <main class="max-w-2xl mx-auto space-y-6 pb-20 animate-in fade-in">
-            <header class="flex justify-between items-center glass p-4 rounded-2xl">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" class="h-8 w-8 gold-glow rounded-full">
-                    <h1 class="font-black text-white uppercase tracking-tighter italic">MOG_COMMAND</h1>
+        <main class="min-h-screen p-6 space-y-6 max-w-3xl mx-auto pb-24 animate-in fade-in">
+            
+            <header class="flex justify-between items-center glass p-5 rounded-3xl border-gold/20">
+                <div class="flex items-center gap-4">
+                    <img src="logo.png" class="h-10 w-10 gold-glow rounded-full">
+                    <div>
+                        <h1 class="font-black italic text-white uppercase tracking-tighter leading-none">MOG_COMMAND</h1>
+                        <p class="text-[6px] text-gold/50 uppercase font-black mt-1">Status: Uplink_Established</p>
+                    </div>
                 </div>
-                <button @click="logout()" class="text-red-500"><i data-lucide="power" size="18"></i></button>
+                <button @click="logout()" class="p-3 bg-red-900/20 text-red-500 rounded-xl hover:bg-red-900/40 transition-all"><i data-lucide="power"></i></button>
             </header>
 
             <section class="grid grid-cols-3 gap-3">
                 <div class="glass p-4 rounded-2xl text-center border-white/5">
-                    <p class="text-[6px] uppercase text-gold/40 mb-1 font-black">Uplink Latency</p>
-                    <p class="text-[11px] font-black text-green-400" x-text="latency + 'ms'"></p>
+                    <p class="text-[6px] uppercase text-gold/40 mb-1 font-black">Ping</p>
+                    <p class="text-[11px] font-black text-green-400 terminal-font" x-text="latency + 'ms'"></p>
                 </div>
-                <div @click="confirmPurge()" class="glass p-4 rounded-2xl text-center border-gold/10 cursor-pointer">
-                    <p class="text-[6px] uppercase text-red-500 mb-1 font-black italic">Wipe Grid</p>
-                    <p class="text-[11px] font-black text-white" x-text="stats.messages + ' SIGS'"></p>
+                <div @click="confirmPurge()" class="glass p-4 rounded-2xl text-center border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-colors group">
+                    <p class="text-[6px] uppercase text-red-500 mb-1 font-black group-hover:animate-pulse">Wipe Grid</p>
+                    <p class="text-[11px] font-black text-white terminal-font" x-text="stats.messages + ' SIGS'"></p>
                 </div>
                 <div class="glass p-4 rounded-2xl text-center border-white/5">
                     <p class="text-[6px] uppercase text-gold/40 mb-1 font-black">DB Status</p>
-                    <p class="text-[11px] font-black uppercase" :class="dbOnline ? 'text-green-500' : 'text-red-500'" x-text="dbOnline ? 'Online' : 'Error'"></p>
+                    <p class="text-[11px] font-black uppercase terminal-font" :class="dbOnline ? 'text-green-500' : 'text-red-500'" x-text="dbOnline ? 'Online' : 'Error'"></p>
                 </div>
             </section>
 
-            <section class="glass p-8 rounded-[3rem] border-gold/20">
-                <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Direct Dispatch</h3>
-                <div class="space-y-3">
-                    <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none uppercase">
-                    <textarea x-model="dmContent" placeholder="INSTRUCTION..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none"></textarea>
-                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Transmit Private Signal</button>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <section class="glass p-6 rounded-[2.5rem]">
+                    <h2 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest flex justify-between">
+                        Active Operatives <span x-text="operatives.length + ' ONLINE'"></span>
+                    </h2>
+                    <div class="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto pr-2">
+                        <template x-for="op in operatives" :key="op.username">
+                            <div class="flex items-center gap-2 bg-white/5 p-2 rounded-xl border border-white/10 w-full justify-between">
+                                <span class="text-[9px] font-bold text-zinc-300" x-text="op.username"></span>
+                                <div class="flex gap-2">
+                                    <button @click="dmRecipient = op.username; warnRecipient = op.username" class="p-1.5 bg-gold/10 text-gold rounded-lg"><i data-lucide="message-square" size="12"></i></button>
+                                    <button @click="sanctionUser(op.username)" class="p-1.5 bg-red-900/20 text-red-500 rounded-lg"><i data-lucide="shield-off" size="12"></i></button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+
+                <section class="glass p-6 rounded-[2.5rem] border-red-600/20">
+                    <h2 class="text-[9px] font-black uppercase text-red-500 mb-4 italic tracking-widest">Global Lockdown</h2>
+                    <button @click="triggerLockdown()" :class="isLockdown ? 'bg-red-600 text-white' : 'bg-white/5 text-red-500'" class="w-full py-8 rounded-3xl border border-red-900/30 transition-all flex flex-col items-center justify-center gap-2">
+                        <i data-lucide="shield-alert" :class="isLockdown ? 'animate-pulse' : ''" size="32"></i>
+                        <span class="text-[10px] font-black uppercase" x-text="isLockdown ? 'Lockdown Active' : 'Initiate Lockdown'"></span>
+                    </button>
+                </section>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <section class="glass p-8 rounded-[3rem] border-gold/20">
+                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Direct Instruction</h3>
+                    <div class="space-y-3">
+                        <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
+                        <textarea x-model="dmContent" placeholder="PRIVATE_DATA..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none"></textarea>
+                        <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full hover:bg-gold">Transmit DM</button>
+                    </div>
+                </section>
+
+                <section class="glass p-8 rounded-[3rem] border-yellow-500/20">
+                    <h3 class="text-[9px] font-black uppercase text-yellow-500 mb-4 italic">Issue Signal Warning</h3>
+                    <div class="space-y-3">
+                        <input x-model="warnRecipient" placeholder="TARGET_ID..." class="w-full bg-black/40 border border-yellow-500/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
+                        <input x-model="warnMsg" placeholder="WARNING_REASON..." class="w-full bg-black/40 border border-yellow-500/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
+                        <button @click="sendWarning()" class="w-full py-4 bg-yellow-600 text-white font-black text-[9px] uppercase rounded-full">Issue Yellow Alert</button>
+                    </div>
+                </section>
+            </div>
+
+            <section class="glass p-8 rounded-[3rem] border-blue-500/30">
+                <h3 class="text-[9px] font-black uppercase text-blue-400 mb-4 italic">Official Event Broadcast</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input x-model="eventTitle" placeholder="EVENT_TITLE" class="bg-black/40 border border-blue-500/20 p-4 rounded-xl text-[9px] text-white">
+                    <button @click="broadcastEvent()" class="bg-blue-600 text-white py-4 rounded-xl font-black text-[9px] uppercase">Broadcast Now</button>
                 </div>
+                <textarea x-model="eventDetails" placeholder="EVENT_DETAILS..." class="w-full mt-3 bg-black/40 border border-blue-500/20 p-4 rounded-xl text-[9px] text-white"></textarea>
             </section>
 
-            <section class="glass p-8 rounded-[3rem] border-yellow-500/30">
-                <h3 class="text-[9px] font-black uppercase text-yellow-500 mb-4 italic">Issue Signal Warning</h3>
-                <div class="space-y-3">
-                    <input x-model="warnRecipient" placeholder="OPERATIVE_ID..." class="w-full bg-black/40 border border-yellow-500/20 p-4 rounded-xl text-[9px] text-white outline-none uppercase">
-                    <input x-model="warnMsg" placeholder="WARNING_REASON..." class="w-full bg-black/40 border border-yellow-500/20 p-4 rounded-xl text-[9px] text-white outline-none uppercase">
-                    <button @click="sendWarning()" class="w-full py-4 bg-yellow-600 text-white font-black text-[9px] uppercase rounded-full">Transmit Yellow Alert</button>
-                </div>
-            </section>
-
-            <section class="glass p-6 rounded-[2.5rem]">
-                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest">History</h2>
-                <div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 terminal-font text-[9px]">
-                    <template x-for="log in logItems" :key="log.id">
-                        <div class="p-3 bg-white/5 border-l border-gold/50 flex justify-between rounded-r-lg">
-                            <span class="text-gold font-bold uppercase" x-text="'TO: ' + log.recipient"></span>
-                            <span class="text-white/80" x-text="log.content"></span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <section class="glass p-6 rounded-[2.5rem]">
+                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Top 10 Chart Editor</h3>
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <input x-model="chartPos" type="number" placeholder="#" class="w-16 bg-black/40 border border-white/10 p-3 rounded-xl text-white text-[9px]">
+                            <input x-model="chartTrack" placeholder="TRACK_NAME" class="flex-grow bg-black/40 border border-white/10 p-3 rounded-xl text-white text-[9px]">
                         </div>
-                    </template>
-                </div>
-            </section>
+                        <button @click="updateChart()" class="w-full py-3 bg-gold/10 text-gold border border-gold/30 rounded-xl text-[8px] font-black uppercase">Sync Chart</button>
+                    </div>
+                </section>
+                
+                <section class="glass p-6 rounded-[2.5rem]">
+                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Instruction History</h3>
+                    <div class="space-y-2 max-h-[120px] overflow-y-auto pr-2 terminal-font text-[8px]">
+                        <template x-for="log in logItems" :key="log.id">
+                            <div class="p-2 bg-white/5 border-l border-gold/50 flex justify-between rounded-r-lg">
+                                <span class="text-gold font-bold uppercase" x-text="log.recipient"></span>
+                                <span class="text-white/60 truncate" x-text="log.content"></span>
+                            </div>
+                        </template>
+                    </div>
+                </section>
+            </div>
+
         </main>
     </template>
 
@@ -104,26 +173,77 @@
 
         function terminal() {
             return {
-                authenticated: false, latency: 0, stats: { messages: 0 }, dbOnline: false, dmRecipient: '', dmContent: '', logItems: [], warnRecipient: '', warnMsg: '', loginEmail: '', loginPass: '',
+                authenticated: false, loginEmail: '', loginPass: '',
+                latency: 0, stats: { messages: 0 }, dbOnline: false,
+                operatives: [], isLockdown: false,
+                dmRecipient: '', dmContent: '', logItems: [],
+                warnRecipient: '', warnMsg: '',
+                eventTitle: '', eventDetails: '',
+                chartPos: '', chartTrack: '',
+
                 async init() {
-                    if(sessionStorage.getItem('mog_terminal_auth') === 'true') { this.authenticated = true; this.runDiagnostics(); this.fetchLogs(); setInterval(() => this.runDiagnostics(), 30000); }
-                    lucide.createIcons();
+                    if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
+                        this.authenticated = true;
+                        this.sync();
+                        setInterval(() => this.sync(), 15000);
+                    }
+                    setTimeout(() => lucide.createIcons(), 500);
                 },
-                async runDiagnostics() {
-                    const start = Date.now();
-                    const { data, error } = await supabase.rpc('get_grid_stats');
-                    this.latency = Date.now() - start; this.dbOnline = !error;
-                    if (data) this.stats.messages = data.find(r => r.table_name === 'messages')?.row_count || 0;
-                },
-                verifyAccess() {
+                async verifyAccess() {
                     if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol2026') {
-                        this.authenticated = true; sessionStorage.setItem('mog_terminal_auth', 'true'); this.runDiagnostics(); this.fetchLogs();
+                        this.authenticated = true;
+                        sessionStorage.setItem('mog_terminal_auth', 'true');
+                        this.sync();
                     }
                 },
-                async fetchLogs() { const { data } = await supabase.from('direct_messages').select('*').order('created_at', { ascending: false }).limit(10); this.logItems = data || []; },
-                async sendDM() { if(!this.dmRecipient || !this.dmContent) return; await supabase.from('direct_messages').insert([{ recipient: this.dmRecipient.toUpperCase(), content: this.dmContent.toUpperCase() }]); this.dmRecipient = ''; this.dmContent = ''; this.fetchLogs(); },
-                async sendWarning() { if(!this.warnRecipient) return; await supabase.from('warnings').insert([{ recipient: this.warnRecipient.toUpperCase(), message: this.warnMsg || 'PROTOCOL_VIOLATION' }]); this.warnRecipient = ''; this.warnMsg = ''; },
-                async confirmPurge() { if(confirm("WIPE ALL MESSAGES?")) { await supabase.rpc('purge_grid_messages'); this.runDiagnostics(); } },
+                async sync() {
+                    const start = Date.now();
+                    const { data: status } = await supabase.from('system_status').select('*');
+                    this.isLockdown = status?.find(s => s.id === 'lockdown')?.is_active;
+                    
+                    const { data: ops } = await supabase.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
+                    this.operatives = ops || [];
+
+                    const { data: logs } = await supabase.from('direct_messages').select('*').order('created_at', { ascending: false }).limit(10);
+                    this.logItems = logs || [];
+
+                    const { data: counts, error } = await supabase.rpc('get_grid_stats');
+                    this.latency = Date.now() - start;
+                    this.dbOnline = !error;
+                    if(counts) this.stats.messages = counts.find(c => c.table_name === 'messages')?.row_count || 0;
+                },
+                async triggerLockdown() {
+                    this.isLockdown = !this.isLockdown;
+                    await supabase.from('system_status').update({ is_active: this.isLockdown }).eq('id', 'lockdown');
+                },
+                async sendDM() {
+                    if(!this.dmRecipient || !this.dmContent) return;
+                    await supabase.from('direct_messages').insert([{ recipient: this.dmRecipient.toUpperCase(), content: this.dmContent.toUpperCase() }]);
+                    this.dmRecipient = ''; this.dmContent = ''; this.sync();
+                },
+                async sendWarning() {
+                    if(!this.warnRecipient) return;
+                    await supabase.from('warnings').insert([{ recipient: this.warnRecipient.toUpperCase(), message: this.warnMsg || 'PROTOCOL_VIOLATION' }]);
+                    this.warnRecipient = ''; this.warnMsg = '';
+                },
+                async broadcastEvent() {
+                    if(!this.eventTitle) return;
+                    await supabase.from('broadcasts').insert([{ title: this.eventTitle.toUpperCase(), details: this.eventDetails.toUpperCase() }]);
+                    this.eventTitle = ''; this.eventDetails = '';
+                },
+                async updateChart() {
+                    await supabase.from('top_ten').upsert({ id: this.chartPos, track_name: this.chartTrack.toUpperCase() });
+                },
+                async sanctionUser(target) {
+                    if(!confirm(`TERMINATE SIGNAL FOR ${target}?`)) return;
+                    await supabase.from('blacklisted_operatives').insert([{ username: target, reason: 'DIRECTORATE_TERMINATION' }]);
+                },
+                async confirmPurge() {
+                    if(confirm("PURGE ALL MESSAGES?")) {
+                        await supabase.rpc('purge_grid_messages');
+                        this.sync();
+                    }
+                },
                 logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); }
             }
         }
