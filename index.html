@@ -4,13 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY OF GROOVE | NCC MASTER</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignal.js" async></script>
+    <script>
+        // ZERO-CONFLICT SECURITY MIDDLEWARE
+        const current_handle = localStorage.getItem('mog_handle');
+        if (current_handle) {
+            const MOG_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const MOG_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const mog_sb = window.supabase.createClient(MOG_URL, MOG_KEY);
+            mog_sb.from('blacklisted_operatives').select('*').eq('username', current_handle).single()
+              .then(({data}) => {
+                  if(data) { localStorage.clear(); window.location.href = '404.html'; }
+              }).catch(err => console.log("Security Check Bypass:", err));
+        }
+    </script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
@@ -19,40 +30,21 @@
           safari_web_id: "web.onesignal.auto.102e3b2b-5f1a-4c2d-9b1e-64d858376e1a",
           notifyButton: { enable: true },
         });
-        const handle = localStorage.getItem('mog_handle');
-        if (handle) OneSignal.User.addAlias("external_id", handle);
+        if (current_handle) OneSignal.User.addAlias("external_id", current_handle);
       });
     </script>
-
-    <script>
-        const handle = localStorage.getItem('mog_handle');
-        if (handle) {
-            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-            const sb = window.supabase.createClient(SB_URL, SB_KEY);
-            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
-              .then(({data}) => {
-                  if(data) {
-                      localStorage.clear();
-                      window.location.href = '404.html';
-                  }
-              });
-        }
-    </script>
-    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; margin: 0; }
         .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
         .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
     </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="ministry()" x-init="init()" x-cloak>
+<body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-gold">
     <div class="scanline"></div>
 
     <template x-if="isLockdown">
@@ -61,21 +53,16 @@
         </div>
     </template>
 
-    <div x-data="warningSystem()" x-init="init()" x-show="showWarning" x-transition 
-         class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
+    <div x-data="warningSystem()" x-init="init()" x-show="showWarning" x-transition class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
         <div class="glass border-yellow-500 p-8 rounded-[3rem] max-w-xs w-full text-center border-2 animate-pulse">
             <i data-lucide="alert-triangle" class="mx-auto mb-4 text-yellow-500" size="48"></i>
             <h2 class="text-xl font-black uppercase text-white italic">Signal Warning</h2>
-            <p class="text-[9px] text-yellow-500 font-black uppercase tracking-[0.2em] mb-6">Directorate Intervention</p>
             <p class="text-[11px] text-zinc-300 terminal-font mb-8" x-text="warningMsg"></p>
-            <button @click="acknowledge()" class="w-full py-4 bg-yellow-500 text-black font-black text-[10px] uppercase rounded-full shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                Acknowledge Protocol
-            </button>
+            <button @click="acknowledge()" class="w-full py-4 bg-yellow-500 text-black font-black text-[10px] uppercase rounded-full shadow-lg">Acknowledge</button>
         </div>
     </div>
 
-    <div x-data="inbox()" x-init="init()" x-show="hasNewMessage" x-transition 
-         class="fixed bottom-28 left-6 right-6 glass p-4 rounded-2xl border-gold animate-bounce z-50">
+    <div x-data="inbox()" x-init="init()" x-show="hasNewMessage" x-transition class="fixed bottom-28 left-6 right-6 glass p-4 rounded-2xl border-gold animate-bounce z-50">
         <div class="flex items-center gap-3">
             <img src="logo.png" class="h-6 w-6 gold-glow rounded-full">
             <div class="flex-grow">
@@ -85,126 +72,68 @@
             <button @click="dismiss()" class="text-[8px] uppercase opacity-40">Dismiss</button>
         </div>
     </div>
-    
-    <template x-if="view === 'auth'">
-        <div class="h-screen w-full flex flex-col items-center justify-center bg-black p-10 text-center animate-in fade-in duration-1000">
-            <img src="logo.png" class="h-32 w-32 mb-8 gold-glow animate-pulse cursor-pointer transition-transform active:scale-90 rounded-full object-cover" @click="showBypass = !showBypass">
-            <div class="w-full max-w-xs space-y-6">
-                <div x-show="!showBypass" class="space-y-4">
-                    <div class="space-y-1">
-                        <h1 class="text-white font-black uppercase tracking-[0.4em] text-xs italic">Ministry of Groove</h1>
-                        <p class="text-gold/40 text-[7px] uppercase font-black tracking-[0.3em]">Grid Synchronization Required</p>
-                    </div>
-                    <input x-model="handleInput" type="text" placeholder="ENTER OPERATIVE HANDLE..." 
-                           class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white uppercase outline-none focus:border-gold terminal-font text-center">
-                    <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">Initialize Access</button>
-                </div>
 
-                <div x-show="showBypass" x-transition class="glass p-6 rounded-[2.5rem] space-y-4 border-gold/40">
-                    <h2 class="text-white text-[9px] font-black uppercase tracking-widest italic">Directorate Override</h2>
-                    <input x-model="dirEmail" type="email" placeholder="DIRECTOR_ID" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
-                    <input x-model="dirPass" type="password" placeholder="PROTOCOL_KEY" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
-                    <button @click="executeBypass()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full hover:bg-gold transition-colors">Execute 2026 Bypass</button>
-                    <button @click="showBypass = false" class="text-[7px] uppercase text-white/40 tracking-widest">Abort</button>
-                </div>
-                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[8px] uppercase font-black"></p>
+    <template x-if="view === 'auth'">
+        <div class="h-screen w-full flex flex-col items-center justify-center p-10 text-center">
+            <img src="logo.png" @click="showBypass = !showBypass" class="h-32 w-32 mb-8 gold-glow animate-pulse rounded-full object-cover">
+            <div x-show="!showBypass" class="w-full max-w-xs space-y-4">
+                <h1 class="text-white font-black uppercase tracking-widest text-xs italic">Ministry of Groove</h1>
+                <input x-model="handleInput" type="text" placeholder="OPERATIVE HANDLE..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center terminal-font outline-none">
+                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg">Initialize</button>
+            </div>
+            <div x-show="showBypass" class="glass p-6 rounded-[2.5rem] space-y-4 w-full max-w-xs">
+                <input x-model="dirEmail" type="email" placeholder="DIRECTOR_ID" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
+                <input x-model="dirPass" type="password" placeholder="PROTOCOL_KEY" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
+                <button @click="executeBypass()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Execute Bypass</button>
             </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col relative animate-in fade-in duration-500 pb-[100px]" :class="isLockdown ? 'pt-10' : ''">
-            
+        <div class="min-h-screen flex flex-col animate-in fade-in pb-[100px]">
             <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
-                    <img src="logo.png" class="h-10 w-10 gold-glow rounded-full object-cover">
-                    <p class="text-[10px] font-black uppercase text-white tracking-widest italic leading-tight">Ministry of Groove</p>
+                    <img src="logo.png" class="h-10 w-10 gold-glow rounded-full">
+                    <p class="text-[10px] font-black uppercase text-white italic">Ministry of Groove</p>
                 </div>
-                <div class="flex items-center gap-4">
-                    <div class="hidden sm:block text-right">
-                        <p id="sast-clock" class="terminal-font text-[10px] text-white">00:00:00</p>
-                        <p id="weather-display" class="text-[6px] text-gold/40 font-black uppercase tracking-tighter">SYNCING...</p>
-                    </div>
-                    <button @click="logout()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="16"></i></button>
-                </div>
+                <button @click="logout()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="16"></i></button>
             </header>
 
-            <main class="p-6 space-y-6 max-w-5xl mx-auto w-full overflow-y-auto">
+            <main class="p-6 space-y-6 max-w-5xl mx-auto w-full">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'border-blue-400 bg-blue-400/10 shadow-[0_0_15px_rgba(96,165,250,0.2)]' : 'border-gold/10'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border transition-all">
+                    <div @click="subView = 'chat'" class="glass p-6 rounded-[2rem] text-center cursor-pointer border border-gold/10">
                         <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Grid</span>
+                        <span class="text-[9px] font-black uppercase text-white">Grid</span>
                     </div>
-                    <div @click="window.location.href='dossier.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10 hover:border-green-400/30">
+                    <div @click="window.location.href='dossier.html'" class="glass p-6 rounded-[2rem] text-center border border-gold/10">
                         <i data-lucide="user-cog" class="mx-auto mb-2 text-green-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Dossier</span>
+                        <span class="text-[9px] font-black uppercase text-white">Dossier</span>
                     </div>
-                    <div @click="subView = 'gallery'" :class="subView === 'gallery' ? 'border-purple-400 bg-purple-400/10 shadow-[0_0_15px_rgba(192,132,252,0.2)]' : 'border-gold/10'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border transition-all">
+                    <div @click="subView = 'gallery'" class="glass p-6 rounded-[2rem] text-center border border-gold/10">
                         <i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Gallery</span>
+                        <span class="text-[9px] font-black uppercase text-white">Gallery</span>
                     </div>
-                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10 hover:border-gold/50">
+                    <div @click="window.location.href='archives.html'" class="glass p-6 rounded-[2rem] text-center border border-gold/10">
                         <i data-lucide="database" class="mx-auto mb-2 text-gold"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Vault</span>
+                        <span class="text-[9px] font-black uppercase text-white">Vault</span>
                     </div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5">
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden">
                     <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4">
                         <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'mr-auto items-start'" class="flex flex-col gap-1 max-w-[85%] animate-in slide-in-from-bottom-2">
-                                <div class="flex items-center gap-1">
-                                    <template x-if="msg.username === 'DIRECTORATE'"><img src="1000219947.png" class="h-3 w-3 gold-glow rounded-full"></template>
-                                    <span class="text-[7px] font-black text-zinc-500 px-2 uppercase" x-text="msg.username"></span>
-                                </div>
-                                <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20 text-white' : 'bg-white/5 border-white/5 text-white/80'" class="p-4 border rounded-2xl text-[12px]" x-text="msg.content"></div>
+                            <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end text-right' : 'mr-auto items-start text-left'" class="flex flex-col gap-1 max-w-[85%]">
+                                <span class="text-[7px] font-black text-zinc-500 px-2 uppercase" x-text="msg.username"></span>
+                                <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-[12px] text-white" x-text="msg.content"></div>
                             </div>
                         </template>
                     </div>
                     <form @submit.prevent="send()" class="p-4 bg-black/40 border-t border-gold/10 flex gap-3">
-                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[12px] text-white outline-none terminal-font">
-                        <button type="submit" class="text-gold active:scale-90 transition-all"><i data-lucide="send-horizontal"></i></button>
+                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[12px] text-white outline-none">
+                        <button type="submit" class="text-gold"><i data-lucide="send-horizontal"></i></button>
                     </form>
                 </div>
-
-                <div x-show="subView === 'gallery'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden border-white/5 p-6">
-                    <div class="flex justify-between items-center mb-4 px-2">
-                        <h3 class="text-[10px] font-black uppercase tracking-widest text-white italic">Visual Archives</h3>
-                        <label class="cursor-pointer bg-gold text-black px-4 py-2 rounded-full text-[8px] font-black uppercase active:scale-95 transition-all shadow-lg">
-                            <i data-lucide="upload" size="12" class="inline mr-1"></i> Transmit Asset
-                            <input type="file" @change="uploadImage" class="hidden" accept="image/*">
-                        </label>
-                    </div>
-                    <div class="gallery-grid overflow-y-auto flex-grow pr-2">
-                        <template x-for="img in galleryItems" :key="img.id">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden glass group border border-white/10">
-                                <img :src="img.url" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700">
-                                <div class="absolute bottom-0 w-full p-2 bg-black/70 opacity-0 group-hover:opacity-100 transition-all">
-                                    <p class="text-[6px] text-white truncate uppercase terminal-font" x-text="img.owner"></p>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </div>
             </main>
-            
-            <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
-                <div class="flex flex-col items-center sm:items-start gap-1">
-                    <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
-                    <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
-                        <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a>
-                        <span>|</span>
-                        <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
-                    </div>
-                </div>
-                <div class="flex gap-6 text-white/40">
-                    <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
-                    <a href="https://tiktok.com/@ministryofgroove" target="_blank"><i data-lucide="music-2" size="20"></i></a>
-                    <a href="https://www.facebook.com/share/1HT1J3Kazp/" target="_blank"><i data-lucide="facebook" size="20"></i></a>
-                    <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank"><i data-lucide="youtube" size="20"></i></a>
-                </div>
-            </footer>
         </div>
     </template>
 
@@ -213,148 +142,55 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
         const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-        // UPGRADE: Inbox Logic
-        function inbox() {
-            return {
-                hasNewMessage: false, latestMessage: '',
-                async init() {
-                    const handle = localStorage.getItem('mog_handle');
-                    if(!handle) return;
-                    const { data } = await supabase.from('direct_messages').select('*').eq('recipient', handle).eq('is_read', false).order('created_at', { ascending: false }).limit(1);
-                    if (data?.length) { this.latestMessage = data[0].content; this.hasNewMessage = true; }
-                    supabase.channel('dm_sync').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `recipient=eq.${handle}` }, payload => {
-                        this.latestMessage = payload.new.content; this.hasNewMessage = true;
-                    }).subscribe();
-                },
-                dismiss() { this.hasNewMessage = false; }
-            }
-        }
-
-        // UPGRADE: Warning System Logic
         function warningSystem() {
             return {
                 showWarning: false, warningMsg: '',
                 init() {
                     const handle = localStorage.getItem('mog_handle');
                     if(!handle) return;
-                    supabase.channel('warning_sync').on('postgres_changes', { 
-                        event: 'INSERT', schema: 'public', table: 'warnings', filter: `recipient=eq.${handle}` 
-                    }, payload => {
-                        this.warningMsg = payload.new.message.toUpperCase();
-                        this.showWarning = true;
+                    supabase.channel('warning_sync').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'warnings', filter: `recipient=eq.${handle}` }, p => {
+                        this.warningMsg = p.new.message.toUpperCase(); this.showWarning = true;
                     }).subscribe();
                 },
                 acknowledge() { this.showWarning = false; }
             }
         }
 
+        function inbox() {
+            return {
+                hasNewMessage: false, latestMessage: '',
+                async init() {
+                    const handle = localStorage.getItem('mog_handle');
+                    if(!handle) return;
+                    supabase.channel('dm_sync').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `recipient=eq.${handle}` }, p => {
+                        this.latestMessage = p.new.content; this.hasNewMessage = true;
+                    }).subscribe();
+                },
+                dismiss() { this.hasNewMessage = false; }
+            }
+        }
+
         function ministry() {
             return {
-                view: 'auth', subView: 'chat', showBypass: false, dirEmail: '', dirPass: '', 
-                username: '', handleInput: '', errorMsg: '', messages: [], msgInput: '', galleryItems: [], 
-                isLockdown: false,
-                
+                view: 'auth', subView: 'chat', isLockdown: false, username: '', messages: [], msgInput: '', handleInput: '', showBypass: false, dirEmail: '', dirPass: '',
                 async init() {
-                    this.supabase = supabase;
                     const saved = localStorage.getItem('mog_handle');
                     if(saved) { this.username = saved; this.view = 'grid'; }
-                    this.fetch(); 
-                    this.fetchGallery();
+                    this.fetchMessages();
                     this.subscribeRealtime();
-                    setInterval(() => this.updateClock(), 1000);
                     setInterval(() => this.updatePresence(), 30000);
                     setTimeout(() => lucide.createIcons(), 500);
                 },
-
-                // UPGRADE: Real-time PostgreSQL Listeners
                 subscribeRealtime() {
-                    this.supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                        this.messages.push(payload.new);
-                        this.$nextTick(() => { const el = document.getElementById('chat-stream'); if(el) el.scrollTop = el.scrollHeight; });
-                    }).subscribe();
-
-                    this.supabase.channel('status').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, payload => {
-                        if(payload.new.id === 'lockdown') this.isLockdown = payload.new.is_active;
-                    }).subscribe();
+                    supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => { this.messages.push(p.new); this.scroll(); }).subscribe();
+                    supabase.channel('status').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, p => { if(p.new.id === 'lockdown') this.isLockdown = p.new.is_active; }).subscribe();
                 },
-
-                async updatePresence() {
-                    if (!this.username) return;
-                    await this.supabase.from('presence').upsert({ username: this.username, last_seen: new Date().toISOString() }, { onConflict: 'username' });
-                },
-
-                executeBypass() {
-                    if(this.dirEmail === 'director.mog@gmail.com' && this.dirPass === '@MOGProtocol2026') {
-                        this.username = 'DIRECTORATE';
-                        localStorage.setItem('mog_handle', 'DIRECTORATE');
-                        this.view = 'grid';
-                    } else { this.errorMsg = "INVALID DIRECTORATE SIGNAL"; }
-                },
-
-                initializeUser() {
-                    if(!this.handleInput.trim()) { this.errorMsg = "ID REQUIRED"; return; }
-                    this.username = this.handleInput.trim().toUpperCase();
-                    localStorage.setItem('mog_handle', this.username);
-                    this.view = 'grid';
-                },
-
-                async fetch() { 
-                    const { data } = await this.supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                    this.messages = data || [];
-                    this.$nextTick(() => { const el = document.getElementById('chat-stream'); if(el) el.scrollTop = el.scrollHeight; });
-                },
-
-                async send() {
-                    if(!this.msgInput.trim()) return;
-                    await this.supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
-                    this.msgInput = '';
-                },
-
-                async fetchGallery() {
-                    const { data } = await this.supabase.from('gallery').select('*').order('created_at', { ascending: false });
-                    this.galleryItems = data || [];
-                },
-
-                // UPGRADE: Image Compression before Upload
-                async uploadImage(e) {
-                    const file = e.target.files[0];
-                    if(!file) return;
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = (event) => {
-                        const img = new Image();
-                        img.src = event.target.result;
-                        img.onload = async () => {
-                            const canvas = document.createElement('canvas');
-                            const MAX_WIDTH = 1024;
-                            const scaleSize = MAX_WIDTH / img.width;
-                            canvas.width = MAX_WIDTH;
-                            canvas.height = img.height * scaleSize;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            canvas.toBlob(async (blob) => {
-                                const compressedFile = new File([blob], file.name, { type: "image/jpeg" });
-                                const fileName = `${Date.now()}-${this.username}`;
-                                const { data } = await this.supabase.storage.from('gallery').upload(fileName, compressedFile);
-                                if(data) {
-                                    const { data: { publicUrl } } = this.supabase.storage.from('gallery').getPublicUrl(fileName);
-                                    await this.supabase.from('gallery').insert([{ url: publicUrl, owner: this.username }]);
-                                    this.fetchGallery();
-                                }
-                            }, 'image/jpeg', 0.7);
-                        };
-                    };
-                },
-
-                updateClock() {
-                    const now = new Date();
-                    const clockEl = document.getElementById('sast-clock');
-                    if(clockEl) clockEl.innerText = now.toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
-                    fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true').then(r=>r.json()).then(d=>{
-                        const weatherEl = document.getElementById('weather-display');
-                        if(weatherEl) weatherEl.innerText = `${Math.round(d.current_weather.temperature)}°C • EMALAHLENI`;
-                    }).catch(()=>{});
-                },
+                async fetchMessages() { const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50); this.messages = data || []; this.scroll(); },
+                async updatePresence() { if(this.username) await supabase.from('presence').upsert({ username: this.username, last_seen: new Date().toISOString() }); },
+                async send() { if(!this.msgInput.trim()) return; await supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]); this.msgInput = ''; },
+                scroll() { this.$nextTick(() => { const el = document.getElementById('chat-stream'); if(el) el.scrollTop = el.scrollHeight; }); },
+                initializeUser() { if(!this.handleInput.trim()) return; this.username = this.handleInput.trim().toUpperCase(); localStorage.setItem('mog_handle', this.username); this.view = 'grid'; this.updatePresence(); },
+                executeBypass() { if(this.dirEmail === 'director.mog@gmail.com' && this.dirPass === '@MOGProtocol2026') { this.username = 'DIRECTORATE'; localStorage.setItem('mog_handle', 'DIRECTORATE'); this.view = 'grid'; } },
                 logout() { localStorage.removeItem('mog_handle'); location.reload(); }
             }
         }
