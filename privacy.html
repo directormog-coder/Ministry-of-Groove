@@ -3,70 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>DATA ENCRYPTION | MOG PRIVACY</title>
+    <title>PRIVACY SHIELD | MOG PROTOCOL</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        const handle = localStorage.getItem('mog_handle');
+        if (handle) {
+            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
+              .then(({data}) => {
+                  if(data) {
+                      localStorage.clear();
+                      window.location.href = '404.html';
+                  }
+              });
+        }
+    </script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
+        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 9999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
     </style>
     <link rel="stylesheet" href="style.css">
-    <style>
-        :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
-        .terminal-font { font-family: 'JetBrains Mono', monospace; }
-    </style>
 </head>
-<body class="p-6 pb-24 animate-in fade-in duration-1000">
+<body class="bg-black text-gold p-6 pb-24">
+    <div class="scanline"></div>
 
-    <header class="flex justify-between items-center mb-10 sticky top-0 z-50 py-2 glass px-4 rounded-2xl">
-        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
-            <i data-lucide="chevron-left"></i>
+    <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
+        <button onclick="window.history.back()" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left" size="20"></i>
         </button>
         <div class="text-right">
-            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Security Protocol</h1>
-            <p class="text-[7px] text-gold/40 uppercase font-black tracking-widest italic">Data Privacy Policy</p>
+            <h1 class="text-xl font-black italic uppercase tracking-tighter text-white">Privacy Shield</h1>
+            <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-black">Data Protocol 2026</p>
         </div>
     </header>
 
-    <main class="max-w-xl mx-auto space-y-8">
-        <div class="glass p-8 rounded-[3rem] border-gold/20">
-            <h2 class="text-lg font-black uppercase tracking-tighter text-white mb-6 italic">Grid Data Handling</h2>
-            <div class="space-y-6 text-[11px] text-zinc-400 uppercase leading-relaxed terminal-font">
-                
-                <section>
-                    <h3 class="text-gold font-bold mb-2">01. Signal Collection</h3>
-                    <p>We collect your chosen operative handle and the text signals you transmit to the Grid. This data is stored via Supabase for synchronization across all operative terminals.</p>
-                </section>
-
-                <section>
-                    <h3 class="text-gold font-bold mb-2">02. Local Synchronization</h3>
-                    <p>We use LocalStorage on your device to remember your identity and protocol acceptance. This prevents unnecessary re-authentication during grid sessions.</p>
-                </section>
-
-                <section>
-                    <h3 class="text-gold font-bold mb-2">03. External Uplinks</h3>
-                    <p>Visual assets are stored via Supabase Storage. Broadcast signals may be routed through the OneSignal API for global notifications.</p>
-                </section>
-
-                <section>
-                    <h3 class="text-gold font-bold mb-2">04. Data Redaction</h3>
-                    <p>Operatives may request a full signal wipe by contacting the Directorate at director.mog@gmail.com. We do not sell operative data to external frequencies.</p>
-                </section>
-
+    <main class="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom-10 duration-700">
+        
+        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
+            <div class="flex items-center gap-3 text-white">
+                <i data-lucide="shield-check" size="20"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-widest">Signal Encryption</h3>
             </div>
-        </div>
+            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
+                All communications transmitted across the <span class="text-gold">Ministry Grid</span> are routed through the Supabase Master Frequency. Your operative handle is used as a unique identifier for synchronization across the Archive, Dossier, and Gallery.
+            </p>
+        </section>
 
-        <div class="text-center opacity-30">
-            <p class="text-[8px] font-black uppercase tracking-[0.5em]">Secure Connection Active</p>
+        <section class="glass p-8 rounded-[3rem] border-red-900/20 bg-red-900/5 space-y-4">
+            <div class="flex items-center gap-3 text-red-500">
+                <i data-lucide="eye" size="20"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-widest">Directorate Access</h3>
+            </div>
+            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
+                For the safety of the Grid, the <span class="text-white">Directorate</span> maintains high-level access to all signal logs, asset transmissions, and operative presence data. Metadata, including "Last Seen" timestamps and message volume, is visible to administrative terminals for diagnostic purposes.
+            </p>
+        </section>
+
+        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
+            <div class="flex items-center gap-3 text-white">
+                <i data-lucide="database" size="20"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-widest">Local Repository</h3>
+            </div>
+            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
+                We use <span class="text-gold">localStorage</span> to store your unique operative handle and session tokens. This ensures you remain synchronized without re-authenticating. Clearing your browser cache will terminate your active session and require a fresh Grid Re-Sync.
+            </p>
+        </section>
+
+        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
+            <div class="flex items-center gap-3 text-white">
+                <i data-lucide="trash-2" size="20"></i>
+                <h3 class="text-[10px] font-black uppercase tracking-widest">Right to Purge</h3>
+            </div>
+            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
+                Operatives may request a full signal purge of their dossier and message history. Note that the Directorate reserves the right to archive "Sanction Records" permanently if a protocol violation leads to signal termination.
+            </p>
+        </section>
+
+        <div class="text-center py-10 opacity-30">
+            <p class="text-[6px] font-black uppercase tracking-[0.5em]">System Protected by MOG Security Architecture</p>
+            <p class="text-[5px] uppercase mt-2">© 2026 Ministry of Groove</p>
         </div>
     </main>
 
-    <footer class="fixed bottom-0 left-0 w-full glass h-[70px] flex justify-center items-center">
-        <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE | DATA SECURE</p>
-    </footer>
-
     <script>
+        // Initialize Icons
         lucide.createIcons();
     </script>
 </body>
