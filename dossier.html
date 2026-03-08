@@ -13,50 +13,38 @@
     </script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="dossier()" x-init="init()" x-cloak class="bg-black text-gold p-6">
+<body x-data="dossier()" x-init="init()" class="bg-black text-gold p-6">
     <div class="scanline"></div>
     <main class="max-w-xl mx-auto space-y-6">
+        <header class="flex justify-between items-center glass p-4 rounded-2xl">
+            <button onclick="window.location.href='index.html'" class="text-white"><i data-lucide="chevron-left"></i></button>
+            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
+        </header>
+
         <div class="glass p-8 rounded-[3.5rem] border-gold/20 flex items-center gap-6">
-            <div class="h-20 w-20 rounded-full border-2 border-gold/30 flex items-center justify-center bg-gold/5 overflow-hidden">
-                <template x-if="handle === 'DIRECTORATE'"><img src="1000219947.png" class="h-full w-full object-cover"></template>
-                <template x-if="handle !== 'DIRECTORATE'"><i data-lucide="user" size="32" class="text-gold/50"></i></template>
+            <div class="h-20 w-20 rounded-full bg-gold/5 flex items-center justify-center border-2 border-gold/30">
+                <i data-lucide="user" size="32" class="text-gold/50"></i>
             </div>
             <div>
                 <h2 class="text-xl font-black uppercase text-white italic" x-text="handle"></h2>
-                <p class="text-[8px] font-black uppercase text-gold tracking-[0.3em]" x-text="rank"></p>
+                <p class="text-[8px] font-black uppercase text-gold" x-text="rank"></p>
             </div>
         </div>
-        </main>
+    </main>
 
     <script>
         function dossier() {
             return {
-                handle: 'GUEST_USER', rank: 'GRID_INITIATE', stats: { messages: 0, gallery: 0 },
+                handle: 'GUEST_USER', rank: 'GRID_INITIATE',
                 async init() {
-                    const saved = localStorage.getItem('mog_handle');
-                    if(saved) this.handle = saved;
+                    this.handle = localStorage.getItem('mog_handle') || 'GUEST';
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    await this.fetchStats();
-                    this.rank = this.calculateRank();
+                    const { count: msgs } = await this.supabase.from('messages').select('*', { count: 'exact', head: true }).eq('username', this.handle);
+                    this.rank = (msgs || 0) > 50 ? 'ELITE_OPERATIVE' : 'FIELD_AGENT';
                     lucide.createIcons();
-                },
-                calculateRank() {
-                    if (this.handle === 'DIRECTORATE') return 'SUPREME_DIRECTOR';
-                    const score = this.stats.messages + (this.stats.gallery * 5);
-                    if (score > 100) return 'ELITE_OPERATIVE';
-                    if (score > 50) return 'VETERAN_GROOVER';
-                    if (score > 10) return 'FIELD_AGENT';
-                    return 'GRID_INITIATE';
-                },
-                async fetchStats() {
-                    const { count: msgCount } = await this.supabase.from('messages').select('*', { count: 'exact', head: true }).eq('username', this.handle);
-                    const { count: imgCount } = await this.supabase.from('gallery').select('*', { count: 'exact', head: true }).eq('owner', this.handle);
-                    this.stats.messages = msgCount || 0;
-                    this.stats.gallery = imgCount || 0;
-                },
-                logout() { localStorage.removeItem('mog_handle'); window.location.href = 'index.html'; }
+                }
             }
         }
     </script>
