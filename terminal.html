@@ -1,107 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>DIRECTORATE TERMINAL | MOG HQ</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth.js"></script>
-    <style>
-        body { background: #050505; color: #D4AF37; font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid rgba(212, 175, 55, 0.2); }
-    </style>
-</head>
-<body x-data="terminal()" x-init="init()" class="p-6">
-    <template x-if="authenticated">
-        <main class="max-w-6xl mx-auto space-y-6">
-            <div class="grid grid-cols-4 gap-4">
-                <div class="glass p-4 rounded-2xl text-center">
-                    <p class="text-[8px] uppercase text-gold/50">Terminal_Ping</p>
-                    <p class="text-xl font-black text-green-400" x-text="ping + 'ms'"></p>
-                </div>
-                <div class="glass p-4 rounded-2xl text-center">
-                    <p class="text-[8px] uppercase text-gold/50">Grid_Load</p>
-                    <p class="text-xl font-black text-white" x-text="load + ' S/M'"></p>
-                </div>
-                <div class="glass p-4 rounded-2xl text-center">
-                    <p class="text-[8px] uppercase text-gold/50">DB_Status</p>
-                    <p class="text-xl font-black text-blue-400">OPTIMAL</p>
-                </div>
-                <div @click="purgeGrid()" class="glass p-4 rounded-2xl text-center border-red-900/40 cursor-pointer bg-red-900/5">
-                    <p class="text-[8px] uppercase text-red-500 font-black">Binary_Purge</p>
-                    <p class="text-[10px] text-white">WIPE_SIGNAL</p>
-                </div>
-            </div>
+<section class="glass p-8 rounded-[3rem] space-y-4">
+    <h3 class="text-xs font-black uppercase text-gold italic">Chart_Manager_Module</h3>
+    <div class="space-y-2">
+        <input x-model="newTrackTitle" placeholder="SONG_TITLE..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white outline-none">
+        <input x-model="newTrackArtist" placeholder="ARTIST_NAME..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white outline-none">
+        <button @click="addTrack()" class="w-full py-4 bg-gold text-black font-black rounded-xl">Inject into Charts</button>
+    </div>
+    <button @click="resetCharts()" class="w-full py-2 text-red-500 text-[8px] uppercase font-bold border border-red-900/20 rounded-lg">Reset Weekly Votes</button>
+</section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <section class="glass p-8 rounded-[3rem] space-y-4">
-                    <h3 class="text-xs font-black uppercase text-white">Direct Instruction Dispatch</h3>
-                    <input x-model="dmTarget" placeholder="TARGET_HANDLE..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white outline-none">
-                    <textarea x-model="dmMsg" placeholder="SECURE_COMMAND..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white h-32 outline-none"></textarea>
-                    <button @click="sendDM()" class="w-full py-4 bg-gold text-black font-black rounded-xl">Transmit Command</button>
-                </section>
-
-                <section class="glass p-8 rounded-[3rem]">
-                    <h3 class="text-xs font-black uppercase text-white mb-4">Live Heartbeat Monitor</h3>
-                    <div class="space-y-2">
-                        <template x-for="op in operatives" :key="op.username">
-                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
-                                <span class="text-[11px] font-bold" x-text="op.username"></span>
-                                <div class="h-2 w-2 bg-green-500 rounded-full"></div>
-                            </div>
-                        </template>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </template>
-
-    <script>
-        function terminal() {
-            return {
-                authenticated: false, loginEmail: '', loginPass: '', 
-                ping: 0, load: 0, operatives: [], 
-                dmTarget: '', dmMsg: '',
-
-                async init() {
-                    if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
-                        this.authenticated = true;
-                        this.startDiagnostics();
-                    }
-                },
-                async startDiagnostics() {
-                    setInterval(async () => {
-                        const start = Date.now();
-                        const { data: load } = await mog_sb.rpc('get_grid_load');
-                        this.ping = Date.now() - start;
-                        this.load = load || 0;
-                        const { data: ops } = await mog_sb.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
-                        this.operatives = ops || [];
-                    }, 5000);
-                },
-                async sendDM() {
-                    if(!this.dmTarget || !this.dmMsg) return;
-                    await mog_sb.from('direct_messages').insert([{ recipient: this.dmTarget.toUpperCase(), content: this.dmMsg.toUpperCase() }]);
-                    this.dmTarget = ''; this.dmMsg = '';
-                    alert("COMMAND_TRANSMITTED");
-                },
-                async purgeGrid() {
-                    if(confirm("EXECUTE FULL BINARY PURGE?")) {
-                        await mog_sb.rpc('purge_grid_messages');
-                        alert("GRID_WIPED");
-                    }
-                },
-                async verifyAccess() {
-                    if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol2026') {
-                        this.authenticated = true;
-                        sessionStorage.setItem('mog_terminal_auth', 'true');
-                        location.reload();
-                    }
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+<script>
+// Inside terminal() function
+async addTrack() {
+    if(!this.newTrackTitle || !this.newTrackArtist) return;
+    await mog_sb.from('chart_tracks').insert([{ 
+        title: this.newTrackTitle.toUpperCase(), 
+        artist: this.newTrackArtist.toUpperCase() 
+    }]);
+    this.newTrackTitle = ''; this.newTrackArtist = '';
+    alert("TRACK_INJECTED");
+},
+async resetCharts() {
+    if(confirm("WIPE ALL VOTES FOR NEW WEEK?")) {
+        await mog_sb.from('chart_tracks').update({ votes: 0 }).neq('id', '00000000-0000-0000-0000-000000000000');
+        alert("CHARTS_RESET");
+    }
+}
+</script>
