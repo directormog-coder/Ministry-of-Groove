@@ -3,124 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>PROTOCOL TOS | MOG GRID</title>
-    
+    <title>GRID_PROTOCOL | TERMS OF SERVICE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script>
-        const handle = localStorage.getItem('mog_handle');
-        if (handle) {
-            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-            const sb = window.supabase.createClient(SB_URL, SB_KEY);
-            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
-              .then(({data}) => {
-                  if(data) {
-                      localStorage.clear();
-                      window.location.href = '404.html';
-                  }
-              });
-        }
-    </script>
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
-        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
-        
-        /* Scanline Effect */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            z-index: 9999;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
     </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-black text-gold p-6 pb-24">
+<body class="bg-black text-gold p-6 min-h-screen">
     <div class="scanline"></div>
 
-    <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
-        <button onclick="window.history.back()" class="p-3 glass rounded-2xl active:scale-90 transition-all">
-            <i data-lucide="chevron-left" size="20"></i>
-        </button>
-        <div class="text-right">
-            <h1 class="text-xl font-black italic uppercase tracking-tighter text-white">Terms of Protocol</h1>
-            <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-black">Code of Conduct 2026</p>
-        </div>
-    </header>
-
-    <main class="max-w-xl mx-auto space-y-8 animate-in slide-in-from-bottom-10 duration-700">
-        
-        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
-            <div class="flex items-center gap-3 text-white">
-                <i data-lucide="user-check" size="20"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-widest">1.0 Operative Identity</h3>
+    <main class="max-w-2xl mx-auto space-y-8 pb-20">
+        <header class="flex items-center gap-4 mb-12">
+            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-gold/10 transition-all">
+                <i data-lucide="arrow-left" size="20"></i>
+            </button>
+            <div>
+                <h1 class="font-black italic text-white uppercase tracking-tighter text-2xl">Grid_Protocol</h1>
+                <p class="text-[8px] font-black text-gold/50 uppercase tracking-widest">TOS Ver: 2.0.26 / Directorate Approved</p>
             </div>
-            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
-                By entering the <span class="text-gold">Ministry Grid</span>, you agree to represent yourself under a singular operative handle. Impersonation of the Directorate or other established agents is a violation of the primary frequency.
-            </p>
+        </header>
+
+        <section class="glass p-8 rounded-[2.5rem] space-y-6 text-[11px] leading-relaxed border-gold/20">
+            <div class="space-y-2">
+                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">1. Acceptance of Frequency</h2>
+                <p class="text-zinc-400">By initializing a handle on the Ministry of Groove (MOG) HQ Grid, you agree to abide by the Directorate's Rules of Engagement. If you do not agree, you must terminate your uplink immediately.</p>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">2. Operative Conduct</h2>
+                <p class="text-zinc-400">Operatives are prohibited from transmitting signals that are harmful, illegal, or disruptive to the eMalahleni Master Frequency. This includes spamming the Grid, impersonating the Directorate, or attempting to bypass security middleware.</p>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">3. Signal Sanction (Termination)</h2>
+                <p class="text-zinc-400">The Directorate reserves the absolute right to terminate any signal (Blacklist) at its sole discretion. Sanctioned handles will be permanently redirected to the 404/Signal Lost interface.</p>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">4. Intellectual Property</h2>
+                <p class="text-zinc-400">The "Ministry of Groove", "MOG HQ", and "ORIGIN 54: The Asili Collective" branding, logos, and terminal interface designs are the exclusive property of the Directorate. Unauthorized replication of the Grid architecture is prohibited.</p>
+            </div>
+
+            <div class="space-y-2">
+                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">5. Disclaimer of Uplink</h2>
+                <p class="text-zinc-400">The Grid is provided "as is". The Directorate is not responsible for any signal loss, data corruption, or mobile connectivity issues within the Mpumalanga province or beyond.</p>
+            </div>
         </section>
 
-        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
-            <div class="flex items-center gap-3 text-white">
-                <i data-lucide="radio" size="20"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-widest">2.0 Signal Transmission</h3>
-            </div>
-            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
-                All signals (messages) and assets (images) transmitted to the Archive are shared across the collective. The Ministry is not responsible for unsanctioned data leaks resulting from operative negligence.
-            </p>
-        </section>
-
-        <section class="glass p-8 rounded-[3rem] border-yellow-500/20 bg-yellow-500/5 space-y-4">
-            <div class="flex items-center gap-3 text-yellow-500">
-                <i data-lucide="alert-triangle" size="20"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-widest">3.0 Yellow Alerts & Warnings</h3>
-            </div>
-            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
-                The Directorate reserves the right to issue <span class="text-yellow-500">Signal Warnings</span> for minor protocol breaches. Acknowledgment of these warnings is mandatory for continued Grid access.
-            </p>
-        </section>
-
-        <section class="glass p-8 rounded-[3rem] border-red-900/40 bg-red-900/10 space-y-4">
-            <div class="flex items-center gap-3 text-red-500">
-                <i data-lucide="shield-off" size="20"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-widest">4.0 Signal Termination</h3>
-            </div>
-            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
-                Major protocol violations will result in an immediate and permanent <span class="text-red-500">Sanction</span>. Upon termination, your signal is excluded from the Grid, and your local repository is purged. Decisions made by the Directorate Terminal are final.
-            </p>
-        </section>
-
-        <section class="glass p-8 rounded-[3rem] border-gold/10 space-y-4">
-            <div class="flex items-center gap-3 text-white">
-                <i data-lucide="hammer" size="20"></i>
-                <h3 class="text-[10px] font-black uppercase tracking-widest">5.0 Grid Maintenance</h3>
-            </div>
-            <p class="text-[11px] leading-relaxed text-zinc-400 terminal-font">
-                The Ministry of Groove Grid is subject to periodic <span class="text-gold">Lockdowns</span> and Maintenance Wipes. The Directorate may purge public frequencies to optimize system performance without prior notice.
-            </p>
-        </section>
-
-        <div class="text-center py-10 opacity-30">
-            <p class="text-[6px] font-black uppercase tracking-[0.5em] text-gold">Binding Protocol Agreement • 2026</p>
-        </div>
+        <footer class="text-center opacity-40">
+            <p class="text-[7px] font-black uppercase tracking-[0.3em]">ORIGIN 54 / THE ASILI COLLECTIVE / 2026</p>
+        </footer>
     </main>
 
-    <script>
-        // Initialize Icons
-        lucide.createIcons();
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>
