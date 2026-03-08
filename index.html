@@ -11,20 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
 
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignal.js" async></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "3ef253d3-a093-42f5-bc88-91dd7576cf34",
-          safari_web_id: "web.onesignal.auto.102e3b2b-5f1a-4c2d-9b1e-64d858376e1a",
-          notifyButton: { enable: true },
-        });
-        const handle = localStorage.getItem('mog_handle');
-        if (handle) OneSignal.User.addAlias("external_id", handle);
-      });
-    </script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         
@@ -44,7 +30,6 @@
             border: 1px solid rgba(212, 175, 55, 0.15); 
         }
 
-        /* News Ticker Animation */
         .ticker-move { 
             display: inline-block; 
             white-space: nowrap; 
@@ -55,7 +40,7 @@
             100% { transform: translateX(-100%); } 
         }
 
-        /* Custom Scrollbar for Terminal look */
+        /* Custom Scrollbar */
         #chat-stream::-webkit-scrollbar { width: 4px; }
         #chat-stream::-webkit-scrollbar-track { background: rgba(212, 175, 55, 0.02); }
         #chat-stream::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.2); border-radius: 10px; }
@@ -63,7 +48,6 @@
 
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
-        
         .social-hover:hover { filter: drop-shadow(0 0 8px #D4AF37); color: white; transition: all 0.3s ease; }
     </style>
 </head>
@@ -79,18 +63,6 @@
             </template>
         </div>
     </div>
-
-    <template x-if="view === 'grid'">
-        <div class="fixed bottom-6 right-6 glass p-2 pr-6 rounded-full border-gold/30 shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-right-10 z-[100]">
-            <a href="https://wa.me/27813874921?text=INITIALIZE_SIGNAL_REPORT:_ID:" target="_blank" class="h-12 w-12 bg-gold rounded-full flex items-center justify-center text-black shadow-lg active:scale-90 transition-all">
-                <i data-lucide="message-circle" size="20"></i>
-            </a>
-            <div class="hidden md:block">
-                <p class="text-[7px] font-black uppercase text-white tracking-widest leading-tight">Direct Instruction</p>
-                <p class="text-[9px] text-gold font-bold">REPORT TO HQ</p>
-            </div>
-        </div>
-    </template>
 
     <template x-if="hasDM">
         <div class="fixed bottom-32 left-6 right-6 glass p-4 rounded-2xl border-gold animate-bounce z-[150] flex items-center gap-4 shadow-2xl">
@@ -110,7 +82,7 @@
                 <h1 class="text-white font-black uppercase tracking-[0.4em] text-xs italic">Ministry of Groove</h1>
                 <p class="text-[7px] text-gold/60 font-bold uppercase tracking-[0.2em] -mt-4">Decrypting the Culture. Synchronizing the Grid.</p>
                 <input x-model="handleInput" placeholder="OPERATIVE_HANDLE..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center outline-none">
-                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">Initialize Access</button>
+                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg">Initialize Access</button>
             </div>
         </div>
     </template>
@@ -153,14 +125,14 @@
                     </div>
                 </div>
 
-                <div class="glass rounded-[3rem] min-h-[55vh] overflow-hidden">
+                <div class="glass rounded-[3rem] min-h-[50vh] overflow-hidden">
                     
                     <div x-show="subView === 'chat'" class="h-full flex flex-col p-4 h-[55vh]">
                         <div id="chat-stream" class="flex-grow overflow-y-auto space-y-4 p-2">
                             <template x-for="msg in messages" :key="msg.id">
                                 <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'items-start'" class="flex flex-col max-w-[85%]">
                                     <span class="text-[6px] text-zinc-500 uppercase px-2" x-text="msg.username"></span>
-                                    <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20 text-gold font-bold' : 'bg-white/5 border-white/5 text-white'" class="p-4 rounded-2xl text-[12px]" x-text="msg.content"></div>
+                                    <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20 text-gold' : 'bg-white/5 border-white/5 text-white'" class="p-4 rounded-2xl text-[12px]" x-text="msg.content"></div>
                                 </div>
                             </template>
                         </div>
@@ -170,7 +142,7 @@
                         </form>
                     </div>
 
-                    <div x-show="subView === 'audio'" class="h-full animate-in zoom-in-95">
+                    <div x-show="subView === 'audio'" class="h-full">
                         <iframe :src="streamUrl" width="100%" height="450" frameborder="0" allowtransparency="true" allow="encrypted-media" class="grayscale hover:grayscale-0 transition-all duration-700"></iframe>
                     </div>
 
@@ -179,34 +151,23 @@
                         <div class="space-y-6">
                             <template x-for="stat in provinceStats" :key="stat.province_name">
                                 <div class="space-y-2">
-                                    <div class="flex justify-between text-[9px] font-black uppercase">
-                                        <span x-text="stat.province_name" class="text-zinc-500"></span>
-                                        <span x-text="stat.operative_count + ' ACTIVE'" class="text-gold"></span>
-                                    </div>
-                                    <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                        <div class="h-full bg-gold transition-all duration-1000" :style="`width: ${Math.min(stat.operative_count * 10, 100)}%` "></div>
-                                    </div>
+                                    <div class="flex justify-between text-[9px] font-black uppercase"><span x-text="stat.province_name" class="text-zinc-500"></span><span x-text="stat.operative_count + ' ACTIVE'" class="text-gold"></span></div>
+                                    <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-gold transition-all duration-1000" :style="`width: ${Math.min(stat.operative_count * 10, 100)}%` "></div></div>
                                 </div>
                             </template>
                         </div>
                     </div>
 
                     <div x-show="subView === 'charts'" class="p-6 space-y-4">
-                        <h3 class="text-[10px] font-black uppercase text-white italic px-2">Top 10 Signal Leaders</h3>
                         <template x-for="(track, index) in tracks" :key="track.id">
                             <div class="flex items-center justify-between bg-white/5 p-5 rounded-3xl border border-white/5">
                                 <div class="flex items-center gap-6">
                                     <span class="text-2xl font-black italic opacity-20 terminal-font" x-text="index + 1"></span>
-                                    <div>
-                                        <p class="text-[11px] font-black text-white uppercase" x-text="track.title"></p>
-                                        <p class="text-[8px] text-gold/50 font-bold" x-text="track.artist"></p>
-                                    </div>
+                                    <div><p class="text-[11px] font-black text-white uppercase" x-text="track.title"></p><p class="text-[8px] text-gold/50 font-bold" x-text="track.artist"></p></div>
                                 </div>
                                 <div class="flex items-center gap-4">
                                     <span class="text-[9px] font-black" x-text="track.votes"></span>
-                                    <button @click="vote(track.id)" class="p-3 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all">
-                                        <i data-lucide="arrow-big-up" size="18"></i>
-                                    </button>
+                                    <button @click="vote(track.id)" class="p-3 bg-gold/10 text-gold rounded-full"><i data-lucide="arrow-big-up" size="18"></i></button>
                                 </div>
                             </div>
                         </template>
@@ -239,7 +200,7 @@
                     </div>
 
                     <div class="pt-8 border-t border-white/5 text-center">
-                        <p class="text-[7px] font-black uppercase tracking-[0.5em] opacity-40">© 2026 Ministry of Groove. Decrypting the Culture.</p>
+                        <p class="text-[7px] font-black uppercase tracking-[0.5em] opacity-40">© 2026 Ministry of Groove. All Rights Reserved.</p>
                     </div>
                 </footer>
 
@@ -270,12 +231,7 @@
                 },
 
                 updateTime() {
-                    this.sastTime = new Date().toLocaleTimeString('en-ZA', { 
-                        timeZone: 'Africa/Johannesburg', 
-                        hour12: false, 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                    });
+                    this.sastTime = new Date().toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg', hour12: false });
                 },
 
                 scrollToBottom(force = false) {
@@ -284,10 +240,7 @@
                     const threshold = 100;
                     const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
                     if (isAtBottom || force) {
-                        el.scrollTo({
-                            top: el.scrollHeight,
-                            behavior: force ? 'smooth' : 'auto'
-                        });
+                        el.scrollTo({ top: el.scrollHeight, behavior: force ? 'smooth' : 'auto' });
                     }
                 },
 
@@ -328,4 +281,35 @@
                     const { error } = await mog_sb.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
                     if(!error) {
                         this.msgInput = '';
-       
+                        this.$nextTick(() => this.scrollToBottom(true));
+                    }
+                },
+
+                async vote(id) { await mog_sb.rpc('vote_track', { track_id: id }); },
+
+                async detectLocation() {
+                    try {
+                        const res = await fetch('https://ipapi.co/json/');
+                        const data = await res.json();
+                        this.province = data.region ? data.region.toUpperCase() : 'MPUMALANGA';
+                    } catch (e) { this.province = 'SOUTH AFRICA'; }
+                    this.updatePresence();
+                },
+
+                async updatePresence() {
+                    await mog_sb.from('presence').upsert({ username: this.username, last_seen: new Date().toISOString(), province: this.province });
+                },
+
+                initializeUser() {
+                    if(!this.handleInput.trim()) return;
+                    localStorage.setItem('mog_handle', this.handleInput.toUpperCase());
+                    location.reload();
+                },
+
+                logout() { localStorage.clear(); location.reload(); }
+            }
+        }
+    </script>
+</body>
+    </html>
+                                    
