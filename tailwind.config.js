@@ -7,6 +7,10 @@ module.exports = {
         gold: '#D4AF37',
         noir: '#050505',
       },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],
