@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>DIRECTORATE TERMINAL | MOG HQ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -10,102 +9,97 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
         body { background: #050505; color: #D4AF37; font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(212, 175, 55, 0.2); backdrop-filter: blur(20px); }
-        .terminal-input { background: rgba(255,255,255,0.03); border: 1px solid rgba(212,175,55,0.1); }
+        .glass { background: rgba(15, 15, 15, 0.95); border: 1px solid rgba(212, 175, 55, 0.2); }
     </style>
 </head>
 <body x-data="terminal()" x-init="init()" class="p-6">
     <template x-if="authenticated">
-        <main class="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-            <header class="flex justify-between items-center glass p-6 rounded-[2rem]">
-                <div class="flex items-center gap-4">
-                    <div class="h-10 w-10 bg-gold rounded-full flex items-center justify-center text-black font-black">M</div>
-                    <div>
-                        <h1 class="text-xs font-black text-white uppercase italic">Directorate_Command</h1>
-                        <p class="text-[7px] text-gold/50 font-bold uppercase">Uplink: Secure_AES_256</p>
-                    </div>
+        <main class="max-w-6xl mx-auto space-y-6">
+            <div class="grid grid-cols-4 gap-4">
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-[8px] uppercase text-gold/50">Terminal_Ping</p>
+                    <p class="text-xl font-black text-green-400" x-text="ping + 'ms'"></p>
                 </div>
-                <button @click="logout()" class="p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><i data-lucide="power"></i></button>
-            </header>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-[8px] uppercase text-gold/50">Grid_Load</p>
+                    <p class="text-xl font-black text-white" x-text="load + ' S/M'"></p>
+                </div>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-[8px] uppercase text-gold/50">DB_Status</p>
+                    <p class="text-xl font-black text-blue-400">OPTIMAL</p>
+                </div>
+                <div @click="purgeGrid()" class="glass p-4 rounded-2xl text-center border-red-900/40 cursor-pointer bg-red-900/5">
+                    <p class="text-[8px] uppercase text-red-500 font-black">Binary_Purge</p>
+                    <p class="text-[10px] text-white">WIPE_SIGNAL</p>
+                </div>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <section class="md:col-span-2 glass p-8 rounded-[3rem] space-y-4">
-                    <h3 class="text-[9px] font-black text-white uppercase italic tracking-widest">Signal_Presence</h3>
-                    <div class="grid grid-cols-1 gap-2 max-h-96 overflow-y-auto pr-2">
-                        <template x-for="op in operatives" :key="op.username">
-                            <div class="flex justify-between items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-                                <span class="text-[11px] font-bold text-zinc-300" x-text="op.username"></span>
-                                <div class="flex gap-2">
-                                    <button @click="sanctionUser(op.username)" class="p-2 bg-red-900/20 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"><i data-lucide="shield-off" size="14"></i></button>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <section class="glass p-8 rounded-[3rem] space-y-4">
+                    <h3 class="text-xs font-black uppercase text-white">Direct Instruction Dispatch</h3>
+                    <input x-model="dmTarget" placeholder="TARGET_HANDLE..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white outline-none">
+                    <textarea x-model="dmMsg" placeholder="SECURE_COMMAND..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-white h-32 outline-none"></textarea>
+                    <button @click="sendDM()" class="w-full py-4 bg-gold text-black font-black rounded-xl">Transmit Command</button>
                 </section>
 
-                <section class="glass p-8 rounded-[3rem] space-y-4">
-                    <h3 class="text-[9px] font-black text-gold uppercase italic tracking-widest">Global_Broadcast</h3>
-                    <textarea x-model="broadcastMsg" placeholder="SIGNAL_MESSAGE..." class="w-full terminal-input p-4 rounded-2xl text-[10px] text-white h-32 outline-none focus:border-gold/40"></textarea>
-                    <button @click="sendBroadcast()" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase rounded-xl shadow-lg active:scale-95 transition-all">Transmit Push</button>
-                    
-                    <div class="pt-6 border-t border-white/5">
-                        <button @click="confirmPurge()" class="w-full py-4 border border-red-900/40 text-red-500 text-[9px] font-black uppercase rounded-xl hover:bg-red-900/10">Full Grid Purge</button>
+                <section class="glass p-8 rounded-[3rem]">
+                    <h3 class="text-xs font-black uppercase text-white mb-4">Live Heartbeat Monitor</h3>
+                    <div class="space-y-2">
+                        <template x-for="op in operatives" :key="op.username">
+                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                                <span class="text-[11px] font-bold" x-text="op.username"></span>
+                                <div class="h-2 w-2 bg-green-500 rounded-full"></div>
+                            </div>
+                        </template>
                     </div>
                 </section>
             </div>
         </main>
     </template>
 
-    <template x-if="!authenticated">
-        <div class="h-screen flex flex-col items-center justify-center space-y-4">
-            <h2 class="text-[10px] font-black tracking-widest uppercase text-white">Directorate Secure Access</h2>
-            <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full max-w-xs terminal-input p-5 rounded-2xl text-center text-[10px] text-white outline-none">
-            <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full max-w-xs terminal-input p-5 rounded-2xl text-center text-[10px] text-white outline-none">
-            <button @click="verifyAccess()" class="w-full max-w-xs py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Authorize Terminal</button>
-        </div>
-    </template>
-
     <script>
         function terminal() {
             return {
-                authenticated: false, loginEmail: '', loginPass: '', operatives: [], broadcastMsg: '',
+                authenticated: false, loginEmail: '', loginPass: '', 
+                ping: 0, load: 0, operatives: [], 
+                dmTarget: '', dmMsg: '',
+
                 async init() {
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
                         this.authenticated = true;
-                        this.sync();
-                        setInterval(() => this.sync(), 15000);
+                        this.startDiagnostics();
                     }
-                    this.$nextTick(() => lucide.createIcons());
+                },
+                async startDiagnostics() {
+                    setInterval(async () => {
+                        const start = Date.now();
+                        const { data: load } = await mog_sb.rpc('get_grid_load');
+                        this.ping = Date.now() - start;
+                        this.load = load || 0;
+                        const { data: ops } = await mog_sb.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
+                        this.operatives = ops || [];
+                    }, 5000);
+                },
+                async sendDM() {
+                    if(!this.dmTarget || !this.dmMsg) return;
+                    await mog_sb.from('direct_messages').insert([{ recipient: this.dmTarget.toUpperCase(), content: this.dmMsg.toUpperCase() }]);
+                    this.dmTarget = ''; this.dmMsg = '';
+                    alert("COMMAND_TRANSMITTED");
+                },
+                async purgeGrid() {
+                    if(confirm("EXECUTE FULL BINARY PURGE?")) {
+                        await mog_sb.rpc('purge_grid_messages');
+                        alert("GRID_WIPED");
+                    }
                 },
                 async verifyAccess() {
                     if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol2026') {
                         this.authenticated = true;
                         sessionStorage.setItem('mog_terminal_auth', 'true');
-                        localStorage.setItem('mog_handle', 'DIRECTORATE');
                         location.reload();
                     }
-                },
-                async sync() {
-                    const { data } = await mog_sb.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
-                    this.operatives = data || [];
-                },
-                async sendBroadcast() {
-                    if(!this.broadcastMsg) return;
-                    await mog_sb.from('broadcasts').insert([{ title: 'NETWORK_ALERT', message: this.broadcastMsg.toUpperCase() }]);
-                    this.broadcastMsg = '';
-                    alert("SIGNAL_SENT_TO_ONE_SIGNAL");
-                },
-                async sanctionUser(target) {
-                    if(!confirm(`BLACKBALL ${target}?`)) return;
-                    await mog_sb.from('blacklisted_operatives').insert([{ username: target }]);
-                    this.sync();
-                },
-                async confirmPurge() {
-                    if(confirm("WIPE ALL GRID DATA?")) await mog_sb.rpc('purge_grid_messages');
-                },
-                logout() { sessionStorage.clear(); localStorage.clear(); location.reload(); }
+                }
             }
         }
     </script>
