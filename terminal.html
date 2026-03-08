@@ -8,66 +8,53 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        if (!localStorage.getItem('mog_handle') && !sessionStorage.getItem('mog_terminal_auth')) {
-            window.location.href = 'index.html';
-        }
-    </script>
+    <style>
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="terminal()" x-init="init()" class="bg-black text-gold">
+<body x-data="terminal()" x-init="init()" class="bg-black text-gold p-6">
     <div class="scanline"></div>
 
     <template x-if="!authenticated">
-        <div class="h-screen flex flex-col items-center justify-center p-10 bg-black animate-in fade-in">
-            <img src="logo.png" class="h-24 w-24 mb-10 gold-glow rounded-full">
-            <div class="w-full max-w-xs space-y-4 text-center">
-                <h2 class="text-[10px] font-black uppercase text-white">Directorate Secure Login</h2>
-                <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white terminal-font text-center outline-none">
-                <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full bg-transparent border border-gold/20 p-5 rounded-2xl text-[10px] text-white terminal-font text-center outline-none">
-                <button @click="verifyAccess()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Authorize Terminal</button>
-            </div>
+        <div class="h-screen flex flex-col items-center justify-center p-10 text-center">
+            <h2 class="text-xs font-black uppercase text-white mb-6">Directorate Secure Access</h2>
+            <input x-model="loginEmail" type="email" placeholder="DIRECTOR_ID..." class="w-full max-w-xs bg-white/5 border border-gold/20 p-5 rounded-2xl text-white text-center mb-4 outline-none">
+            <input x-model="loginPass" type="password" placeholder="PROTOCOL_KEY..." class="w-full max-w-xs bg-white/5 border border-gold/20 p-5 rounded-2xl text-white text-center mb-6 outline-none">
+            <button @click="verifyAccess()" class="w-full max-w-xs py-5 bg-gold text-black font-black rounded-full uppercase">Authorize</button>
         </div>
     </template>
 
     <template x-if="authenticated">
-        <main class="min-h-screen p-6 space-y-6 max-w-2xl mx-auto pb-24">
-            <header class="flex justify-between items-center glass p-4 rounded-2xl border-gold/20">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" class="h-8 w-8 gold-glow rounded-full">
-                    <h1 class="font-black italic text-white uppercase tracking-tighter">MOG_COMMAND</h1>
-                </div>
+        <div class="max-w-2xl mx-auto space-y-6 animate-in fade-in">
+            <header class="flex justify-between items-center glass p-4 rounded-2xl">
+                <h1 class="font-black italic text-white uppercase tracking-tighter">MOG_COMMAND</h1>
                 <button @click="logout()" class="text-red-500"><i data-lucide="log-out"></i></button>
             </header>
-
-            <section class="grid grid-cols-2 gap-4">
-                <button @click="triggerLockdown()" :class="isLockdown ? 'border-red-500 bg-red-500/20' : 'border-white/5 bg-white/5'" class="glass p-6 rounded-[2rem] border transition-all text-center">
-                    <i data-lucide="shield-alert" class="mx-auto mb-2" :class="isLockdown ? 'text-red-500 animate-pulse' : ''"></i>
-                    <p class="text-[8px] font-black uppercase text-white">Grid Lockdown</p>
-                </button>
-            </section>
 
             <section class="glass p-8 rounded-[3rem] border-gold/20">
                 <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Direct Operative Uplink</h3>
                 <div class="space-y-3">
-                    <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
-                    <textarea x-model="dmContent" placeholder="INSTRUCTION..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none"></textarea>
-                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Transmit Private Signal</button>
+                    <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none uppercase">
+                    <textarea x-model="dmContent" placeholder="INSTRUCTION..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none"></textarea>
+                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Transmit Signal</button>
                 </div>
             </section>
 
             <section class="glass p-6 rounded-[2.5rem]">
-                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic">History</h2>
-                <div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 terminal-font text-[9px]">
+                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest text-center">Instruction History</h2>
+                <div class="space-y-2 max-h-[200px] overflow-y-auto">
                     <template x-for="log in logItems" :key="log.id">
-                        <div class="p-3 bg-white/5 border-l border-gold/50 flex justify-between">
-                            <span class="text-gold" x-text="log.recipient"></span>
-                            <span class="text-white/80" x-text="log.content"></span>
+                        <div class="p-3 bg-white/5 border-l border-gold/50 flex justify-between rounded-r-lg">
+                            <span class="text-gold text-[8px] font-bold" x-text="'TO: ' + log.recipient"></span>
+                            <span class="text-white/80 text-[8px]" x-text="log.content"></span>
                         </div>
                     </template>
                 </div>
             </section>
-        </main>
+        </div>
     </template>
 
     <script>
@@ -77,35 +64,29 @@
 
         function terminal() {
             return {
-                authenticated: false, isLockdown: false, dmRecipient: '', dmContent: '', logItems: [], loginEmail: '', loginPass: '',
-                async init() {
+                authenticated: false, loginEmail: '', loginPass: '', dmRecipient: '', dmContent: '', logItems: [],
+                init() {
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
                         this.authenticated = true;
-                        this.fetchData();
+                        this.fetchLogs();
                     }
-                    lucide.createIcons();
+                    setTimeout(() => lucide.createIcons(), 200);
                 },
                 verifyAccess() {
                     if(this.loginEmail === 'director.mog@gmail.com' && this.loginPass === '@MOGProtocol2026') {
                         this.authenticated = true;
                         sessionStorage.setItem('mog_terminal_auth', 'true');
-                        this.fetchData();
+                        this.fetchLogs();
                     }
                 },
-                async fetchData() {
-                    const { data: logs } = await supabase.from('direct_messages').select('*').order('created_at', { ascending: false }).limit(10);
-                    this.logItems = logs || [];
-                    const { data } = await supabase.from('system_status').select('*').eq('id', 'lockdown').single();
-                    if(data) this.isLockdown = data.is_active;
-                },
-                async triggerLockdown() {
-                    this.isLockdown = !this.isLockdown;
-                    await supabase.from('system_status').update({ is_active: this.isLockdown }).eq('id', 'lockdown');
+                async fetchLogs() {
+                    const { data } = await supabase.from('direct_messages').select('*').order('created_at', { ascending: false }).limit(10);
+                    this.logItems = data || [];
                 },
                 async sendDM() {
                     if(!this.dmRecipient || !this.dmContent) return;
                     await supabase.from('direct_messages').insert([{ recipient: this.dmRecipient.toUpperCase(), content: this.dmContent.toUpperCase() }]);
-                    this.dmRecipient = ''; this.dmContent = ''; this.fetchData();
+                    this.dmRecipient = ''; this.dmContent = ''; this.fetchLogs();
                 },
                 logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); }
             }
