@@ -17,26 +17,42 @@
 </head>
 <body x-data="terminal()" x-init="init()" x-cloak class="bg-black text-gold">
     <div class="scanline"></div>
+
     <template x-if="authenticated">
         <main class="min-h-screen p-6 space-y-6 max-w-2xl mx-auto">
             <header class="flex justify-between items-center glass p-4 rounded-2xl">
                 <h1 class="font-black italic text-white uppercase tracking-tighter">MOG_COMMAND</h1>
-                <button @click="logout()" class="text-red-500"><i data-lucide="log-out"></i></button>
+                <button @click="logout()" class="text-red-500"><i data-lucide="power"></i></button>
             </header>
 
+            <section class="glass p-6 rounded-[2.5rem]">
+                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic">Grid Operatives Online</h2>
+                <div class="flex flex-wrap gap-2">
+                    <template x-for="op in operatives" :key="op.username">
+                        <button @click="dmRecipient = op.username" 
+                                class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-zinc-400 hover:border-gold hover:text-gold transition-all">
+                            <span class="h-1.5 w-1.5 bg-green-500 rounded-full inline-block mr-2"></span>
+                            <span x-text="op.username"></span>
+                        </button>
+                    </template>
+                </div>
+            </section>
+
             <section class="grid grid-cols-2 gap-4">
-                <button @click="toggle('livestream')" 
-                        :class="isLive ? 'border-red-500 bg-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'border-white/5 bg-white/5'" 
-                        class="glass p-6 rounded-[2rem] text-center transition-all border group">
-                    <i data-lucide="radio" :class="isLive ? 'text-red-500 animate-pulse' : 'text-zinc-600'" class="mx-auto mb-2" size="24"></i>
-                    <p class="text-[8px] font-black uppercase text-white tracking-widest">Live Signal</p>
+                <button @click="triggerLockdown()" :class="isLockdown ? 'border-red-500 bg-red-500/20' : 'border-white/5 bg-white/5'" class="glass p-6 rounded-[2rem] border transition-all text-center">
+                    <i data-lucide="shield-alert" class="mx-auto mb-2"></i>
+                    <p class="text-[8px] font-black uppercase tracking-widest text-white">Lockdown</p>
                 </button>
-                <button @click="triggerLockdown()" 
-                        :class="isLockdown ? 'border-red-900 bg-red-900/50 shadow-[0_0_20px_rgba(139,0,0,0.3)]' : 'border-white/5 bg-white/5'" 
-                        class="glass p-6 rounded-[2rem] text-center transition-all border group">
-                    <i data-lucide="shield-alert" :class="isLockdown ? 'text-red-700' : 'text-zinc-600'" class="mx-auto mb-2" size="24"></i>
-                    <p class="text-[8px] font-black uppercase text-white tracking-widest">Grid Lockdown</p>
-                </button>
+                </section>
+
+            <section class="glass p-8 rounded-[3rem] border-gold/20">
+                <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Direct Operative Uplink</h3>
+                <div class="space-y-3">
+                    <input x-model="dmRecipient" placeholder="OPERATIVE_HANDLE..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
+                    <textarea x-model="dmContent" placeholder="PRIVATE_INSTRUCTION..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none"></textarea>
+                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full hover:bg-gold transition-colors">Transmit Private Signal</button>
+                    <p x-text="status" class="text-[7px] text-center opacity-50"></p>
+                </div>
             </section>
         </main>
     </template>
@@ -44,23 +60,31 @@
     <script>
         function terminal() {
             return {
-                authenticated: false, isLive: false, isLockdown: false, status: '',
+                authenticated: false, isLockdown: false, operatives: [], dmRecipient: '', dmContent: '', status: '',
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
                         this.authenticated = true;
-                        const { data } = await this.supabase.from('system_status').select('*');
-                        this.isLockdown = data?.find(r => r.id === 'lockdown')?.is_active;
-                        this.isLive = data?.find(r => r.id === 'livestream')?.is_active;
+                        this.fetchOperatives();
+                        setInterval(() => this.fetchOperatives(), 10000);
                     }
                     lucide.createIcons();
+                },
+                async fetchOperatives() {
+                    const { data } = await this.supabase.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
+                    this.operatives = data || [];
                 },
                 async triggerLockdown() {
                     this.isLockdown = !this.isLockdown;
                     await this.supabase.from('system_status').update({ is_active: this.isLockdown }).eq('id', 'lockdown');
-                    this.status = this.isLockdown ? "[LOCKDOWN_ACTIVE]" : "[LOCKDOWN_LIFTED]";
+                },
+                async sendDM() {
+                    if(!this.dmRecipient || !this.dmContent) return;
+                    await this.supabase.from('direct_messages').insert([{ recipient: this.dmRecipient.toUpperCase(), content: this.dmContent.toUpperCase() }]);
+                    this.dmRecipient = ''; this.dmContent = ''; this.status = "SIGNAL_TRANSMITTED";
+                    setTimeout(() => this.status = '', 3000);
                 },
                 logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); }
             }
