@@ -4,83 +4,193 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY VAULT | NCC DATA</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');</style>
+    
+    <script>
+        const handle = localStorage.getItem('mog_handle');
+        if (handle) {
+            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
+              .then(({data}) => {
+                  if(data) {
+                      localStorage.clear();
+                      window.location.href = '404.html';
+                  }
+              });
+        } else {
+            // Redirect to index if no handle is present
+            window.location.href = 'index.html';
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
+        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+        
+        /* Cyberpunk Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 9999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="vault()" x-init="init()" class="p-6 pb-[120px] bg-black text-gold">
+<body x-data="vault()" x-init="init()" class="bg-black text-gold p-6 pb-24" x-cloak>
+    <div class="scanline"></div>
+
     <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
-        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all"><i data-lucide="chevron-left" size="20"></i></button>
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left" size="20"></i>
+        </button>
         <div class="flex items-center gap-3">
             <div class="text-right">
                 <h1 class="text-xl font-black italic uppercase tracking-tighter text-white">The Vault</h1>
-                <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-black">Data Repository</p>
+                <p class="text-[7px] uppercase tracking-[0.4em] text-gold/40 font-black" x-text="isDirector ? 'Directorate Archive' : 'Data Repository'"></p>
             </div>
-            <img src="logo.png" class="h-8 w-8 rounded-full border border-gold/20">
+            <img src="logo.png" class="h-10 w-10 rounded-full border border-gold/20 object-cover">
         </div>
     </header>
 
     <main class="space-y-6 max-w-xl mx-auto">
-        <div class="glass p-6 rounded-[2.5rem] flex items-center justify-between">
-            <div class="flex items-center gap-4"><i data-lucide="activity" class="text-white/20"></i><p class="text-[9px] font-black uppercase text-white">Uplink: Online</p></div>
-            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-        </div>
+        
+        <template x-if="isDirector">
+            <section class="space-y-6 animate-in fade-in duration-700">
+                
+                <div class="glass p-6 rounded-[2.5rem] border-red-600/30 bg-red-900/5">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="shield-off" class="text-red-600" size="16"></i>
+                        <h3 class="text-[9px] font-black uppercase text-white italic tracking-widest">Sanctioned Operatives Log</h3>
+                    </div>
+                    <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                        <template x-for="log in sanctionLog" :key="log.username">
+                            <div class="flex justify-between items-center p-4 bg-black/40 rounded-2xl border border-red-900/20">
+                                <div>
+                                    <span class="text-[10px] font-black text-red-500 uppercase terminal-font" x-text="log.username"></span>
+                                    <p class="text-[7px] text-zinc-500 uppercase mt-1" x-text="'Reason: ' + (log.reason || 'PROTOCOL_VIOLATION')"></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[7px] text-zinc-400 font-bold" x-text="new Date(log.termination_date).toLocaleDateString()"></p>
+                                    <button @click="reinstate(log.username)" class="text-[7px] text-green-500 uppercase font-black mt-2 hover:underline">Reinstate Access</button>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-if="sanctionLog.length === 0">
+                            <p class="text-[8px] uppercase text-zinc-600 italic text-center py-4">No active sanctions on record.</p>
+                        </template>
+                    </div>
+                </div>
+                
+                <div class="glass p-6 rounded-[2.5rem] border-blue-500/20">
+                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest">Data Management</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button @click="exportData('messages')" class="flex justify-between items-center p-4 bg-white/5 rounded-2xl text-[9px] font-black uppercase text-white hover:bg-gold/10 transition-all">
+                            <span>Export Grid Signals (CSV)</span>
+                            <i data-lucide="download" size="14"></i>
+                        </button>
+                    </div>
+                </div>
 
-        <div x-show="isDirector" class="mt-8 space-y-4">
-            <div class="flex items-center gap-2 px-2"><i data-lucide="download-cloud" size="14"></i><h3 class="text-[9px] font-black uppercase tracking-widest text-white">Directorate Data Export</h3></div>
-            <button @click="exportData('messages')" class="w-full glass p-5 rounded-[2rem] border-gold/20 flex justify-between items-center"><span class="text-[8px] font-black uppercase text-white">Export Chat History</span><i data-lucide="file-text" size="14"></i></button>
-        </div>
+            </section>
+        </template>
 
-        <div class="glass p-8 rounded-[3rem] border-gold/10">
-            <h3 class="text-[9px] font-black uppercase mb-4 text-white">Directorate Communications</h3>
-            <button onclick="sendDispatch()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-2xl shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all"><i data-lucide="send" size="14"></i> Send Encrypted Dispatch</button>
+        <section class="glass p-8 rounded-[3rem] border-gold/10 text-center space-y-6">
+            <div class="space-y-2">
+                <i data-lucide="shield-check" class="mx-auto text-gold/20" size="48"></i>
+                <h3 class="text-[10px] font-black uppercase text-white tracking-widest">Grid Communications</h3>
+                <p class="text-[8px] text-zinc-500 uppercase max-w-[200px] mx-auto">Encrypted frequency for direct administrative inquiries.</p>
+            </div>
+            
+            <button onclick="sendDispatch()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all">
+                <i data-lucide="mail" size="16"></i> Send Encrypted Dispatch
+            </button>
+        </section>
+
+        <div class="text-center py-10 opacity-20">
+            <p class="text-[6px] font-black uppercase tracking-[0.5em] text-gold">End of File • Ministry Archive 2026</p>
         </div>
     </main>
-
-    <footer class="glass border-t border-gold/20 flex flex-col sm:flex-row justify-between items-center px-6 py-4 gap-4 sm:gap-0 fixed bottom-0 w-full left-0">
-        <div class="flex flex-col items-center sm:items-start gap-1">
-            <p class="terminal-font text-[7px] font-black uppercase text-gold/60">© 2026 MINISTRY OF GROOVE</p>
-            <div class="flex gap-3 text-[6px] font-black uppercase tracking-widest text-gold/30">
-                <a href="tos.html" class="hover:text-gold transition-colors">Protocol TOS</a> | <a href="privacy.html" class="hover:text-gold transition-colors">Privacy Shield</a>
-            </div>
-        </div>
-        <div class="flex gap-6 text-white/40">
-            <a href="mailto:director.mog@gmail.com"><i data-lucide="mail" size="20"></i></a>
-            <a href="https://instagram.com/ministryofgroove_hq" target="_blank"><i data-lucide="instagram" size="20"></i></a>
-            <a href="https://tiktok.com/@ministryofgroove" target="_blank"><i data-lucide="music-2" size="20"></i></a>
-            <a href="https://www.facebook.com/share/1HT1J3Kazp/" target="_blank"><i data-lucide="facebook" size="20"></i></a>
-            <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank"><i data-lucide="youtube" size="20"></i></a>
-        </div>
-    </footer>
 
     <script>
         function vault() {
             return {
                 isDirector: false,
-                init() {
+                sanctionLog: [],
+                async init() {
                     this.isDirector = localStorage.getItem('mog_handle') === 'DIRECTORATE';
+                    
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
+
+                    if (this.isDirector) { 
+                        this.fetchSanctions(); 
+                    }
                     lucide.createIcons();
+                },
+                async fetchSanctions() {
+                    // Pull from the blacklisted_operatives table directly
+                    const { data } = await this.supabase
+                        .from('blacklisted_operatives')
+                        .select('username, reason, created_at')
+                        .order('created_at', { ascending: false });
+                    
+                    this.sanctionLog = data?.map(d => ({
+                        username: d.username,
+                        reason: d.reason,
+                        termination_date: d.created_at
+                    })) || [];
+                },
+                async reinstate(target) {
+                    if(confirm(`AUTHORIZE REINSTATEMENT FOR: ${target}?`)) {
+                        const { error } = await this.supabase
+                            .from('blacklisted_operatives')
+                            .delete()
+                            .eq('username', target);
+                        
+                        if(!error) {
+                            alert(`SIGNAL_RESTORED: ${target}`);
+                            this.fetchSanctions();
+                        }
+                    }
                 },
                 async exportData(table) {
                     const { data } = await this.supabase.from(table).select('*');
-                    if (!data || !data.length) return;
-                    const csvContent = "data:text/csv;charset=utf-8," + Object.keys(data[0]).join(",") + "\n" + data.map(row => Object.values(row).join(",")).join("\n");
+                    if (!data || data.length === 0) return;
+                    
+                    const headers = Object.keys(data[0]).join(",");
+                    const rows = data.map(row => Object.values(row).join(",")).join("\n");
+                    const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
+                    
                     const link = document.createElement("a");
                     link.setAttribute("href", encodeURI(csvContent));
-                    link.setAttribute("download", `MOG_${table.toUpperCase()}.csv`);
-                    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                    link.setAttribute("download", `MOG_${table.toUpperCase()}_EXPORT.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             }
         }
+
         function sendDispatch() {
-            const time = new Date().toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' });
-            window.location.href = `mailto:director.mog@gmail.com?subject=[MINISTRY_DISPATCH] - ${time} SAST&body=RECIPIENT: DIRECTORATE\nTIMESTAMP: ${time} SAST\nSEAL: [ logo.png ]\n\n[MESSAGE_BODY]`;
+            window.location.href = `mailto:director.mog@gmail.com?subject=[GRID_DISPATCH]&body=ID: ${localStorage.getItem('mog_handle') || 'ANONYMOUS'}%0A%0ASIGNAL: `;
         }
     </script>
 </body>
