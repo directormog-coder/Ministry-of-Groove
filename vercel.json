@@ -1,5 +1,8 @@
 {
+  "version": 2,
+  "name": "ministry-of-groove-app",
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/(.*)",
