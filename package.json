@@ -1,25 +1,18 @@
 {
-  "name": "ministry-of-groove-grid",
-  "version": "2.0.26",
-  "description": "Official Directorate Command & Operative Grid - eMalahleni Frequency",
-  "main": "index.html",
+  "name": "mog_app",
+  "version": "1.0.0",
+  "description": "Ministry of Groove Web Application",
+  "main": "index.js",
   "scripts": {
-    "start": "serve .",
-    "deploy": "vercel --prod"
+    "build": "tailwindcss -i ./index.css -o ./output.css",
+    "watch": "tailwindcss -i ./index.css -o ./output.css --watch"
   },
-  "keywords": [
-    "MOG",
-    "Ministry of Groove",
-    "NCC",
-    "Grid"
-  ],
-  "author": "Directorate",
-  "license": "MIT",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "vercel": "^32.0.0",
-    "serve": "^14.2.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13"
   }
 }
