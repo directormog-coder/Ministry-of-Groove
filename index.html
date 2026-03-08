@@ -4,18 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MOG_GRID | NCC MASTER</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
         :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
-        .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .ticker-move { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
+        body { 
+            background: var(--noir); 
+            color: var(--gold); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden; 
+        }
+
+        .glass { 
+            background: rgba(20, 20, 20, 0.9); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(212, 175, 55, 0.15); 
+        }
+
+        /* News Ticker Animation */
+        .ticker-move { 
+            display: inline-block; 
+            white-space: nowrap; 
+            animation: ticker 30s linear infinite; 
+        }
+        @keyframes ticker { 
+            0% { transform: translateX(100%); } 
+            100% { transform: translateX(-100%); } 
+        }
+
+        /* Custom Scrollbar for the Terminal look */
+        #chat-stream::-webkit-scrollbar {
+            width: 4px;
+        }
+        #chat-stream::-webkit-scrollbar-track {
+            background: rgba(212, 175, 55, 0.02);
+        }
+        #chat-stream::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+        }
+        
+        /* Smooth scrolling for the container */
+        #chat-stream {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(212, 175, 55, 0.2) transparent;
+        }
+
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -23,123 +68,177 @@
 
     <div class="fixed top-0 w-full z-[100] glass py-2 border-b border-gold/10 overflow-hidden">
         <div class="ticker-move text-[9px] font-black uppercase tracking-widest text-white">
-            <template x-for="news in newsItems">
-                <span class="mx-10" x-text="`${news.title}: ${news.message}`"></span>
+            <template x-for="news in newsItems" :key="news.id">
+                <span class="mx-10" x-text="`${news.title}: ${news.message} — [${new Date(news.created_at).toLocaleTimeString()}]` "></span>
+            </template>
+            <template x-if="newsItems.length === 0">
+                <span class="mx-10 text-gold/40">SYSTEM_IDLE: STANDBY FOR DIRECTORATE SIGNAL...</span>
             </template>
         </div>
     </div>
 
+    <template x-if="hasDM">
+        <div class="fixed bottom-24 left-6 right-6 glass p-4 rounded-2xl border-gold animate-bounce z-50 flex items-center gap-4">
+            <i data-lucide="mail" class="text-gold"></i>
+            <div class="flex-grow">
+                <p class="text-[8px] font-black uppercase text-white">New Direct Instruction</p>
+                <p class="text-[10px] italic" x-text="latestDM"></p>
+            </div>
+            <button @click="hasDM = false" class="text-[10px] font-black">X</button>
+        </div>
+    </template>
+
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-10 text-center">
-            <img src="logo.png" class="h-32 w-32 mb-8 rounded-full border border-gold/20 shadow-lg">
-            <input x-model="handleInput" placeholder="OPERATIVE_HANDLE..." class="w-full max-w-xs bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center outline-none mb-4">
-            <button @click="initializeUser()" class="w-full max-w-xs py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Initialize Access</button>
+        <div class="h-screen flex flex-col items-center justify-center p-10 text-center animate-in fade-in">
+            <img src="logo.png" class="h-32 w-32 mb-8 rounded-full border border-gold/20 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+            <div class="w-full max-w-xs space-y-6">
+                <h1 class="text-white font-black uppercase tracking-[0.4em] text-xs italic">Ministry of Groove</h1>
+                <input x-model="handleInput" placeholder="OPERATIVE_HANDLE..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center outline-none">
+                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg">Initialize Access</button>
+            </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen pt-14 pb-32 px-4 space-y-6">
-            <header class="p-5 glass flex justify-between items-center rounded-2xl">
-                <div class="flex items-center gap-3">
-                    <img src="logo.png" class="h-8 w-8 rounded-full">
+        <div class="min-h-screen pt-14 pb-32 space-y-6">
+            
+            <header class="p-5 glass flex justify-between items-center mx-4 rounded-2xl sticky top-12 z-50">
+                <div class="flex items-center gap-4">
+                    <img src="logo.png" class="h-10 w-10 rounded-full border border-gold/20">
                     <div>
-                        <p class="text-[9px] font-black text-white uppercase" x-text="username"></p>
-                        <p class="text-[6px] text-gold/50 uppercase" x-text="`SECTOR: ${province}`"></p>
+                        <p class="text-[10px] font-black uppercase text-white tracking-widest leading-none">MOG_GRID_ACTIVE</p>
+                        <p class="text-[6px] text-gold/50 uppercase mt-1" x-text="`Sector: ${province} | Time: ${sastTime}`"></p>
                     </div>
                 </div>
                 <div class="flex gap-2">
-                    <button @click="window.location.href='dossier.html'" class="p-2 glass rounded-lg"><i data-lucide="user" size="14"></i></button>
+                    <button @click="window.location.href='dossier.html'" class="p-2 glass rounded-lg border-gold/10"><i data-lucide="user" size="14"></i></button>
                     <button @click="logout()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="14"></i></button>
                 </div>
             </header>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div @click="subView = 'chat'" class="glass p-6 rounded-3xl text-center border-gold/10" :class="subView === 'chat' && 'bg-gold/10'">
-                    <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
-                    <span class="text-[8px] font-black text-white uppercase">Grid</span>
+            <main class="px-4 space-y-6 max-w-5xl mx-auto w-full">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'bg-white/10 border-white/20' : 'border-gold/10'" class="glass p-6 rounded-[2rem] text-center cursor-pointer border transition-all">
+                        <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
+                        <span class="text-[8px] font-black uppercase text-white">Grid Chat</span>
+                    </div>
+                    <div @click="subView = 'map'" :class="subView === 'map' ? 'bg-white/10 border-white/20' : 'border-gold/10'" class="glass p-6 rounded-[2rem] text-center cursor-pointer border transition-all">
+                        <i data-lucide="map-pin" class="mx-auto mb-2 text-green-400"></i>
+                        <span class="text-[8px] font-black uppercase text-white">Live Map</span>
+                    </div>
+                    <div @click="subView = 'audio'" :class="subView === 'audio' ? 'bg-white/10 border-white/20' : 'border-gold/10'" class="glass p-6 rounded-[2rem] text-center cursor-pointer border transition-all">
+                        <i data-lucide="music" class="mx-auto mb-2 text-gold"></i>
+                        <span class="text-[8px] font-black uppercase text-white">Streaming</span>
+                    </div>
+                    <div @click="subView = 'charts'" :class="subView === 'charts' ? 'bg-white/10 border-white/20' : 'border-gold/10'" class="glass p-6 rounded-[2rem] text-center cursor-pointer border transition-all">
+                        <i data-lucide="trending-up" class="mx-auto mb-2 text-purple-400"></i>
+                        <span class="text-[8px] font-black uppercase text-white">Top 10</span>
+                    </div>
                 </div>
-                <div @click="subView = 'map'" class="glass p-6 rounded-3xl text-center border-gold/10" :class="subView === 'map' && 'bg-gold/10'">
-                    <i data-lucide="map-pin" class="mx-auto mb-2 text-green-400"></i>
-                    <span class="text-[8px] font-black text-white uppercase">Map</span>
-                </div>
-                <div @click="subView = 'audio'" class="glass p-6 rounded-3xl text-center border-gold/10" :class="subView === 'audio' && 'bg-gold/10'">
-                    <i data-lucide="music" class="mx-auto mb-2 text-gold"></i>
-                    <span class="text-[8px] font-black text-white uppercase">Audio</span>
-                </div>
-                <div @click="subView = 'charts'" class="glass p-6 rounded-3xl text-center border-gold/10" :class="subView === 'charts' && 'bg-gold/10'">
-                    <i data-lucide="trending-up" class="mx-auto mb-2 text-purple-400"></i>
-                    <span class="text-[8px] font-black text-white uppercase">Charts</span>
-                </div>
-            </div>
 
-            <div class="glass rounded-[2.5rem] min-h-[50vh] overflow-hidden">
-                <div x-show="subView === 'chat'" class="h-full flex flex-col p-4 h-[50vh]">
-                    <div id="chat-stream" class="flex-grow overflow-y-auto space-y-4 p-2">
-                        <template x-for="msg in messages">
-                            <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'items-start'" class="flex flex-col max-w-[85%]">
-                                <span class="text-[6px] text-zinc-500 uppercase px-2" x-text="msg.username"></span>
-                                <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-3 rounded-2xl text-[11px] text-white" x-text="msg.content"></div>
+                <div class="glass rounded-[3rem] min-h-[50vh] overflow-hidden">
+                    
+                    <div x-show="subView === 'chat'" class="h-full flex flex-col p-4 h-[55vh]">
+                        <div id="chat-stream" class="flex-grow overflow-y-auto space-y-4 p-2">
+                            <template x-for="msg in messages" :key="msg.id">
+                                <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'items-start'" class="flex flex-col max-w-[85%]">
+                                    <span class="text-[6px] text-zinc-500 uppercase px-2" x-text="msg.username"></span>
+                                    <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20 text-gold' : 'bg-white/5 border-white/5 text-white'" class="p-4 rounded-2xl text-[12px]" x-text="msg.content"></div>
+                                </div>
+                            </template>
+                        </div>
+                        <form @submit.prevent="send()" class="p-4 flex gap-2">
+                            <input x-model="msgInput" placeholder="TRANSMIT_SIGNAL..." class="flex-grow bg-white/5 p-4 rounded-2xl text-[12px] text-white outline-none terminal-font">
+                            <button type="submit" class="bg-gold text-black px-6 rounded-2xl active:scale-90 transition-all"><i data-lucide="send" size="18"></i></button>
+                        </form>
+                    </div>
+
+                    <div x-show="subView === 'audio'" class="h-full animate-in zoom-in-95">
+                        <iframe :src="streamUrl" width="100%" height="450" frameborder="0" allowtransparency="true" allow="encrypted-media" class="grayscale hover:grayscale-0 transition-all duration-700"></iframe>
+                    </div>
+
+                    <div x-show="subView === 'map'" class="p-10 space-y-6 animate-in fade-in">
+                        <h3 class="text-[10px] font-black uppercase text-white italic tracking-widest">Provincial Operative Density</h3>
+                        <div class="space-y-6">
+                            <template x-for="stat in provinceStats" :key="stat.province_name">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-[9px] font-black uppercase"><span x-text="stat.province_name" class="text-zinc-500"></span><span x-text="stat.operative_count + ' ACTIVE'" class="text-gold"></span></div>
+                                    <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-gold transition-all duration-1000" :style="`width: ${Math.min(stat.operative_count * 10, 100)}%` "></div></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div x-show="subView === 'charts'" class="p-6 space-y-4 animate-in slide-in-from-right-4">
+                        <template x-for="(track, index) in tracks" :key="track.id">
+                            <div class="flex items-center justify-between bg-white/5 p-5 rounded-3xl border border-white/5">
+                                <div class="flex items-center gap-6">
+                                    <span class="text-2xl font-black italic opacity-20 terminal-font" x-text="index + 1"></span>
+                                    <div><p class="text-[11px] font-black text-white uppercase" x-text="track.title"></p><p class="text-[8px] text-gold/50 font-bold" x-text="track.artist"></p></div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[9px] font-black" x-text="track.votes"></span>
+                                    <button @click="vote(track.id)" class="p-3 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all"><i data-lucide="arrow-big-up" size="18"></i></button>
+                                </div>
                             </div>
                         </template>
                     </div>
-                    <form @submit.prevent="send()" class="mt-4 flex gap-2">
-                        <input x-model="msgInput" placeholder="SIGNAL..." class="flex-grow bg-white/5 p-3 rounded-xl text-[11px] outline-none">
-                        <button type="submit" class="bg-gold text-black px-4 rounded-xl"><i data-lucide="send" size="14"></i></button>
-                    </form>
-                </div>
 
-                <div x-show="subView === 'audio'" class="h-full">
-                    <iframe :src="streamUrl" width="100%" height="450" frameborder="0" allow="encrypted-media"></iframe>
                 </div>
-
-                <div x-show="subView === 'map'" class="p-8 space-y-4">
-                    <h3 class="text-[10px] font-black text-white uppercase">Provincial Density</h3>
-                    <template x-for="stat in provinceStats">
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[8px] font-bold uppercase"><span x-text="stat.province_name"></span><span x-text="stat.operative_count"></span></div>
-                            <div class="h-1 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-gold" :style="`width: ${stat.operative_count * 10}%` "></div></div>
-                        </div>
-                    </template>
-                </div>
-
-                <div x-show="subView === 'charts'" class="p-6 space-y-3">
-                    <template x-for="(t, i) in tracks">
-                        <div class="flex items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/5">
-                            <div class="flex items-center gap-4">
-                                <span class="text-xl font-black italic opacity-20" x-text="i+1"></span>
-                                <div><p class="text-[10px] font-black text-white uppercase" x-text="t.title"></p><p class="text-[7px] text-gold/50" x-text="t.artist"></p></div>
-                            </div>
-                            <button @click="vote(t.id)" class="p-2 bg-gold/10 rounded-full"><i data-lucide="arrow-big-up" size="16"></i></button>
-                        </div>
-                    </template>
-                </div>
-            </div>
+            </main>
         </div>
     </template>
 
     <script>
         function ministry() {
             return {
-                view: 'auth', subView: 'chat', username: '', province: 'SA',
+                view: 'auth', subView: 'chat', username: '', province: 'DETECTING...',
                 messages: [], msgInput: '', handleInput: '', 
                 provinceStats: [], tracks: [], newsItems: [], streamUrl: '',
+                sastTime: '', hasDM: false, latestDM: '',
 
                 async init() {
                     const saved = localStorage.getItem('mog_handle');
                     if(saved) { 
-                        this.username = saved; this.view = 'grid';
+                        this.username = saved; 
+                        this.view = 'grid';
+                        this.updateTime();
                         this.syncAll();
                         this.subscribe();
-                        setInterval(() => this.updatePresence(), 30000);
+                        this.checkDMs();
+                        setInterval(() => {
+                            this.updateTime();
+                            this.updatePresence();
+                            this.syncAll();
+                        }, 30000);
+                        setInterval(() => this.updateTime(), 1000);
                     }
                     this.$nextTick(() => lucide.createIcons());
                 },
+
+                updateTime() {
+                    this.sastTime = new Date().toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg', hour12: false });
+                },
+
+                scrollToBottom(force = false) {
+                    const el = document.getElementById('chat-stream');
+                    if (!el) return;
+                    const threshold = 100;
+                    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+                    if (isAtBottom || force) {
+                        el.scrollTo({
+                            top: el.scrollHeight,
+                            behavior: force ? 'smooth' : 'auto'
+                        });
+                    }
+                },
+
                 async syncAll() {
                     const [msg, stats, trks, news, strm] = await Promise.all([
                         mog_sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50),
                         mog_sb.rpc('get_province_stats'),
                         mog_sb.from('chart_tracks').select('*').order('votes', { ascending: false }),
-                        mog_sb.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(3),
+                        mog_sb.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(5),
                         mog_sb.from('stream_config').select('*').single()
                     ]);
                     this.messages = msg.data || [];
@@ -147,35 +246,63 @@
                     this.tracks = trks.data || [];
                     this.newsItems = news.data || [];
                     this.streamUrl = strm.data?.playlist_url;
+                    if(this.messages.length > 0) this.$nextTick(() => this.scrollToBottom());
                     this.detectLocation();
                 },
-                subscribe() {
-                    mog_sb.channel('global').on('postgres_changes', { event: '*', schema: 'public' }, () => this.syncAll()).subscribe();
+
+                async checkDMs() {
+                    const { data } = await mog_sb.from('direct_messages').select('*').eq('recipient', this.username).eq('read', false).limit(1);
+                    if(data?.length) { this.hasDM = true; this.latestDM = data[0].content; }
                 },
+
+                subscribe() {
+                    mog_sb.channel('global')
+                        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+                            this.messages.push(p.new);
+                            this.$nextTick(() => this.scrollToBottom());
+                        })
+                        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `recipient=eq.${this.username}` }, p => {
+                            this.hasDM = true; this.latestDM = p.new.content;
+                        })
+                        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, p => {
+                            this.newsItems.unshift(p.new);
+                        })
+                        .subscribe();
+                },
+
                 async send() {
                     if(!this.msgInput.trim()) return;
-                    await mog_sb.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
-                    this.msgInput = '';
+                    const { error } = await mog_sb.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
+                    if(!error) {
+                        this.msgInput = '';
+                        this.$nextTick(() => this.scrollToBottom(true));
+                    }
                 },
+
                 async vote(id) { await mog_sb.rpc('vote_track', { track_id: id }); },
+
                 async detectLocation() {
-                    const res = await fetch('https://ipapi.co/json/');
-                    const data = await res.json();
-                    this.province = data.region ? data.region.toUpperCase() : 'MP';
+                    try {
+                        const res = await fetch('https://ipapi.co/json/');
+                        const data = await res.json();
+                        this.province = data.region ? data.region.toUpperCase() : 'MPUMALANGA';
+                    } catch (e) { this.province = 'SOUTH AFRICA'; }
                     this.updatePresence();
                 },
+
                 async updatePresence() {
                     await mog_sb.from('presence').upsert({ username: this.username, last_seen: new Date().toISOString(), province: this.province });
                 },
+
                 initializeUser() {
                     if(!this.handleInput.trim()) return;
                     localStorage.setItem('mog_handle', this.handleInput.toUpperCase());
                     location.reload();
                 },
+
                 logout() { localStorage.clear(); location.reload(); }
             }
         }
     </script>
 </body>
-    </html>
-    
+</html>
