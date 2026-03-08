@@ -1,56 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>SIGNAL_LOST | MOG INTERCEPT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-        :root { --red: #ff3b3b; --noir: #050505; }
-        body { background: var(--noir); color: var(--red); font-family: 'JetBrains Mono', monospace; overflow: hidden; }
-        .glitch { animation: glitch 1s linear infinite; }
-        @keyframes glitch {
-            2%, 64% { transform: translate(2px, 0) skew(0deg); }
-            4%, 60% { transform: translate(-2px, 0) skew(0deg); }
-            62% { transform: translate(0, 0) skew(5deg); }
-        }
-        .scanline { width: 100%; height: 100px; background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 0, 0, 0.05) 50%, rgba(0,0,0,0) 100%); position: fixed; bottom: 100%; animation: scanline 4s linear infinite; pointer-events: none; }
-        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -100px; } }
-    </style>
-</head>
-<body class="h-screen flex flex-col items-center justify-center p-10 text-center">
-    <div class="scanline"></div>
-    
-    <div class="space-y-6 animate-pulse">
-        <i data-lucide="shield-off" size="64" class="mx-auto mb-4"></i>
-        <h1 class="text-2xl font-black uppercase tracking-[0.5em] glitch">Signal_Terminated</h1>
-        <div class="space-y-2">
-            <p class="text-[10px] text-red-500/60 uppercase">Protocol: 404_UNAUTHORIZED_ENTRY</p>
-            <p class="text-[10px] text-red-500/60 uppercase">Origin: DIRECTORATE_SECURITY_FIREWALL</p>
-        </div>
-        
-        <div class="py-10">
-            <div class="inline-block border border-red-500/30 p-6 rounded-3xl bg-red-500/5">
-                <p class="text-[12px] text-white font-bold mb-2">OPERATIVE_NOTICE</p>
-                <p class="text-[9px] max-w-[250px] leading-relaxed">
-                    Your signal has been purged from the Ministry Grid. 
-                    Re-entry attempts are logged and flagged for administrative review.
-                </p>
-            </div>
-        </div>
-
-        <button onclick="window.location.href='index.html'" class="px-8 py-3 border border-red-500 text-red-500 rounded-full text-[10px] font-black uppercase hover:bg-red-500 hover:text-black transition-all">
-            Return to Uplink
-        </button>
+<body class="h-screen flex flex-col items-center justify-center p-10 bg-black text-red-600">
+    <div class="glass p-10 rounded-[3rem] border-red-600/40 text-center space-y-6 max-w-xs">
+        <i data-lucide="shield-off" class="mx-auto animate-pulse" size="48"></i>
+        <h1 class="text-4xl font-black italic">404</h1>
+        <p class="text-[9px] font-black uppercase tracking-widest text-white">Signal Terminated</p>
+        <button onclick="window.location.href='index.html'" class="w-full py-3 bg-white text-black font-black text-[10px] rounded-full">RE-SYNC</button>
     </div>
-
-    <script>
-        lucide.createIcons();
-        // Clear everything just in case
-        localStorage.clear();
-        sessionStorage.clear();
-    </script>
 </body>
-</html>
