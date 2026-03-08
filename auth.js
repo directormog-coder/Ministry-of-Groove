@@ -1,4 +1,4 @@
-// auth.js - Updated with Rank Engine
+// auth.js - Master Configuration & Security
 const MOG_CONFIG = {
     URL: 'https://quzwygjbqpkuqjhrmsjp.supabase.co',
     KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU'
@@ -16,9 +16,11 @@ const getRankData = (count, handle) => {
 
 async function globalSecurityCheck() {
     const handle = localStorage.getItem('mog_handle');
+    const path = window.location.pathname;
     if (handle && handle !== 'DIRECTORATE') {
         const { data } = await mog_sb.from('blacklisted_operatives').select('username').eq('username', handle).single();
         if (data) { localStorage.clear(); window.location.href = '404.html'; }
     }
+    if (!handle && !path.includes('index.html')) window.location.href = 'index.html';
 }
 globalSecurityCheck();
