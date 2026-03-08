@@ -1,13 +1,25 @@
 {
-  "name": "ministry-of-groove-ncc",
-  "version": "2.0.0",
-  "description": "Ministry of Groove - NCC Master Production Build",
+  "name": "ministry-of-groove-grid",
+  "version": "2.0.26",
+  "description": "Official Directorate Command & Operative Grid - eMalahleni Frequency",
   "main": "index.html",
   "scripts": {
-    "dev": "npx tailwindcss -i ./input.css -o ./dist/output.css --watch",
-    "build": "npx tailwindcss -i ./input.css -o ./dist/output.css --minify"
+    "start": "serve .",
+    "deploy": "vercel --prod"
   },
+  "keywords": [
+    "MOG",
+    "Ministry of Groove",
+    "NCC",
+    "Grid"
+  ],
+  "author": "Directorate",
+  "license": "MIT",
   "devDependencies": {
-    "tailwindcss": "^3.4.0"
+    "vercel": "^32.0.0",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
