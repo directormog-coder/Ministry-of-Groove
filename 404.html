@@ -4,49 +4,98 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>SIGNAL LOST | 404 ERROR</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
-    </style>
-    <link rel="stylesheet" href="style.css">
-    <style>
-        :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; }
-        .glass { background: rgba(20, 20, 20, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); backdrop-filter: blur(15px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; --red: #ef4444; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow: hidden; margin: 0; }
+        .glass { background: rgba(10, 10, 10, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(239, 68, 68, 0.2); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
-        .glitch { animation: glitch 1s linear infinite; }
-        @keyframes glitch {
-            2%, 64% { transform: translate(2px,0) skew(0deg); }
-            4%, 60% { transform: translate(-2px,0) skew(0deg); }
-            62% { transform: translate(0,0) skew(5deg); }
+        
+        /* Cyberpunk Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 9999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
         }
+
+        .scanline {
+            width: 100%; height: 100px; z-index: 10000;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(239, 68, 68, 0.1) 50%, rgba(0,0,0,0) 100%);
+            position: fixed; bottom: 100%; animation: scanline 4s linear infinite; pointer-events: none;
+        }
+        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -100px; } }
+
+        /* Glitch Effect */
+        .glitch { position: relative; color: white; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch::before { left: 2px; text-shadow: -2px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+        .glitch::after { left: -2px; text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 1s infinite linear alternate-reverse; }
+        
+        @keyframes glitch-anim { 0% { clip: rect(31px, 9999px, 94px, 0); } 100% { clip: rect(70px, 9999px, 71px, 0); } }
+        @keyframes glitch-anim2 { 0% { clip: rect(65px, 9999px, 100px, 0); } 100% { clip: rect(10px, 9999px, 30px, 0); } }
     </style>
 </head>
 <body class="h-screen w-full flex flex-col items-center justify-center p-10 text-center">
+    <div class="scanline"></div>
 
-    <div class="glass p-10 rounded-[3rem] border-red-900/40 relative overflow-hidden max-w-xs w-full">
-        <i data-lucide="unplug" class="mx-auto mb-6 text-red-600 animate-pulse" size="48"></i>
-        
-        <h1 class="text-4xl font-black text-white italic mb-2 glitch">404</h1>
-        <p class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 mb-6">Signal Terminated</p>
-        
-        <div class="space-y-4 text-[9px] terminal-font uppercase text-gold/40 mb-8 leading-relaxed">
-            <p>[ERROR]: Requested frequency not found.</p>
-            <p>[STATUS]: Operative out of bounds.</p>
+    <main class="relative z-50 space-y-8 animate-in zoom-in duration-500">
+        <div class="glass p-10 rounded-[3.5rem] border-red-600/40 relative max-w-sm w-full shadow-[0_0_50px_rgba(239,68,68,0.1)]">
+            
+            <div class="relative mb-6">
+                <i data-lucide="shield-off" class="mx-auto text-red-600 animate-pulse" size="56"></i>
+                <div class="absolute inset-0 bg-red-600/20 blur-xl rounded-full"></div>
+            </div>
+
+            <h1 class="text-5xl font-black italic mb-2 glitch uppercase tracking-tighter" data-text="404">404</h1>
+            <h2 class="text-[12px] font-black uppercase text-white tracking-[0.4em] mb-4">Signal Lost</h2>
+            
+            <div class="space-y-3 p-4 bg-black/50 rounded-2xl border border-white/5 text-left terminal-font mb-8">
+                <p class="text-[8px] text-red-500/80 uppercase">[ERR]: UNAUTHORIZED_UPLINK</p>
+                <p class="text-[8px] text-zinc-500 uppercase">[STATUS]: Local storage purged.</p>
+                <p class="text-[8px] text-zinc-500 uppercase">[ACTION]: Redirecting to entry grid...</p>
+                <div class="h-1 bg-white/5 rounded-full overflow-hidden mt-2">
+                    <div class="h-full bg-red-600 w-full animate-[progress_5s_linear]"></div>
+                </div>
+            </div>
+
+            <button onclick="window.location.href='index.html'" 
+                    class="w-full py-4 bg-white text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">
+                Attempt Re-Sync
+            </button>
         </div>
 
-        <button onclick="window.location.href='index.html'" class="w-full py-4 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">
-            Return to Grid
-        </button>
-    </div>
-
-    <footer class="fixed bottom-10 opacity-20">
-        <p class="terminal-font text-[7px] font-black uppercase tracking-widest">Ministry of Groove | Unauthorized Zone</p>
-    </footer>
+        <p class="text-[7px] font-black uppercase tracking-[0.5em] text-red-900/40">Ministry Exclusion Protocol 2026</p>
+    </main>
 
     <script>
+        // Initialize Icons
         lucide.createIcons();
+
+        // UPGRADE: Automated Redirection Logic
+        // If they were sent here by the sanction middleware, they stay here.
+        // If it's a standard 404, we redirect after 7 seconds.
+        const handle = localStorage.getItem('mog_handle');
+        if (!handle) {
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 7000);
+        }
     </script>
+    
+    <style>
+        @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
+    </style>
 </body>
 </html>
