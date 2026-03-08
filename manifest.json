@@ -1,15 +1,11 @@
 {
-  "short_name": "Ministry",
-  "name": "Ministry of Groove: NCC",
-  "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
+  "name": "Ministry of Groove",
+  "short_name": "MOG",
   "start_url": "/index.html",
-  "background_color": "#050505",
   "display": "standalone",
-  "theme_color": "#D4AF37"
+  "background_color": "#050505",
+  "theme_color": "#D4AF37",
+  "icons": [
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
 }
