@@ -4,44 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY OF GROOVE | NCC MASTER</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script>
-        const current_handle = localStorage.getItem('mog_handle');
-        if (current_handle) {
-            const MOG_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-            const MOG_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-            
-            // Temporary client for pre-auth check
-            const mog_sb = window.supabase.createClient(MOG_URL, MOG_KEY);
-            
-            mog_sb.from('blacklisted_operatives').select('*').eq('username', current_handle).single()
-              .then(({data}) => {
-                  if(data) {
-                      localStorage.clear();
-                      window.location.href = '404.html';
-                  }
-              }).catch(err => console.log("Security Check Bypass:", err));
-        }
-    </script>
-
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignal.js" async></script>
-    <script>
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        await OneSignal.init({
-          appId: "3ef253d3-a093-42f5-bc88-91dd7576cf34",
-          safari_web_id: "web.onesignal.auto.102e3b2b-5f1a-4c2d-9b1e-64d858376e1a",
-          notifyButton: { enable: true },
-        });
-        if (current_handle) OneSignal.User.addAlias("external_id", current_handle);
-      });
-    </script>
-    
+    <script src="auth.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         :root { --gold: #D4AF37; --noir: #050505; }
@@ -50,212 +17,100 @@
         .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
         .terminal-font { font-family: 'JetBrains Mono', monospace; }
         [x-cloak] { display: none !important; }
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        .scanline { width: 100%; height: 100px; z-index: 10000; background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(212, 175, 55, 0.05) 50%, rgba(0,0,0,0) 100%); position: fixed; bottom: 100%; animation: scanline 10s linear infinite; pointer-events: none; }
+        @keyframes scanline { 0% { bottom: 100%; } 100% { bottom: -100px; } }
     </style>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-gold">
     <div class="scanline"></div>
 
-    <template x-if="isLockdown">
-        <div class="fixed top-0 left-0 w-full bg-red-600 text-white py-2 z-[150] text-center font-black text-[10px] tracking-[0.3em] animate-pulse">
-            SYSTEM_LOCKDOWN: RESTRICTED ACCESS MODE ACTIVE
-        </div>
-    </template>
-
-    <div x-data="warningSystem()" x-init="init()" x-show="showWarning" x-transition 
-         class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
-        <div class="glass border-yellow-500 p-8 rounded-[3rem] max-w-xs w-full text-center border-2 animate-pulse">
-            <i data-lucide="alert-triangle" class="mx-auto mb-4 text-yellow-500" size="48"></i>
-            <h2 class="text-xl font-black uppercase text-white italic">Signal Warning</h2>
-            <p class="text-[11px] text-zinc-300 terminal-font mb-8" x-text="warningMsg"></p>
-            <button @click="acknowledge()" class="w-full py-4 bg-yellow-500 text-black font-black text-[10px] uppercase rounded-full shadow-lg">Acknowledge</button>
-        </div>
-    </div>
-
-    <div x-data="inbox()" x-init="init()" x-show="hasNewMessage" x-transition 
-         class="fixed bottom-28 left-6 right-6 glass p-4 rounded-2xl border-gold animate-bounce z-50">
-        <div class="flex items-center gap-3">
-            <img src="logo.png" class="h-6 w-6 gold-glow rounded-full">
-            <div class="flex-grow">
-                <p class="text-[8px] font-black uppercase text-white">Direct Instruction</p>
-                <p class="text-[10px] text-gold/80 terminal-font" x-text="latestMessage"></p>
-            </div>
-            <button @click="dismiss()" class="text-[8px] uppercase opacity-40">Dismiss</button>
-        </div>
-    </div>
-
     <template x-if="view === 'auth'">
-        <div class="h-screen w-full flex flex-col items-center justify-center p-10 text-center animate-in fade-in duration-1000">
-            <img src="logo.png" class="h-32 w-32 mb-8 gold-glow animate-pulse cursor-pointer rounded-full object-cover" @click="showBypass = !showBypass">
+        <div class="h-screen flex flex-col items-center justify-center p-10 text-center">
+            <img src="logo.png" class="h-32 w-32 mb-8 gold-glow rounded-full cursor-pointer" @click="showBypass = !showBypass">
             <div x-show="!showBypass" class="w-full max-w-xs space-y-6">
                 <h1 class="text-white font-black uppercase tracking-[0.4em] text-xs italic">Ministry of Groove</h1>
-                <input x-model="handleInput" type="text" placeholder="OPERATIVE HANDLE..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center terminal-font outline-none">
-                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full shadow-lg active:scale-95 transition-all">Initialize Access</button>
-            </div>
-            <div x-show="showBypass" class="glass p-6 rounded-[2.5rem] space-y-4 w-full max-w-xs border-gold/40">
-                <h2 class="text-white text-[9px] font-black uppercase tracking-widest italic">Directorate Override</h2>
-                <input x-model="dirEmail" type="email" placeholder="DIRECTOR_ID" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
-                <input x-model="dirPass" type="password" placeholder="PROTOCOL_KEY" class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white text-center terminal-font outline-none">
-                <button @click="executeBypass()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Execute Bypass</button>
+                <input x-model="handleInput" placeholder="OPERATIVE HANDLE..." class="w-full bg-white/5 border border-gold/20 p-5 rounded-2xl text-[10px] text-white text-center outline-none">
+                <button @click="initializeUser()" class="w-full py-5 bg-gold text-black font-black text-[10px] uppercase rounded-full">Initialize Access</button>
             </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col relative animate-in fade-in duration-500 pb-[100px]" :class="isLockdown ? 'pt-10' : ''">
-            <header class="p-6 border-b border-gold/10 glass flex justify-between items-center sticky top-0 z-50">
+        <div class="min-h-screen flex flex-col pb-24">
+            <header class="p-6 glass flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <img src="logo.png" class="h-10 w-10 gold-glow rounded-full">
-                    <p class="text-[10px] font-black uppercase text-white tracking-widest italic leading-tight">Ministry of Groove</p>
+                    <p class="text-[10px] font-black uppercase text-white tracking-widest italic">MOG_GRID</p>
                 </div>
                 <button @click="logout()" class="p-2 border border-red-900/30 text-red-500 rounded-lg"><i data-lucide="power" size="16"></i></button>
             </header>
 
             <main class="p-6 space-y-6 max-w-5xl mx-auto w-full">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'border-blue-400 bg-blue-400/10' : 'border-gold/10'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border transition-all">
+                    <div @click="subView = 'chat'" class="glass p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10 hover:border-blue-400 transition-all">
                         <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Grid</span>
+                        <span class="text-[9px] font-black uppercase text-white">Grid</span>
                     </div>
-                    <div @click="window.location.href='dossier.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10">
+                    <div @click="window.location.href='dossier.html'" class="glass p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10">
                         <i data-lucide="user-cog" class="mx-auto mb-2 text-green-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Dossier</span>
-                    </div>
-                    <div @click="subView = 'gallery'" :class="subView === 'gallery' ? 'border-purple-400 bg-purple-400/10' : 'border-gold/10'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border transition-all">
-                        <i data-lucide="camera" class="mx-auto mb-2 text-purple-400"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Gallery</span>
-                    </div>
-                    <div @click="window.location.href='archives.html'" class="glass p-6 sm:p-8 rounded-[2rem] text-center cursor-pointer border border-gold/10">
-                        <i data-lucide="database" class="mx-auto mb-2 text-gold"></i>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-white">Vault</span>
+                        <span class="text-[9px] font-black uppercase text-white">Dossier</span>
                     </div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden">
+                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden">
                     <div id="chat-stream" class="flex-grow overflow-y-auto p-6 space-y-4">
                         <template x-for="msg in messages" :key="msg.id">
                             <div :class="msg.username === 'DIRECTORATE' ? 'ml-auto items-end' : 'mr-auto items-start'" class="flex flex-col gap-1 max-w-[85%]">
-                                <span class="text-[7px] font-black text-zinc-500 px-2 uppercase" x-text="msg.username"></span>
+                                <span class="text-[7px] font-black text-zinc-500 px-2" x-text="msg.username"></span>
                                 <div :class="msg.username === 'DIRECTORATE' ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-[12px] text-white" x-text="msg.content"></div>
                             </div>
                         </template>
                     </div>
-                    <form @submit.prevent="send()" class="p-4 bg-black/40 border-t border-gold/10 flex gap-3">
+                    <form @submit.prevent="send()" class="p-4 bg-black/40 flex gap-3">
                         <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[12px] text-white outline-none terminal-font">
-                        <button type="submit" class="text-gold active:scale-90 transition-all"><i data-lucide="send-horizontal"></i></button>
+                        <button type="submit" class="text-gold"><i data-lucide="send-horizontal"></i></button>
                     </form>
-                </div>
-
-                <div x-show="subView === 'gallery'" class="glass rounded-[3rem] h-[45vh] flex flex-col overflow-hidden p-6">
-                    <div class="flex justify-between items-center mb-4 px-2">
-                        <h3 class="text-[10px] font-black uppercase text-white italic">Visual Archives</h3>
-                        <label class="cursor-pointer bg-gold text-black px-4 py-2 rounded-full text-[8px] font-black uppercase active:scale-95 transition-all">
-                            <i data-lucide="upload" size="12" class="inline mr-1"></i> Transmit Asset
-                            <input type="file" @change="uploadImage" class="hidden" accept="image/*">
-                        </label>
-                    </div>
-                    <div class="gallery-grid overflow-y-auto flex-grow pr-2">
-                        <template x-for="img in galleryItems" :key="img.id">
-                            <div class="relative aspect-square rounded-2xl overflow-hidden glass border border-white/10 group">
-                                <img :src="img.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
-                                <div class="absolute bottom-0 w-full p-2 bg-black/70 opacity-0 group-hover:opacity-100 transition-all">
-                                    <p class="text-[6px] text-white truncate uppercase" x-text="img.owner"></p>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
                 </div>
             </main>
         </div>
     </template>
-    
+
     <script>
-        const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
-
-        function warningSystem() {
-            return {
-                showWarning: false, warningMsg: '',
-                init() {
-                    const handle = localStorage.getItem('mog_handle');
-                    if(!handle) return;
-                    supabase.channel('warning_sync').on('postgres_changes', { 
-                        event: 'INSERT', schema: 'public', table: 'warnings', filter: `recipient=eq.${handle}` 
-                    }, p => {
-                        this.warningMsg = p.new.message.toUpperCase(); this.showWarning = true;
-                    }).subscribe();
-                },
-                acknowledge() { this.showWarning = false; }
-            }
-        }
-
-        function inbox() {
-            return {
-                hasNewMessage: false, latestMessage: '',
-                async init() {
-                    const handle = localStorage.getItem('mog_handle');
-                    if(!handle) return;
-                    supabase.channel('dm_sync').on('postgres_changes', { 
-                        event: 'INSERT', schema: 'public', table: 'direct_messages', filter: `recipient=eq.${handle}` 
-                    }, p => {
-                        this.latestMessage = p.new.content; this.hasNewMessage = true;
-                    }).subscribe();
-                },
-                dismiss() { this.hasNewMessage = false; }
-            }
-        }
-
         function ministry() {
             return {
-                view: 'auth', subView: 'chat', isLockdown: false, username: '', messages: [], msgInput: '', handleInput: '', showBypass: false, dirEmail: '', dirPass: '', galleryItems: [],
+                view: 'auth', subView: 'chat', username: '', messages: [], msgInput: '', handleInput: '',
                 async init() {
                     const saved = localStorage.getItem('mog_handle');
-                    if(saved) { this.username = saved; this.view = 'grid'; }
-                    this.fetchMessages();
-                    this.fetchGallery();
-                    this.subscribeRealtime();
-                    setInterval(() => this.updatePresence(), 30000);
-                    setTimeout(() => lucide.createIcons(), 500);
+                    if(saved) { this.username = saved; this.view = 'grid'; this.fetchMessages(); this.subscribe(); }
+                    lucide.createIcons();
                 },
-                subscribeRealtime() {
-                    supabase.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
+                subscribe() {
+                    mog_sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
                         this.messages.push(p.new);
-                        this.$nextTick(() => { const el = document.getElementById('chat-stream'); if(el) el.scrollTop = el.scrollHeight; });
-                    }).subscribe();
-                    supabase.channel('status').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'system_status' }, p => {
-                        if(p.new.id === 'lockdown') this.isLockdown = p.new.is_active;
+                        this.$nextTick(() => this.scrollToBottom());
                     }).subscribe();
                 },
-                async fetchMessages() { const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50); this.messages = data || []; },
-                async fetchGallery() { const { data } = await supabase.from('gallery').select('*').order('created_at', { ascending: false }); this.galleryItems = data || []; },
-                async updatePresence() { if(this.username) await supabase.from('presence').upsert({ username: this.username, last_seen: new Date().toISOString() }); },
-                async send() { if(!this.msgInput.trim()) return; await supabase.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]); this.msgInput = ''; },
-                async uploadImage(e) {
-                    const file = e.target.files[0]; if(!file) return;
-                    const reader = new FileReader(); reader.readAsDataURL(file);
-                    reader.onload = (ev) => {
-                        const img = new Image(); img.src = ev.target.result;
-                        img.onload = async () => {
-                            const canvas = document.createElement('canvas'); const MAX_WIDTH = 1024;
-                            const scale = MAX_WIDTH / img.width; canvas.width = MAX_WIDTH; canvas.height = img.height * scale;
-                            canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                            canvas.toBlob(async (blob) => {
-                                const fileName = `${Date.now()}-${this.username}`;
-                                const { data } = await supabase.storage.from('gallery').upload(fileName, blob);
-                                if(data) {
-                                    const { data: { publicUrl } } = supabase.storage.from('gallery').getPublicUrl(fileName);
-                                    await supabase.from('gallery').insert([{ url: publicUrl, owner: this.username }]);
-                                    this.fetchGallery();
-                                }
-                            }, 'image/jpeg', 0.8);
-                        };
-                    };
+                async fetchMessages() { 
+                    const { data } = await mog_sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50); 
+                    this.messages = data || [];
+                    this.$nextTick(() => this.scrollToBottom());
                 },
-                initializeUser() { if(!this.handleInput.trim()) return; this.username = this.handleInput.toUpperCase(); localStorage.setItem('mog_handle', this.username); this.view = 'grid'; this.updatePresence(); },
-                executeBypass() { if(this.dirEmail === 'director.mog@gmail.com' && this.dirPass === '@MOGProtocol2026') { this.username = 'DIRECTORATE'; localStorage.setItem('mog_handle', 'DIRECTORATE'); this.view = 'grid'; } },
-                logout() { localStorage.removeItem('mog_handle'); location.reload(); }
+                async send() {
+                    if(!this.msgInput.trim()) return;
+                    await mog_sb.from('messages').insert([{ content: this.msgInput.toUpperCase(), username: this.username }]);
+                    this.msgInput = '';
+                },
+                scrollToBottom() {
+                    const el = document.getElementById('chat-stream');
+                    if(el) el.scrollTop = el.scrollHeight;
+                },
+                initializeUser() {
+                    if(!this.handleInput.trim()) return;
+                    this.username = this.handleInput.toUpperCase();
+                    localStorage.setItem('mog_handle', this.username);
+                    location.reload();
+                },
+                logout() { localStorage.clear(); location.reload(); }
             }
         }
     </script>
