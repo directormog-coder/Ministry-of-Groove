@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add your custom Ministry of Groove styles here */
+.glass { 
+    @apply bg-[rgba(10,10,10,0.85)] backdrop-blur-[20px] border border-[rgba(212,175,55,0.15)];
+}
