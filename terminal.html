@@ -15,11 +15,12 @@
     </script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="terminal()" x-init="init()" x-cloak class="bg-black text-gold">
+<body x-data="terminal()" x-init="init()" class="bg-black text-gold">
     <div class="scanline"></div>
 
     <template x-if="authenticated">
         <main class="min-h-screen p-6 space-y-6 max-w-2xl mx-auto pb-24">
+            
             <header class="flex justify-between items-center glass p-4 rounded-2xl border-gold/20">
                 <div class="flex items-center gap-3">
                     <img src="1000219947.png" class="h-8 w-8 gold-glow rounded-full">
@@ -29,48 +30,32 @@
             </header>
 
             <section class="grid grid-cols-3 gap-3">
-                <div class="glass p-4 rounded-2xl border-white/5 text-center">
-                    <p class="text-[6px] uppercase text-gold/40 mb-1">Grid Traffic</p>
-                    <p class="text-sm font-black text-white terminal-font" x-text="stats.messages + ' SIGS'"></p>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-[6px] uppercase text-gold/40">Traffic</p>
+                    <p class="text-sm font-black text-white" x-text="stats.messages + ' SIGS'"></p>
                 </div>
-                <div class="glass p-4 rounded-2xl border-white/5 text-center">
-                    <p class="text-[6px] uppercase text-gold/40 mb-1">Asset Load</p>
-                    <p class="text-sm font-black text-white terminal-font" x-text="stats.gallery + ' OBJ'"></p>
-                </div>
-                <div class="glass p-4 rounded-2xl border-white/5 text-center">
-                    <p class="text-[6px] uppercase text-gold/40 mb-1">Latency</p>
-                    <p class="text-sm font-black text-green-400 terminal-font" x-text="latency + 'ms'"></p>
-                </div>
-            </section>
-
-            <section class="glass p-6 rounded-[2.5rem]">
-                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest flex justify-between">Active Grid Operatives <span x-text="operatives.length + ' ONLINE'"></span></h2>
-                <div class="flex flex-wrap gap-2">
-                    <template x-for="op in operatives" :key="op.username">
-                        <button @click="dmRecipient = op.username" class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-zinc-400 hover:border-gold hover:text-gold transition-all">
-                            <span class="h-1 w-1 bg-green-500 rounded-full inline-block mr-1"></span>
-                            <span x-text="op.username"></span>
-                        </button>
-                    </template>
+                <div class="glass p-4 rounded-2xl text-center">
+                    <p class="text-[6px] uppercase text-gold/40">Latency</p>
+                    <p class="text-sm font-black text-green-400" x-text="latency + 'ms'"></p>
                 </div>
             </section>
 
             <section class="glass p-8 rounded-[3rem] border-gold/20">
                 <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Direct Operative Uplink</h3>
                 <div class="space-y-3">
-                    <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none uppercase">
-                    <textarea x-model="dmContent" placeholder="INSTRUCTION_DATA..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white terminal-font outline-none"></textarea>
-                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full hover:bg-gold transition-all active:scale-95">Transmit Private Signal</button>
+                    <input x-model="dmRecipient" placeholder="RECIPIENT_ID..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none uppercase">
+                    <textarea x-model="dmContent" placeholder="INSTRUCTION..." class="w-full bg-black/40 border border-gold/20 p-4 rounded-xl text-[9px] text-white outline-none"></textarea>
+                    <button @click="sendDM()" class="w-full py-4 bg-white text-black font-black text-[9px] uppercase rounded-full">Transmit Private Signal</button>
                 </div>
             </section>
 
             <section class="glass p-6 rounded-[2.5rem]">
-                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic tracking-widest">Instruction History</h2>
-                <div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 terminal-font">
+                <h2 class="text-[9px] font-black uppercase text-white mb-4 italic">Instruction History</h2>
+                <div class="space-y-2 max-h-[150px] overflow-y-auto pr-2 terminal-font text-[9px]">
                     <template x-for="log in logItems" :key="log.id">
-                        <div class="p-3 bg-white/5 border-l border-gold/50 rounded-r-lg flex justify-between items-center">
-                            <div><p class="text-[7px] text-gold/60 uppercase" x-text="'TO: ' + log.recipient"></p><p class="text-[9px] text-white" x-text="log.content"></p></div>
-                            <span class="text-[6px] text-zinc-600" x-text="new Date(log.created_at).toLocaleTimeString()"></span>
+                        <div class="p-3 bg-white/5 border-l border-gold/50 flex justify-between">
+                            <span x-text="'TO: ' + log.recipient"></span>
+                            <span x-text="log.content"></span>
                         </div>
                     </template>
                 </div>
@@ -81,7 +66,7 @@
     <script>
         function terminal() {
             return {
-                authenticated: false, operatives: [], dmRecipient: '', dmContent: '', logItems: [], latency: 0, stats: { messages: 0, gallery: 0 },
+                authenticated: false, stats: { messages: 0 }, latency: 0, dmRecipient: '', dmContent: '', logItems: [],
                 async init() {
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
@@ -89,31 +74,22 @@
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
                         this.authenticated = true;
                         this.fetchData();
-                        this.runDiagnostics();
                         setInterval(() => this.fetchData(), 15000);
                     }
                     lucide.createIcons();
                 },
                 async fetchData() {
-                    const { data: ops } = await this.supabase.from('presence').select('username').gt('last_seen', new Date(Date.now() - 300000).toISOString());
-                    this.operatives = ops || [];
+                    const start = Date.now();
                     const { data: logs } = await this.supabase.from('direct_messages').select('*').order('created_at', { ascending: false }).limit(10);
                     this.logItems = logs || [];
-                },
-                async runDiagnostics() {
-                    const start = Date.now();
-                    const { data } = await this.supabase.rpc('get_grid_stats');
+                    const { data: stats } = await this.supabase.rpc('get_grid_stats');
                     this.latency = Date.now() - start;
-                    if(data) {
-                        this.stats.messages = data.find(r => r.table_name === 'messages')?.row_count || 0;
-                        this.stats.gallery = data.find(r => r.table_name === 'gallery')?.row_count || 0;
-                    }
+                    if(stats) this.stats.messages = stats.find(r => r.table_name === 'messages')?.row_count || 0;
                 },
                 async sendDM() {
                     if(!this.dmRecipient || !this.dmContent) return;
                     await this.supabase.from('direct_messages').insert([{ recipient: this.dmRecipient.toUpperCase(), content: this.dmContent.toUpperCase() }]);
-                    this.dmRecipient = ''; this.dmContent = '';
-                    this.fetchData();
+                    this.dmRecipient = ''; this.dmContent = ''; this.fetchData();
                 },
                 logout() { sessionStorage.removeItem('mog_terminal_auth'); location.reload(); }
             }
