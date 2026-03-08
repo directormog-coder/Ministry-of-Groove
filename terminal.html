@@ -11,19 +11,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
-        const handle = localStorage.getItem('mog_handle');
+        const current_handle = localStorage.getItem('mog_handle');
         const isAuth = sessionStorage.getItem('mog_terminal_auth');
-        if (handle) {
-            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
-            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
-            const sb = window.supabase.createClient(SB_URL, SB_KEY);
-            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
+        
+        if (current_handle) {
+            const MOG_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const MOG_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            
+            const mog_sb = window.supabase.createClient(MOG_URL, MOG_KEY);
+            
+            mog_sb.from('blacklisted_operatives').select('*').eq('username', current_handle).single()
               .then(({data}) => { 
-                  if(data) { localStorage.clear(); window.location.href = '404.html'; } 
-              });
+                  if(data) { 
+                      localStorage.clear(); 
+                      window.location.href = '404.html'; 
+                  } 
+              }).catch(err => console.log("Security Check Bypass:", err));
         }
-        // Redirect if not logged in at all
-        if (!handle && !isAuth) window.location.href = 'index.html';
+        
+        // Root Access Protection
+        if (!current_handle && !isAuth) window.location.href = 'index.html';
     </script>
 
     <style>
@@ -73,7 +80,7 @@
                     <p class="text-[11px] font-black text-green-400 terminal-font" x-text="latency + 'ms'"></p>
                 </div>
                 <div @click="confirmPurge()" class="glass p-4 rounded-2xl text-center border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-colors group">
-                    <p class="text-[6px] uppercase text-red-500 mb-1 font-black group-hover:animate-pulse">Wipe Grid</p>
+                    <p class="text-[6px] uppercase text-red-500 mb-1 font-black">Wipe Grid</p>
                     <p class="text-[11px] font-black text-white terminal-font" x-text="stats.messages + ' SIGS'"></p>
                 </div>
                 <div class="glass p-4 rounded-2xl text-center border-white/5">
@@ -138,31 +145,6 @@
                 <textarea x-model="eventDetails" placeholder="EVENT_DETAILS..." class="w-full mt-3 bg-black/40 border border-blue-500/20 p-4 rounded-xl text-[9px] text-white"></textarea>
             </section>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <section class="glass p-6 rounded-[2.5rem]">
-                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Top 10 Chart Editor</h3>
-                    <div class="space-y-2">
-                        <div class="flex gap-2">
-                            <input x-model="chartPos" type="number" placeholder="#" class="w-16 bg-black/40 border border-white/10 p-3 rounded-xl text-white text-[9px]">
-                            <input x-model="chartTrack" placeholder="TRACK_NAME" class="flex-grow bg-black/40 border border-white/10 p-3 rounded-xl text-white text-[9px]">
-                        </div>
-                        <button @click="updateChart()" class="w-full py-3 bg-gold/10 text-gold border border-gold/30 rounded-xl text-[8px] font-black uppercase">Sync Chart</button>
-                    </div>
-                </section>
-                
-                <section class="glass p-6 rounded-[2.5rem]">
-                    <h3 class="text-[9px] font-black uppercase text-white mb-4 italic">Instruction History</h3>
-                    <div class="space-y-2 max-h-[120px] overflow-y-auto pr-2 terminal-font text-[8px]">
-                        <template x-for="log in logItems" :key="log.id">
-                            <div class="p-2 bg-white/5 border-l border-gold/50 flex justify-between rounded-r-lg">
-                                <span class="text-gold font-bold uppercase" x-text="log.recipient"></span>
-                                <span class="text-white/60 truncate" x-text="log.content"></span>
-                            </div>
-                        </template>
-                    </div>
-                </section>
-            </div>
-
         </main>
     </template>
 
@@ -179,7 +161,6 @@
                 dmRecipient: '', dmContent: '', logItems: [],
                 warnRecipient: '', warnMsg: '',
                 eventTitle: '', eventDetails: '',
-                chartPos: '', chartTrack: '',
 
                 async init() {
                     if(sessionStorage.getItem('mog_terminal_auth') === 'true') {
@@ -230,9 +211,6 @@
                     if(!this.eventTitle) return;
                     await supabase.from('broadcasts').insert([{ title: this.eventTitle.toUpperCase(), details: this.eventDetails.toUpperCase() }]);
                     this.eventTitle = ''; this.eventDetails = '';
-                },
-                async updateChart() {
-                    await supabase.from('top_ten').upsert({ id: this.chartPos, track_name: this.chartTrack.toUpperCase() });
                 },
                 async sanctionUser(target) {
                     if(!confirm(`TERMINATE SIGNAL FOR ${target}?`)) return;
