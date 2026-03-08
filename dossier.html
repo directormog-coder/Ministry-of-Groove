@@ -11,60 +11,77 @@
     <script src="auth.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
-        body { background: #050505; color: #D4AF37; font-family: 'Inter', sans-serif; }
+        body { background: #050505; color: #D4AF37; font-family: 'Inter', sans-serif; margin: 0; }
         .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
-        .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .gold-glow { filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.3)); }
+        .rank-border { transition: all 0.5s ease; }
     </style>
 </head>
-<body x-data="dossier()" x-init="init()" class="p-6">
-    <header class="mb-10 flex items-center justify-between glass p-4 rounded-2xl">
-        <button onclick="window.location.href='index.html'" class="p-3"><i data-lucide="chevron-left"></i></button>
-        <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
+<body x-data="dossier()" x-init="init()" class="p-6 pb-24">
+    <header class="mb-10 flex items-center justify-between glass p-4 rounded-2xl border-none">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left"></i>
+        </button>
+        <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Dossier_Update</h1>
         <div class="w-10"></div>
     </header>
 
     <main class="max-w-xl mx-auto space-y-6">
-        <div class="glass p-8 rounded-[3.5rem] flex flex-col items-center text-center space-y-4">
-            <div class="h-24 w-24 rounded-full bg-gold/5 flex items-center justify-center border-2 border-gold/30 gold-glow">
-                <img src="logo.png" class="h-full w-full object-cover rounded-full opacity-60">
+        <div class="glass p-10 rounded-[3.5rem] border-gold/20 flex flex-col items-center text-center space-y-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-gold/40 to-transparent"></div>
+            
+            <div class="relative group">
+                <div class="h-32 w-32 rounded-full flex items-center justify-center border-4 rank-border gold-glow" 
+                     :style="`border-color: ${rank.color}; box-shadow: 0 0 20px ${rank.color}44`">
+                    <i :data-lucide="rank.icon" :style="`color: ${rank.color}`" size="48"></i>
+                </div>
+                <div class="absolute -bottom-2 bg-black border border-white/10 px-4 py-1 rounded-full text-[8px] font-black uppercase tracking-widest text-white" x-text="'LVL_' + rank.level"></div>
             </div>
+            
             <div>
-                <h2 class="text-2xl font-black uppercase text-white italic" x-text="handle"></h2>
-                <span class="px-3 py-1 bg-gold/10 rounded-full text-[8px] font-black uppercase text-gold border border-gold/20" x-text="rank"></span>
+                <h2 class="text-3xl font-black uppercase text-white italic tracking-tighter" x-text="handle"></h2>
+                <p class="text-[9px] font-black uppercase tracking-[0.3em] mt-2" :style="`color: ${rank.color}`" x-text="rank.name"></p>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-            <div class="glass p-6 rounded-[2.5rem] text-center">
-                <p class="text-[7px] uppercase text-gold/40 mb-1 font-black">Signals</p>
-                <p class="text-xl font-black text-white" x-text="signalCount"></p>
+            <div class="glass p-8 rounded-[2.5rem] text-center border-white/5">
+                <p class="text-[7px] uppercase text-gold/40 mb-2 font-black italic">Network Signals</p>
+                <p class="text-2xl font-black text-white terminal-font" x-text="signalCount"></p>
             </div>
-            <div class="glass p-6 rounded-[2.5rem] text-center">
-                <p class="text-[7px] uppercase text-gold/40 mb-1 font-black">Assets</p>
-                <p class="text-xl font-black text-white" x-text="assetCount"></p>
+            <div class="glass p-8 rounded-[2.5rem] text-center border-white/5">
+                <p class="text-[7px] uppercase text-gold/40 mb-2 font-black italic">Active Status</p>
+                <div class="flex items-center justify-center gap-2">
+                    <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-[10px] font-black text-white uppercase">Linked</span>
+                </div>
             </div>
         </div>
 
-        <div class="space-y-3">
-            <button @click="logout()" class="w-full py-5 bg-red-900/10 border border-red-900/30 text-red-500 font-black text-[10px] uppercase rounded-2xl">Terminate Session</button>
-        </div>
+        <button @click="logout()" class="w-full py-5 bg-red-900/10 border border-red-900/30 text-red-500 font-black text-[10px] uppercase rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+            <i data-lucide="power" size="16"></i> Terminate Active Session
+        </button>
     </main>
 
     <script>
         function dossier() {
             return {
-                handle: '...', rank: 'LOADING', signalCount: 0, assetCount: 0,
+                handle: '...', signalCount: 0, 
+                rank: { name: 'INITIATING', color: '#71717a', icon: 'loader', level: 0 },
+                
                 async init() {
                     this.handle = localStorage.getItem('mog_handle') || 'ANONYMOUS';
-                    const { data: stats } = await mog_sb.rpc('get_grid_stats');
-                    // Logic to find counts for current user (this would normally be a query)
-                    const { count: mCount } = await mog_sb.from('messages').select('*', { count: 'exact', head: true }).eq('username', this.handle);
-                    this.signalCount = mCount || 0;
                     
-                    this.rank = this.handle === 'DIRECTORATE' ? 'SUPREME_DIRECTOR' : (this.signalCount > 50 ? 'ELITE_OPERATIVE' : 'GRID_SCOUT');
-                    lucide.createIcons();
+                    const { count } = await mog_sb.from('messages')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('username', this.handle);
+                    
+                    this.signalCount = count || 0;
+                    this.rank = getRankData(this.signalCount, this.handle);
+                    
+                    this.$nextTick(() => lucide.createIcons());
                 },
-                logout() { localStorage.clear(); sessionStorage.clear(); window.location.href = 'index.html'; }
+                logout() { localStorage.clear(); window.location.href = 'index.html'; }
             }
         }
     </script>
