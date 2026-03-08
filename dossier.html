@@ -4,46 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>OPERATIVE DOSSIER | MOG NCC</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        if (!localStorage.getItem('mog_handle')) window.location.href = 'index.html';
+        const handle = localStorage.getItem('mog_handle');
+        if (handle) {
+            const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
+            const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
+            const sb = window.supabase.createClient(SB_URL, SB_KEY);
+            sb.from('blacklisted_operatives').select('*').eq('username', handle).single()
+              .then(({data}) => {
+                  if(data) {
+                      localStorage.clear();
+                      window.location.href = '404.html';
+                  }
+              });
+        } else {
+            window.location.href = 'index.html';
+        }
     </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root { --gold: #D4AF37; --noir: #050505; }
+        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; overflow-x: hidden; margin: 0; }
+        .glass { background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.15); }
+        .gold-glow { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        .terminal-font { font-family: 'JetBrains Mono', monospace; }
+        [x-cloak] { display: none !important; }
+        
+        /* Scanline Effect */
+        body::before {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 9999;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
     <link rel="stylesheet" href="style.css">
 </head>
-<body x-data="dossier()" x-init="init()" class="bg-black text-gold p-6">
+<body x-data="dossier()" x-init="init()" class="bg-black text-gold p-6 pb-24" x-cloak>
     <div class="scanline"></div>
-    <main class="max-w-xl mx-auto space-y-6">
-        <header class="flex justify-between items-center glass p-4 rounded-2xl">
-            <button onclick="window.location.href='index.html'" class="text-white"><i data-lucide="chevron-left"></i></button>
-            <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
-        </header>
 
-        <div class="glass p-8 rounded-[3.5rem] border-gold/20 flex items-center gap-6">
-            <div class="h-20 w-20 rounded-full bg-gold/5 flex items-center justify-center border-2 border-gold/30">
-                <i data-lucide="user" size="32" class="text-gold/50"></i>
+    <header class="mb-10 flex items-center justify-between sticky top-0 z-50 py-2 glass px-4 rounded-2xl border-none">
+        <button onclick="window.location.href='index.html'" class="p-3 glass rounded-2xl active:scale-90 transition-all">
+            <i data-lucide="chevron-left" size="20"></i>
+        </button>
+        <h1 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Operative Dossier</h1>
+        <div class="w-10 h-10"></div> </header>
+
+    <main class="max-w-xl mx-auto space-y-6 animate-in fade-in duration-700">
+        
+        <div class="glass p-8 rounded-[3.5rem] border-gold/20 flex flex-col items-center text-center space-y-4">
+            <div class="relative">
+                <div class="h-24 w-24 rounded-full bg-gold/5 flex items-center justify-center border-2 border-gold/30 gold-glow overflow-hidden">
+                    <img src="logo.png" class="h-full w-full object-cover opacity-50 grayscale">
+                    <i data-lucide="user" size="40" class="absolute text-gold/20"></i>
+                </div>
+                <div class="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-black"></div>
             </div>
+            
             <div>
-                <h2 class="text-xl font-black uppercase text-white italic" x-text="handle"></h2>
-                <p class="text-[8px] font-black uppercase text-gold" x-text="rank"></p>
+                <h2 class="text-2xl font-black uppercase text-white italic tracking-tighter" x-text="handle"></h2>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                    <span class="px-3 py-1 bg-gold/10 rounded-full text-[8px] font-black uppercase text-gold border border-gold/20" x-text="rank"></span>
+                </div>
             </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass p-6 rounded-[2.5rem] border-white/5 text-center">
+                <p class="text-[7px] uppercase text-gold/40 mb-2 font-black">Signals Transmitted</p>
+                <p class="text-xl font-black text-white terminal-font" x-text="signalCount"></p>
+            </div>
+            <div class="glass p-6 rounded-[2.5rem] border-white/5 text-center">
+                <p class="text-[7px] uppercase text-gold/40 mb-2 font-black">Gallery Assets</p>
+                <p class="text-xl font-black text-white terminal-font" x-text="assetCount"></p>
+            </div>
+        </div>
+        
+        <div class="glass p-6 rounded-[3rem] border-gold/10 space-y-4">
+            <h3 class="text-[8px] font-black uppercase text-white italic tracking-widest px-2">System Clearance</h3>
+            
+            <div class="space-y-2">
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <span class="text-[9px] uppercase font-bold text-zinc-400">Push Notifications</span>
+                    <span class="text-[8px] font-black uppercase" :class="notifsActive ? 'text-green-500' : 'text-red-500'" x-text="notifsActive ? 'Enabled' : 'Disabled'"></span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <span class="text-[9px] uppercase font-bold text-zinc-400">Grid Status</span>
+                    <span class="text-[8px] font-black uppercase text-green-500">Synchronized</span>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <span class="text-[9px] uppercase font-bold text-zinc-400">Security Clearance</span>
+                    <span class="text-[8px] font-black uppercase text-gold">Level_01</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3 pt-4">
+            <button @click="location.reload()" class="w-full py-5 glass border-gold/20 text-white font-black text-[10px] uppercase rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                <i data-lucide="refresh-cw" size="16"></i> Resync Profile
+            </button>
+            <button @click="logout()" class="w-full py-5 bg-red-900/10 border border-red-900/30 text-red-500 font-black text-[10px] uppercase rounded-2xl flex items-center justify-center gap-3 active:scale-95 transition-all">
+                <i data-lucide="power" size="16"></i> Terminate Session
+            </button>
+        </div>
+
     </main>
 
     <script>
         function dossier() {
             return {
-                handle: 'GUEST_USER', rank: 'GRID_INITIATE',
+                handle: 'INITIATING...',
+                rank: 'GRID_SCOUT',
+                signalCount: 0,
+                assetCount: 0,
+                notifsActive: false,
+                
                 async init() {
-                    this.handle = localStorage.getItem('mog_handle') || 'GUEST';
+                    this.handle = localStorage.getItem('mog_handle') || 'ANONYMOUS';
+                    
                     const SB_URL = 'https://quzwygjbqpkuqjhrmsjp.supabase.co';
                     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1end5Z2picXBrdXFqaHJtc2pwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMTM0MDksImV4cCI6MjA4Nzg4OTQwOX0.1EVJRlSelXQOPHLX_Y7YsWxzVUmx8s7keRVpqWdXsPU';
                     this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
-                    const { count: msgs } = await this.supabase.from('messages').select('*', { count: 'exact', head: true }).eq('username', this.handle);
-                    this.rank = (msgs || 0) > 50 ? 'ELITE_OPERATIVE' : 'FIELD_AGENT';
+
+                    await this.fetchStats();
+                    this.checkNotifs();
                     lucide.createIcons();
+                },
+
+                async fetchStats() {
+                    // Fetch Message Count
+                    const { count: mCount } = await this.supabase
+                        .from('messages')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('username', this.handle);
+                    this.signalCount = mCount || 0;
+
+                    // Fetch Gallery Count
+                    const { count: gCount } = await this.supabase
+                        .from('gallery')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('owner', this.handle);
+                    this.assetCount = gCount || 0;
+
+                    // UPGRADE: Dynamic Rank Calculation
+                    if (this.handle === 'DIRECTORATE') {
+                        this.rank = 'SUPREME_DIRECTOR';
+                    } else if (this.signalCount > 100) {
+                        this.rank = 'ELITE_OPERATIVE';
+                    } else if (this.signalCount > 50) {
+                        this.rank = 'FIELD_AGENT';
+                    } else {
+                        this.rank = 'GRID_INITIATE';
+                    }
+                },
+
+                checkNotifs() {
+                    if (window.OneSignal && OneSignal.Notifications) {
+                        this.notifsActive = OneSignal.Notifications.permission;
+                    }
+                },
+
+                logout() {
+                    localStorage.removeItem('mog_handle');
+                    window.location.href = 'index.html';
                 }
             }
         }
