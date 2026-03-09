@@ -101,3 +101,33 @@ Alpine.data('dossierLogic', () => ({
         return 'NEW SIGNAL';
     }
 }));
+Alpine.data('vaultLogic', () => ({
+    search: '',
+    logs: [],
+
+    async init() {
+        // Fetch official dispatches from Supabase
+        const { data, error } = await supabase
+            .from('archives')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (data) {
+            this.logs = data.map(log => ({
+                id: log.id,
+                timestamp: new Date(log.created_at).toLocaleDateString('en-ZA'),
+                title: log.title,
+                content: log.content,
+                tags: log.tags || ['LOG']
+            }));
+        }
+    },
+
+    get filteredLogs() {
+        if (this.search === '') return this.logs;
+        return this.logs.filter(log => 
+            log.title.toLowerCase().includes(this.search.toLowerCase()) ||
+            log.content.toLowerCase().includes(this.search.toLowerCase())
+        );
+    }
+}));
