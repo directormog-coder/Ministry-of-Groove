@@ -1,1 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Shield | Ministry of Groove</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body class="bg-black text-white min-h-screen bg-grid">
+    <div class="max-w-2xl mx-auto p-6">
+        <header class="flex items-center gap-4 mb-8">
+            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-white/10 transition-all">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
+            </button>
+            <h1 class="text-lg font-black uppercase tracking-widest italic">Privacy Shield</h1>
+        </header>
 
+        <div class="glass rounded-[2.5rem] p-8 space-y-6">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="lock" class="w-8 h-8 text-gold"></i>
+                <div>
+                    <h2 class="text-sm font-black uppercase">Data Protection</h2>
+                    <p class="text-[10px] text-zinc-500">Military-grade encryption</p>
+                </div>
+            </div>
+
+            <div class="space-y-6 text-[12px] text-zinc-300 leading-relaxed">
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Encryption Standards</h3>
+                    <p>All data is secured using AES-256 encryption. Communications are end-to-end encrypted and cannot be intercepted by third parties. Your operational security is our priority.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Data Collection</h3>
+                    <p>We collect only essential operational data: handle, transmission logs, and uploaded assets. Location data is anonymized and never stored permanently. No personal identifiers are retained.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Data Retention</h3>
+                    <p>Messages are ephemeral and auto-purge after 30 days. Gallery assets remain until manually deleted by the operative or Directorate. Access logs are maintained for 90 days for security purposes.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Third Parties</h3>
+                    <p>The Ministry of Groove does not sell, trade, or transfer your data to external entities. All data remains within secure Ministry servers.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Your Rights</h3>
+                    <p>Operatives may request data deletion at any time. Contact Directorate for data export or deletion requests. Response time is within 72 hours.</p>
+                </section>
+            </div>
+
+            <div class="pt-6 border-t border-white/10 flex gap-3">
+                <button onclick="history.back()" class="flex-1 py-4 bg-gold text-black font-black uppercase rounded-full hover:bg-yellow-400 transition-all">
+                    Acknowledge
+                </button>
+                <a href="mailto:director.mog@gmail.com" class="flex-1 py-4 bg-white/10 text-white font-black uppercase rounded-full hover:bg-white/20 transition-all text-center flex items-center justify-center gap-2">
+                    <i data-lucide="mail" class="w-4 h-4"></i>
+                    Contact
+                </a>
+            </div>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
