@@ -15,14 +15,9 @@
 </head>
 <body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden">
 
-    <!-- CSS Animated Background (No video needed) -->
-    <div class="bg-cyber-grid"></div>
-    
-    <!-- Alternative backgrounds (uncomment one to use):
-    <div class="bg-animated-mesh"></div>
-    <div class="bg-particles"></div>
-    <div class="bg-aurora"></div>
-    -->
+    <!-- Circuit Board Background (from logo pattern) -->
+    <div class="bg-circuit-pattern"></div>
+    <div class="circuit-vignette"></div>
 
     <!-- Offline Banner -->
     <div class="offline-banner" :class="{ 'show': !isOnline }">
@@ -103,12 +98,9 @@
         <div class="h-screen w-full flex flex-col items-center justify-center p-6 text-center relative z-10">
             <div class="relative z-10 w-full max-w-md space-y-8 animate-slide-up">
                 
-                <!-- CSS Generated Logo (No image file needed) -->
+                <!-- Actual MOG Logo -->
                 <div class="mog-logo-container mx-auto mb-4">
-                    <div class="mog-logo">
-                        <span class="mog-logo-text">MOG</span>
-                        <span class="mog-logo-sub">Est. 2026</span>
-                    </div>
+                    <img src="assets/images/logo.png" alt="Ministry of Groove" class="mog-logo-img">
                 </div>
 
                 <div class="space-y-6">
@@ -183,10 +175,8 @@
         <div class="min-h-screen flex flex-col relative z-10 pb-24 md:pb-0">
             <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
-                    <!-- Small CSS Logo for header -->
-                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-gold to-yellow-600 flex items-center justify-center border-2 border-gold/50 shadow-lg shadow-gold/20">
-                        <span class="text-black font-black text-xs italic">MOG</span>
-                    </div>
+                    <!-- Small Logo for header -->
+                    <img src="assets/images/logo.png" alt="MOG" class="mog-logo-small">
                     <div>
                         <p class="text-[10px] font-black uppercase text-white tracking-widest italic leading-tight">Ministry of Groove</p>
                         <div class="flex items-center gap-2">
