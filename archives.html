@@ -1,1 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAULT | Ministry of Groove</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body class="bg-black text-white min-h-screen bg-grid">
+    <div class="max-w-4xl mx-auto p-6">
+        <header class="flex items-center gap-4 mb-8">
+            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-white/10 transition-all">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
+            </button>
+            <div>
+                <h1 class="text-lg font-black uppercase tracking-widest italic">Classified Vault</h1>
+                <p class="text-[10px] text-gold/40 uppercase tracking-wider">Level 5 Clearance Required</p>
+            </div>
+        </header>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass p-6 rounded-3xl border border-gold/20 hover:border-gold/50 transition-all cursor-pointer group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="p-3 bg-red-500/20 rounded-2xl border border-red-500/30">
+                        <i data-lucide="file-text" class="w-6 h-6 text-red-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black uppercase text-sm">Mission Logs</h3>
+                        <p class="text-[10px] text-zinc-500">124 entries</p>
+                    </div>
+                </div>
+                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-red-500 w-3/4"></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl border border-gold/20 hover:border-gold/50 transition-all cursor-pointer group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="p-3 bg-blue-500/20 rounded-2xl border border-blue-500/30">
+                        <i data-lucide="audio-waveform" class="w-6 h-6 text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black uppercase text-sm">Audio Intel</h3>
+                        <p class="text-[10px] text-zinc-500">48 recordings</p>
+                    </div>
+                </div>
+                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 w-1/2"></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl border border-gold/20 hover:border-gold/50 transition-all cursor-pointer group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="p-3 bg-purple-500/20 rounded-2xl border border-purple-500/30">
+                        <i data-lucide="map" class="w-6 h-6 text-purple-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black uppercase text-sm">Sector Maps</h3>
+                        <p class="text-[10px] text-zinc-500">12 zones</p>
+                    </div>
+                </div>
+                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-purple-500 w-1/4"></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 rounded-3xl border border-gold/20 hover:border-gold/50 transition-all cursor-pointer group">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="p-3 bg-gold/20 rounded-2xl border border-gold/30">
+                        <i data-lucide="key" class="w-6 h-6 text-gold"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black uppercase text-sm">Access Codes</h3>
+                        <p class="text-[10px] text-zinc-500">Restricted</p>
+                    </div>
+                </div>
+                <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div class="h-full bg-gold w-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 glass p-6 rounded-3xl border border-red-500/20">
+            <div class="flex items-center gap-3 mb-4">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+                <h3 class="font-black uppercase text-sm text-red-400">Security Notice</h3>
+            </div>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+                All vault access is logged and monitored. Unauthorized access attempts will be traced and reported to Directorate. 
+                Ensure proper clearance before accessing classified materials.
+            </p>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
