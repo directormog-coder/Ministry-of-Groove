@@ -4,41 +4,70 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry of Groove | The Grid</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <meta name="theme-color" content="#0A0A0A">
+
     <link rel="stylesheet" href="style.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-noir text-gold overflow-hidden" x-data="gridLogic">
+<body class="bg-noir text-gold overflow-hidden font-mono" x-data="gridLogic">
     
     <template x-if="!authenticated">
-        <div class="fixed inset-0 bg-noir z-50 flex items-center justify-center">
-            <div class="text-center">
-                <img src="logo.png" class="w-24 mx-auto mb-8 animate-pulse">
-                <button @click="login" class="border border-gold px-8 py-2 hover:bg-gold hover:text-noir transition">
-                    INITIALIZE LINK
-                </button>
+        <div class="fixed inset-0 bg-noir z-50 flex flex-col items-center justify-center p-6 text-center">
+            <div class="mb-12 animate-pulse">
+                <img src="logo.png" alt="MoG Logo" class="w-24 h-24 mb-4">
+                <div class="h-1 w-32 bg-gold mx-auto"></div>
             </div>
+            <h1 class="text-sm tracking-[0.5em] mb-8 opacity-70">MINISTRY OF GROOVE</h1>
+            <button @click="login" class="border border-gold px-12 py-3 hover:bg-gold hover:text-noir transition-all duration-500 uppercase text-xs tracking-widest">
+                Initialize Link
+            </button>
         </div>
     </template>
 
-    <main class="h-screen grid grid-cols-2 grid-rows-2 p-4 gap-4">
-        <a href="dossier.html" class="tile border border-gold/30 flex flex-col justify-center items-center hover:bg-gold/10">
-            <span class="text-xs tracking-widest opacity-50">01</span>
-            <h2 class="text-2xl uppercase">Operative Stats</h2>
+    <main class="h-screen grid grid-cols-2 grid-rows-2 p-4 gap-4" x-show="authenticated" x-transition>
+        
+        <a href="dossier" class="tile border border-gold/20 flex flex-col justify-center items-center hover:bg-gold/5 group">
+            <span class="text-[10px] tracking-widest opacity-30 absolute top-4 left-4">01 // DOSSIER</span>
+            <h2 class="text-xl uppercase group-hover:tracking-widest transition-all">Stats</h2>
+            <div class="mt-2 h-[1px] w-0 bg-gold group-hover:w-12 transition-all"></div>
         </a>
-        <a href="archives.html" class="tile border border-gold/30 flex flex-col justify-center items-center hover:bg-gold/10">
-            <span class="text-xs tracking-widest opacity-50">02</span>
-            <h2 class="text-2xl uppercase">The Vault</h2>
+
+        <a href="archives" class="tile border border-gold/20 flex flex-col justify-center items-center hover:bg-gold/5 group">
+            <span class="text-[10px] tracking-widest opacity-30 absolute top-4 left-4">02 // SECURE</span>
+            <h2 class="text-xl uppercase group-hover:tracking-widest transition-all">Archives</h2>
+            <div class="mt-2 h-[1px] w-0 bg-gold group-hover:w-12 transition-all"></div>
         </a>
-        <a href="gallery.html" class="tile border border-gold/30 flex flex-col justify-center items-center hover:bg-gold/10">
-            <span class="text-xs tracking-widest opacity-50">03</span>
-            <h2 class="text-2xl uppercase">Visual Archives</h2>
+
+        <a href="gallery" class="tile border border-gold/20 flex flex-col justify-center items-center hover:bg-gold/5 group">
+            <span class="text-[10px] tracking-widest opacity-30 absolute top-4 left-4">03 // MEDIA</span>
+            <h2 class="text-xl uppercase group-hover:tracking-widest transition-all">Visuals</h2>
+            <div class="mt-2 h-[1px] w-0 bg-gold group-hover:w-12 transition-all"></div>
         </a>
-        <a href="terminal.html" x-show="isDirector" class="tile border-2 border-gold flex flex-col justify-center items-center bg-gold/5">
-            <span class="text-xs tracking-widest text-gold">DIRECTORATE ONLY</span>
-            <h2 class="text-2xl uppercase">Hub Terminal</h2>
+
+        <a href="terminal" x-show="isDirector" class="tile border-2 border-gold flex flex-col justify-center items-center bg-gold/10 group shadow-[0_0_15px_rgba(212,175,55,0.1)]">
+            <span class="text-[10px] tracking-widest text-gold absolute top-4 left-4 font-bold">04 // DIRECTORATE</span>
+            <h2 class="text-xl uppercase group-hover:tracking-widest transition-all">Terminal</h2>
+            <div class="mt-2 h-[2px] w-8 bg-gold"></div>
         </a>
+
+        <div x-show="!isDirector" class="tile border border-gold/10 flex flex-col justify-center items-center opacity-40">
+            <span class="text-[10px] tracking-widest absolute top-4 left-4">04 // LOCKED</span>
+            <h2 class="text-xl uppercase italic">Classified</h2>
+        </div>
     </main>
 
     <script src="script.js"></script>
+    <script>
+        // Register Service Worker for Offline Grid Access
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
 </body>
 </html>
