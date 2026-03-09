@@ -1,12 +1,10 @@
 {
-  "version": 2,
-  "name": "ministry-of-groove-app",
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/archives", "destination": "/archives.html" },
+    { "source": "/dossier", "destination": "/dossier.html" },
+    { "source": "/terminal", "destination": "/terminal.html" },
+    { "source": "/gallery", "destination": "/gallery.html" }
   ]
 }
