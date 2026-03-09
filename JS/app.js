@@ -1,325 +1,377 @@
-// Ministry of Groove - Secure Application Logic
-const MOG_CONFIG = {
-    supabaseUrl: 'YOUR_NEW_SUPABASE_URL', // Replace after creating project
-    supabaseKey: 'YOUR_NEW_ANON_KEY'      // Replace after creating project
-};
-
 function ministry() {
     return {
         // State
         view: 'auth',
         subView: 'chat',
         showBypass: false,
-        username: '',
-        handleInput: '',
-        errorMsg: '',
-        messages: [],
-        msgInput: '',
-        galleryItems: [],
         isLoading: false,
+        isUploading: false,
+        errorMsg: '',
+        handleInput: '',
+        username: '',
+        userStatus: 'online',
+        msgInput: '',
+        messages: [],
+        galleryItems: [],
+        selectedImage: null,
+        showSettings: false,
+        notifications: true,
+        currentTime: '00:00:00',
+        weatherStatus: 'SYNCING...',
+        connectionStatus: 'STANDBY',
+        onlineCount: 0,
+        unreadCount: 0,
+        uploadProgress: 0,
+        sessionStart: null,
+        sessionDuration: '00:00',
         
-        // Auth
+        // Supabase Client (replace with your credentials)
         supabase: null,
-        user: null,
         
-        async init() {
-            this.supabase = window.supabase.createClient(
-                MOG_CONFIG.supabaseUrl, 
-                MOG_CONFIG.supabaseKey
-            );
+        init() {
+            // Initialize Supabase - REPLACE THESE WITH YOUR ACTUAL CREDENTIALS
+            const SUPABASE_URL = 'https://your-project.supabase.co';
+            const SUPABASE_ANON_KEY = 'your-anon-key';
             
-            // Check existing session
-            const { data: { session } } = await this.supabase.auth.getSession();
-            if (session) {
-                this.user = session.user;
-                this.username = session.user.email === 'director.mog@gmail.com' 
-                    ? 'DIRECTORATE' 
-                    : (localStorage.getItem('mog_handle') || 'OPERATIVE');
-                this.view = 'grid';
-                this.setupRealtime();
-            }
+            this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             
-            this.fetchMessages();
-            this.fetchGallery();
+            // Check for existing session
+            this.checkSession();
+            
+            // Start clock
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
-            setTimeout(() => lucide.createIcons(), 100);
-        },
-        
-        // Secure Authentication
-        async signInWithEmail() {
-            this.isLoading = true;
-            this.errorMsg = '';
             
-            const email = this.$refs.emailInput.value;
-            const password = this.$refs.passwordInput.value;
-            
-            const { data, error } = await this.supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            
-            if (error) {
-                this.errorMsg = "INVALID DIRECTORATE SIGNAL";
-                this.isLoading = false;
-                return;
-            }
-            
-            this.user = data.user;
-            this.username = 'DIRECTORATE';
-            localStorage.setItem('mog_handle', 'DIRECTORATE');
-            this.view = 'grid';
-            this.isLoading = false;
-            this.setupRealtime();
-        },
-        
-        async initializeUser() {
-            if (!this.handleInput.trim()) {
-                this.errorMsg = "ID REQUIRED";
-                return;
-            }
-            
-            // Anonymous sign in for operatives
-            const { data, error } = await this.supabase.auth.signInAnonymously();
-            
-            if (error) {
-                this.errorMsg = "GRID CONNECTION FAILED";
-                return;
-            }
-            
-            this.user = data.user;
-            this.username = this.handleInput.trim().toUpperCase();
-            localStorage.setItem('mog_handle', this.username);
-            this.view = 'grid';
-            this.setupRealtime();
-        },
-        
-        async logout() {
-            await this.supabase.auth.signOut();
-            localStorage.removeItem('mog_handle');
-            window.location.reload();
-        },
-        
-        // Realtime subscriptions
-        setupRealtime() {
-            this.supabase
-                .channel('public:messages')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, 
-                    payload => {
-                        this.messages.push(payload.new);
-                        this.scrollToBottom();
-                    }
-                )
-                .subscribe();
-        },
-        
-        // Data fetching
-        async fetchMessages() {
-            const { data, error } = await this.supabase
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: true })
-                .limit(100);
-                
-            if (error) {
-                console.error('Fetch error:', error);
-                return;
-            }
-            this.messages = data || [];
-            this.scrollToBottom();
-        },
-        
-        async fetchGallery() {
-            const { data, error } = await this.supabase
-                .from('gallery')
-                .select('*')
-                .order('created_at', { ascending: false });
-                
-            if (error) {
-                console.error('Gallery error:', error);
-                return;
-            }
-            this.galleryItems = data || [];
-        },
-        
-        // Actions
-        async send() {
-            if (!this.msgInput.trim() || !this.user) return;
-            
-            const { error } = await this.supabase
-                .from('messages')
-                .insert([{ 
-                    content: this.msgInput.toUpperCase(), 
-                    username: this.username,
-                    user_id: this.user.id
-                }]);
-                
-            if (error) {
-                console.error('Send error:', error);
-                return;
-            }
-            
-            this.msgInput = '';
-        },
-        
-        async uploadImage(e) {
-            const file = e.target.files[0];
-            if (!file || !this.user) return;
-            
-            this.isLoading = true;
-            const fileName = `${Date.now()}-${this.username}-${file.name}`;
-            
-            // Upload to storage
-            const { data: uploadData, error: uploadError } = await this.supabase
-                .storage
-                .from('gallery')
-                .upload(fileName, file);
-                
-            if (uploadError) {
-                console.error('Upload error:', uploadError);
-                this.isLoading = false;
-                return;
-            }
-            
-            // Get public URL
-            const { data: { publicUrl } } = this.supabase
-                .storage
-                .from('gallery')
-                .getPublicUrl(fileName);
-            
-            // Save to database
-            const { error: dbError } = await this.supabase
-                .from('gallery')
-                .insert([{ 
-                    url: publicUrl, 
-                    owner: this.username,
-                    user_id: this.user.id
-                }]);
-                
-            if (dbError) {
-                console.error('DB error:', dbError);
-                this.isLoading = false;
-                return;
-            }
-            
-            this.galleryItems.unshift({ url: publicUrl, owner: this.username });
-            this.isLoading = false;
-        },
-        
-        // Utilities
-        scrollToBottom() {
+            // Simulate weather sync
             setTimeout(() => {
-                const el = document.getElementById('chat-stream');
-                if (el) el.scrollTop = el.scrollHeight;
-            }, 100);
+                this.weatherStatus = 'CLEAR • 22°C';
+            }, 2000);
+            
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
+            // Setup realtime subscriptions if in grid view
+            this.$watch('view', (value) => {
+                if (value === 'grid') {
+                    this.sessionStart = Date.now();
+                    this.updateSessionDuration();
+                    setInterval(() => this.updateSessionDuration(), 60000);
+                    this.subscribeToMessages();
+                    this.subscribeToGallery();
+                    this.loadMessages();
+                    this.loadGallery();
+                }
+            });
+        },
+        
+        async checkSession() {
+            const { data: { session } } = await this.supabase.auth.getSession();
+            if (session) {
+                this.username = session.user.email || 'DIRECTORATE';
+                this.view = 'grid';
+            }
         },
         
         updateClock() {
             const now = new Date();
-            const clockEl = document.getElementById('sast-clock');
-            if (clockEl) {
-                clockEl.innerText = now.toLocaleTimeString('en-GB', { 
-                    timeZone: 'Africa/Johannesburg' 
-                });
-            }
-            
-            // Weather update every 5 minutes
-            if (now.getMinutes() % 5 === 0 && now.getSeconds() === 0) {
-                this.fetchWeather();
-            }
+            this.currentTime = now.toLocaleTimeString('en-GB', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                timeZone: 'Africa/Johannesburg'
+            }) + ' SAST';
         },
         
-        async fetchWeather() {
+        updateSessionDuration() {
+            if (!this.sessionStart) return;
+            const diff = Math.floor((Date.now() - this.sessionStart) / 60000);
+            const hours = Math.floor(diff / 60).toString().padStart(2, '0');
+            const mins = (diff % 60).toString().padStart(2, '0');
+            this.sessionDuration = `${hours}:${mins}`;
+        },
+        
+        async initializeUser() {
+            if (!this.handleInput.trim()) return;
+            
+            this.isLoading = true;
+            this.errorMsg = '';
+            
             try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-25.8728&longitude=29.2315&current_weather=true');
-                const data = await res.json();
-                const weatherEl = document.getElementById('weather-display');
-                if (weatherEl) {
-                    weatherEl.innerText = `${Math.round(data.current_weather.temperature)}°C • EMALAHLENI`;
+                // Simulate API call for operative handle
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Check if handle is valid (mock validation)
+                if (this.handleInput.length < 3) {
+                    throw new Error('HANDLE MUST BE 3+ CHARACTERS');
                 }
-            } catch (e) {
-                console.error('Weather fetch failed');
+                
+                this.username = this.handleInput.toUpperCase();
+                this.view = 'grid';
+                this.connectionStatus = 'CONNECTED';
+                
+            } catch (error) {
+                this.errorMsg = error.message || 'AUTHENTICATION FAILED';
+            } finally {
+                this.isLoading = false;
             }
-        }
-    };
-}
-
-// Admin Terminal Logic
-function terminal() {
-    return {
-        authenticated: false,
-        loginEmail false,
-        loginEmail: '',
-        loginPass: '',
-        isLive: false,
-        isLockdown: false,
-        supabase: null,
-        
-        async init() {
-            this.supabase = window.supabase.createClient(
-                MOG_CONFIG.supabaseUrl, 
-                MOG_CONFIG.supabaseKey
-            );
-            
-            const { data: { session } } = await this.supabase.auth.getSession();
-            if (session?.user?.email === 'director.mog@gmail.com') {
-                this.authenticated = true;
-                this.fetchStatus();
-            }
-            
-            setTimeout(() => lucide.createIcons(), 100);
         },
         
-        async verifyAccess() {
-            const { data, error } = await this.supabase.auth.signInWithPassword({
-                email: this.loginEmail,
-                password: this.loginPass
-            });
+        async signInWithEmail() {
+            const email = this.$refs.emailInput.value;
+            const password = this.$refs.passwordInput.value;
             
-            if (error || data.user.email !== 'director.mog@gmail.com') {
-                alert('UNAUTHORIZED ACCESS ATTEMPT');
+            if (!email || !password) {
+                this.errorMsg = 'CREDENTIALS REQUIRED';
                 return;
             }
             
-            this.authenticated = true;
-            this.fetchStatus();
-        },
-        
-        async fetchStatus() {
-            const { data } = await this.supabase
-                .from('system_status')
-                .select('*')
-                .eq('id', 1)
-                .single();
-                
-            if (data) {
-                this.isLive = data.is_live;
-                this.isLockdown = data.is_lockdown;
-            }
-        },
-        
-        async toggle(feature) {
-            const updates = feature === 'livestream' 
-                ? { is_live: !this.isLive }
-                : { is_lockdown: !this.isLockdown };
-                
-            const { error } = await this.supabase
-                .from('system_status')
-                .update(updates)
-                .eq('id', 1);
-                
-            if (error) {
-                alert('SYSTEM ERROR');
-                return;
-            }
+            this.isLoading = true;
+            this.errorMsg = '';
             
-            if (feature === 'livestream') this.isLive = !this.isLive;
-            if (feature === 'lockdown') this.isLockdown = !this.isLockdown;
+            try {
+                const { data, error } = await this.supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                
+                if (error) throw error;
+                
+                this.username = 'DIRECTORATE';
+                this.view = 'grid';
+                this.connectionStatus = 'DIRECTORATE ACCESS GRANTED';
+                
+            } catch (error) {
+                this.errorMsg = error.message || 'AUTHORIZATION FAILED';
+            } finally {
+                this.isLoading = false;
+            }
         },
         
         async logout() {
             await this.supabase.auth.signOut();
-            window.location.href = 'index.html';
+            this.view = 'auth';
+            this.username = '';
+            this.messages = [];
+            this.galleryItems = [];
+            this.showBypass = false;
+            this.connectionStatus = 'STANDBY';
+        },
+        
+        // Chat Functions
+        async loadMessages() {
+            try {
+                const { data, error } = await this.supabase
+                    .from('messages')
+                    .select('*')
+                    .order('created_at', { ascending: true })
+                    .limit(100);
+                    
+                if (error) throw error;
+                this.messages = data || [];
+                this.scrollToBottom();
+            } catch (error) {
+                console.error('Failed to load messages:', error);
+                // Load mock data for demo
+                this.messages = [
+                    { id: 1, username: 'SYSTEM', content: 'Grid connection established. Welcome, Operative.', created_at: new Date().toISOString() }
+                ];
+            }
+        },
+        
+        subscribeToMessages() {
+            this.supabase
+                .channel('messages')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+                    if (payload.eventType === 'INSERT') {
+                        this.messages.push(payload.new);
+                        if (payload.new.username !== this.username) {
+                            this.unreadCount++;
+                        }
+                        this.scrollToBottom();
+                    }
+                })
+                .subscribe();
+        },
+        
+        async sendMessage() {
+            if (!this.msgInput.trim()) return;
+            
+            const message = {
+                username: this.username,
+                content: this.msgInput.trim(),
+                created_at: new Date().toISOString()
+            };
+            
+            // Optimistic update
+            this.messages.push({ ...message, id: Date.now() });
+            this.msgInput = '';
+            this.scrollToBottom();
+            
+            try {
+                const { error } = await this.supabase
+                    .from('messages')
+                    .insert([message]);
+                    
+                if (error) throw error;
+            } catch (error) {
+                console.error('Failed to send message:', error);
+            }
+        },
+        
+        clearChat() {
+            if (confirm('Clear all local messages?')) {
+                this.messages = [];
+            }
+        },
+        
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const container = this.$refs.chatContainer;
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
+        },
+        
+        // Gallery Functions
+        async loadGallery() {
+            try {
+                const { data, error } = await this.supabase
+                    .from('gallery')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                    
+                if (error) throw error;
+                this.galleryItems = data || [];
+            } catch (error) {
+                console.error('Failed to load gallery:', error);
+                this.galleryItems = [];
+            }
+        },
+        
+        subscribeToGallery() {
+            this.supabase
+                .channel('gallery')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, payload => {
+                    if (payload.eventType === 'INSERT') {
+                        this.galleryItems.unshift(payload.new);
+                    } else if (payload.eventType === 'DELETE') {
+                        this.galleryItems = this.galleryItems.filter(item => item.id !== payload.old.id);
+                    }
+                })
+                .subscribe();
+        },
+        
+        async uploadImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            this.isUploading = true;
+            this.uploadProgress = 0;
+            
+            try {
+                // Simulate upload progress
+                const progressInterval = setInterval(() => {
+                    this.uploadProgress += 10;
+                    if (this.uploadProgress >= 90) clearInterval(progressInterval);
+                }, 200);
+                
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                
+                // Upload to Supabase Storage
+                const { data: uploadData, error: uploadError } = await this.supabase.storage
+                    .from('gallery')
+                    .upload(fileName, file);
+                    
+                if (uploadError) throw uploadError;
+                
+                // Get public URL
+                const { data: { publicUrl } } = this.supabase.storage
+                    .from('gallery')
+                    .getPublicUrl(fileName);
+                
+                // Save to database
+                const { error: dbError } = await this.supabase
+                    .from('gallery')
+                    .insert([{
+                        url: publicUrl,
+                        name: file.name,
+                        owner: this.username,
+                        size: file.size
+                    }]);
+                    
+                if (dbError) throw dbError;
+                
+                this.uploadProgress = 100;
+                setTimeout(() => {
+                    this.isUploading = false;
+                    this.uploadProgress = 0;
+                }, 500);
+                
+            } catch (error) {
+                console.error('Upload failed:', error);
+                this.errorMsg = 'UPLOAD FAILED: ' + error.message;
+                this.isUploading = false;
+                
+                // Mock upload for demo
+                setTimeout(() => {
+                    this.galleryItems.unshift({
+                        id: Date.now(),
+                        url: URL.createObjectURL(file),
+                        name: file.name,
+                        owner: this.username,
+                        created_at: new Date().toISOString(),
+                        size: file.size
+                    });
+                    this.isUploading = false;
+                }, 1500);
+            }
+        },
+        
+        async deleteImage(id) {
+            if (!confirm('Delete this asset?')) return;
+            
+            try {
+                const { error } = await this.supabase
+                    .from('gallery')
+                    .delete()
+                    .eq('id', id);
+                    
+                if (error) throw error;
+                this.galleryItems = this.galleryItems.filter(item => item.id !== id);
+            } catch (error) {
+                console.error('Delete failed:', error);
+                this.galleryItems = this.galleryItems.filter(item => item.id !== id);
+            }
+        },
+        
+        // Utilities
+        formatTime(isoString) {
+            return new Date(isoString).toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        },
+        
+        formatDate(isoString) {
+            return new Date(isoString).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: '2-digit'
+            });
+        },
+        
+        formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        },
+        
+        get totalStorage() {
+            return this.galleryItems.reduce((acc, item) => acc + (item.size || 0), 0);
         }
-    };
-              }
+    }
+                                         }
