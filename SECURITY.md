@@ -1,21 +1,18 @@
 # Security Policy
 
 ## Supported Versions
-
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+As the Ministry of Groove is currently in active development, only the latest version of the `main` branch is supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 3.0.x   | :white_check_mark: |
+| < 3.0   | :x:                |
 
 ## Reporting a Vulnerability
+We take the security of our Operatives seriously. If you find a security vulnerability, please do not open a public issue. Instead, please report it directly:
 
-Use this section to tell people how to report a vulnerability.
+* **Email:** pgmoloto9098@gmail.com
+* **Response Time:** Expect a response within 48 hours.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+## Personal Data & Security
+This application is designed with secure authentication. Please ensure you never hard-code API keys or actual passwords directly into the HTML or JS files before pushing to GitHub.
