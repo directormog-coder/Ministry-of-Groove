@@ -1,36 +1,69 @@
-function ministry() {
-    return {
-        view: 'auth', subView: 'chat', isLockdown: false, username: '', handleInput: '', messages: [], msgInput: '', showBypass: false, dirPass: '',
+// Initialize Supabase Client
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+document.addEventListener('alpine:init', () => {
+    Alpine.data('gridLogic', () => ({
+        authenticated: false,
+        isDirector: false,
+        operative: null,
+
         async init() {
-            const h = localStorage.getItem('mog_handle');
-            if(h) { this.username = h; this.view = 'grid'; this.sync(); }
-            setInterval(() => this.sync(), 30000);
-            lucide.createIcons();
-        },
-        async sync() {
-            if(!window.mog) return;
-            const { data: msgs } = await window.mog.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-            this.messages = msgs || [];
-            const { data: st } = await window.mog.from('system_status').select('*').eq('id', 'lockdown').single();
-            this.isLockdown = st?.is_active;
-        },
-        async send() {
-            if(!this.msgInput.trim()) return;
-            await window.mog.from('messages').insert([{content: this.msgInput.toUpperCase(), username: this.username}]);
-            this.msgInput = ''; this.sync();
-        },
-        initializeUser() {
-            if(!this.handleInput.trim()) return;
-            this.username = this.handleInput.toUpperCase();
-            localStorage.setItem('mog_handle', this.username);
-            this.view = 'grid';
-        },
-        executeBypass() {
-            if(this.dirPass === '@MOGProtocol2026') {
-                sessionStorage.setItem('mog_terminal_auth', 'true');
-                window.location.href = 'terminal.html';
+            // 1. Check current session
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                this.authenticated = true;
+                this.checkStatus(session.user);
             }
         },
-        logout() { localStorage.removeItem('mog_handle'); location.reload(); }
-    }
-}
+
+        async login() {
+            // Simplified Magic Link or Provider login
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+            if (error) console.error("Grid Access Denied:", error.message);
+        },
+
+        async checkStatus(user) {
+            // 2. Fetch Operative Profile
+            const { data, error } = await supabase
+                .from('operatives')
+                .select('role, status')
+                .eq('id', user.id)
+                .single();
+
+            if (data) {
+                // Redirect if Sanctioned (Banned)
+                if (data.status === 'sanctioned') {
+                    window.location.href = '404.html';
+                }
+                
+                // Set Directorate Privileges
+                this.isDirector = (data.role === 'director');
+                this.operative = user;
+            }
+        },
+
+        async logout() {
+            await supabase.auth.signOut();
+            window.location.reload();
+        }
+    }));
+
+    // Directorate Specific Logic
+    Alpine.data('directorate', () => ({
+        async issueSanction(operativeId) {
+            const { error } = await supabase
+                .from('operatives')
+                .update({ status: 'sanctioned' })
+                .eq('id', operativeId);
+
+            if (!error) {
+                alert(`OPERATIVE ${operativeId} SIGNAL TERMINATED.`);
+            }
+        }
+    }));
+});
