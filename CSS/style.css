@@ -462,3 +462,249 @@
     background: var(--gold);
     transition: width 0.1s linear;
 }
+
+/* ============================================
+   ACTUAL LOGO IMPLEMENTATION
+   ============================================ */
+
+/* Main Logo for Operatives */
+.mog-logo-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.mog-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.4));
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-10px) scale(1.02); }
+}
+
+/* Small header logo */
+.mog-logo-small {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+}
+
+/* ============================================
+   CIRCUIT BOARD BACKGROUND (from logo pattern)
+   ============================================ */
+
+.bg-circuit-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #000;
+    overflow: hidden;
+}
+
+/* Base circuit lines */
+.bg-circuit-pattern::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: 
+        /* Horizontal traces */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 40px,
+            rgba(64, 224, 208, 0.03) 40px,
+            rgba(64, 224, 208, 0.03) 42px
+        ),
+        /* Vertical traces */
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 40px,
+            rgba(64, 224, 208, 0.03) 40px,
+            rgba(64, 224, 208, 0.03) 42px
+        ),
+        /* Diagonal circuit lines */
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 80px,
+            rgba(64, 224, 208, 0.02) 80px,
+            rgba(64, 224, 208, 0.02) 82px
+        );
+    animation: circuitPulse 20s linear infinite;
+}
+
+/* Circuit nodes/dots */
+.bg-circuit-pattern::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 60% 20%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 40% 60%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 80% 50%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 30% 80%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 70% 70%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 10% 50%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 90% 30%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 50% 40%, rgba(64, 224, 208, 0.15) 0px, transparent 3px),
+        radial-gradient(circle at 25% 75%, rgba(64, 224, 208, 0.15) 0px, transparent 3px);
+    background-size: 200px 200px, 150px 150px, 180px 180px, 220px 220px, 160px 160px, 140px 140px, 190px 190px, 170px 170px, 210px 210px, 130px 130px;
+    animation: nodePulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes circuitPulse {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-40px, -40px) rotate(360deg); }
+}
+
+@keyframes nodePulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+}
+
+/* Circuit overlay vignette */
+.circuit-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: 
+        radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%),
+        radial-gradient(ellipse at 30% 20%, rgba(64, 224, 208, 0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(64, 224, 208, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+/* ============================================
+   DIRECTORATE SEAL
+   ============================================ */
+
+.directorate-seal-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
+
+.directorate-seal-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)) drop-shadow(0 0 40px rgba(239, 68, 68, 0.3));
+    animation: sealGlow 3s ease-in-out infinite;
+}
+
+@keyframes sealGlow {
+    0%, 100% { 
+        filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5)) drop-shadow(0 0 40px rgba(239, 68, 68, 0.3));
+        transform: scale(1);
+    }
+    50% { 
+        filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.7)) drop-shadow(0 0 60px rgba(239, 68, 68, 0.5));
+        transform: scale(1.02);
+    }
+}
+
+/* Large seal variant */
+.directorate-seal-large {
+    width: 150px;
+    height: 150px;
+}
+
+/* ============================================
+   DIRECTORATE BACKGROUND (darker, red-tinted)
+   ============================================ */
+
+.bg-directorate-circuit {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #0a0000;
+    overflow: hidden;
+}
+
+.bg-directorate-circuit::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: 
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 40px,
+            rgba(239, 68, 68, 0.03) 40px,
+            rgba(239, 68, 68, 0.03) 42px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 40px,
+            rgba(239, 68, 68, 0.03) 40px,
+            rgba(239, 68, 68, 0.03) 42px
+        ),
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 80px,
+            rgba(239, 68, 68, 0.02) 80px,
+            rgba(239, 68, 68, 0.02) 82px
+        );
+    animation: circuitPulse 25s linear infinite;
+}
+
+.bg-directorate-circuit::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(239, 68, 68, 0.12) 0px, transparent 3px),
+        radial-gradient(circle at 60% 20%, rgba(239, 68, 68, 0.12) 0px, transparent 3px),
+        radial-gradient(circle at 40% 60%, rgba(239, 68, 68, 0.12) 0px, transparent 3px),
+        radial-gradient(circle at 80% 50%, rgba(239, 68, 68, 0.12) 0px, transparent 3px),
+        radial-gradient(circle at 30% 80%, rgba(239, 68, 68, 0.12) 0px, transparent 3px),
+        radial-gradient(circle at 70% 70%, rgba(239, 68, 68, 0.12) 0px, transparent 3px);
+    background-size: 200px 200px, 150px 150px, 180px 180px, 220px 220px, 160px 160px, 140px 140px;
+    animation: nodePulse 4s ease-in-out infinite alternate;
+}
+
+.directorate-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: 
+        radial-gradient(ellipse at center, transparent 0%, rgba(20, 0, 0, 0.9) 100%),
+        radial-gradient(ellipse at 30% 20%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, rgba(139, 0, 0, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
