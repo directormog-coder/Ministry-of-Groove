@@ -1,1 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol TOS | Ministry of Groove</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="CSS/style.css">
+</head>
+<body class="bg-black text-white min-h-screen bg-grid">
+    <div class="max-w-2xl mx-auto p-6">
+        <header class="flex items-center gap-4 mb-8">
+            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-white/10 transition-all">
+                <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
+            </button>
+            <h1 class="text-lg font-black uppercase tracking-widest italic">Protocol TOS</h1>
+        </header>
 
+        <div class="glass rounded-[2.5rem] p-8 space-y-6">
+            <div class="flex items-center gap-3 mb-6">
+                <i data-lucide="shield-alert" class="w-8 h-8 text-gold"></i>
+                <div>
+                    <h2 class="text-sm font-black uppercase">Terms of Service</h2>
+                    <p class="text-[10px] text-zinc-500">Last updated: 2026.03.10</p>
+                </div>
+            </div>
+
+            <div class="space-y-6 text-[12px] text-zinc-300 leading-relaxed">
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">1. Grid Access</h3>
+                    <p>All operatives must maintain active clearance status. Access to the Grid is granted on a need-to-know basis and can be revoked at any time by Directorate.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">2. Communication Protocol</h3>
+                    <p>All transmissions are monitored and encrypted. Sensitive information should never be shared over unsecured channels. Operatives are responsible for maintaining operational security.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">3. Asset Ownership</h3>
+                    <p>All visual assets, audio recordings, and documents transmitted through Ministry systems become property of the Ministry of Groove. Distribution without authorization is prohibited.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">4. Directorate Override</h3>
+                    <p>Directorate maintains supreme authority over all systems. Override access is restricted to clearance level 5 and above. Unauthorized override attempts will trigger security protocols.</p>
+                </section>
+
+                <section>
+                    <h3 class="text-gold font-black uppercase mb-2 text-sm">5. Termination</h3>
+                    <p>Failure to comply with these terms will result in immediate termination of access and potential disciplinary action. The Ministry reserves the right to modify these terms without notice.</p>
+                </section>
+            </div>
+
+            <div class="pt-6 border-t border-white/10">
+                <button onclick="history.back()" class="w-full py-4 bg-gold text-black font-black uppercase rounded-full hover:bg-yellow-400 transition-all">
+                    Acknowledge & Return
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
