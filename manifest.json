@@ -1,11 +1,23 @@
 {
   "name": "Ministry of Groove",
-  "short_name": "MOG",
+  "short_name": "MoG Grid",
+  "description": "The Official Operative Interface for the Ministry of Groove.",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#050505",
+  "background_color": "#0A0A0A",
   "theme_color": "#D4AF37",
+  "orientation": "portrait",
   "icons": [
-    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
