@@ -29,14 +29,6 @@
         .eyes-only-bg {
             background: linear-gradient(135deg, rgba(10,0,0,0.98), rgba(30,0,0,0.99));
         }
-        .director-seal {
-            box-shadow: 0 0 40px rgba(212, 175, 55, 0.4), 0 0 80px rgba(239, 68, 68, 0.2);
-            animation: sealPulse 3s ease-in-out infinite;
-        }
-        @keyframes sealPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(212, 175, 55, 0.4); }
-            50% { transform: scale(1.02); box-shadow: 0 0 60px rgba(212, 175, 55, 0.6), 0 0 100px rgba(239, 68, 68, 0.3); }
-        }
         .security-line {
             font-family: 'JetBrains Mono', monospace;
             color: #10b981;
@@ -58,9 +50,9 @@
 
     <div class="classified-stamp">TOP SECRET</div>
     
-    <!-- CSS Background instead of video -->
-    <div class="bg-cyber-grid"></div>
-    <div class="fixed inset-0 bg-gradient-to-b from-red-900/20 to-black/90 z-0"></div>
+    <!-- Directorate Circuit Background (red-tinted) -->
+    <div class="bg-directorate-circuit"></div>
+    <div class="directorate-vignette"></div>
 
     <div class="relative z-10 max-w-6xl mx-auto p-6" x-show="isAuthenticated">
         <header class="flex items-center gap-4 mb-8 border-b border-red-500/30 pb-4">
@@ -71,9 +63,9 @@
                 <h1 class="text-2xl font-black uppercase tracking-widest italic text-red-500">Directorate Command</h1>
                 <p class="text-[10px] text-red-400/60 uppercase tracking-[0.3em]">Eyes Only • Level 5 Clearance</p>
             </div>
-            <!-- CSS Seal instead of image -->
-            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-gold via-yellow-600 to-gold border-4 border-red-500/50 flex items-center justify-center director-seal">
-                <span class="text-black font-black text-lg italic">MOG</span>
+            <!-- Directorate Seal Image -->
+            <div class="directorate-seal-container">
+                <img src="assets/images/1000219947.png" alt="Directorate Seal" class="directorate-seal-img">
             </div>
         </header>
 
@@ -190,9 +182,9 @@
         <div class="mt-8 glass p-6 rounded-3xl border border-red-500/20 relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 via-gold/5 to-red-500/5"></div>
             <div class="relative z-10 flex items-center gap-6">
-                <!-- CSS Seal instead of image -->
-                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-gold via-yellow-600 to-gold border-4 border-gold/50 flex items-center justify-center flex-shrink-0 director-seal shadow-2xl">
-                    <span class="text-black font-black text-4xl italic tracking-wider">MOG</span>
+                <!-- Large Directorate Seal -->
+                <div class="directorate-seal-container directorate-seal-large flex-shrink-0">
+                    <img src="assets/images/1000219947.png" alt="Directorate Seal" class="directorate-seal-img">
                 </div>
                 <div class="flex-1">
                     <h3 class="text-2xl font-black uppercase text-gold mb-2 tracking-wider">Seal of the Directorate</h3>
@@ -250,17 +242,7 @@
                         return;
                     }
                     
-                    // Check if user is director (hash comparison)
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(session.user.email.toLowerCase().trim());
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const emailHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                    
-                    // Director hash (SHA-256 of director.mog@gmail.com)
-                    const directorHash = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; // This is actually "password", you'll need to generate the real one
-                    
-                    // For security, let's do proper check
+                    // Check if user is director
                     const isDirector = await this.checkDirectorStatus(session.user.id);
                     
                     if (!isDirector) {
