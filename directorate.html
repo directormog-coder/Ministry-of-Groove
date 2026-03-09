@@ -49,8 +49,8 @@
     <!-- Security Check Overlay -->
     <div x-show="!isAuthenticated" class="fixed inset-0 z-50 bg-black flex items-center justify-center">
         <div class="text-center">
-            <div class="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-red-500/50 flex items-center justify-center animate-pulse">
-                <i data-lucide="shield-alert" class="w-12 h-12 text-red-500"></i>
+            <div class="w-24 h-24 mx-auto mb-4 rounded-full border-4 border-red-500/50 flex items-center justify-center animate-pulse bg-gradient-to-br from-gold via-yellow-600 to-gold">
+                <span class="text-black font-black text-2xl italic">MOG</span>
             </div>
             <p class="text-red-500 font-black uppercase tracking-widest">Verifying Clearance...</p>
         </div>
@@ -58,13 +58,9 @@
 
     <div class="classified-stamp">TOP SECRET</div>
     
-    <!-- Video Background -->
-    <div class="video-background">
-        <video autoplay muted loop playsinline>
-            <source src="assets/videos/1000211769.mp4" type="video/mp4">
-        </video>
-        <div class="video-overlay" style="background: rgba(20,0,0,0.9);"></div>
-    </div>
+    <!-- CSS Background instead of video -->
+    <div class="bg-cyber-grid"></div>
+    <div class="fixed inset-0 bg-gradient-to-b from-red-900/20 to-black/90 z-0"></div>
 
     <div class="relative z-10 max-w-6xl mx-auto p-6" x-show="isAuthenticated">
         <header class="flex items-center gap-4 mb-8 border-b border-red-500/30 pb-4">
@@ -75,8 +71,9 @@
                 <h1 class="text-2xl font-black uppercase tracking-widest italic text-red-500">Directorate Command</h1>
                 <p class="text-[10px] text-red-400/60 uppercase tracking-[0.3em]">Eyes Only • Level 5 Clearance</p>
             </div>
-            <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-red-500/50 director-seal">
-                <img src="assets/images/1000235831.jpg" alt="Directorate Seal" class="w-full h-full object-cover">
+            <!-- CSS Seal instead of image -->
+            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-gold via-yellow-600 to-gold border-4 border-red-500/50 flex items-center justify-center director-seal">
+                <span class="text-black font-black text-lg italic">MOG</span>
             </div>
         </header>
 
@@ -193,8 +190,9 @@
         <div class="mt-8 glass p-6 rounded-3xl border border-red-500/20 relative overflow-hidden">
             <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 via-gold/5 to-red-500/5"></div>
             <div class="relative z-10 flex items-center gap-6">
-                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gold/30 flex-shrink-0 director-seal">
-                    <img src="assets/images/1000235831.jpg" alt="Directorate Seal" class="w-full h-full object-cover">
+                <!-- CSS Seal instead of image -->
+                <div class="w-32 h-32 rounded-full bg-gradient-to-br from-gold via-yellow-600 to-gold border-4 border-gold/50 flex items-center justify-center flex-shrink-0 director-seal shadow-2xl">
+                    <span class="text-black font-black text-4xl italic tracking-wider">MOG</span>
                 </div>
                 <div class="flex-1">
                     <h3 class="text-2xl font-black uppercase text-gold mb-2 tracking-wider">Seal of the Directorate</h3>
@@ -362,7 +360,7 @@
                 },
                 
                 sendDirectorMessage() {
-    if (!this.directorMsgInput.trim()) return;
+                    if (!this.directorMsgInput.trim()) return;
                     
                     const now = new Date();
                     this.directorMessages.push({
