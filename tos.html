@@ -2,64 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>GRID_PROTOCOL | TERMS OF SERVICE</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root { --gold: #D4AF37; --noir: #050505; }
-        body { background: var(--noir); color: var(--gold); font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
-        .terminal-font { font-family: 'JetBrains Mono', monospace; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry of Groove | Rules of Engagement</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-black text-gold p-6 min-h-screen">
-    <div class="scanline"></div>
+<body class="bg-noir text-gold p-8 md:p-16">
+    <header class="mb-12 border-b border-gold/20 pb-4">
+        <h1 class="text-2xl font-bold uppercase tracking-widest">Rules of Engagement</h1>
+        <p class="text-[10px] opacity-50">Official Conduct Protocols</p>
+    </header>
 
-    <main class="max-w-2xl mx-auto space-y-8 pb-20">
-        <header class="flex items-center gap-4 mb-12">
-            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-gold/10 transition-all">
-                <i data-lucide="arrow-left" size="20"></i>
-            </button>
-            <div>
-                <h1 class="font-black italic text-white uppercase tracking-tighter text-2xl">Grid_Protocol</h1>
-                <p class="text-[8px] font-black text-gold/50 uppercase tracking-widest">TOS Ver: 2.0.26 / Directorate Approved</p>
-            </div>
-        </header>
-
-        <section class="glass p-8 rounded-[2.5rem] space-y-6 text-[11px] leading-relaxed border-gold/20">
-            <div class="space-y-2">
-                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">1. Acceptance of Frequency</h2>
-                <p class="text-zinc-400">By initializing a handle on the Ministry of Groove (MOG) HQ Grid, you agree to abide by the Directorate's Rules of Engagement. If you do not agree, you must terminate your uplink immediately.</p>
-            </div>
-
-            <div class="space-y-2">
-                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">2. Operative Conduct</h2>
-                <p class="text-zinc-400">Operatives are prohibited from transmitting signals that are harmful, illegal, or disruptive to the eMalahleni Master Frequency. This includes spamming the Grid, impersonating the Directorate, or attempting to bypass security middleware.</p>
-            </div>
-
-            <div class="space-y-2">
-                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">3. Signal Sanction (Termination)</h2>
-                <p class="text-zinc-400">The Directorate reserves the absolute right to terminate any signal (Blacklist) at its sole discretion. Sanctioned handles will be permanently redirected to the 404/Signal Lost interface.</p>
-            </div>
-
-            <div class="space-y-2">
-                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">4. Intellectual Property</h2>
-                <p class="text-zinc-400">The "Ministry of Groove", "MOG HQ", and "ORIGIN 54: The Asili Collective" branding, logos, and terminal interface designs are the exclusive property of the Directorate. Unauthorized replication of the Grid architecture is prohibited.</p>
-            </div>
-
-            <div class="space-y-2">
-                <h2 class="text-white font-black uppercase italic tracking-widest text-[10px]">5. Disclaimer of Uplink</h2>
-                <p class="text-zinc-400">The Grid is provided "as is". The Directorate is not responsible for any signal loss, data corruption, or mobile connectivity issues within the Mpumalanga province or beyond.</p>
-            </div>
+    <article class="max-w-2xl space-y-8 text-sm leading-relaxed">
+        <section class="border-l-2 border-gold pl-4">
+            <h2 class="text-white uppercase mb-2 font-bold text-lg">The Sanction Clause</h2>
+            <p>The Directorate reserves the absolute right to terminate the signal of any operative (Ban) who violates the peace of the Grid. Banned operatives will be redirected to the "Signal Lost" (404) sector indefinitely.</p>
         </section>
 
-        <footer class="text-center opacity-40">
-            <p class="text-[7px] font-black uppercase tracking-[0.3em]">ORIGIN 54 / THE ASILI COLLECTIVE / 2026</p>
-        </footer>
-    </main>
+        <section>
+            <h2 class="text-white uppercase mb-2">Prohibited Frequency</h2>
+            <ul class="list-disc ml-4 space-y-2 opacity-80">
+                <li>Unauthorized access to the Directorate Hub Terminal.</li>
+                <li>Harassment of fellow operatives within the Archives.</li>
+                <li>Manipulation of Signal Strength (XP) values.</li>
+            </ul>
+        </section>
+    </article>
 
-    <script>lucide.createIcons();</script>
+    <footer class="mt-12">
+        <a href="index.html" class="border border-gold px-4 py-2 hover:bg-gold hover:text-noir transition">I ACCEPT THE RISK</a>
+    </footer>
 </body>
 </html>
