@@ -67,3 +67,37 @@ document.addEventListener('alpine:init', () => {
         }
     }));
 });
+Alpine.data('dossierLogic', () => ({
+    rankings: [],
+    myStats: { xp: 0, rankName: '' },
+
+    async init() {
+        // Fetch Top 20 Operatives by Signal Strength (XP)
+        const { data, error } = await supabase
+            .from('operatives')
+            .select('username, xp, role')
+            .order('xp', { ascending: false })
+            .limit(20);
+
+        if (data) {
+            this.rankings = data.map(op => ({
+                ...op,
+                xp_percent: Math.min((op.xp / 1000) * 100, 100) // Scale against 1000xp cap
+            }));
+            
+            // Set local user stats (Mock logic - replace with actual user ID)
+            const me = data.find(o => o.username === 'DIRECTOR_G');
+            if (me) {
+                this.myStats.xp = me.xp;
+                this.myStats.rankName = this.calculateRank(me.xp);
+            }
+        }
+    },
+
+    calculateRank(xp) {
+        if (xp > 800) return 'ELITE FREQUENCY';
+        if (xp > 500) return 'VIBRATION LEAD';
+        if (xp > 200) return 'GRID OPERATIVE';
+        return 'NEW SIGNAL';
+    }
+}));
