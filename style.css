@@ -28,3 +28,22 @@ body {
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
 }
+/* Archive Specific Enhancements */
+.grayscale {
+    filter: grayscale(100%) contrast(120%);
+}
+
+.group:hover .grayscale {
+    filter: grayscale(0%) contrast(100%);
+}
+
+/* Scrollbar styling for the Gold on Noir look */
+::-webkit-scrollbar {
+    width: 4px;
+}
+::-webkit-scrollbar-track {
+    background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+}
