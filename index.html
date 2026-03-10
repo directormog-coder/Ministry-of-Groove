@@ -170,6 +170,34 @@
                         this.errorMsg = 'ENTER CREDENTIALS';
                         return;
                     }
+                    // Google Authentication Method
+async loginWithGoogle() {
+    this.isLoading = true;
+    this.errorMsg = '';
+
+    try {
+        if (!supabaseClient) {
+            throw new Error('Supabase not initialized - check your URL and Key');
+        }
+
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                // This ensures the user comes back to your app after logging into Google
+                redirectTo: window.location.origin 
+            }
+        });
+
+        if (error) throw error;
+
+    } catch (error) {
+        console.error('Google Auth Error:', error);
+        this.errorMsg = error.message || 'GOOGLE AUTH FAILED';
+        this.showToast(this.errorMsg, 'error');
+    } finally {
+        this.isLoading = false;
+    }
+},
                     
                     this.isLoading = true;
                     this.errorMsg = '';
