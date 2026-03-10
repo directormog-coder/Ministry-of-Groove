@@ -1,27 +1,27 @@
 function ministry() {
     return {
-        // State
+        // --- APP STATE ---
         view: 'auth',
-        authMode: 'login', 
+        authMode: 'login', // 'login' or 'register'
         subView: 'chat',
         showBypass: false,
         isLoading: false,
         isUploading: false,
         errorMsg: '',
         
-        // Auth fields
+        // --- AUTH FIELDS ---
         emailInput: '',
         passwordInput: '',
         confirmPassword: '',
         handleInput: '',
         
-        // User data
+        // --- USER DATA ---
         username: '',
         userEmail: '',
         userStatus: 'online',
         isDirector: false,
         
-        // App state
+        // --- UI & DASHBOARD ---
         msgInput: '',
         messages: [],
         galleryItems: [],
@@ -46,7 +46,7 @@ function ministry() {
         audioContext: null,
         notificationPermission: false,
         
-        // Voice Recording
+        // --- VOICE RECORDING ---
         showVoiceRecorder: false,
         isRecording: false,
         recordedBlob: null,
@@ -54,12 +54,12 @@ function ministry() {
         recordingInterval: null,
         mediaRecorder: null,
         
-        // Encryption
+        // --- ENCRYPTION ---
         showEncryptionModal: false,
         encryptionPassword: '',
         pendingFile: null,
         
-        // Amapiano Top 10
+        // --- AMAPIANO CHART ---
         amapianoChart: [
             { id: 1, title: "Mnike", artist: "Tyler ICU & Tumelo.za", votes: 15420, userVoted: false, previewUrl: null },
             { id: 2, title: "Imithandazo", artist: "Kabza De Small & Mthunzi", votes: 14280, userVoted: false, previewUrl: null },
@@ -78,17 +78,18 @@ function ministry() {
         playbackProgress: 0,
         audioPlayer: null,
         
-        // Supabase Client
+        // --- SUPABASE CLIENT ---
         supabase: null,
-        
-        // Director credentials
         directorHash: null,
         
         init() {
+            // Initialize security
             this.initializeDirectorHash();
             
+            // Audio init on first click
             document.addEventListener('click', () => this.initAudio(), { once: true });
             
+            // Network Listeners
             window.addEventListener('online', () => { 
                 this.isOnline = true; 
                 this.showNotification('Connection restored', 'success'); 
@@ -102,16 +103,17 @@ function ministry() {
             this.loadPreferences();
             this.loadChartVotes();
             
-            // --- UPDATED SUPABASE INITIALIZATION ---
-            const SUPABASE_URL = 'https://your-actual-project-id.supabase.co'; 
-            const SUPABASE_ANON_KEY = 'your-actual-anon-key';
-
+            // --- FIX: SECURE INITIALIZATION ---
+            // PASTE YOUR REAL KEYS HERE
+            const SB_URL = 'https://your-project.supabase.co';
+            const SB_KEY = 'your-anon-key';
+            
             if (window.supabase) {
-                this.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                this.supabase = window.supabase.createClient(SB_URL, SB_KEY);
                 this.connectionStatus = 'GRID CONNECTED';
             } else {
-                this.errorMsg = 'SYSTEM ERROR: DATABASE LIBRARY NOT FOUND';
-                this.connectionStatus = 'CONNECTION FAILED';
+                console.error("Supabase CDN not found");
+                this.errorMsg = 'SYSTEM ERROR: DATABASE OFFLINE';
             }
             
             this.checkSession();
@@ -122,6 +124,7 @@ function ministry() {
             
             if (window.lucide) lucide.createIcons();
             
+            // App State Watcher
             this.$watch('view', (value) => {
                 if (value === 'grid') {
                     this.sessionStart = Date.now();
@@ -140,6 +143,7 @@ function ministry() {
             });
         },
         
+        // --- SECURITY ---
         async initializeDirectorHash() {
             const encoder = new TextEncoder();
             const data = encoder.encode('director.mog@gmail.com');
@@ -149,19 +153,19 @@ function ministry() {
         },
         
         async checkIfDirector(email) {
-            if (!email) return false;
-            const cleanEmail = email.toLowerCase().trim();
+            if(!email) return false;
             const encoder = new TextEncoder();
-            const data = encoder.encode(cleanEmail);
+            const data = encoder.encode(email.toLowerCase().trim());
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const emailHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             return emailHash === this.directorHash;
         },
-
-        // --- UPDATED GOOGLE LOGIN ---
+        
+        // --- NEW: GOOGLE AUTHENTICATION ---
         async loginWithGoogle() {
             this.isLoading = true;
+            this.errorMsg = '';
             try {
                 const { error } = await this.supabase.auth.signInWithOAuth({
                     provider: 'google',
@@ -172,10 +176,13 @@ function ministry() {
                 if (error) throw error;
             } catch (error) {
                 this.errorMsg = error.message;
+                this.playSound('error');
+            } finally {
                 this.isLoading = false;
             }
         },
-        
+
+        // --- AUTHENTICATION ---
         async registerUser() {
             if (!this.emailInput || !this.passwordInput || !this.handleInput) {
                 this.errorMsg = 'ALL FIELDS REQUIRED';
@@ -205,15 +212,15 @@ function ministry() {
                 
                 if (error) throw error;
                 
-                // Add to profiles table
+                // Create profile
                 await this.supabase.from('profiles').insert([{
                     id: data.user.id,
                     email: this.emailInput,
                     handle: this.handleInput.toUpperCase(),
                     is_director: isDir
                 }]);
-
-                // Redirect manually to avoid double-loading
+                
+                // Set data and enter app
                 this.userEmail = this.emailInput;
                 this.username = this.handleInput.toUpperCase();
                 this.isDirector = isDir;
@@ -233,6 +240,7 @@ function ministry() {
                 this.errorMsg = 'EMAIL AND PASSWORD REQUIRED';
                 return;
             }
+            
             this.isLoading = true;
             this.errorMsg = '';
             
@@ -242,15 +250,15 @@ function ministry() {
                     password: this.passwordInput
                 });
                 if (error) throw error;
-
+                
                 const { data: profile } = await this.supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', data.user.id)
                     .single();
-
+                
                 this.userEmail = data.user.email;
-                this.username = profile?.handle || data.user.email.split('@')[0].toUpperCase();
+                this.username = profile?.handle || this.userEmail.split('@')[0].toUpperCase();
                 this.isDirector = profile?.is_director || await this.checkIfDirector(this.userEmail);
                 
                 if (this.isDirector) {
@@ -259,6 +267,7 @@ function ministry() {
                     this.view = 'grid';
                 }
                 this.playSound('login');
+                
             } catch (error) {
                 this.errorMsg = error.message || 'AUTHENTICATION FAILED';
                 this.playSound('error');
@@ -266,9 +275,40 @@ function ministry() {
                 this.isLoading = false;
             }
         },
+        
+        async checkSession() {
+            const { data: { session } } = await this.supabase.auth.getSession();
+            if (session) {
+                const { data: profile } = await this.supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                this.userEmail = session.user.email;
+                this.username = profile?.handle || this.userEmail.split('@')[0].toUpperCase();
+                this.isDirector = profile?.is_director || await this.checkIfDirector(this.userEmail);
+                
+                if (!this.isDirector) this.view = 'grid';
+            }
+        },
+        
+        async logout() {
+            this.playSound('logout');
+            await this.supabase.auth.signOut();
+            this.view = 'auth';
+            this.username = '';
+            this.userEmail = '';
+            this.isDirector = false;
+        },
 
-        // REST OF YOUR FUNCTIONS (Audio, Charts, Chat, Gallery, etc.) REMAIN THE SAME
-        initAudio() { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); },
+        // --- UTILITIES ---
+        initAudio() {
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        },
+
         playSound(type) {
             if (!this.soundEnabled || !this.audioContext) return;
             const oscillator = this.audioContext.createOscillator();
@@ -281,34 +321,24 @@ function ministry() {
                 logout: { freq: 300, duration: 0.3, type: 'sawtooth' },
                 error: { freq: 200, duration: 0.4, type: 'sawtooth' }
             };
-            const sound = sounds[type] || sounds.message;
-            oscillator.frequency.value = sound.freq;
-            oscillator.type = sound.type;
+            const s = sounds[type] || sounds.message;
+            oscillator.frequency.value = s.freq;
+            oscillator.type = s.type;
             gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
             oscillator.start();
-            oscillator.stop(this.audioContext.currentTime + sound.duration);
-        },
-
-        async checkSession() {
-            const { data: { session } } = await this.supabase.auth.getSession();
-            if (session) {
-                const { data: profile } = await this.supabase.from('profiles').select('*').eq('id', session.user.id).single();
-                this.userEmail = session.user.email;
-                this.username = profile?.handle || session.user.email.split('@')[0].toUpperCase();
-                this.isDirector = profile?.is_director || await this.checkIfDirector(this.userEmail);
-                if (!this.isDirector) this.view = 'grid';
-            }
-        },
-
-        async logout() {
-            await this.supabase.auth.signOut();
-            this.view = 'auth';
-            this.username = '';
-            this.playSound('logout');
+            oscillator.stop(this.audioContext.currentTime + s.duration);
         },
 
         updateClock() {
             this.currentTime = new Date().toLocaleTimeString('en-GB', { timeZone: 'Africa/Johannesburg' }) + ' SAST';
+        },
+
+        updateSessionDuration() {
+            if (!this.sessionStart) return;
+            const diff = Math.floor((Date.now() - this.sessionStart) / 60000);
+            const hrs = Math.floor(diff / 60).toString().padStart(2, '0');
+            const mins = (diff % 60).toString().padStart(2, '0');
+            this.sessionDuration = `${hrs}:${mins}`;
         },
 
         scrollToBottom() {
@@ -317,15 +347,25 @@ function ministry() {
                 if (container) container.scrollTop = container.scrollHeight;
             });
         },
-        
-        // Include your remaining chart/gallery/upload helper functions here...
-        loadPreferences() { /* ... */ },
-        savePreferences() { /* ... */ },
-        loadChartVotes() { /* ... */ },
-        loadMessages() { /* ... */ },
-        subscribeToMessages() { /* ... */ },
-        sendMessage() { /* ... */ },
-        loadGallery() { /* ... */ },
-        subscribeToGallery() { /* ... */ }
+
+        // --- PREFERENCES ---
+        loadPreferences() {
+            const prefs = JSON.parse(localStorage.getItem('mog_prefs') || '{}');
+            this.darkMode = prefs.darkMode !== false;
+            if (!this.darkMode) document.body.classList.add('light-mode');
+        },
+
+        savePreferences() {
+            localStorage.setItem('mog_prefs', JSON.stringify({ darkMode: this.darkMode }));
+        },
+
+        // --- DATABASE LOADERS (Include your original logic here) ---
+        async loadMessages() { /* Use your original logic */ },
+        async loadGallery() { /* Use your original logic */ },
+        async loadChartVotes() { /* Use your original logic */ },
+        subscribeToMessages() { /* Use your original logic */ },
+        subscribeToGallery() { /* Use your original logic */ },
+        subscribeToTyping() { /* Use your original logic */ }
     }
 }
+
