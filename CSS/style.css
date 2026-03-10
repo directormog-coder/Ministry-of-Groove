@@ -708,3 +708,520 @@
         radial-gradient(ellipse at 70% 80%, rgba(139, 0, 0, 0.1) 0%, transparent 50%);
     pointer-events: none;
 }
+
+/* ============================================
+   CIRCUIT BOARD BACKGROUND PATTERN
+   ============================================ */
+
+.bg-circuit-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image: url('assets/images/circuit_pattern.png');
+    background-size: 512px 512px;
+    background-repeat: repeat;
+    background-color: #000000;
+    animation: circuitScroll 20s linear infinite;
+    opacity: 0.7;
+}
+
+.bg-circuit-pattern::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.6) 100%);
+    pointer-events: none;
+}
+
+@keyframes circuitScroll {
+    0% { background-position: 0 0; }
+    100% { background-position: 512px 512px; }
+}
+
+/* Alternative: Static circuit background */
+.bg-circuit-static {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-image: url('assets/images/circuit_pattern.png');
+    background-size: cover;
+    background-position: center;
+    background-color: #000000;
+    opacity: 0.5;
+}
+
+/* ============================================
+   IMPROVED FOOTER - MOG BRAND COLORS
+   ============================================ */
+
+/* Footer Container */
+.mog-footer {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 10, 15, 0.98) 100%);
+    border-top: 3px solid #D4AF37;
+    padding: 40px 24px 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.mog-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #40E0D0, #D4AF37, #40E0D0, transparent);
+    animation: borderGlow 3s ease-in-out infinite;
+}
+
+@keyframes borderGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Footer Grid Layout */
+.mog-footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .mog-footer-grid {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+/* Footer Brand Section */
+.mog-footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mog-footer-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+}
+
+.mog-footer-tagline {
+    font-size: 16px;
+    color: #40E0D0;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.mog-footer-description {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #a0a0a0;
+    max-width: 300px;
+}
+
+/* Footer Section Headers */
+.mog-footer-heading {
+    font-size: 18px;
+    font-weight: 800;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 20px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.mog-footer-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #D4AF37, #40E0D0);
+}
+
+/* Footer Links */
+.mog-footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mog-footer-link {
+    font-size: 15px;
+    color: #c0c0c0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mog-footer-link:hover {
+    color: #40E0D0;
+    transform: translateX(5px);
+}
+
+.mog-footer-link::before {
+    content: '›';
+    color: #D4AF37;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Contact Info */
+.mog-contact-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    color: #c0c0c0;
+}
+
+.mog-contact-icon {
+    width: 24px;
+    height: 24px;
+    color: #D4AF37;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.mog-contact-label {
+    font-size: 13px;
+    color: #40E0D0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    display: block;
+}
+
+/* Social Media Section */
+.mog-social-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.mog-social-heading {
+    text-align: center;
+    font-size: 16px;
+    color: #40E0D0;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.mog-social-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.mog-social-link {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid #D4AF37;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D4AF37;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.mog-social-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(64, 224, 208, 0.3) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mog-social-link:hover {
+    background: #D4AF37;
+    color: #000000;
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+}
+
+.mog-social-link:hover::before {
+    opacity: 1;
+}
+
+.mog-social-link svg {
+    width: 26px;
+    height: 26px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Social Platform Specific Colors on Hover */
+.mog-social-link.instagram:hover {
+    background: #E4405F;
+    border-color: #E4405F;
+    color: white;
+}
+
+.mog-social-link.twitter:hover {
+    background: #1DA1F2;
+    border-color: #1DA1F2;
+    color: white;
+}
+
+.mog-social-link.facebook:hover {
+    background: #1877F2;
+    border-color: #1877F2;
+    color: white;
+}
+
+.mog-social-link.youtube:hover {
+    background: #FF0000;
+    border-color: #FF0000;
+    color: white;
+}
+
+.mog-social-link.tiktok:hover {
+    background: #000000;
+    border-color: #00f2ea;
+    color: #ff0050;
+    box-shadow: 0 0 20px rgba(0, 242, 234, 0.5);
+}
+
+.mog-social-link.whatsapp:hover {
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+}
+
+.mog-social-link.telegram:hover {
+    background: #0088cc;
+    border-color: #0088cc;
+    color: white;
+}
+
+/* Bottom Bar */
+.mog-footer-bottom {
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(64, 224, 208, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .mog-footer-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+    }
+}
+
+.mog-copyright {
+    font-size: 14px;
+    color: #606060;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.mog-copyright strong {
+    color: #D4AF37;
+    font-weight: 700;
+}
+
+.mog-legal-links {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.mog-legal-link {
+    font-size: 13px;
+    color: #808080;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.mog-legal-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: #40E0D0;
+    transition: width 0.3s ease;
+}
+
+.mog-legal-link:hover {
+    color: #40E0D0;
+}
+
+.mog-legal-link:hover::after {
+    width: 100%;
+}
+
+/* ============================================
+   GLOBAL FONT SIZE INCREASE
+   ============================================ */
+
+/* Base font size increase */
+body {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Increase all text elements */
+p, span, a, li, button, input, textarea {
+    font-size: 15px;
+}
+
+/* Small text elements */
+.text-xs, .text-\[10px\], .text-\[8px\] {
+    font-size: 13px !important;
+}
+
+.text-sm, .text-\[12px\] {
+    font-size: 15px !important;
+}
+
+/* Medium text */
+.text-base, .text-\[14px\] {
+    font-size: 17px !important;
+}
+
+/* Large text */
+.text-lg, .text-\[16px\] {
+    font-size: 20px !important;
+}
+
+/* Extra large */
+.text-xl, .text-\[20px\] {
+    font-size: 24px !important;
+}
+
+/* Headings scale up */
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+
+/* Terminal font adjustments */
+.terminal-font {
+    font-size: 15px;
+    letter-spacing: 0.05em;
+}
+
+/* Button text */
+button, .btn {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Input fields */
+input, textarea, select {
+    font-size: 16px;
+}
+
+/* Navigation items */
+.nav-item, .nav-link {
+    font-size: 16px;
+}
+
+/* Chat messages */
+.message-text {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* Status indicators */
+.status-text {
+    font-size: 14px;
+}
+
+/* ============================================
+   COLOR THEME BASED ON LOGO
+   ============================================ */
+
+:root {
+    /* Primary MOG Colors from logo */
+    --mog-gold: #D4AF37;
+    --mog-gold-light: #F4D03F;
+    --mog-gold-dark: #B8941F;
+    --mog-cyan: #40E0D0;
+    --mog-cyan-light: #5FF5E8;
+    --mog-cyan-dark: #2BC0B0;
+    --mog-black: #050508;
+    --mog-dark: #0a0a10;
+    
+    /* Text colors */
+    --text-primary: #ffffff;
+    --text-secondary: #c0c0c0;
+    --text-muted: #808080;
+}
+
+/* Apply MOG colors to existing classes */
+.text-gold { color: var(--mog-gold) !important; }
+.bg-gold { background-color: var(--mog-gold) !important; }
+.border-gold { border-color: var(--mog-gold) !important; }
+
+.text-cyan { color: var(--mog-cyan) !important; }
+.bg-cyan { background-color: var(--mog-cyan) !important; }
+.border-cyan { border-color: var(--mog-cyan) !important; }
+
+/* Glow effects using logo colors */
+.glow-gold {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4),
+                0 0 40px rgba(212, 175, 55, 0.2);
+}
+
+.glow-cyan {
+    box-shadow: 0 0 20px rgba(64, 224, 208, 0.4),
+                0 0 40px rgba(64, 224, 208, 0.2);
+}
+
+/* Gradient text */
+.text-gradient-gold {
+    background: linear-gradient(135deg, var(--mog-gold), var(--mog-gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.text-gradient-cyan {
+    background: linear-gradient(135deg, var(--mog-cyan), var(--mog-cyan-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
