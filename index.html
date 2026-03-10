@@ -12,10 +12,53 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
+    <style>
+        /* Critical CSS for auth states */
+        .director-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            animation: pulse-gold 2s infinite;
+        }
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
+        }
+        .auth-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 12px;
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .loading-spinner {
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-top-color: #ffd700;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden">
 
-    <!-- Circuit Board Background (from logo pattern) -->
+    <!-- Circuit Board Background -->
     <div class="bg-circuit-pattern"></div>
     <div class="circuit-vignette"></div>
 
@@ -100,7 +143,7 @@
                 
                 <!-- Actual MOG Logo -->
                 <div class="mog-logo-container mx-auto mb-4">
-                    <img src="assets/images/logo.png" alt="Ministry of Groove" class="mog-logo-img">
+                    <img src="assets/images/logo.png" alt="Ministry of Groove" class="mog-logo-img" @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23000%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-family=%22Arial%22 font-size=%2214%22 fill=%22%23ffd700%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EMOG%3C/text%3E%3C/svg%3E'">
                 </div>
 
                 <div class="space-y-6">
@@ -109,19 +152,39 @@
                         <div class="space-y-2">
                             <h1 class="text-white font-black uppercase tracking-[0.3em] text-sm italic">Ministry of Groove</h1>
                             <p class="text-gold/40 text-[8px] uppercase font-black tracking-[0.2em]">Secure Authentication Required</p>
+                            <div x-show="isDirector" class="director-badge inline-block mt-2">Director Access</div>
                         </div>
                         
                         <div class="space-y-3">
-                            <input x-model="emailInput" type="email" placeholder="OPERATIVE@GMAIL.COM" class="w-full bg-black/60 backdrop-blur-md border border-gold/20 p-5 rounded-2xl text-[11px] text-white uppercase outline-none focus:border-gold terminal-font text-center transition-all placeholder:text-zinc-600 hover:border-gold/40">
+                            <input x-model="emailInput" 
+                                   type="email" 
+                                   placeholder="OPERATIVE@GMAIL.COM" 
+                                   class="w-full bg-black/60 backdrop-blur-md border border-gold/20 p-5 rounded-2xl text-[11px] text-white uppercase outline-none focus:border-gold terminal-font text-center transition-all placeholder:text-zinc-600 hover:border-gold/40"
+                                   @input="checkDirectorEmail()">
                             
-                            <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black/60 backdrop-blur-md border border-gold/20 p-5 rounded-2xl text-[11px] text-white uppercase outline-none focus:border-gold terminal-font text-center transition-all placeholder:text-zinc-600 hover:border-gold/40" @keyup.enter="loginUser()">
+                            <input x-model="passwordInput" 
+                                   type="password" 
+                                   placeholder="PASSWORD" 
+                                   class="w-full bg-black/60 backdrop-blur-md border border-gold/20 p-5 rounded-2xl text-[11px] text-white uppercase outline-none focus:border-gold terminal-font text-center transition-all placeholder:text-zinc-600 hover:border-gold/40" 
+                                   @keyup.enter="loginUser()">
                             
-                            <button @click="loginUser()" :disabled="isLoading || !emailInput || !passwordInput" class="w-full py-5 bg-gradient-to-r from-gold to-yellow-600 text-black font-black text-[11px] uppercase rounded-full shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-gold/30 hover:from-yellow-400 hover:to-gold">
+                            <button @click="loginUser()" 
+                                    :disabled="isLoading || !emailInput || !passwordInput" 
+                                    class="w-full py-5 bg-gradient-to-r from-gold to-yellow-600 text-black font-black text-[11px] uppercase rounded-full shadow-lg active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:shadow-gold/30 hover:from-yellow-400 hover:to-gold">
                                 <span x-show="!isLoading">Initialize Access</span>
-                                <div x-show="isLoading" class="loader"></div>
+                                <div x-show="isLoading" class="loading-spinner"></div>
                             </button>
                         </div>
                         
+                        <!-- Enhanced Error Display -->
+                        <div x-show="errorMsg" x-transition class="auth-error">
+                            <div class="flex items-center justify-center gap-2">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                <span x-text="errorMsg"></span>
+                            </div>
+                            <div x-show="errorDetails" class="text-[9px] mt-2 opacity-80" x-text="errorDetails"></div>
+                        </div>
+
                         <div class="pt-4 border-t border-white/10">
                             <p class="text-[10px] text-zinc-500 mb-2">New Operative?</p>
                             <button @click="authMode = 'register'" class="text-[10px] uppercase text-gold/60 tracking-widest hover:text-gold transition-colors">Register Clearance</button>
@@ -147,13 +210,14 @@
                         
                         <button @click="registerUser()" :disabled="isLoading" class="w-full py-4 bg-white text-black font-black text-[11px] uppercase rounded-full hover:bg-gold transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                             <span x-show="!isLoading">Register & Initialize</span>
-                            <span x-show="isLoading" class="terminal-font">PROCESSING...</span>
+                            <span x-show="isLoading" class="terminal-font flex items-center gap-2">
+                                <div class="loading-spinner"></div>
+                                PROCESSING...
+                            </span>
                         </button>
                         
                         <button @click="authMode = 'login'" class="text-[10px] uppercase text-white/40 tracking-widest hover:text-white transition-colors">← Return to Login</button>
                     </div>
-                    
-                    <p x-show="errorMsg" x-text="errorMsg" x-transition class="text-red-500 text-[9px] uppercase font-black animate-pulse terminal-font bg-red-500/10 py-2 px-4 rounded-full border border-red-500/20"></p>
                 </div>
                 
                 <div class="pt-6 border-t border-white/5">
@@ -176,12 +240,13 @@
             <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <!-- Small Logo for header -->
-                    <img src="assets/images/logo.png" alt="MOG" class="mog-logo-small">
+                    <img src="assets/images/logo.png" alt="MOG" class="mog-logo-small" @error="$event.target.style.display='none'">
                     <div>
                         <p class="text-[10px] font-black uppercase text-white tracking-widest italic leading-tight">Ministry of Groove</p>
                         <div class="flex items-center gap-2">
                             <span class="status-dot" :class="'status-' + userStatus"></span>
                             <p class="text-[6px] text-gold/40 uppercase tracking-widest" x-text="username"></p>
+                            <span x-show="isDirector" class="director-badge">Director</span>
                             <span x-show="!isOnline" class="text-[6px] text-yellow-500 uppercase">[OFFLINE]</span>
                         </div>
                     </div>
@@ -226,7 +291,36 @@
                     </div>
                 </div>
 
-                <!-- NEW: Amapiano Top 10 Chart -->
+                <!-- Director Panel (Only for director.mog@gmail.com) -->
+                <div x-show="isDirector" class="glass p-6 rounded-[2rem] border border-gold/30 bg-gradient-to-r from-gold/10 to-transparent">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="shield" class="w-6 h-6 text-gold"></i>
+                            <h3 class="text-sm font-black uppercase tracking-widest text-white">Director Terminal</h3>
+                        </div>
+                        <span class="director-badge">Level 5 Clearance</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button @click="broadcastSystemMessage()" class="p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-[10px] font-black uppercase text-red-400 hover:bg-red-500/30 transition-all">
+                            <i data-lucide="radio" class="w-4 h-4 mx-auto mb-1"></i>
+                            Broadcast
+                        </button>
+                        <button @click="viewSystemLogs()" class="p-3 bg-blue-500/20 border border-blue-500/30 rounded-xl text-[10px] font-black uppercase text-blue-400 hover:bg-blue-500/30 transition-all">
+                            <i data-lucide="file-text" class="w-4 h-4 mx-auto mb-1"></i>
+                            System Logs
+                        </button>
+                        <button @click="manageUsers()" class="p-3 bg-green-500/20 border border-green-500/30 rounded-xl text-[10px] font-black uppercase text-green-400 hover:bg-green-500/30 transition-all">
+                            <i data-lucide="users" class="w-4 h-4 mx-auto mb-1"></i>
+                            Operatives
+                        </button>
+                        <button @click="emergencyLockdown()" class="p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-xl text-[10px] font-black uppercase text-yellow-400 hover:bg-yellow-500/30 transition-all">
+                            <i data-lucide="lock" class="w-4 h-4 mx-auto mb-1"></i>
+                            Lockdown
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Amapiano Top 10 Chart -->
                 <div x-show="subView === 'chat'" class="amapiano-chart p-6 rounded-[2rem] border border-gold/20">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
@@ -311,12 +405,12 @@
                         <template x-for="msg in messages" :key="msg.id">
                             <div :class="msg.username === username ? 'ml-auto items-end' : 'mr-auto items-start'" class="flex flex-col gap-1 max-w-[85%] message-enter">
                                 <div class="flex items-center gap-2">
-                                    <template x-if="msg.username === 'DIRECTORATE'">
+                                    <template x-if="msg.username === 'DIRECTORATE' || msg.isDirector">
                                         <div class="h-4 w-4 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/40">
                                             <i data-lucide="shield" class="w-2 h-2 text-red-400"></i>
                                         </div>
                                     </template>
-                                    <template x-if="msg.username !== 'DIRECTORATE'">
+                                    <template x-if="msg.username !== 'DIRECTORATE' && !msg.isDirector">
                                         <div class="h-4 w-4 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/40">
                                             <span class="text-[6px] text-blue-400 font-bold" x-text="msg.username.charAt(0)"></span>
                                         </div>
@@ -422,7 +516,7 @@
                                         <p class="text-[6px] text-zinc-500" x-text="formatDate(img.created_at)"></p>
                                     </div>
                                 </div>
-                                <button @click.stop="deleteImage(img.id)" class="absolute top-2 right-2 p-1.5 bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500" x-show="!img.isEncrypted">
+                                <button @click.stop="deleteImage(img.id)" class="absolute top-2 right-2 p-1.5 bg-red-500/80 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500" x-show="!img.isEncrypted && (img.owner === username || isDirector)">
                                     <i data-lucide="trash-2" class="w-3 h-3 text-white"></i>
                                 </button>
                             </div>
@@ -451,7 +545,7 @@
                 </div>
             </main>
 
-            <!-- Now Playing Bar (for Amapiano) -->
+            <!-- Now Playing Bar -->
             <div class="now-playing" :class="{ 'active': nowPlaying }">
                 <div class="progress-bar" :style="'width: ' + playbackProgress + '%'"></div>
                 <div class="now-playing-artwork">
@@ -476,122 +570,117 @@
             </div>
 
            <!-- MOG Enhanced Footer -->
-<footer class="mog-footer">
-    <div class="mog-footer-grid">
-        <!-- Brand Section -->
-        <div class="mog-footer-brand">
-            <img src="assets/images/logo.png" alt="Ministry of Groove" class="mog-footer-logo">
-            <p class="mog-footer-tagline">Secure. Connected. Groove.</p>
-            <p class="mog-footer-description">
-                The Ministry of Groove is your premier entertainment and event organization. 
-                Connecting operatives through secure channels and unforgettable experiences.
-            </p>
-        </div>
+            <footer class="mog-footer">
+                <div class="mog-footer-grid">
+                    <!-- Brand Section -->
+                    <div class="mog-footer-brand">
+                        <img src="assets/images/logo.png" alt="Ministry of Groove" class="mog-footer-logo" @error="$event.target.style.display='none'">
+                        <p class="mog-footer-tagline">Secure. Connected. Groove.</p>
+                        <p class="mog-footer-description">
+                            The Ministry of Groove is your premier entertainment and event organization. 
+                            Connecting operatives through secure channels and unforgettable experiences.
+                        </p>
+                    </div>
 
-        <!-- Quick Links -->
-        <div class="mog-footer-section">
-            <h4 class="mog-footer-heading">Operations</h4>
-            <div class="mog-footer-links">
-                <a href="index.html" class="mog-footer-link">Command Grid</a>
-                <a href="dossier.html" class="mog-footer-link">Operative Dossier</a>
-                <a href="archives.html" class="mog-footer-link">Classified Vault</a>
-                <a href="terminal.html" class="mog-footer-link">NCC Terminal</a>
-            </div>
-        </div>
+                    <!-- Quick Links -->
+                    <div class="mog-footer-section">
+                        <h4 class="mog-footer-heading">Operations</h4>
+                        <div class="mog-footer-links">
+                            <a href="index.html" class="mog-footer-link">Command Grid</a>
+                            <a href="dossier.html" class="mog-footer-link">Operative Dossier</a>
+                            <a href="archives.html" class="mog-footer-link">Classified Vault</a>
+                            <a href="terminal.html" class="mog-footer-link">NCC Terminal</a>
+                        </div>
+                    </div>
 
-        <!-- Contact Info -->
-        <div class="mog-footer-section">
-            <h4 class="mog-footer-heading">Contact Directorate</h4>
-            <div class="mog-contact-list">
-                <div class="mog-contact-item">
-                    <i data-lucide="mail" class="mog-contact-icon"></i>
-                    <div>
-                        <span class="mog-contact-label">Secure Email</span>
-                        <a href="mailto:director.mog@gmail.com" style="color: #c0c0c0; text-decoration: none;">director.mog@gmail.com</a>
+                    <!-- Contact Info -->
+                    <div class="mog-footer-section">
+                        <h4 class="mog-footer-heading">Contact Directorate</h4>
+                        <div class="mog-contact-list">
+                            <div class="mog-contact-item">
+                                <i data-lucide="mail" class="mog-contact-icon"></i>
+                                <div>
+                                    <span class="mog-contact-label">Secure Email</span>
+                                    <a href="mailto:director.mog@gmail.com" style="color: #c0c0c0; text-decoration: none; font-size: 11px;">director.mog@gmail.com</a>
+                                </div>
+                            </div>
+                            <div class="mog-contact-item">
+                                <i data-lucide="phone" class="mog-contact-icon"></i>
+                                <div>
+                                    <span class="mog-contact-label">Direct Line</span>
+                                    <span style="font-size: 11px;">+27 (0) 71 234 5678</span>
+                                </div>
+                            </div>
+                            <div class="mog-contact-item">
+                                <i data-lucide="map-pin" class="mog-contact-icon"></i>
+                                <div>
+                                    <span class="mog-contact-label">HQ Location</span>
+                                    <span style="font-size: 11px;">Emalahleni, Mpumalanga<br>South Africa</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal -->
+                    <div class="mog-footer-section">
+                        <h4 class="mog-footer-heading">Protocol</h4>
+                        <div class="mog-footer-links">
+                            <a href="tos.html" class="mog-footer-link">Terms of Service</a>
+                            <a href="privacy.html" class="mog-footer-link">Privacy Shield</a>
+                            <a href="security.html" class="mog-footer-link">Security Policy</a>
+                            <a href="clearance.html" class="mog-footer-link">Clearance Levels</a>
+                        </div>
                     </div>
                 </div>
-                <div class="mog-contact-item">
-                    <i data-lucide="phone" class="mog-contact-icon"></i>
-                    <div>
-                        <span class="mog-contact-label">Direct Line</span>
-                        <span>+27 (0) 71 234 5678</span>
+
+                <!-- Social Media Section - UPDATED WITH YOUR LINKS -->
+                <div class="mog-social-section">
+                    <p class="mog-social-heading">Connect With Us</p>
+                    <div class="mog-social-grid">
+                        <!-- Instagram -->
+                        <a href="https://www.instagram.com/ministryofgroove_hq?igsh=Y3Rwc24zcmtsY2xj" target="_blank" rel="noopener noreferrer" class="mog-social-link instagram" title="Instagram">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                        </a>
+                        
+                        <!-- YouTube -->
+                        <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" rel="noopener noreferrer" class="mog-social-link youtube" title="YouTube">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
+                        </a>
+                        
+                        <!-- TikTok -->
+                        <a href="https://www.tiktok.com/@ministryofgroove" target="_blank" rel="noopener noreferrer" class="mog-social-link tiktok" title="TikTok">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
+                        </a>
+                        
+                        <!-- WhatsApp - USING YOUR PROVIDED LINK -->
+                        <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" rel="noopener noreferrer" class="mog-social-link whatsapp" title="WhatsApp">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        </a>
+                        
+                        <!-- Twitter/X -->
+                        <a href="https://twitter.com/ministryofgroove" target="_blank" rel="noopener noreferrer" class="mog-social-link twitter" title="Twitter/X">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                        </a>
+                        
+                        <!-- Facebook -->
+                        <a href="https://facebook.com/ministryofgroove" target="_blank" rel="noopener noreferrer" class="mog-social-link facebook" title="Facebook">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                        </a>
                     </div>
                 </div>
-                <div class="mog-contact-item">
-                    <i data-lucide="map-pin" class="mog-contact-icon"></i>
-                    <div>
-                        <span class="mog-contact-label">HQ Location</span>
-                        <span>Emalahleni, Mpumalanga<br>South Africa</span>
+
+                <!-- Bottom Bar -->
+                <div class="mog-footer-bottom">
+                    <p class="mog-copyright">
+                        © 2026 <strong>MINISTRY OF GROOVE</strong> • NCC Master System v3.0
+                    </p>
+                    <div class="mog-legal-links">
+                        <a href="tos.html" class="mog-legal-link">Protocol TOS</a>
+                        <a href="privacy.html" class="mog-legal-link">Privacy Shield</a>
+                        <a href="security.html" class="mog-legal-link">Security Clearance</a>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Legal -->
-        <div class="mog-footer-section">
-            <h4 class="mog-footer-heading">Protocol</h4>
-            <div class="mog-footer-links">
-                <a href="tos.html" class="mog-footer-link">Terms of Service</a>
-                <a href="privacy.html" class="mog-footer-link">Privacy Shield</a>
-                <a href="security.html" class="mog-footer-link">Security Policy</a>
-                <a href="clearance.html" class="mog-footer-link">Clearance Levels</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Social Media Section -->
-    <div class="mog-social-section">
-        <p class="mog-social-heading">Connect With Us</p>
-        <div class="mog-social-grid">
-            <!-- Instagram -->
-            <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="mog-social-link instagram" title="Instagram">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-            </a>
-            
-            <!-- Twitter/X -->
-            <a href="https://twitter.com/ministryofgroove" target="_blank" class="mog-social-link twitter" title="Twitter/X">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
-            </a>
-            
-            <!-- Facebook -->
-            <a href="https://facebook.com/ministryofgroove" target="_blank" class="mog-social-link facebook" title="Facebook">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
-            </a>
-            
-            <!-- YouTube -->
-            <a href="https://youtube.com/@ministryofgroove" target="_blank" class="mog-social-link youtube" title="YouTube">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
-            </a>
-            
-            <!-- TikTok -->
-            <a href="https://tiktok.com/@ministryofgroove" target="_blank" class="mog-social-link tiktok" title="TikTok">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
-            </a>
-            
-            <!-- WhatsApp -->
-            <a href="https://wa.me/27712345678" target="_blank" class="mog-social-link whatsapp" title="WhatsApp">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-            </a>
-            
-            <!-- Telegram -->
-            <a href="https://t.me/ministryofgroove" target="_blank" class="mog-social-link telegram" title="Telegram">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </a>
-        </div>
-    </div>
-
-    <!-- Bottom Bar -->
-    <div class="mog-footer-bottom">
-        <p class="mog-copyright">
-            © 2026 <strong>MINISTRY OF GROOVE</strong> • NCC Master System v3.0
-        </p>
-        <div class="mog-legal-links">
-            <a href="tos.html" class="mog-legal-link">Protocol TOS</a>
-            <a href="privacy.html" class="mog-legal-link">Privacy Shield</a>
-            <a href="security.html" class="mog-legal-link">Security Clearance</a>
-        </div>
-    </div>
-</footer>
+            </footer>
 
             <!-- Settings Modal -->
             <div x-show="showSettings" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90" x-transition>
@@ -639,16 +728,26 @@
         </div>
     </template>
 
+    <!-- Load App Logic -->
     <script src="JS/app.js"></script>
     <script>
+        // Global toast function
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.textContent = message;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
+
+        // Initialize Lucide icons after Alpine loads
+        document.addEventListener('alpine:initialized', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>
