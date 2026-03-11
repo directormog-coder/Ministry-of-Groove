@@ -5,64 +5,153 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DOSSIER | Ministry of Groove</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
-</head>
-<body class="bg-black text-white min-h-screen bg-grid">
-    <div class="max-w-2xl mx-auto p-6">
-        <header class="flex items-center gap-4 mb-8">
-            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-white/10 transition-all">
-                <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
-            </button>
-            <h1 class="text-lg font-black uppercase tracking-widest italic">Operative Dossier</h1>
-        </header>
+    
+    <script>
+        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        
+        function dossierLogic() {
+            return {
+                view: 'loading',
+                user: { email: '', handle: '', id: '', created: '' },
+                isDirector: false,
 
-        <div class="glass rounded-[2.5rem] p-8 space-y-6">
-            <div class="flex items-center gap-6">
-                <div class="h-24 w-24 rounded-full bg-gradient-to-br from-gold/30 to-transparent border-2 border-gold/50 flex items-center justify-center gold-glow">
-                    <i data-lucide="user" class="w-10 h-10 text-gold"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-black uppercase text-white">OPERATIVE HANDLE</h2>
-                    <p class="text-gold/60 text-sm terminal-font">Clearance Level: Standard</p>
-                    <div class="flex gap-2 mt-2">
-                        <span class="px-3 py-1 bg-green-500/20 text-green-400 text-[10px] uppercase rounded-full border border-green-500/30">Active</span>
-                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] uppercase rounded-full border border-blue-500/30">Grid Access</span>
+                async init() {
+                    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    this.user = {
+                        email: session.user.email,
+                        handle: session.user.user_metadata.handle || 'Unknown Operative',
+                        id: session.user.id.substring(0, 12).toUpperCase(),
+                        created: new Date(session.user.created_at).toLocaleDateString()
+                    };
+                    this.isDirector = session.user.email === 'director.mog@gmail.com';
+                    this.view = 'ready';
+                    this.$nextTick(() => lucide.createIcons());
+                }
+            }
+        }
+    </script>
+</head>
+<body x-data="dossierLogic()" x-init="init()" class="bg-black text-white min-h-screen bg-grid">
+
+    <template x-if="view === 'ready'">
+        <div class="max-w-4xl mx-auto p-6 animate-fade-in">
+            
+            <header class="flex items-center gap-4 mb-12">
+                <button onclick="history.back()" class="p-4 glass rounded-2xl border border-white/10 hover:border-gold/50 transition-all">
+                    <i data-lucide="chevron-left" class="w-6 h-6 text-gold"></i>
+                </button>
+                <h1 class="text-xl font-black uppercase tracking-widest italic">Operative Dossier</h1>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <div class="md:col-span-1">
+                    <div class="glass p-6 rounded-[2.5rem] border border-gold/20 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4">
+                            <i data-lucide="shield-check" class="w-5 h-5 text-gold/30"></i>
+                        </div>
+                        
+                        <div class="w-32 h-32 mx-auto bg-gradient-to-br from-zinc-800 to-black rounded-3xl border border-white/10 flex items-center justify-center mb-6 relative">
+                            <i data-lucide="user" class="w-12 h-12 text-zinc-600"></i>
+                            <div class="absolute inset-0 border-2 border-gold/10 rounded-3xl animate-pulse"></div>
+                        </div>
+
+                        <div class="text-center space-y-1">
+                            <h2 class="text-lg font-black uppercase tracking-tighter" x-text="user.handle"></h2>
+                            <p class="text-[9px] text-gold font-bold uppercase tracking-widest" x-text="isDirector ? 'DIRECTORATE' : 'FIELD OPERATIVE'"></p>
+                        </div>
+
+                        <div class="mt-8 pt-8 border-t border-white/5 space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[7px] text-zinc-500 uppercase font-black">Serial ID</span>
+                                <span class="text-[9px] text-white terminal-font" x-text="user.id"></span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[7px] text-zinc-500 uppercase font-black">Status</span>
+                                <span class="text-[7px] text-green-500 font-black px-2 py-0.5 bg-green-500/10 rounded border border-green-500/20">ACTIVE</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="md:col-span-2 space-y-6">
+                    
+                    <div class="glass p-8 rounded-[2.5rem] border border-white/5 space-y-8">
+                        <div>
+                            <h3 class="text-[10px] font-black uppercase text-gold mb-6 flex items-center gap-2">
+                                <i data-lucide="database" class="w-4 h-4"></i>
+                                Credential Metadata
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-1">
+                                    <p class="text-[7px] text-zinc-500 uppercase font-black">Uplink Email</p>
+                                    <p class="text-xs font-bold text-white/80" x-text="user.email"></p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[7px] text-zinc-500 uppercase font-black">Clearance Granted</p>
+                                    <p class="text-xs font-bold text-white/80" x-text="user.created"></p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[7px] text-zinc-500 uppercase font-black">Primary Sector</p>
+                                    <p class="text-xs font-bold text-white/80">eMalahleni, ZA</p>
+                                </div>
+                                <div class="space-y-1">
+                                    <p class="text-[7px] text-zinc-500 uppercase font-black">NCC Master Link</p>
+                                    <p class="text-xs font-bold text-green-400">ENCRYPTED</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-8 border-t border-white/5">
+                            <h3 class="text-[10px] font-black uppercase text-gold mb-6">Operative Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="message-square" class="w-4 h-4 text-blue-400"></i>
+                                        <span class="text-[10px] uppercase font-bold">Grid Contributions</span>
+                                    </div>
+                                    <span class="text-xs font-black terminal-font">842</span>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                    <div class="flex items-center gap-3">
+                                        <i data-lucide="share-2" class="w-4 h-4 text-purple-400"></i>
+                                        <span class="text-[10px] uppercase font-bold">Files Archived</span>
+                                    </div>
+                                    <span class="text-xs font-black terminal-font">12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button @click="alert('Accessing secure preferences...')" class="w-full py-4 glass rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/5 transition-all">
+                        Edit Operative Bio
+                    </button>
+                </div>
             </div>
 
-            <div class="space-y-4 pt-6 border-t border-white/10">
-                <div class="flex justify-between items-center py-3 border-b border-white/5">
-                    <span class="text-zinc-500 text-sm uppercase">Operative ID</span>
-                    <span class="text-white terminal-font">MOG-2026-8842</span>
-                </div>
-                <div class="flex justify-between items-center py-3 border-b border-white/5">
-                    <span class="text-zinc-500 text-sm uppercase">Grid Access</span>
-                    <span class="text-green-400 text-sm">Authorized</span>
-                </div>
-                <div class="flex justify-between items-center py-3 border-b border-white/5">
-                    <span class="text-zinc-500 text-sm uppercase">Last Sync</span>
-                    <span class="text-white terminal-font" id="lastSync">Just now</span>
-                </div>
-                <div class="flex justify-between items-center py-3">
-                    <span class="text-zinc-500 text-sm uppercase">Status</span>
-                    <select class="bg-black/50 border border-gold/30 rounded-lg text-sm text-white px-3 py-1 outline-none">
-                        <option>Online</option>
-                        <option>Away</option>
-                        <option>Busy</option>
-                        <option>Deep Cover</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="pt-4">
-                <button class="w-full py-4 bg-gold text-black font-black uppercase rounded-full hover:bg-yellow-400 transition-all">
-                    Update Dossier
-                </button>
+            <div class="mt-12 text-center">
+                <p class="text-[7px] text-zinc-600 uppercase tracking-[0.5em]">End of Dossier | Classified MOG Information</p>
             </div>
         </div>
-    </div>
-    <script>lucide.createIcons(); document.getElementById('lastSync').textContent = new Date().toLocaleString();</script>
+    </template>
+
+    <template x-if="view === 'loading'">
+        <div class="h-screen flex items-center justify-center">
+            <div class="loader"></div>
+        </div>
+    </template>
+
 </body>
 </html>
