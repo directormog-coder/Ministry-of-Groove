@@ -23,14 +23,13 @@
                 isDirector: false,
                 currentTime: '',
                 searchQuery: '',
+                isUploading: false, // Added state for your new button
                 
-                // Vault Data Manifest
                 assets: [
                     { id: 1, name: 'Project_Asili_Blueprints.pdf', type: 'DOC', size: '4.2MB', level: 'Director', icon: 'file-text', color: 'text-red-400' },
                     { id: 2, name: 'Intelligence_Briefing_March.wav', type: 'AUDIO', size: '12.8MB', level: 'Operative', icon: 'mic', color: 'text-blue-400' },
                     { id: 3, name: 'Ministry_Wealth_Index.xlsx', type: 'DATA', size: '1.1MB', level: 'Director', icon: 'trending-up', color: 'text-gold' },
-                    { id: 4, name: 'Event_Protocol_v3.pdf', type: 'DOC', size: '800KB', level: 'Operative', icon: 'shield-check', color: 'text-green-400' },
-                    { id: 5, name: 'Sector_7_Mapping.zip', type: 'MAP', size: '24.5MB', level: 'Operative', icon: 'map', color: 'text-purple-400' }
+                    { id: 4, name: 'Event_Protocol_v3.pdf', type: 'DOC', size: '800KB', level: 'Operative', icon: 'shield-check', color: 'text-green-400' }
                 ],
 
                 async init() {
@@ -38,15 +37,12 @@
                     await this.checkAuth();
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
-                    if (window.lucide) lucide.createIcons();
+                    this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
                 },
 
                 async checkAuth() {
                     const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (!session) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
+                    if (!session) { window.location.href = 'index.html'; return; }
                     this.username = session.user.user_metadata.handle || session.user.email.split('@')[0];
                     this.isDirector = session.user.email === 'director.mog@gmail.com';
                     this.view = 'ready';
@@ -59,74 +55,53 @@
                 get filteredAssets() {
                     return this.assets.filter(asset => {
                         const matchesSearch = asset.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        // Operatives cannot see Director-level files
                         const hasClearance = asset.level === 'Director' ? this.isDirector : true;
                         return matchesSearch && hasClearance;
                     });
-                },
-
-                accessAsset(asset) {
-                    alert(`Uplink initiated for: ${asset.name}\nLevel: ${asset.level}\nStatus: DECRYPTING...`);
                 }
             }
         }
     </script>
 </head>
-<body x-data="vaultLogic()" x-init="init()" class="bg-black text-white min-h-screen bg-grid selection:bg-gold/30">
-    
-    <div class="bg-circuit-pattern"></div>
+<body x-data="vaultLogic()" x-init="init()" class="bg-black text-white min-h-screen bg-grid">
 
     <template x-if="view === 'ready'">
         <div class="max-w-5xl mx-auto p-6 relative z-10 animate-fade-in">
             
             <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                 <div class="flex items-center gap-6">
-                    <button onclick="history.back()" class="p-4 glass rounded-2xl border border-white/10 hover:border-gold/50 transition-all hover:scale-105">
+                    <button onclick="history.back()" class="p-4 glass rounded-2xl border border-white/10 hover:border-gold/50 transition-all">
                         <i data-lucide="chevron-left" class="w-6 h-6 text-gold"></i>
                     </button>
                     <div>
                         <h1 class="text-2xl font-black uppercase tracking-tighter italic">Classified Vault</h1>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                            <p class="text-[10px] text-gold font-bold uppercase tracking-widest" x-text="'CLEARANCE: ' + (isDirector ? 'DIRECTORATE' : 'LEVEL 5 OPERATIVE')"></p>
-                        </div>
+                        <p class="text-[10px] text-gold font-bold uppercase tracking-widest" x-text="isDirector ? 'DIRECTORATE CLEARANCE' : 'OPERATIVE ACCESS'"></p>
                     </div>
                 </div>
-                
-                <div class="glass px-6 py-3 rounded-2xl border border-white/5 text-right">
-                    <p class="terminal-font text-lg font-black text-white" x-text="currentTime"></p>
-                    <p class="text-[8px] text-zinc-500 uppercase tracking-widest" x-text="'Operative: ' + username"></p>
+                <div class="glass px-6 py-3 rounded-2xl border border-white/5">
+                    <p class="terminal-font text-lg font-black" x-text="currentTime"></p>
                 </div>
             </header>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="glass p-4 rounded-3xl border border-white/5 text-center group cursor-pointer hover:border-blue-500/30 transition-all">
-                    <i data-lucide="file-text" class="w-6 h-6 mx-auto mb-2 text-blue-400"></i>
-                    <p class="text-[9px] font-black uppercase">Documents</p>
-                </div>
-                <div class="glass p-4 rounded-3xl border border-white/5 text-center group cursor-pointer hover:border-purple-500/30 transition-all">
-                    <i data-lucide="mic" class="w-6 h-6 mx-auto mb-2 text-purple-400"></i>
-                    <p class="text-[9px] font-black uppercase">Intel Audio</p>
-                </div>
-                <div class="glass p-4 rounded-3xl border border-white/5 text-center group cursor-pointer hover:border-red-500/30 transition-all">
-                    <i data-lucide="shield-alert" class="w-6 h-6 mx-auto mb-2 text-red-500"></i>
-                    <p class="text-[9px] font-black uppercase">Tactical</p>
-                </div>
-                <div class="glass p-4 rounded-3xl border border-white/5 text-center group cursor-pointer hover:border-gold/30 transition-all">
-                    <i data-lucide="key" class="w-6 h-6 mx-auto mb-2 text-gold"></i>
-                    <p class="text-[9px] font-black uppercase">Credentials</p>
-                </div>
-            </div>
-
             <div class="glass rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between gap-4">
+                <div class="p-6 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
                     <h2 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="database" class="w-4 h-4 text-gold"></i>
-                        Digital Asset Manifest
+                        <i data-lucide="database" class="w-4 h-4 text-gold"></i> Digital Asset Manifest
                     </h2>
-                    <div class="relative">
-                        <i data-lucide="search" class="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                        <input x-model="searchQuery" type="text" placeholder="FILTER BY FILENAME..." class="bg-black/40 border border-white/10 rounded-full px-8 py-2 text-[10px] outline-none focus:border-gold/50 transition-all w-full md:w-64 uppercase terminal-font">
+                    
+                    <div class="flex items-center gap-3">
+                        <template x-if="isDirector">
+                            <button @click="isUploading = true; setTimeout(() => { isUploading = false; assets.push({id: Date.now(), name: 'New_Intel_Archive.pdf', type: 'DOC', size: '1.2MB', level: 'Director', icon: 'upload-cloud', color: 'text-gold'}); lucide.createIcons(); }, 3000)" 
+                                    class="bg-gold text-black px-4 py-2 rounded-full text-[9px] font-black uppercase flex items-center gap-2 hover:bg-yellow-400 transition-all">
+                                <i data-lucide="upload-cloud" class="w-3 h-3"></i>
+                                <span x-text="isUploading ? 'TRANSMITTING...' : 'Secure Upload'"></span>
+                            </button>
+                        </template>
+
+                        <div class="relative">
+                            <i data-lucide="search" class="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                            <input x-model="searchQuery" type="text" placeholder="FILTER..." class="bg-black/40 border border-white/10 rounded-full px-8 py-2 text-[10px] outline-none w-48 uppercase">
+                        </div>
                     </div>
                 </div>
 
@@ -134,32 +109,24 @@
                     <table class="w-full text-left">
                         <thead class="text-[9px] text-zinc-500 uppercase font-black tracking-widest bg-white/[0.02]">
                             <tr>
-                                <th class="px-6 py-4">Asset Identification</th>
-                                <th class="px-6 py-4">Sector</th>
+                                <th class="px-6 py-4">Identification</th>
                                 <th class="px-6 py-4">Size</th>
                                 <th class="px-6 py-4 text-right">Clearance</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
                             <template x-for="asset in filteredAssets" :key="asset.id">
-                                <tr @click="accessAsset(asset)" class="hover:bg-white/[0.03] transition-colors cursor-pointer group">
+                                <tr class="hover:bg-white/[0.03] transition-colors group">
                                     <td class="px-6 py-5">
                                         <div class="flex items-center gap-4">
-                                            <div class="p-2 rounded-lg bg-white/5 border border-white/10 group-hover:border-gold/30 transition-all">
-                                                <i :data-lucide="asset.icon" class="w-4 h-4" :class="asset.color"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-bold text-white group-hover:text-gold transition-colors" x-text="asset.name"></p>
-                                                <p class="text-[8px] text-zinc-500 uppercase mt-0.5" x-text="asset.type"></p>
-                                            </div>
+                                            <i :data-lucide="asset.icon" class="w-4 h-4" :class="asset.color"></i>
+                                            <span class="text-xs font-bold text-white group-hover:text-gold transition-colors" x-text="asset.name"></span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-5 text-[10px] text-zinc-400 terminal-font">EMAL-HQ-S01</td>
                                     <td class="px-6 py-5 text-[10px] text-zinc-400 terminal-font" x-text="asset.size"></td>
                                     <td class="px-6 py-5 text-right">
-                                        <span :class="asset.level === 'Director' ? 'border-red-500/40 text-red-500 bg-red-500/5' : 'border-blue-500/40 text-blue-500 bg-blue-500/5'" 
-                                              class="text-[7px] font-black px-2 py-1 rounded border uppercase tracking-tighter" 
-                                              x-text="asset.level"></span>
+                                        <span :class="asset.level === 'Director' ? 'text-red-500 border-red-500/40 bg-red-500/5' : 'text-blue-500 border-blue-500/40 bg-blue-500/5'" 
+                                              class="text-[7px] font-black px-2 py-1 rounded border uppercase" x-text="asset.level"></span>
                                     </td>
                                 </tr>
                             </template>
@@ -167,31 +134,11 @@
                     </table>
                 </div>
             </div>
-
-            <div class="mt-8 glass p-6 rounded-3xl border border-red-500/20 bg-red-500/5 flex items-start gap-4">
-                <i data-lucide="shield-alert" class="w-6 h-6 text-red-500 shrink-0"></i>
-                <div class="space-y-2">
-                    <h3 class="font-black uppercase text-sm text-red-400 tracking-widest">Directorate Security Directive</h3>
-                    <p class="text-[10px] text-zinc-400 leading-relaxed uppercase">
-                        All access to this vault is encrypted via the **NCC-Master protocol**. Terminal ID: <span class="text-white">MOG-XP-01</span>. 
-                        Activity logged from <span class="text-white">eMalahleni, South Africa</span>. Unauthorized redistribution of assets will result in immediate clearance revocation.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </template>
-
-    <template x-if="view === 'loading'">
-        <div class="h-screen w-full flex flex-col items-center justify-center space-y-4">
-            <div class="loader"></div>
-            <p class="text-[10px] font-black text-gold uppercase tracking-[0.3em] animate-pulse">Establishing Secure Uplink...</p>
         </div>
     </template>
 
     <script>
-        document.addEventListener('alpine:initialized', () => {
-            lucide.createIcons();
-        });
+        document.addEventListener('alpine:initialized', () => { lucide.createIcons(); });
     </script>
 </body>
 </html>
