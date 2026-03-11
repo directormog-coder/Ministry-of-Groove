@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MOG | CLASSIFIED VAULT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="CSS/style.css">
+    
+    <script>
+        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        
+        let supabaseClient = null;
+
+        function vaultSystem() {
+            return {
+                view: 'loading',
+                username: '',
+                isDirector: false,
+                currentTime: '',
+                vaultItems: [
+                    { id: 1, name: 'Project_Asili_Blueprints.pdf', category: 'Intelligence', size: '2.4MB', date: '2026-03-01', level: 'Director' },
+                    { id: 2, name: 'Ministry_Event_Protocol_v2.docx', category: 'Operations', size: '1.1MB', date: '2026-02-15', level: 'Operative' },
+                    { id: 3, name: 'Financial_Projections_Q4.xlsx', category: 'Directorate', size: '4.8MB', date: '2026-03-10', level: 'Director' },
+                    { id: 4, name: 'Operative_Handbook.pdf', category: 'General', size: '800KB', date: '2025-12-20', level: 'Operative' }
+                ],
+                
+                async init() {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    await this.checkAccess();
+                    this.updateTime();
+                    setInterval(() => this.updateTime(), 1000);
+                    if (window.lucide) lucide.createIcons();
+                },
+
+                async checkAccess() {
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    this.username = session.user.user_metadata.handle || session.user.email.split('@')[0];
+                    this.isDirector = session.user.email === 'director.mog@gmail.com';
+                    this.view = 'active';
+                },
+
+                updateTime() {
+                    this.currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+                },
+
+                downloadFile(item) {
+                    if (item.level === 'Director' && !this.isDirector) {
+                        alert('ACCESS DENIED: DIRECTOR CLEARANCE REQUIRED');
+                        return;
+                    }
+                    console.log(`Downloading: ${item.name}`);
+                }
+            }
+        }
+    </script>
+</head>
+<body x-data="vaultSystem()" x-init="init()" class="bg-black text-white min-h-screen overflow-x-hidden">
+
+    <div class="bg-circuit-pattern"></div>
+    <div class="circuit-vignette"></div>
+
+    <template x-if="view === 'active'">
+        <div class="relative z-10 flex flex-col min-h-screen">
+            
+            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0">
+                <div class="flex items-center gap-4">
+                    <button @click="window.location.href='index.html'" class="p-2 hover:bg-white/10 rounded-full transition-all">
+                        <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-sm font-black uppercase tracking-widest italic leading-tight">Classified Vault</h1>
+                        <p class="text-[8px] text-gold/40 uppercase tracking-widest">Sector: Emalahleni HQ</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="terminal-font text-[10px] text-white font-bold" x-text="currentTime"></p>
+                    <p class="text-[6px] text-red-500 font-black uppercase" x-show="isDirector">Directorate Access Active</p>
+                </div>
+            </header>
+
+            <main class="p-4 md:p-6 space-y-6 max-w-6xl mx-auto w-full">
+                
+                <div class="glass p-6 rounded-[2rem] border border-red-500/20 bg-red-500/5">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-red-500/20 rounded-2xl border border-red-500/30">
+                            <i data-lucide="shield-alert" class="w-6 h-6 text-red-500"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs font-black uppercase tracking-widest text-white">Security Protocol 54-A</h2>
+                            <p class="text-[8px] text-zinc-400 mt-1 uppercase">Unauthorized access to classified assets is strictly prohibited and monitored by MOG Directorate.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <div class="md:col-span-2 space-y-4">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-gold ml-2">Encrypted File Manifest</h3>
+                        <div class="glass rounded-[2rem] border border-white/5 overflow-hidden">
+                            <table class="w-full text-left text-[10px]">
+                                <thead class="bg-white/5 uppercase text-zinc-500">
+                                    <tr>
+                                        <th class="p-4 font-black">Asset Name</th>
+                                        <th class="p-4 font-black">Category</th>
+                                        <th class="p-4 font-black">Level</th>
+                                        <th class="p-4 font-black text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    <template x-for="item in vaultItems" :key="item.id">
+                                        <tr class="hover:bg-white/5 transition-colors group">
+                                            <td class="p-4">
+                                                <div class="flex items-center gap-3">
+                                                    <i data-lucide="file-text" class="w-4 h-4 text-zinc-500 group-hover:text-gold transition-colors"></i>
+                                                    <span class="font-bold text-white/80" x-text="item.name"></span>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-zinc-400 italic" x-text="item.category"></td>
+                                            <td class="p-4">
+                                                <span :class="item.level === 'Director' ? 'text-red-500 border-red-500/30 bg-red-500/10' : 'text-blue-400 border-blue-400/30 bg-blue-400/10'" 
+                                                      class="px-2 py-0.5 rounded border text-[7px] font-black uppercase" 
+                                                      x-text="item.level"></span>
+                                            </td>
+                                            <td class="p-4 text-right">
+                                                <button @click="downloadFile(item)" class="p-2 hover:bg-gold/20 rounded-lg text-gold transition-all">
+                                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div class="glass p-6 rounded-[2rem] border border-white/5">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-white mb-4">Vault Capacity</h4>
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-[8px] mb-1">
+                                        <span class="text-zinc-500 uppercase">Secure Storage</span>
+                                        <span class="text-gold">42% Used</span>
+                                    </div>
+                                    <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gold" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                                <div class="pt-4 border-t border-white/5 grid grid-cols-2 gap-2">
+                                    <div class="text-center">
+                                        <p class="text-[14px] font-black text-white terminal-font">1.2GB</p>
+                                        <p class="text-[6px] text-zinc-500 uppercase">Occupied</p>
+                                    </div>
+                                    <div class="text-center border-l border-white/5">
+                                        <p class="text-[14px] font-black text-white terminal-font">500+</p>
+                                        <p class="text-[6px] text-zinc-500 uppercase">Archived</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="glass p-6 rounded-[2rem] border border-white/5 flex-grow">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-white mb-4">Access Logs</h4>
+                            <div class="space-y-3">
+                                <template x-for="i in 3">
+                                    <div class="flex gap-3 items-start opacity-60">
+                                        <div class="w-1 h-1 rounded-full bg-green-500 mt-1.5"></div>
+                                        <div>
+                                            <p class="text-[8px] text-white font-bold uppercase">Uplink Established</p>
+                                            <p class="text-[6px] text-zinc-500 uppercase">Sector 7-G | 14:02:11</p>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <footer class="mog-footer mt-auto">
+                <div class="p-6 text-center text-[8px] text-zinc-600 uppercase tracking-widest">
+                    © 2026 MINISTRY OF GROOVE • NCC VAULT v3.0 • CLEARANCE: <span x-text="isDirector ? 'DIRECTOR' : 'OPERATIVE'"></span>
+                </div>
+            </footer>
+        </div>
+    </template>
+
+    <template x-if="view === 'loading'">
+        <div class="h-screen w-full flex items-center justify-center">
+            <div class="text-center space-y-4">
+                <div class="loader mx-auto"></div>
+                <p class="text-[10px] uppercase font-black tracking-widest text-gold animate-pulse">Decrypting Vault Access...</p>
+            </div>
+        </div>
+    </template>
+
+</body>
+</html>
