@@ -13,206 +13,63 @@
     <script>
         const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
-        
         let supabaseClient = null;
 
         function vaultLogic() {
             return {
-                view: 'loading',
-                username: '',
-                isDirector: false,
-                currentTime: '',
-                searchQuery: '',
-                isUploading: false,
-                
-                // Initial assets manifest
+                view: 'loading', isDirector: false, isUploading: false, searchQuery: '',
                 assets: [
-                    { id: 1, name: 'Project_Asili_Blueprints.pdf', type: 'PDF', size: '4.2MB', level: 'Director', icon: 'file-text', color: 'text-red-400' },
-                    { id: 2, name: 'Intelligence_Briefing.wav', type: 'AUDIO', size: '12.8MB', level: 'Operative', icon: 'mic', color: 'text-blue-400' },
-                    { id: 3, name: 'Ministry_Wealth_Index.xlsx', type: 'SHEET', size: '1.1MB', level: 'Director', icon: 'trending-up', color: 'text-gold' },
-                    { id: 4, name: 'Event_Protocol_v3.pdf', type: 'PDF', size: '800KB', level: 'Operative', icon: 'shield-check', color: 'text-green-400' }
+                    { id: 1, name: 'Project_Asili_Blueprints.pdf', level: 'Director', icon: 'file-text', color: 'text-red-400' },
+                    { id: 2, name: 'Intelligence_Brief.wav', level: 'Operative', icon: 'mic', color: 'text-blue-400' }
                 ],
-
                 async init() {
                     supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    await this.checkAuth();
-                    this.updateTime();
-                    setInterval(() => this.updateTime(), 1000);
-                    this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
-                },
-
-                async checkAuth() {
                     const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (!session) { window.location.href = 'index.html'; return; }
-                    this.username = session.user.user_metadata.handle || session.user.email.split('@')[0];
+                    if (!session) window.location.href = 'index.html';
                     this.isDirector = session.user.email === 'director.mog@gmail.com';
                     this.view = 'ready';
+                    this.$nextTick(() => lucide.createIcons());
                 },
-
-                updateTime() {
-                    this.currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-                },
-
-                // THE NEW UPLOAD FUNCTION
                 async handleDirectorUpload(event) {
                     const file = event.target.files[0];
-                    if (!file || !this.isDirector) return;
-
+                    if (!file) return;
                     this.isUploading = true;
-                    const fileName = `${Date.now()}_${file.name}`;
-
-                    try {
-                        // 1. Upload to Supabase 'vault' bucket
-                        const { data, error } = await supabaseClient.storage
-                            .from('vault')
-                            .upload(fileName, file);
-
-                        if (error) throw error;
-
-                        // 2. Add to your UI list
-                        this.assets.push({
-                            id: Date.now(),
-                            name: file.name,
-                            type: file.type.split('/')[1].toUpperCase() || 'FILE',
-                            size: (file.size / 1024 / 1024).toFixed(2) + 'MB',
-                            level: 'Director',
-                            icon: 'shield-check',
-                            color: 'text-gold'
-                        });
-
-                        alert('Transmission Successful: File Archived in Vault.');
-                        this.$nextTick(() => lucide.createIcons());
-                    } catch (err) {
-                        alert('Transmission Failed: ' + err.message);
-                    } finally {
-                        this.isUploading = false;
-                        // Clear input so same file can be uploaded again if needed
-                        event.target.value = '';
+                    const { error } = await supabaseClient.storage.from('vault').upload(`${Date.now()}_${file.name}`, file);
+                    if (!error) {
+                        this.assets.push({ id: Date.now(), name: file.name, level: 'Director', icon: 'shield-check', color: 'text-gold' });
+                        alert('Archived successfully.');
                     }
-                },
-
-                get filteredAssets() {
-                    return this.assets.filter(asset => {
-                        const matchesSearch = asset.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        const hasClearance = asset.level === 'Director' ? this.isDirector : true;
-                        return matchesSearch && hasClearance;
-                    });
+                    this.isUploading = false;
                 }
             }
         }
     </script>
 </head>
 <body x-data="vaultLogic()" x-init="init()" class="bg-black text-white min-h-screen bg-grid">
-
     <template x-if="view === 'ready'">
-        <div class="max-w-5xl mx-auto p-6 relative z-10 animate-fade-in">
-            
-            <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div class="max-w-5xl mx-auto p-6 animate-fade-in">
+            <header class="flex items-center justify-between mb-12">
                 <div class="flex items-center gap-6">
-                    <button onclick="history.back()" class="p-4 glass rounded-2xl border border-white/10 hover:border-gold/50 transition-all hover:scale-105">
-                        <i data-lucide="chevron-left" class="w-6 h-6 text-gold"></i>
-                    </button>
-                    <div>
-                        <h1 class="text-2xl font-black uppercase tracking-tighter italic">Classified Vault</h1>
-                        <p class="text-[10px] text-gold font-bold uppercase tracking-widest" x-text="isDirector ? 'DIRECTORATE CLEARANCE' : 'OPERATIVE ACCESS'"></p>
-                    </div>
+                    <button onclick="window.location.href='index.html'" class="p-4 glass rounded-2xl border border-white/10"><i data-lucide="chevron-left" class="text-gold"></i></button>
+                    <h1 class="text-2xl font-black uppercase tracking-tighter italic">Classified Vault</h1>
                 </div>
-                <div class="glass px-6 py-3 rounded-2xl border border-white/5 flex flex-col items-end">
-                    <p class="terminal-font text-lg font-black text-white" x-text="currentTime"></p>
-                    <p class="text-[7px] text-zinc-500 uppercase font-bold tracking-[0.2em]" x-text="'ID: ' + username"></p>
-                </div>
+                <img src="assets/images/logo.png" class="w-12 h-12">
             </header>
 
-            <div class="glass rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
-                <div class="p-6 border-b border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h2 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="database" class="w-4 h-4 text-gold"></i> Asset manifest
-                    </h2>
-                    
-                    <div class="flex items-center gap-3">
-                        <template x-if="isDirector">
-                            <div class="relative">
-                                <input type="file" @change="handleDirectorUpload" id="vault-upload" class="hidden">
-                                <label for="vault-upload" 
-                                       class="bg-gold text-black px-4 py-2 rounded-full text-[9px] font-black uppercase flex items-center gap-2 hover:bg-yellow-400 transition-all cursor-pointer shadow-lg shadow-gold/10">
-                                    <i data-lucide="upload-cloud" class="w-3 h-3" x-show="!isUploading"></i>
-                                    <div class="w-3 h-3 border-2 border-black border-t-transparent rounded-full animate-spin" x-show="isUploading"></div>
-                                    <span x-text="isUploading ? 'TRANSMITTING...' : 'Secure Upload'"></span>
-                                </label>
-                            </div>
-                        </template>
-
-                        <div class="relative">
-                            <i data-lucide="search" class="w-3 h-3 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                            <input x-model="searchQuery" type="text" placeholder="FILTER BY NAME..." class="bg-black/40 border border-white/10 rounded-full px-8 py-2 text-[10px] outline-none w-48 uppercase terminal-font">
+            <div class="glass rounded-[2.5rem] border border-white/10 overflow-hidden">
+                <div class="p-6 bg-white/5 flex justify-between items-center">
+                    <h2 class="text-xs font-black uppercase italic">Asset manifest</h2>
+                    <template x-if="isDirector">
+                        <div>
+                            <input type="file" @change="handleDirectorUpload" id="v-up" class="hidden">
+                            <label for="v-up" class="bg-gold text-black px-4 py-2 rounded-full text-[9px] font-black uppercase cursor-pointer">
+                                <span x-text="isUploading ? 'TRANSMITTING...' : 'Secure Upload'"></span>
+                            </label>
                         </div>
-                    </div>
+                    </template>
                 </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="text-[9px] text-zinc-500 uppercase font-black tracking-widest bg-white/[0.02]">
-                            <tr>
-                                <th class="px-6 py-4">Identification</th>
-                                <th class="px-6 py-4">Size</th>
-                                <th class="px-6 py-4 text-right">Clearance</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-white/5">
-                            <template x-for="asset in filteredAssets" :key="asset.id">
-                                <tr class="hover:bg-white/[0.03] transition-colors group cursor-pointer" @click="alert('Decrypting ' + asset.name + '...')">
-                                    <td class="px-6 py-5">
-                                        <div class="flex items-center gap-4">
-                                            <div class="p-2 rounded-lg bg-white/5 border border-white/10 group-hover:border-gold/30 transition-all">
-                                                <i :data-lucide="asset.icon" class="w-4 h-4" :class="asset.color"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-bold text-white group-hover:text-gold transition-colors" x-text="asset.name"></p>
-                                                <p class="text-[8px] text-zinc-500 uppercase mt-0.5" x-text="asset.type"></p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-5 text-[10px] text-zinc-400 terminal-font" x-text="asset.size"></td>
-                                    <td class="px-6 py-5 text-right">
-                                        <span :class="asset.level === 'Director' ? 'text-red-500 border-red-500/40 bg-red-500/5' : 'text-blue-500 border-blue-500/40 bg-blue-500/5'" 
-                                              class="text-[7px] font-black px-2 py-1 rounded border uppercase" x-text="asset.level"></span>
-                                    </td>
-                                </tr>
-                            </template>
-                        </tbody>
-                    </table>
-                    <div x-show="filteredAssets.length === 0" class="p-20 text-center text-zinc-600 text-[10px] uppercase font-black tracking-widest">
-                        No classified assets found for your clearance level.
-                    </div>
                 </div>
-            </div>
-
-            <footer class="mt-8 glass p-6 rounded-3xl border border-red-500/20 bg-red-500/5">
-                <div class="flex items-start gap-4">
-                    <i data-lucide="shield-alert" class="w-5 h-5 text-red-500"></i>
-                    <div>
-                        <h4 class="text-[10px] font-black uppercase text-red-400 mb-1">Directorate Security Directive</h4>
-                        <p class="text-[9px] text-zinc-400 uppercase leading-relaxed">
-                            Encryption Protocol: 256-Bit RSA. All transmissions monitored from eMalahleni HQ. 
-                            Unauthorized decryption is a violation of MOG operative guidelines.
-                        </p>
-                    </div>
-                </div>
-            </footer>
         </div>
     </template>
-
-    <template x-if="view === 'loading'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-4">
-            <div class="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-[10px] font-black text-gold uppercase tracking-[0.3em] animate-pulse">Synchronizing Vault Access...</p>
-        </div>
-    </template>
-
-    <script>
-        document.addEventListener('alpine:initialized', () => { 
-            if (window.lucide) lucide.createIcons(); 
-        });
-    </script>
 </body>
 </html>
