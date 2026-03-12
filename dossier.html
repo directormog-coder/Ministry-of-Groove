@@ -2,81 +2,226 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DOSSIER | Operational Calendar</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MOG | OPERATIVE DOSSIER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
     
+    <style>
+        [x-cloak] { display: none !important; }
+        .bg-grid-green { background-image: radial-gradient(circle, #22c55e 1.2px, transparent 1.2px); background-size: 30px 30px; }
+        .glass-green { background: rgba(5, 20, 10, 0.95); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        .profile-glow { box-shadow: 0 0 60px rgba(34, 197, 94, 0.15); }
+        .scanline-green { width: 100%; height: 100px; background: linear-gradient(0deg, transparent 0%, rgba(34, 197, 94, 0.07) 50%, transparent 100%); position: absolute; top: -100px; left: 0; pointer-events: none; animation: moveScanline 4s linear infinite; }
+        @keyframes moveScanline { from { top: -100px; } to { top: 100%; } }
+        .loader-green { width: 30px; height: 30px; border: 3px solid #22c55e; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
     <script>
-        function dossierLogic() {
+        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        let sb = null;
+
+        function dossierEngine() {
             return {
-                user: {}, view: 'loading',
-                selectedDate: new Date().toISOString().split('T')[0],
-                currentLog: { shift: 'Off', weight: '' },
+                view: 'gate',
+                isUpdating: false,
+                statusInput: '',
+                user: {
+                    id: '',
+                    handle: 'PENDING...',
+                    email: '',
+                    status: 'INITIALIZING...',
+                    clearance: 'LEVEL 1',
+                    joined: ''
+                },
 
                 async init() {
-                    const sb = supabase.createClient('https://fgkljjgxecjmiiaptiug.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE');
+                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     const { data: { session } } = await sb.auth.getSession();
-                    if (!session) window.location.href = 'index.html';
-                    this.user = session.user;
-                    await this.fetchLog(sb);
-                    this.view = 'ready';
+                    
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    // Pull data from session and profile
+                    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+                    
+                    this.user.id = session.user.id;
+                    this.user.email = session.user.email;
+                    this.user.handle = profile?.handle || session.user.user_metadata.handle || 'UNIDENTIFIED';
+                    this.user.status = profile?.status || 'ACTIVE MONITORING';
+                    this.user.joined = new Date(session.user.created_at).toLocaleDateString('en-ZA');
+                    
+                    this.view = 'active';
                     this.$nextTick(() => lucide.createIcons());
                 },
 
-                async fetchLog(sb) {
-                    const { data } = await sb.from('operative_logs').select('*').eq('log_date', this.selectedDate).single();
-                    if (data) this.currentLog = { shift: data.shift_type, weight: data.weight_entry };
-                    else this.currentLog = { shift: 'Off', weight: '' };
-                },
+                async updateDossier() {
+                    if (!this.statusInput.trim()) return;
+                    this.isUpdating = true;
+                    
+                    const { error } = await sb.from('profiles').update({ 
+                        status: this.statusInput.toUpperCase() 
+                    }).eq('id', this.user.id);
 
-                async saveLog() {
-                    const sb = supabase.createClient('https://fgkljjgxecjmiiaptiug.supabase.co', '...');
-                    await sb.from('operative_logs').upsert({
-                        user_id: this.user.id, log_date: this.selectedDate,
-                        shift_type: this.currentLog.shift, weight_entry: this.currentLog.weight
-                    });
-                    alert('LOG ARCHIVED');
+                    if (!error) {
+                        this.user.status = this.statusInput.toUpperCase();
+                        this.statusInput = '';
+                        alert('PERSONNEL RECORD SYNCHRONIZED');
+                    } else {
+                        alert('TRANSMISSION ERROR: UPLINK FAILED');
+                    }
+                    this.isUpdating = false;
                 }
             }
         }
     </script>
 </head>
-<body x-data="dossierLogic()" x-init="init()" class="bg-black text-white bg-grid">
-    <template x-if="view === 'ready'">
-        <div class="max-w-4xl mx-auto p-6 relative z-10 animate-fade-in">
-            <header class="flex items-center justify-between mb-8">
-                <button onclick="window.location.href='index.html'" class="p-4 glass rounded-2xl border border-white/10"><i data-lucide="chevron-left" class="text-gold"></i></button>
-                <img src="assets/images/logo.png" class="w-12 h-12 object-contain">
-            </header>
+<body x-data="dossierEngine()" x-init="init()" x-cloak class="bg-black text-white bg-grid-green min-h-screen relative overflow-x-hidden selection:bg-green-500/30">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass p-8 rounded-[2.5rem] border border-gold/20 text-center shadow-2xl">
-                    <div class="w-24 h-24 mx-auto bg-zinc-900 rounded-full mb-4 border border-gold/10 flex items-center justify-center"><i data-lucide="user" class="text-gold/20 w-10 h-10"></i></div>
-                    <h2 class="text-xl font-black uppercase italic" x-text="user.user_metadata.handle"></h2>
-                    <p class="text-[8px] text-gold/40 uppercase font-black tracking-widest mt-1">Status: Active</p>
-                </div>
-
-                <div class="glass p-8 rounded-[2.5rem] border border-white/10">
-                    <h3 class="text-xs font-black uppercase text-gold mb-6 italic">Shift Management</h3>
-                    <div class="space-y-4">
-                        <input type="date" x-model="selectedDate" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl text-xs outline-none">
-                        <div class="grid grid-cols-3 gap-2">
-                            <button @click="currentLog.shift = 'Day'" :class="currentLog.shift === 'Day' ? 'bg-gold text-black' : 'bg-white/5 text-zinc-500'" class="py-3 rounded-xl text-[9px] font-black uppercase transition-all">Day</button>
-                            <button @click="currentLog.shift = 'Night'" :class="currentLog.shift === 'Night' ? 'bg-blue-600 text-white' : 'bg-white/5 text-zinc-500'" class="py-3 rounded-xl text-[9px] font-black uppercase transition-all">Night</button>
-                            <button @click="currentLog.shift = 'Off'" :class="currentLog.shift === 'Off' ? 'bg-zinc-800 text-white' : 'bg-white/5 text-zinc-500'" class="py-3 rounded-xl text-[9px] font-black uppercase transition-all">Off</button>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[8px] text-zinc-500 uppercase font-black">Weight Tracking (KG)</label>
-                            <input type="number" x-model="currentLog.weight" placeholder="0.0" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl text-xs outline-none">
-                        </div>
-                        <button @click="saveLog()" class="w-full py-4 bg-white text-black font-black uppercase rounded-full text-[10px] shadow-xl">Archive Data</button>
-                    </div>
-                </div>
-            </div>
+    <template x-if="view === 'gate'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6">
+            <div class="loader-green"></div>
+            <p class="text-[10px] font-black text-green-500 uppercase tracking-[0.5em] animate-pulse italic">Retrieving Personnel Data...</p>
         </div>
     </template>
+
+    <template x-if="view === 'active'">
+        <div class="max-w-6xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
+            
+            <header class="p-8 glass-green rounded-[2.5rem] flex justify-between items-center mb-12 shadow-2xl">
+                <div class="flex items-center gap-6">
+                    <button onclick="window.location.href='index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-green-500 transition-all group">
+                        <i data-lucide="chevron-left" class="text-green-500 group-hover:scale-110"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-green-500">Operative Dossier</h1>
+                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-1">Sector Personnel Record // NCC-3.0</p>
+                    </div>
+                </div>
+                <div class="hidden md:block text-right">
+                    <p class="text-[10px] text-green-500/50 font-black uppercase tracking-widest">Clearance Verified</p>
+                    <p class="text-xs font-black terminal-font" x-text="'REF: ' + user.id.substring(0,8)"></p>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                
+                <div class="space-y-10">
+                    <div class="glass-green p-10 rounded-[4rem] text-center relative overflow-hidden profile-glow group">
+                        <div class="scanline-green"></div>
+                        
+                        <div class="w-40 h-40 bg-green-500/5 rounded-full mx-auto mb-8 flex items-center justify-center border-2 border-green-500/20 relative">
+                            <i data-lucide="user" class="w-20 h-20 text-green-500/40 group-hover:text-green-500 transition-colors"></i>
+                            <div class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-black animate-pulse"></div>
+                        </div>
+
+                        <h2 class="text-2xl font-black uppercase italic tracking-tight" x-text="user.handle"></h2>
+                        <div class="mt-4 inline-block px-4 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+                            <p class="text-[9px] text-green-500 font-black uppercase tracking-widest" x-text="user.status"></p>
+                        </div>
+
+                        <div class="mt-10 pt-10 border-t border-green-500/10 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[8px] text-zinc-600 uppercase font-black">Clearance</p>
+                                <p class="text-xs font-black text-white mt-1" x-text="user.clearance"></p>
+                            </div>
+                            <div>
+                                <p class="text-[8px] text-zinc-600 uppercase font-black">Enlisted</p>
+                                <p class="text-xs font-black text-white mt-1" x-text="user.joined"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass p-8 rounded-[3rem] border border-white/5 grid grid-cols-2 gap-4">
+                        <button onclick="window.location.href='index.html'" class="p-6 bg-white/5 rounded-3xl text-center hover:bg-white/10 transition-all">
+                            <i data-lucide="message-square" class="mx-auto mb-2 w-5 h-5 text-blue-400"></i>
+                            <span class="text-[8px] font-black uppercase">Grid</span>
+                        </button>
+                        <button onclick="window.location.href='gallery.html'" class="p-6 bg-white/5 rounded-3xl text-center hover:bg-white/10 transition-all">
+                            <i data-lucide="camera" class="mx-auto mb-2 w-5 h-5 text-purple-400"></i>
+                            <span class="text-[8px] font-black uppercase">Gallery</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-10">
+                    
+                    <div class="glass-green p-12 rounded-[4rem] shadow-2xl border-t-4 border-green-500/50">
+                        <div class="flex items-center gap-6 mb-10">
+                            <div class="p-4 bg-green-600 rounded-3xl text-black shadow-lg">
+                                <i data-lucide="edit-3" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black uppercase italic tracking-widest">Update Transmission</h3>
+                                <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest mt-1">Broadcast your current operative state to the grid</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <input x-model="statusInput" 
+                                class="w-full bg-black/40 border border-green-500/20 p-6 rounded-[2rem] outline-none text-sm uppercase terminal-font focus:border-green-500 transition-all placeholder:text-zinc-800"
+                                placeholder="E.G. MONITORING THE GRID / ON MISSION...">
+                            
+                            <div class="flex justify-end">
+                                <button @click="updateDossier()" 
+                                    :disabled="isUpdating"
+                                    class="px-12 py-5 bg-green-600 text-black font-black uppercase rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all text-[11px] tracking-widest">
+                                    <span x-show="!isUpdating">Synchronize Record</span>
+                                    <span x-show="isUpdating" class="flex gap-2 items-center">Syncing...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="glass p-10 rounded-[3.5rem] border border-white/5">
+                            <p class="text-[9px] text-zinc-600 uppercase font-black mb-4 tracking-widest">Transmission Integrity</p>
+                            <div class="flex items-end gap-3">
+                                <p class="text-4xl font-black terminal-font">98%</p>
+                                <p class="text-[10px] text-green-500 font-black uppercase mb-1">Optimal</p>
+                            </div>
+                            <div class="mt-6 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-green-500 w-[98%] shadow-[0_0_10px_#22c55e]"></div>
+                            </div>
+                        </div>
+                        <div class="glass p-10 rounded-[3.5rem] border border-white/5">
+                            <p class="text-[9px] text-zinc-600 uppercase font-black mb-4 tracking-widest">Grid Contribution</p>
+                            <div class="flex items-end gap-3">
+                                <p class="text-4xl font-black terminal-font">1.2K</p>
+                                <p class="text-[10px] text-gold font-black uppercase mb-1">Veteran</p>
+                            </div>
+                            <div class="mt-6 flex gap-1 h-2 items-end">
+                                <div class="flex-grow h-1 bg-gold rounded-full"></div>
+                                <div class="flex-grow h-2 bg-gold rounded-full"></div>
+                                <div class="flex-grow h-1.5 bg-gold rounded-full"></div>
+                                <div class="flex-grow h-1 bg-white/5 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8 border border-green-500/10 rounded-[2.5rem] bg-green-500/[0.02] flex items-start gap-6">
+                        <i data-lucide="shield-check" class="text-green-500 w-6 h-6 mt-1"></i>
+                        <p class="text-[10px] text-zinc-500 uppercase font-bold leading-relaxed tracking-wide">
+                            Your dossier is visible to the <span class="text-red-500">Directorate</span> and active operatives on the <span class="text-gold">Social Hub</span>. All status updates are logged and encrypted within the NCC Master Grid.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <footer class="mt-20 pt-10 border-t border-white/5 text-center text-zinc-700">
+                <p class="text-[10px] uppercase font-black tracking-[0.6em] italic">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026</p>
+            </footer>
+        </div>
+    </template>
+
 </body>
 </html>
