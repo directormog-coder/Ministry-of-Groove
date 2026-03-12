@@ -24,7 +24,7 @@
         function nccMasterEngine() {
             return {
                 // --- SYSTEM STATE ---
-                view: 'gate', // gate | auth | grid
+                view: 'gate', 
                 authMode: 'login',
                 isLoading: false,
                 errorMsg: '',
@@ -51,17 +51,21 @@
                 async init() {
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     
-                    // SESSION HANDSHAKE
-                    const { data: { session }, error } = await sb.auth.getSession();
+                    // --- THE GOOGLE AUTH GATE ---
+                    const { data: { session } } = await sb.auth.getSession();
                     
-                    // Handle redirect from Google Auth
                     if (session) {
                         this.setupUser(session.user);
                     } else {
-                        // Check if we are in a loading state from OAuth
-                        const urlParams = new URLSearchParams(window.location.hash.substring(1));
-                        if (urlParams.has('access_token')) {
-                            this.view = 'gate'; // Keep loading while Supabase processes
+                        // Detect OAuth return hash
+                        if (window.location.hash.includes('access_token')) {
+                            this.view = 'gate';
+                            // Short delay to allow Supabase to parse the URL hash
+                            setTimeout(async () => {
+                                const { data: { session: newSession } } = await sb.auth.getSession();
+                                if (newSession) this.setupUser(newSession.user);
+                                else this.view = 'auth';
+                            }, 500);
                         } else {
                             this.view = 'auth';
                         }
@@ -85,7 +89,6 @@
                     this.loadMessages();
                     this.subscribeToMessages();
                     
-                    // Session Timer logic
                     setInterval(() => {
                         const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
                         this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
@@ -99,8 +102,7 @@
                     const { error } = await sb.auth.signInWithOAuth({ 
                         provider: 'google', 
                         options: { 
-                            redirectTo: window.location.origin,
-                            queryParams: { prompt: 'select_account' }
+                            redirectTo: window.location.origin
                         } 
                     });
                     if (error) { this.errorMsg = "AUTH_FAIL: " + error.message; this.isLoading = false; }
@@ -200,7 +202,7 @@
             <p class="text-[12px] font-black text-gold uppercase tracking-[0.6em] animate-pulse">Syncing NCC Mainframe...</p>
         </div>
     </template>
-    
+
     <template x-if="view === 'auth'">
         <div class="h-screen flex flex-col items-center justify-center p-8 text-center z-[500] relative animate-fade-in">
             <img src="assets/images/logo.png" class="w-48 h-48 mb-10 object-contain filter drop-shadow-[0_0_20px_rgba(212,175,55,0.2)]">
@@ -215,11 +217,11 @@
                     
                     <div class="flex items-center gap-4 py-2">
                         <div class="h-px bg-white/5 flex-grow"></div>
-                        <span class="text-[8px] text-zinc-600 font-black">OR</span>
+                        <span class="text-[8px] text-zinc-600 font-black tracking-widest uppercase">External Sync</span>
                         <div class="h-px bg-white/5 flex-grow"></div>
                     </div>
 
-                    <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase rounded-full flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                    <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase rounded-full flex items-center justify-center gap-3 hover:bg-white/10 transition-all shadow-xl">
                         <i data-lucide="chrome" class="w-5 h-5 text-gold"></i> Sign in with Google
                     </button>
                     <button @click="authMode = 'register'" class="text-[9px] text-zinc-500 uppercase font-black mt-6 tracking-widest hover:text-gold transition-colors underline decoration-gold/20">Enroll Operative</button>
@@ -237,7 +239,7 @@
             </div>
         </div>
     </template>
-
+    
     <template x-if="view === 'grid'">
         <div class="min-h-screen flex flex-col z-20 relative animate-fade-in">
             <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100] shadow-2xl">
@@ -263,35 +265,35 @@
                 
                 <div x-show="subView === 'grid'" class="grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16 animate-fade-in">
                     <div @click="subView = 'chat'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-blue-500/10 hover:border-blue-500/60 shadow-xl group">
-                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-500 w-10 h-10 group-hover:scale-110 transition-transform"></i>
+                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-500 w-10 h-10 group-hover:scale-110"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">The Grid</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Secure Comms</p>
                     </div>
                     <div onclick="window.location.href='dossier.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-green-500/10 hover:border-green-500/60 shadow-xl group">
-                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-10 h-10 group-hover:rotate-12 transition-transform"></i>
+                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-10 h-10 group-hover:rotate-12"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dossier</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Personnel</p>
                     </div>
                     <div onclick="window.location.href='gallery.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-purple-500/10 hover:border-purple-500/60 shadow-xl group">
-                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-10 h-10 group-hover:scale-110 transition-transform"></i>
+                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-10 h-10 group-hover:scale-110"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">Gallery</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Archives</p>
                     </div>
                     <div onclick="window.location.href='frequency.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-gold/10 hover:border-gold/60 shadow-xl group">
                         <i data-lucide="activity" class="mx-auto mb-4 text-gold w-10 h-10 group-hover:animate-pulse"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">Frequency</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Audio Feed</p>
                     </div>
                     <div onclick="window.location.href='dispatch.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-red-500/10 hover:border-red-500/60 shadow-xl group">
                         <i data-lucide="radio" class="mx-auto mb-4 text-red-500 w-10 h-10 group-hover:scale-110"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dispatch</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Directives</p>
                     </div>
                     <div onclick="window.location.href='archives.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-zinc-500/10 hover:border-zinc-500/60 shadow-xl group">
                         <i data-lucide="database" class="mx-auto mb-4 text-zinc-400 w-10 h-10 group-hover:scale-105"></i>
                         <span class="text-[12px] font-black uppercase text-white tracking-widest block">Vault</span>
-                        <p class="text-[7px] text-zinc-600 mt-2 uppercase font-black">Classified</p>
                     </div>
+                </div>
+
+                <div class="text-center py-20 animate-fade-in">
+                    <p class="text-[14px] text-gold font-black uppercase tracking-[1em] italic leading-relaxed">
+                        DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.
+                    </p>
                 </div>
 
                 <div x-show="subView === 'chat'" class="space-y-6 animate-fade-in">
@@ -323,7 +325,7 @@
                             <div class="flex-shrink-0 w-24 text-center space-y-3">
                                 <div class="w-16 h-16 bg-white/5 rounded-full mx-auto border border-gold/10 flex items-center justify-center relative">
                                     <i data-lucide="user" class="text-zinc-700"></i>
-                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
                                 </div>
                                 <p class="text-[9px] font-black uppercase truncate text-zinc-300" x-text="op.handle"></p>
                             </div>
@@ -332,13 +334,19 @@
                 </div>
             </main>
 
-            <footer class="border-t border-white/5 mt-20 p-12 bg-black/80 text-center">
-                <div class="flex justify-center gap-10 text-zinc-500 mb-8">
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="hover:text-gold transition-all"><i data-lucide="instagram"></i></a>
-                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="hover:text-gold transition-all"><i data-lucide="message-circle"></i></a>
-                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="hover:text-gold transition-all"><i data-lucide="youtube"></i></a>
+            <footer class="border-t border-white/5 mt-20 p-20 bg-black/80 text-center">
+                <div class="flex justify-center gap-12 text-zinc-500 mb-10">
+                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-4 bg-white/5 rounded-full hover:bg-gold hover:text-black transition-all">
+                        <i data-lucide="instagram" class="w-6 h-6"></i>
+                    </a>
+                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-4 bg-white/5 rounded-full hover:bg-gold hover:text-black transition-all">
+                        <i data-lucide="message-circle" class="w-6 h-6"></i>
+                    </a>
+                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-4 bg-white/5 rounded-full hover:bg-gold hover:text-black transition-all">
+                        <i data-lucide="youtube" class="w-6 h-6"></i>
+                    </a>
                 </div>
-                <p class="text-[9px] text-zinc-700 font-black uppercase tracking-[0.5em] leading-relaxed italic">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026 MINISTRY OF GROOVE</p>
+                <p class="text-[10px] text-zinc-800 font-black uppercase tracking-[0.8em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
             </footer>
         </div>
     </template>
