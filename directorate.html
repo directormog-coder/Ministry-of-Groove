@@ -3,81 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MOG | DIRECTORATE COMMAND</title>
+    <title>DIRECTORATE HQ | MINISTRY OF GROOVE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
     
+    <style>
+        [x-cloak] { display: none !important; }
+        .bg-grid-red { background-image: radial-gradient(circle, #ef4444 1px, transparent 1px); background-size: 40px 40px; }
+        .glass-red { background: rgba(20, 0, 0, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        .glow-red { shadow-[0_0_30px_rgba(239,68,68,0.2)]; }
+        .loader-red { width: 24px; height: 24px; border: 3px solid #ef4444; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
     <script>
-        function commandCenter() {
+        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        let sb = null;
+
+        function directorateControl() {
             return {
-                view: 'loading', broadcastInput: '', currentTime: '',
+                view: 'loading',
+                username: 'Director',
+                broadcastInput: '',
+                currentTime: '',
+                sessionStart: null,
+                sessionDuration: '00:00',
+                stats: {
+                    activeOperatives: 14,
+                    vaultAssets: 82,
+                    systemIntegrity: '99.9%'
+                },
+                wealthIndex: {
+                    value: '1.2M',
+                    growth: '+14.2%',
+                    currency: 'MOGV'
+                },
+
                 async init() {
-                    const sb = supabase.createClient('https://fgkljjgxecjmiiaptiug.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE');
-                    const { data: { session } } = await sb.auth.getSession();
+                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     
+                    // SECURITY HARD-WALL: Email verification
+                    const { data: { session } } = await sb.auth.getSession();
                     if (!session || session.user.email !== 'director.mog@gmail.com') {
+                        console.warn("Unauthorized Access Attempt Detected.");
                         window.location.href = 'index.html';
                         return;
                     }
 
                     this.view = 'active';
+                    this.sessionStart = Date.now();
+                    
+                    // Start Timers
                     setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
+                    setInterval(() => {
+                        const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
+                        this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
+                    }, 1000);
+
                     this.$nextTick(() => lucide.createIcons());
                 },
+
                 async sendBroadcast() {
                     if (!this.broadcastInput.trim()) return;
-                    const sb = supabase.createClient('https://fgkljjgxecjmiiaptiug.supabase.co', '...');
-                    const { error } = await sb.from('broadcasts').insert({ content: this.broadcastInput, created_by: 'DIRECTOR' });
-                    if (!error) { alert('GLOBAL BROADCAST INITIATED'); this.broadcastInput = ''; }
-                }
+                    this.isLoading = true;
+                    
+                    const { error } = await sb.from('broadcasts').insert({ 
+                        content: this.broadcastInput.toUpperCase(), 
+                        created_by: 'DIRECTOR' 
+                    });
+
+                    if (error) {
+                        alert('TRANSMISSION FAILED: DATABASE REJECTED SIGNATURE');
+                    } else {
+                        alert('GLOBAL ALERT SYNCHRONIZED TO ALL OPERATIVES');
+                        this.broadcastInput = '';
+                    }
+                    this.isLoading = false;
+                },
+
+                logout() { sb.auth.signOut(); window.location.href = 'index.html'; }
             }
         }
     </script>
 </head>
-<body x-data="commandCenter()" x-init="init()" class="bg-black text-white bg-grid min-h-screen">
+<body x-data="directorateControl()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-red-500/30">
+
+    <div class="bg-grid-red fixed inset-0 opacity-10"></div>
+    <div class="fixed inset-0 bg-gradient-to-t from-red-950/10 to-transparent pointer-events-none"></div>
 
     <template x-if="view === 'active'">
-        <div class="max-w-6xl mx-auto p-10 z-10 relative">
-            <header class="p-8 glass-strong rounded-3xl border border-red-500/30 flex justify-between items-center mb-16 shadow-2xl shadow-red-500/10">
+        <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
+            
+            <header class="p-8 glass-red rounded-[2.5rem] border border-red-500/30 flex flex-col md:flex-row justify-between items-center gap-6 mb-16 shadow-[0_0_50px_rgba(239,68,68,0.1)]">
                 <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='index.html'" class="p-4 glass rounded-2xl border border-white/10 hover:border-gold/50 transition-all">
-                        <i data-lucide="chevron-left" class="text-gold w-6 h-6"></i>
+                    <button onclick="window.location.href='index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold/50 transition-all group">
+                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
                     </button>
                     <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-red-500">Directorate HQ</h1>
-                        <p class="text-[10px] text-red-400 font-black uppercase tracking-[0.4em]">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</p>
+                        <h1 class="text-3xl font-black uppercase tracking-tighter italic text-red-500">Directorate HQ</h1>
+                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-1">
+                            DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.
+                        </p>
                     </div>
                 </div>
-                <div class="text-right"><p class="text-2xl font-black terminal-font text-white" x-text="currentTime"></p></div>
+                
+                <div class="flex items-center gap-8 text-right">
+                    <div class="border-r border-red-500/20 pr-8 hidden md:block">
+                        <p class="text-2xl font-black terminal-font text-white" x-text="currentTime"></p>
+                        <p class="text-[9px] text-red-500 uppercase font-black tracking-widest" x-text="'SESSION UPTIME: ' + sessionDuration"></p>
+                    </div>
+                    <button @click="logout()" class="p-5 border border-red-500/30 text-red-500 rounded-2xl hover:bg-red-500/10 transition-all">
+                        <i data-lucide="power" class="w-6 h-6"></i>
+                    </button>
+                </div>
             </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div class="md:col-span-2 glass p-12 rounded-[4rem] border border-red-500/20 shadow-2xl space-y-8">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="p-4 bg-red-600 rounded-3xl text-white shadow-xl"><i data-lucide="radio" class="animate-pulse w-8 h-8"></i></div>
-                        <h3 class="text-xl font-black uppercase italic text-white">Issue Global Alert</h3>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                
+                <div class="lg:col-span-2 space-y-10">
+                    
+                    <div class="glass-red p-12 rounded-[4rem] shadow-2xl space-y-8 relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-8 pb-6 border-b border-red-500/10">
+                            <div class="flex items-center gap-5">
+                                <div class="p-4 bg-red-600 rounded-3xl text-white shadow-xl shadow-red-600/30">
+                                    <i data-lucide="radio" class="animate-pulse w-8 h-8"></i>
+                                </div>
+                                <h3 class="text-xl font-black uppercase italic tracking-widest">Global Broadcast</h3>
+                            </div>
+                            <span class="text-[8px] font-black text-red-500/60 uppercase tracking-[0.3em]">Priority: Level 5 Clearanc</span>
+                        </div>
+                        
+                        <textarea x-model="broadcastInput" 
+                            class="w-full h-64 bg-black/40 border border-red-500/10 p-8 rounded-[2.5rem] outline-none text-[13px] uppercase terminal-font leading-relaxed focus:border-red-500/50 transition-all placeholder:text-zinc-800"
+                            placeholder="Enter command directive to be synchronized across all operative grids..."></textarea>
+                        
+                        <div class="flex justify-between items-center pt-4">
+                            <p class="text-[9px] text-zinc-600 uppercase font-black italic">Target: eMalahleni & Outlying Sectors</p>
+                            <button @click="sendBroadcast()" 
+                                class="px-12 py-6 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl shadow-red-600/30 hover:scale-105 active:scale-95 transition-all text-sm tracking-widest">
+                                Initiate Transmission
+                            </button>
+                        </div>
                     </div>
-                    <textarea x-model="broadcastInput" class="w-full h-64 bg-black/50 border border-red-500/10 p-8 rounded-[2rem] outline-none text-[12px] uppercase terminal-font" placeholder="Command Directive..."></textarea>
-                    <button @click="sendBroadcast()" class="w-full py-6 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl active:scale-95 transition-all">Initiate Global Uplink</button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="glass p-8 rounded-[2.5rem] border border-white/5 text-center">
+                            <p class="text-[9px] text-zinc-500 uppercase font-black mb-2 tracking-widest">Active Operatives</p>
+                            <p class="text-3xl font-black text-white" x-text="stats.activeOperatives"></p>
+                        </div>
+                        <div class="glass p-8 rounded-[2.5rem] border border-white/5 text-center">
+                            <p class="text-[9px] text-zinc-500 uppercase font-black mb-2 tracking-widest">Vault Security</p>
+                            <p class="text-3xl font-black text-green-500" x-text="stats.systemIntegrity"></p>
+                        </div>
+                        <div class="glass p-8 rounded-[2.5rem] border border-white/5 text-center">
+                            <p class="text-[9px] text-zinc-500 uppercase font-black mb-2 tracking-widest">Archived Assets</p>
+                            <p class="text-3xl font-black text-white" x-text="stats.vaultAssets"></p>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="glass p-10 rounded-[4rem] border border-gold/20 text-center relative overflow-hidden group">
-                    <div class="absolute inset-0 bg-radial-gradient from-gold/10 to-transparent"></div>
-                    <div class="w-64 h-64 mx-auto relative z-10 group-hover:scale-110 transition-transform duration-700">
-                        <img src="assets/images/1000219947.png" class="w-full h-full object-contain">
-                        <div class="absolute inset-0 border-4 border-gold/10 rounded-full animate-pulse"></div>
+                <div class="lg:col-span-1 space-y-10">
+                    
+                    <div class="glass-red p-12 rounded-[5rem] text-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-radial-gradient from-red-600/5 to-transparent"></div>
+                        
+                        <div class="w-full aspect-square mx-auto relative z-10 group-hover:scale-110 transition-transform duration-1000">
+                            <img src="assets/images/1000219947.png" alt="MOG DIRECTORATE SEAL" class="w-full h-full object-contain">
+                            <div class="absolute inset-0 border-4 border-red-500/10 rounded-full animate-pulse"></div>
+                        </div>
+
+                        <div class="pt-12 border-t border-red-500/10 mt-12 relative z-10">
+                            <h3 class="text-2xl font-black uppercase italic tracking-tighter">Directorate Seal</h3>
+                            <p class="text-[9px] text-zinc-500 uppercase font-black tracking-widest mt-3">Verified Administrator Channel</p>
+                        </div>
                     </div>
-                    <div class="pt-10 border-t border-gold/10 mt-10">
-                        <h3 class="text-xl font-black uppercase italic tracking-tighter">Seal of the Directorate</h3>
-                        <p class="text-[9px] text-zinc-500 uppercase font-black tracking-widest mt-2">Authenticated Emalahleni Uplink // 2026</p>
+
+                    <div class="glass-red p-10 rounded-[3rem] text-center border-gold/20">
+                        <div class="flex justify-center mb-4"><i data-lucide="trending-up" class="text-gold w-10 h-10"></i></div>
+                        <h4 class="text-[10px] font-black uppercase text-gold tracking-[0.4em] mb-4 italic">Brand Wealth Index</h4>
+                        <div class="space-y-1">
+                            <p class="text-5xl font-black text-white terminal-font" x-text="wealthIndex.value"></p>
+                            <p class="text-[11px] font-black text-green-500 uppercase" x-text="wealthIndex.growth + ' Growth'"></p>
+                        </div>
                     </div>
+
                 </div>
             </div>
+
+            <footer class="mt-20 pt-10 border-t border-white/5 text-center text-zinc-600">
+                <p class="text-[10px] uppercase font-black tracking-[0.5em] italic">NCC MASTER SYSTEM v3.0 // SECURED DIRECTORATE CHANNEL</p>
+                <div class="flex justify-center gap-10 mt-6 opacity-30">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    <i data-lucide="fingerprint" class="w-4 h-4"></i>
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                </div>
+            </footer>
         </div>
     </template>
+
+    <template x-if="view === 'loading'">
+        <div class="h-screen w-full flex flex-col items-center justify-center space-y-6">
+            <div class="loader-red"></div>
+            <p class="text-[11px] font-black text-red-500 uppercase tracking-[0.4em] animate-pulse">Establishing Directorate Uplink...</p>
+        </div>
+    </template>
+
 </body>
 </html>
 
