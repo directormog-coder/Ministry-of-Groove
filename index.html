@@ -15,28 +15,19 @@
     <link rel="stylesheet" href="CSS/style.css">
     
     <style>
-        /* THE FULL NCC MASTER STYLESHEET - 100% RESTORED */
         [x-cloak] { display: none !important; }
         .bg-grid { background-image: radial-gradient(circle, #D4AF37 1px, transparent 1px); background-size: 30px 30px; }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
-        .glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }
+        .glass-strong { background: rgba(0, 0, 0, 0.98); backdrop-filter: blur(30px); border: 1px solid rgba(212,175,55,0.1); }
         .terminal-font { font-family: 'Courier New', Courier, monospace; }
         .circuit-vignette { position: fixed; inset: 0; background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.95) 100%); pointer-events: none; z-index: 5; }
-        .bg-circuit-pattern { position: fixed; inset: 0; opacity: 0.05; background-image: url('assets/images/circuit.svg'); z-index: 1; pointer-events: none; }
-        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .loader { width: 30px; height: 30px; border: 3px solid #D4AF37; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tile-animate { animation: tilePop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        @keyframes tilePop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
         .audio-bar { width: 3px; background: #D4AF37; animation: audio-bounce 1s infinite ease-in-out; }
         @keyframes audio-bounce { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-        .loader { width: 24px; height: 24px; border: 3px solid #D4AF37; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* SCROLLBAR CUSTOMIZATION */
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
-        
-        /* IMAGE MODAL */
-        .image-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        .image-modal.active { display: flex; }
     </style>
 
     <script>
@@ -46,47 +37,40 @@
 
         function ministry() {
             return {
-                // CORE STATE
-                view: 'auth', subView: 'chat', authMode: 'login',
-                username: '', emailInput: '', passwordInput: '', confirmPassword: '', handleInput: '',
-                isDirector: false, isLoading: false, errorMsg: '', isOnline: navigator.onLine,
+                // System State
+                view: 'gate', authMode: 'login', username: '', isDirector: false,
+                emailInput: '', passwordInput: '', handleInput: '', confirmPassword: '',
+                isLoading: false, errorMsg: '', subView: 'grid',
                 
-                // FEATURE STATE
-                messages: [], msgInput: '', activeBroadcast: null,
-                galleryItems: [], selectedImage: null, isUploading: false,
-                showVoiceRecorder: false, isRecording: false, recordingTime: '00:00',
-                nowPlaying: null, isPlaying: false, playbackProgress: 0,
+                // Data Streams
+                messages: [], msgInput: '', activeBroadcast: null, 
+                operatives: [], currentTime: '', sessionStart: null, sessionDuration: '00:00',
                 
-                // META STATE
-                currentTime: '', sessionDuration: '00:00', sessionStart: null, weatherStatus: 'ENCRYPTED CONNECTION',
+                // Feature State
+                nowPlaying: null, isPlaying: false, showVoiceRecorder: false, isRecording: false,
 
                 async init() {
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    
-                    // FIX: SESSION CHECK BEFORE RENDERING
                     const { data: { session } } = await sb.auth.getSession();
-                    if (session) {
-                        this.setupUser(session.user);
+                    
+                    if (session) { 
+                        this.setupUser(session.user); 
+                    } else { 
+                        this.view = 'auth'; 
                     }
-
-                    // TIMERS
+                    
                     setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
                     this.subscribeToBroadcasts();
-                    
-                    window.addEventListener('online', () => { this.isOnline = true; });
-                    window.addEventListener('offline', () => { this.isOnline = false; });
-                    
-                    this.$watch('view', () => this.$nextTick(() => { if (window.lucide) lucide.createIcons(); }));
+                    this.loadSocialHub();
                 },
 
                 setupUser(user) {
                     this.username = user.user_metadata.handle || user.email.split('@')[0];
                     this.isDirector = user.email === 'director.mog@gmail.com';
-                    this.view = 'grid';
+                    this.view = 'grid'; 
                     this.sessionStart = Date.now();
                     this.loadMessages();
                     this.subscribeToMessages();
-                    this.loadGallery();
                     setInterval(() => {
                         const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
                         this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
@@ -95,24 +79,17 @@
 
                 async loginWithGoogle() {
                     this.isLoading = true;
-                    const { error } = await sb.auth.signInWithOAuth({ 
+                    await sb.auth.signInWithOAuth({ 
                         provider: 'google', 
-                        options: { redirectTo: window.location.origin } 
+                        options: { redirectTo: window.location.origin + '/index.html' } 
                     });
-                    if (error) { this.errorMsg = "GOOGLE AUTH FAILED"; this.isLoading = false; }
                 },
 
                 async loginUser() {
-                    if (!this.emailInput.trim()) { this.errorMsg = 'ENTER EMAIL'; return; }
-                    this.isLoading = true;
-                    this.errorMsg = '';
-                    const { data, error } = await sb.auth.signInWithPassword({ 
-                        email: this.emailInput.trim(), 
-                        password: this.passwordInput 
-                    });
-                    if (error) this.errorMsg = "INVALID CREDENTIALS";
-                    else this.setupUser(data.user);
-                    this.isLoading = false;
+                    this.isLoading = true; this.errorMsg = '';
+                    const { data, error } = await sb.auth.signInWithPassword({ email: this.emailInput.trim(), password: this.passwordInput });
+                    if (error) { this.errorMsg = "INVALID CREDENTIALS"; this.isLoading = false; }
+                    else { this.setupUser(data.user); }
                 },
 
                 async registerUser() {
@@ -120,29 +97,21 @@
                     this.isLoading = true;
                     const { error } = await sb.auth.signUp({ 
                         email: this.emailInput.trim(), password: this.passwordInput, 
-                        options: { data: { handle: this.handleInput } } 
+                        options: { data: { handle: this.handleInput.toUpperCase() } } 
                     });
-                    if (error) this.errorMsg = error.message.toUpperCase();
-                    else { this.authMode = 'login'; this.errorMsg = 'UPLINK CREATED. LOGIN.'; }
-                    this.isLoading = false;
-                },
-
-                subscribeToBroadcasts() {
-                    sb.channel('public:broadcasts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
-                        this.activeBroadcast = payload.new.content;
-                        setTimeout(() => { this.activeBroadcast = null; }, 15000);
-                    }).subscribe();
+                    if (error) { this.errorMsg = error.message.toUpperCase(); this.isLoading = false; }
+                    else { this.authMode = 'login'; this.errorMsg = 'ENROLLMENT SUCCESS. LOGIN.'; this.isLoading = false; }
                 },
 
                 async loadMessages() {
                     const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                    if (data) { this.messages = data; this.scrollToBottom(); }
+                    if (data) this.messages = data;
                 },
 
                 subscribeToMessages() {
                     sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                         this.messages.push(payload.new);
-                        this.scrollToBottom();
+                        this.$nextTick(() => { if(this.$refs.chatContainer) this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight; });
                     }).subscribe();
                 },
 
@@ -152,224 +121,157 @@
                     this.msgInput = '';
                 },
 
-                loadGallery() {
-                    this.galleryItems = [{ id: 1, url: 'assets/images/logo.png' }];
+                async loadSocialHub() {
+                    const { data } = await sb.from('profiles').select('*').limit(10);
+                    if (data) this.operatives = data;
                 },
 
-                playPreview(song) { 
-                    this.nowPlaying = song; this.isPlaying = true; this.playbackProgress = 0;
-                    if(this.audioInterval) clearInterval(this.audioInterval);
-                    this.audioInterval = setInterval(() => { if(this.isPlaying && this.playbackProgress < 100) this.playbackProgress += 0.5; }, 100);
+                subscribeToBroadcasts() {
+                    sb.channel('public:broadcasts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
+                        this.activeBroadcast = payload.new.content;
+                        setTimeout(() => { this.activeBroadcast = null; }, 15000);
+                    }).subscribe();
                 },
 
-                logout() { sb.auth.signOut(); window.location.reload(); },
-                scrollToBottom() { this.$nextTick(() => { if(this.$refs.chatContainer) this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight; }); }
+                logout() { sb.auth.signOut(); window.location.reload(); }
             }
         }
     </script>
 </head>
-<body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden">
+<body x-data="ministry()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
 
     <div class="bg-grid fixed inset-0 opacity-20"></div>
-    <div class="bg-circuit-pattern"></div>
     <div class="circuit-vignette"></div>
 
     <template x-if="activeBroadcast">
         <div class="fixed top-0 left-0 right-0 z-[500] bg-red-600 p-5 text-center font-black uppercase animate-pulse border-b-4 border-white shadow-2xl">
-            <div class="flex items-center justify-center gap-4">
-                <i data-lucide="shield-alert"></i>
-                <span x-text="activeBroadcast"></span>
-                <i data-lucide="shield-alert"></i>
-            </div>
+            <span x-text="'BROADCAST: ' + activeBroadcast"></span>
         </div>
     </template>
 
-    <div x-show="showVoiceRecorder" class="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-black/95 animate-fade-in">
-        <div class="glass max-w-sm w-full p-10 rounded-[3rem] text-center shadow-2xl shadow-gold/5">
-            <h3 class="text-xl font-black uppercase tracking-[0.3em] text-white mb-8 italic">Voice Transmission</h3>
-            <div class="flex justify-center mb-10 h-16 gap-1">
-                <template x-if="isRecording">
-                    <div class="flex items-end gap-1 h-full"><div class="audio-bar"></div><div class="audio-bar" style="animation-delay: 0.2s"></div><div class="audio-bar" style="animation-delay: 0.4s"></div></div>
-                </template>
-                <i x-show="!isRecording" data-lucide="mic" class="w-16 h-16 text-gold/20"></i>
-            </div>
-            <button @click="isRecording = !isRecording" :class="isRecording ? 'bg-red-600' : 'bg-gold'" class="w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all">
-                <i :data-lucide="isRecording ? 'square' : 'mic'" class="w-8 h-8 text-black"></i>
-            </button>
-            <button @click="showVoiceRecorder = false" class="mt-10 text-[10px] text-zinc-600 uppercase font-black">Abort Transmission</button>
+    <template x-if="view === 'gate'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-4">
+            <div class="loader"></div>
+            <p class="text-[10px] font-black text-gold uppercase tracking-[0.5em]">Establishing Connection...</p>
         </div>
-    </div>
+    </template>
 
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-8 text-center z-20 relative animate-fade-in">
-            <img src="assets/images/logo.png" class="w-40 h-40 mb-10 object-contain" onerror="this.outerHTML='<h1 class=\'text-5xl font-black text-gold\'>MOG</h1>'">
-            
-            <div x-show="authMode === 'login'" class="w-full max-w-md space-y-4">
-                <h2 class="text-white font-black uppercase tracking-[0.4em] text-[10px] italic mb-8">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</h2>
-                <div class="space-y-3">
-                    <input x-model="emailInput" type="email" placeholder="OPERATIVE EMAIL" class="w-full bg-black/60 border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
-                    <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black/60 border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
-                    <button @click="loginUser()" class="w-full py-5 bg-gold text-black font-black uppercase rounded-full shadow-lg shadow-gold/20 active:scale-95 transition-all">Initialize Access</button>
-                    
-                    <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase rounded-full flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+        <div class="h-screen flex flex-col items-center justify-center p-8 text-center bg-black z-50 relative">
+            <img src="assets/images/logo.png" class="w-40 h-40 mb-10 object-contain">
+            <div class="w-full max-w-md space-y-4">
+                <h2 class="text-white font-black uppercase tracking-[0.3em] text-[10px] italic mb-8">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</h2>
+                
+                <div x-show="authMode === 'login'" class="space-y-3">
+                    <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
+                    <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
+                    <button @click="loginUser()" class="w-full py-5 bg-gold text-black font-black uppercase rounded-full shadow-lg hover:scale-105 transition-all">Initialize Access</button>
+                    <button @click="loginWithGoogle()" class="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase rounded-full flex items-center justify-center gap-2">
                         <i data-lucide="chrome" class="w-4 h-4 text-gold"></i> Sign in with Google
                     </button>
+                    <button @click="authMode = 'register'" class="text-[8px] text-zinc-500 uppercase font-black mt-4 underline">Enroll Operative</button>
                 </div>
-                <button @click="authMode = 'register'" class="text-gold/40 text-[9px] uppercase font-black tracking-widest mt-8 hover:text-gold transition-colors">Register New Clearance</button>
-                <p x-show="errorMsg" x-text="errorMsg" class="mt-6 text-red-500 text-[9px] font-black uppercase tracking-widest bg-red-500/10 py-2 rounded-full border border-red-500/20"></p>
-            </div>
-
-            <div x-show="authMode === 'register'" class="w-full max-w-md space-y-4 animate-slide-up" x-transition>
-                <h2 class="text-white font-black uppercase italic text-xs mb-8 tracking-widest">New Enrollment</h2>
-                <div class="space-y-4">
-                    <input x-model="handleInput" type="text" placeholder="HANDLE" class="w-full bg-black/60 border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black/60 border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="passwordInput" type="password" placeholder="KEY" class="w-full bg-black/60 border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="confirmPassword" type="password" placeholder="CONFIRM" class="w-full bg-black/60 border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
+                
+                <div x-show="authMode === 'register'" class="space-y-3" x-transition>
+                    <input x-model="handleInput" placeholder="HANDLE" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
+                    <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
+                    <input x-model="passwordInput" type="password" placeholder="KEY" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
+                    <input x-model="confirmPassword" type="password" placeholder="CONFIRM KEY" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
+                    <button @click="registerUser()" class="w-full py-5 bg-white text-black font-black uppercase rounded-full shadow-xl">Confirm Enrollment</button>
+                    <button @click="authMode = 'login'" class="text-[8px] text-zinc-500 uppercase font-black mt-4 underline">Back to Login</button>
                 </div>
-                <button @click="registerUser()" class="w-full py-5 bg-white text-black font-black uppercase rounded-full text-[10px] shadow-xl shadow-white/5">Initiate Enrollment</button>
-                <button @click="authMode = 'login'" class="text-white/40 text-[8px] font-black uppercase tracking-widest pt-4">Return to Uplink</button>
+                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[9px] font-black uppercase mt-4"></p>
             </div>
         </div>
     </template>
-    
+
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col z-20 relative pb-32">
-            
-            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100] shadow-2xl">
+        <div class="min-h-screen flex flex-col">
+            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-50">
                 <div class="flex items-center gap-4">
-                    <img src="assets/images/logo.png" class="w-12 h-12 object-contain" onclick="window.location.reload()">
-                    <div class="hidden sm:block">
+                    <img src="assets/images/logo.png" class="w-12 h-12">
+                    <div>
                         <p class="text-[10px] font-black uppercase italic tracking-widest leading-tight">Ministry of Groove</p>
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                            <p class="text-[6px] text-gold/40 uppercase font-black tracking-widest" x-text="username"></p>
-                        </div>
+                        <p class="text-[6px] text-gold/40 uppercase font-black tracking-widest" x-text="username"></p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="text-right mr-4 border-r border-white/10 pr-4 hidden md:block">
-                        <p class="text-[12px] font-black terminal-font" x-text="currentTime"></p>
-                        <p class="text-[6px] text-gold/40 uppercase font-black tracking-widest" x-text="'Uptime: ' + sessionDuration"></p>
-                    </div>
-                    <button x-show="isDirector" onclick="window.location.href='directorate.html'" class="p-3 border border-red-500 text-red-500 rounded-xl hover:bg-red-500/10 animate-pulse shadow-xl shadow-red-600/20">
-                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
-                    </button>
-                    <button @click="logout()" class="p-3 border border-red-900/30 text-red-500 rounded-xl hover:bg-red-900/20"><i data-lucide="power" class="w-5 h-5"></i></button>
+                    <button x-show="isDirector" onclick="window.location.href='directorate.html'" class="p-3 border border-red-500 text-red-500 rounded-xl animate-pulse"><i data-lucide="shield-alert"></i></button>
+                    <button @click="logout()" class="p-3 border border-red-900/30 text-red-500 rounded-xl"><i data-lucide="power"></i></button>
                 </div>
             </header>
 
-            <main class="p-4 md:p-8 space-y-8 max-w-7xl mx-auto w-full flex-grow">
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12 animate-fade-in">
-                    <div @click="subView = 'chat'" :class="subView === 'chat' ? 'border-blue-400 bg-blue-400/10' : 'border-white/10'" class="glass p-10 rounded-[3rem] text-center border transition-all cursor-pointer group shadow-xl">
-                        <i data-lucide="message-square" class="mx-auto mb-3 text-blue-400 w-8 h-8 group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-black uppercase text-white tracking-widest block">Command Grid</span>
+            <main class="p-8 max-w-7xl mx-auto w-full flex-grow">
+                <div x-show="subView === 'grid'" class="grid grid-cols-2 md:grid-cols-2 gap-6 mb-12 animate-fade-in">
+                    <div @click="subView = 'chat'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-blue-500/20 cursor-pointer shadow-xl" style="animation-delay: 0.1s">
+                        <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400 w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">The Grid</span>
                     </div>
-                    <div onclick="window.location.href='dossier.html'" class="glass p-10 rounded-[3rem] text-center border border-white/10 hover:border-green-400 transition-all cursor-pointer group shadow-xl">
-                        <i data-lucide="user-cog" class="mx-auto mb-3 text-green-400 w-8 h-8 group-hover:rotate-12 transition-transform"></i>
-                        <span class="text-[11px] font-black uppercase text-white tracking-widest block">Operative Dossier</span>
+                    <div onclick="window.location.href='dossier.html'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-green-500/20 cursor-pointer shadow-xl" style="animation-delay: 0.2s">
+                        <i data-lucide="user-cog" class="mx-auto mb-2 text-green-400 w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Dossier</span>
                     </div>
-                    <div onclick="window.location.href='archives.html'" class="glass p-10 rounded-[3rem] text-center border border-white/10 hover:border-gold transition-all cursor-pointer group shadow-xl">
-                        <i data-lucide="database" class="mx-auto mb-3 text-gold w-8 h-8 group-hover:scale-110 transition-transform"></i>
-                        <span class="text-[11px] font-black uppercase text-white tracking-widest block">Classified Vault</span>
+                    <div onclick="window.location.href='gallery.html'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-purple-500/20 cursor-pointer shadow-xl" style="animation-delay: 0.3s">
+                        <i data-lucide="camera" class="mx-auto mb-2 text-purple-400 w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Gallery</span>
+                    </div>
+                    <div onclick="window.location.href='frequency.html'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-gold/20 cursor-pointer shadow-xl" style="animation-delay: 0.4s">
+                        <i data-lucide="activity" class="mx-auto mb-2 text-gold w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Frequency</span>
+                    </div>
+                    <div onclick="window.location.href='dispatch.html'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-red-500/20 cursor-pointer shadow-xl" style="animation-delay: 0.5s">
+                        <i data-lucide="radio" class="mx-auto mb-2 text-red-400 w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Dispatch</span>
+                    </div>
+                    <div onclick="window.location.href='archives.html'" class="tile-animate glass p-10 rounded-[2.5rem] text-center border border-zinc-500/20 cursor-pointer shadow-xl" style="animation-delay: 0.6s">
+                        <i data-lucide="database" class="mx-auto mb-2 text-zinc-400 w-8 h-8"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Vault</span>
                     </div>
                 </div>
 
-                <div x-show="subView === 'chat'" class="glass rounded-[3rem] h-[55vh] flex flex-col overflow-hidden border-white/5 shadow-2xl animate-slide-up">
-                    <div class="p-5 border-b border-white/5 bg-white/5 flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                            <span class="text-[11px] font-black uppercase tracking-widest italic">Live Grid Uplink</span>
+                <div x-show="subView === 'chat'" class="space-y-4 animate-fade-in">
+                    <button @click="subView = 'grid'" class="text-[10px] font-black uppercase text-gold flex items-center gap-2 mb-4"><i data-lucide="chevron-left" class="w-4 h-4"></i> Return to Grid</button>
+                    <div class="glass rounded-[3rem] h-[50vh] flex flex-col overflow-hidden shadow-2xl">
+                        <div class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar" x-ref="chatContainer">
+                            <template x-for="msg in messages" :key="msg.id">
+                                <div :class="msg.username === username ? 'ml-auto text-right items-end' : 'mr-auto text-left items-start'" class="flex flex-col max-w-[85%]">
+                                    <span class="text-[7px] text-zinc-500 uppercase font-black mb-1" x-text="msg.username"></span>
+                                    <div :class="msg.username === username ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/5'" class="p-4 border rounded-2xl text-[11px]" x-text="msg.content"></div>
+                                </div>
+                            </template>
                         </div>
-                        <div class="text-[8px] text-zinc-500 font-bold uppercase terminal-font" x-text="currentTime"></div>
+                        <form @submit.prevent="sendMessage()" class="p-6 bg-black/40 border-t border-gold/10 flex gap-4">
+                            <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[11px] outline-none terminal-font uppercase">
+                            <button type="submit" class="text-gold"><i data-lucide="send" class="w-5 h-5"></i></button>
+                        </form>
                     </div>
-                    <div class="flex-grow overflow-y-auto p-6 md:p-10 space-y-6 custom-scrollbar" x-ref="chatContainer">
-                        <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.username === username ? 'ml-auto text-right items-end' : 'mr-auto text-left items-start'" class="flex flex-col max-w-[80%]">
-                                <span class="text-[7px] text-zinc-500 uppercase font-black mb-1" x-text="msg.username"></span>
-                                <div :class="msg.username === username ? 'bg-gold/10 border-gold/20 text-white' : 'bg-white/5 border-white/5 text-zinc-300'" class="p-4 border rounded-3xl text-[12px] leading-relaxed shadow-lg" x-text="msg.content"></div>
-                            </div>
-                        </template>
-                    </div>
-                    <form @submit.prevent="sendMessage()" class="p-6 bg-black/40 border-t border-gold/10 flex gap-4">
-                        <button type="button" @click="showVoiceRecorder = true" class="text-zinc-500 hover:text-gold transition-colors"><i data-lucide="mic" class="w-6 h-6"></i></button>
-                        <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[12px] outline-none terminal-font uppercase placeholder:text-zinc-800">
-                        <button type="submit" class="p-4 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all shadow-lg shadow-gold/10"><i data-lucide="send" class="w-5 h-5"></i></button>
-                    </form>
                 </div>
 
-                <div x-show="subView === 'gallery'" class="animate-slide-up space-y-6">
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        <template x-for="img in galleryItems" :key="img.id">
-                            <div class="aspect-square glass rounded-3xl overflow-hidden cursor-pointer relative group" @click="selectedImage = img.url">
-                                <img :src="img.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gold/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="glass p-8 rounded-[3rem] border border-white/5 mt-12">
+                    <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-2 italic mb-6"><i data-lucide="users" class="w-4 h-4"></i> Personnel Activity</h3>
+                    <div class="flex gap-6 overflow-x-auto pb-4 custom-scrollbar">
+                        <template x-for="op in operatives" :key="op.id">
+                            <div class="flex-shrink-0 w-24 text-center space-y-2">
+                                <div class="w-16 h-16 bg-white/5 rounded-full mx-auto border border-gold/20 flex items-center justify-center relative">
+                                    <i data-lucide="user" class="text-zinc-600"></i>
+                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+                                </div>
+                                <p class="text-[8px] font-black uppercase truncate text-zinc-300" x-text="op.handle"></p>
                             </div>
                         </template>
                     </div>
                 </div>
             </main>
 
-            <div x-show="nowPlaying" class="fixed bottom-0 left-0 right-0 glass-strong border-t border-gold/30 p-5 z-50 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] animate-slide-up">
-                <div class="max-w-6xl mx-auto flex items-center justify-between">
-                    <div class="flex items-center gap-5">
-                        <div class="w-14 h-14 bg-gold/10 rounded-2xl flex items-center justify-center border border-gold/20 shadow-inner"><i data-lucide="music" class="text-gold w-8 h-8"></i></div>
-                        <div>
-                            <p class="text-xs font-black uppercase italic tracking-widest text-white" x-text="nowPlaying?.title"></p>
-                            <p class="text-[9px] text-gold/60 uppercase font-black tracking-widest mt-1" x-text="nowPlaying?.artist"></p>
-                        </div>
-                    </div>
-                    <button @click="isPlaying = !isPlaying" class="w-14 h-14 bg-gold text-black rounded-full flex items-center justify-center shadow-xl shadow-gold/30 hover:scale-110 active:scale-95 transition-all">
-                        <i :data-lucide="isPlaying ? 'pause' : 'play'" class="w-7 h-7" :class="!isPlaying && 'ml-1'"></i>
-                    </button>
+            <footer class="border-t border-white/5 p-12 bg-black/60 text-center">
+                <div class="flex justify-center gap-10 text-zinc-500 mb-8">
+                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="hover:text-gold transition-all"><i data-lucide="instagram" class="w-6 h-6"></i></a>
+                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="hover:text-gold transition-all"><i data-lucide="message-circle" class="w-6 h-6"></i></a>
+                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="hover:text-gold transition-all"><i data-lucide="youtube" class="w-6 h-6"></i></a>
                 </div>
-            </div>
-
-            <footer class="border-t border-white/5 mt-20 bg-black/60 backdrop-blur-xl relative z-10">
-                <div class="max-w-7xl mx-auto p-12 md:p-20 grid md:grid-cols-4 gap-16 text-center md:text-left">
-                    <div class="space-y-6">
-                        <img src="assets/images/logo.png" class="w-24 h-24 mx-auto md:mx-0 object-contain">
-                        <p class="text-[11px] text-zinc-400 font-bold uppercase tracking-widest italic leading-relaxed">Secure. Connected. Groove.</p>
-                        <p class="text-[10px] text-zinc-600 font-black uppercase leading-relaxed tracking-tighter">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</p>
-                    </div>
-                    <div>
-                        <h4 class="text-gold text-[11px] font-black uppercase mb-8 tracking-[0.4em] italic">Operations</h4>
-                        <div class="flex flex-col gap-5 text-[10px] text-zinc-400 uppercase font-black tracking-widest">
-                            <a href="#" class="hover:text-gold transition-colors">Command Grid</a>
-                            <a href="dossier.html" class="hover:text-gold transition-colors">Operative Dossier</a>
-                            <a href="archives.html" class="hover:text-gold transition-colors">Classified Vault</a>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-gold text-[11px] font-black uppercase mb-8 tracking-[0.4em] italic">Directorate</h4>
-                        <div class="text-[10px] text-zinc-400 space-y-4 uppercase font-black tracking-widest">
-                            <p>director.mog@gmail.com</p>
-                            <p>Emalahleni, Mpumalanga</p>
-                            <p>South Africa</p>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-gold text-[11px] font-black uppercase mb-8 tracking-[0.4em] italic">Connect</h4>
-                        <div class="flex justify-center md:justify-start gap-8 text-zinc-500">
-                            <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="hover:text-gold transition-all hover:-translate-y-1"><i data-lucide="instagram" class="w-6 h-6"></i></a>
-                            <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="hover:text-gold transition-all hover:-translate-y-1"><i data-lucide="message-circle" class="w-6 h-6"></i></a>
-                            <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="hover:text-gold transition-all hover:-translate-y-1"><i data-lucide="youtube" class="w-6 h-6"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <div class="p-10 border-t border-white/5 text-center text-[9px] text-zinc-700 uppercase font-black italic tracking-[0.6em]">
-                    © 2026 MINISTRY OF GROOVE • NCC MASTER v3.0 • SECURE CONNECTION <span x-text="isOnline ? 'ACTIVE' : 'OFFLINE'" class="text-gold"></span>
-                </div>
+                <p class="text-[9px] text-zinc-700 font-black uppercase tracking-[0.5em] leading-relaxed italic">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026 MINISTRY OF GROOVE</p>
             </footer>
         </div>
     </template>
-
-    <script>
-        if ('serviceWorker' in navigator) { 
-            window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('/service-worker.js'); 
-            }); 
-        }
-    </script>
 </body>
 </html>
