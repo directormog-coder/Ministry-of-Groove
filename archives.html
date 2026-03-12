@@ -2,74 +2,213 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VAULT | Ministry of Groove</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MOG | CLASSIFIED VAULT</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
     
+    <style>
+        [x-cloak] { display: none !important; }
+        .bg-grid-zinc { background-image: radial-gradient(circle, #3f3f46 1.2px, transparent 1.2px); background-size: 40px 40px; }
+        .glass-zinc { background: rgba(10, 10, 12, 0.98); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(113, 113, 122, 0.2); }
+        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        
+        .loader-zinc { width: 35px; height: 35px; border: 4px solid #71717a; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .file-row { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-left: 0px solid #71717a; }
+        .file-row:hover { border-left-width: 6px; background: rgba(113, 113, 122, 0.05); transform: translateX(5px); }
+        
+        .redact-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+    </style>
+
     <script>
         const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
-        let supabaseClient = null;
+        let sb = null;
 
-        function vaultLogic() {
+        function vaultEngine() {
             return {
-                view: 'loading', isDirector: false, isUploading: false, searchQuery: '',
-                assets: [
-                    { id: 1, name: 'Project_Asili_Blueprints.pdf', level: 'Director', icon: 'file-text', color: 'text-red-400' },
-                    { id: 2, name: 'Intelligence_Brief.wav', level: 'Operative', icon: 'mic', color: 'text-blue-400' }
-                ],
+                view: 'gate',
+                files: [],
+                isDirector: false,
+                isLoading: false,
+                vaultStatus: 'ENCRYPTED',
+
                 async init() {
-                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await supabaseClient.auth.getSession();
-                    if (!session) window.location.href = 'index.html';
+                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    const { data: { session } } = await sb.auth.getSession();
+                    
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
                     this.isDirector = session.user.email === 'director.mog@gmail.com';
-                    this.view = 'ready';
+                    this.view = 'active';
+                    this.loadVaultData();
+                    this.vaultStatus = 'DECRYPTED';
                     this.$nextTick(() => lucide.createIcons());
                 },
-                async handleDirectorUpload(event) {
-                    const file = event.target.files[0];
+
+                async loadVaultData() {
+                    const { data } = await sb.from('archives').select('*').order('created_at', { ascending: false });
+                    if (data) this.files = data;
+                },
+
+                async handleUpload(e) {
+                    if (!this.isDirector) return;
+                    const file = e.target.files[0];
                     if (!file) return;
-                    this.isUploading = true;
-                    const { error } = await supabaseClient.storage.from('vault').upload(`${Date.now()}_${file.name}`, file);
+
+                    this.isLoading = true;
+                    // Note: Requires a bucket named 'vault' in Supabase Storage
+                    const fileName = `CLASSIFIED-${Date.now()}-${file.name}`;
+                    const { data, error } = await sb.storage.from('vault').upload(fileName, file);
+
                     if (!error) {
-                        this.assets.push({ id: Date.now(), name: file.name, level: 'Director', icon: 'shield-check', color: 'text-gold' });
-                        alert('Archived successfully.');
+                        const { data: { publicUrl } } = sb.storage.from('vault').getPublicUrl(fileName);
+                        await sb.from('archives').insert({ 
+                            name: file.name.toUpperCase(),
+                            url: publicUrl,
+                            size: (file.size / 1024).toFixed(1) + 'KB',
+                            classification: 'CONFIDENTIAL'
+                        });
+                        this.loadVaultData();
+                        alert('VAULT UPDATED: DOCUMENT ARCHIVED.');
                     }
-                    this.isUploading = false;
+                    this.isLoading = false;
+                },
+
+                async redactFile(id) {
+                    if (!this.isDirector) return;
+                    if (confirm("REDACT THIS DOCUMENT? THIS ACTION IS IRREVERSIBLE.")) {
+                        const { error } = await sb.from('archives').delete().eq('id', id);
+                        if (!error) {
+                            this.loadVaultData();
+                            alert("DOCUMENT REDACTED.");
+                        }
+                    }
                 }
             }
         }
     </script>
 </head>
-<body x-data="vaultLogic()" x-init="init()" class="bg-black text-white min-h-screen bg-grid">
-    <template x-if="view === 'ready'">
-        <div class="max-w-5xl mx-auto p-6 animate-fade-in">
-            <header class="flex items-center justify-between mb-12">
-                <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='index.html'" class="p-4 glass rounded-2xl border border-white/10"><i data-lucide="chevron-left" class="text-gold"></i></button>
-                    <h1 class="text-2xl font-black uppercase tracking-tighter italic">Classified Vault</h1>
-                </div>
-                <img src="assets/images/logo.png" class="w-12 h-12">
-            </header>
+<body x-data="vaultEngine()" x-init="init()" x-cloak class="bg-black text-white bg-grid-zinc min-h-screen relative overflow-x-hidden selection:bg-zinc-500/40">
 
-            <div class="glass rounded-[2.5rem] border border-white/10 overflow-hidden">
-                <div class="p-6 bg-white/5 flex justify-between items-center">
-                    <h2 class="text-xs font-black uppercase italic">Asset manifest</h2>
-                    <template x-if="isDirector">
-                        <div>
-                            <input type="file" @change="handleDirectorUpload" id="v-up" class="hidden">
-                            <label for="v-up" class="bg-gold text-black px-4 py-2 rounded-full text-[9px] font-black uppercase cursor-pointer">
-                                <span x-text="isUploading ? 'TRANSMITTING...' : 'Secure Upload'"></span>
-                            </label>
-                        </div>
-                    </template>
-                </div>
-                </div>
+    <template x-if="view === 'gate'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6">
+            <div class="loader-zinc"></div>
+            <p class="text-[11px] font-black text-zinc-500 uppercase tracking-[0.5em] animate-pulse">Bypassing Vault Encryption...</p>
         </div>
     </template>
+
+    <template x-if="view === 'active'">
+        <div class="max-w-6xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
+            
+            <header class="p-8 glass-zinc rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
+                <div class="flex items-center gap-6">
+                    <button onclick="window.location.href='index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-zinc-500 transition-all group">
+                        <i data-lucide="chevron-left" class="text-zinc-500 group-hover:scale-110"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-zinc-500">Classified Vault</h1>
+                        <p class="text-[10px] text-zinc-600 font-black uppercase tracking-[0.4em] mt-1">Archive Repository // Sector 7G</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-8">
+                    <div class="hidden sm:block text-right">
+                        <p class="text-[9px] text-zinc-700 font-black uppercase tracking-widest">Vault Status</p>
+                        <p class="text-xs font-black terminal-font text-zinc-400" x-text="vaultStatus"></p>
+                    </div>
+                    <template x-if="isDirector">
+                        <label class="cursor-pointer bg-zinc-800 border border-zinc-700 px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-zinc-700 transition-all shadow-xl flex items-center gap-3">
+                            <i data-lucide="file-plus" class="w-4 h-4"></i>
+                            <span x-text="isLoading ? 'Archiving...' : 'Archive Data'"></span>
+                            <input type="file" @change="handleUpload" class="hidden">
+                        </label>
+                    </template>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 gap-6">
+                <div class="flex items-center justify-between px-6 mb-4">
+                    <h3 class="text-xs font-black uppercase text-zinc-600 tracking-[0.3em] italic flex items-center gap-3">
+                        <i data-lucide="folder-lock" class="w-4 h-4"></i> Secure Directory
+                    </h3>
+                    <span class="text-[9px] text-zinc-800 font-black uppercase" x-text="files.length + ' Documents Found'"></span>
+                </div>
+
+                <div class="space-y-4">
+                    <template x-for="file in files" :key="file.id">
+                        <div class="file-row glass-zinc p-8 rounded-[2.5rem] border border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg">
+                            <div class="flex items-center gap-8">
+                                <div class="p-4 bg-zinc-900 rounded-2xl border border-white/5">
+                                    <i data-lucide="file-text" class="text-zinc-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-black uppercase text-white tracking-widest" x-text="file.name"></p>
+                                    <div class="flex gap-4 mt-1">
+                                        <span class="text-[8px] text-zinc-600 font-black uppercase" x-text="file.size"></span>
+                                        <span class="text-[8px] text-zinc-800 font-black uppercase">Level: Confidential</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <a :href="file.url" download class="p-4 bg-zinc-900 text-zinc-400 rounded-xl border border-white/5 hover:text-white transition-all">
+                                    <i data-lucide="download" class="w-5 h-5"></i>
+                                </a>
+                                <template x-if="isDirector">
+                                    <button @click="redactFile(file.id)" class="redact-btn p-4 bg-zinc-900 text-red-900 border border-red-900/20 rounded-xl transition-all">
+                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                    
+                    <div x-show="files.length === 0" class="py-32 text-center opacity-10 bg-white/[0.01] rounded-[4rem] border border-dashed border-zinc-800">
+                        <i data-lucide="lock" class="mx-auto mb-6 w-16 h-16"></i>
+                        <p class="text-xs font-black uppercase tracking-[0.5em]">Vault Records Purged or Encrypted</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-20 grid grid-cols-2 md:grid-cols-5 gap-4">
+                <button onclick="window.location.href='index.html'" class="p-6 glass rounded-[2rem] border border-white/5 hover:border-blue-500 transition-all text-center">
+                    <i data-lucide="message-square" class="mx-auto mb-2 text-blue-500 w-5 h-5"></i>
+                    <span class="text-[8px] font-black uppercase">Grid</span>
+                </button>
+                <button onclick="window.location.href='dossier.html'" class="p-6 glass rounded-[2rem] border border-white/5 hover:border-green-500 transition-all text-center">
+                    <i data-lucide="user-cog" class="mx-auto mb-2 text-green-500 w-5 h-5"></i>
+                    <span class="text-[8px] font-black uppercase">Dossier</span>
+                </button>
+                <button onclick="window.location.href='gallery.html'" class="p-6 glass rounded-[2rem] border border-white/5 hover:border-purple-500 transition-all text-center">
+                    <i data-lucide="camera" class="mx-auto mb-2 text-purple-500 w-5 h-5"></i>
+                    <span class="text-[8px] font-black uppercase">Gallery</span>
+                </button>
+                <button onclick="window.location.href='frequency.html'" class="p-6 glass rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center">
+                    <i data-lucide="activity" class="mx-auto mb-2 text-gold w-5 h-5"></i>
+                    <span class="text-[8px] font-black uppercase">Freq</span>
+                </button>
+                <button onclick="window.location.href='dispatch.html'" class="p-6 glass rounded-[2rem] border border-white/5 hover:border-red-500 transition-all text-center">
+                    <i data-lucide="radio" class="mx-auto mb-2 text-red-500 w-5 h-5"></i>
+                    <span class="text-[8px] font-black uppercase">Dispatch</span>
+                </button>
+            </div>
+
+            <footer class="mt-32 pt-10 border-t border-white/5 text-center text-zinc-800">
+                <p class="text-[10px] uppercase font-black tracking-[0.6em] italic leading-relaxed">
+                    DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
+                </p>
+            </footer>
+        </div>
+    </template>
+
 </body>
 </html>
