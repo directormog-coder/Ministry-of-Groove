@@ -11,16 +11,18 @@
     <link rel="stylesheet" href="CSS/style.css">
     
     <style>
+        /* FULL SCALE CSS RESTORATION */
         [x-cloak] { display: none !important; }
         .bg-grid-red { background-image: radial-gradient(circle, #ef4444 1px, transparent 1px); background-size: 40px 40px; }
-        .glass-red { background: rgba(20, 0, 0, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .glass-red { background: rgba(15, 0, 0, 0.9); backdrop-filter: blur(25px); border: 1px solid rgba(239, 68, 68, 0.2); }
         .terminal-font { font-family: 'Courier New', Courier, monospace; }
         .loader-red { width: 32px; height: 32px; border: 4px solid #ef4444; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(239, 68, 68, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(239, 68, 68, 0.4); border-radius: 10px; }
         .animate-fade-in { animation: fadeIn 0.8s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .wealth-card { background: linear-gradient(135deg, rgba(212,175,55,0.1) 0%, rgba(0,0,0,1) 100%); }
     </style>
 
     <script>
@@ -28,21 +30,22 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
         let sb = null;
 
-        function directorateControl() {
+        function commandCenter() {
             return {
                 view: 'loading',
+                username: 'Director',
                 broadcastInput: '',
                 currentTime: '',
                 sessionStart: null,
                 sessionDuration: '00:00',
                 liveMessages: [],
-                stats: { activeOperatives: 14, systemIntegrity: 'SECURED' },
-                wealthIndex: { value: '1.2M', growth: '+14.2%', currency: 'MOGV' },
+                wealthIndex: { value: '1.4M', currency: 'MOGV', growth: '+18.4%' },
+                stats: { operatives: 0, integrity: '99.9%', vault: 0 },
 
                 async init() {
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     
-                    // SECURITY PROTOCOL: Hard Wall Redirection
+                    // SECURITY HARD-WALL
                     const { data: { session } } = await sb.auth.getSession();
                     if (!session || session.user.email !== 'director.mog@gmail.com') {
                         window.location.href = 'index.html';
@@ -55,8 +58,9 @@
                     // Initialize Data Streams
                     this.loadLiveFeed();
                     this.subscribeToGrid();
+                    this.fetchSystemStats();
                     
-                    // Global Timers
+                    // Timers
                     setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
                     setInterval(() => {
                         const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
@@ -67,15 +71,21 @@
                 },
 
                 async loadLiveFeed() {
-                    const { data } = await sb.from('messages').select('*').order('created_at', { ascending: false }).limit(5);
+                    const { data } = await sb.from('messages').select('*').order('created_at', { ascending: false }).limit(6);
                     if (data) this.liveMessages = data;
                 },
 
                 subscribeToGrid() {
                     sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
                         this.liveMessages.unshift(payload.new);
-                        if (this.liveMessages.length > 5) this.liveMessages.pop();
+                        if (this.liveMessages.length > 6) this.liveMessages.pop();
                     }).subscribe();
+                },
+
+                async fetchSystemStats() {
+                    // Logic to count archives and operatives would go here
+                    this.stats.operatives = 14; 
+                    this.stats.vault = 124;
                 },
 
                 async sendBroadcast() {
@@ -85,15 +95,9 @@
                         created_by: 'DIRECTOR' 
                     });
                     if (!error) {
-                        alert('GLOBAL ALERT SYNCHRONIZED');
+                        alert('TRANSMISSION SUCCESSFUL: GRID SYNCHRONIZED');
                         this.broadcastInput = '';
-                    } else {
-                        alert('TRANSMISSION ERROR: CHECK DATABASE');
                     }
-                },
-
-                async loginWithGoogle() {
-                    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/directorate.html' } });
                 },
 
                 logout() { sb.auth.signOut(); window.location.href = 'index.html'; }
@@ -101,17 +105,17 @@
         }
     </script>
 </head>
-<body x-data="directorateControl()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-red-500/30">
+<body x-data="commandCenter()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-red-600/30">
 
     <div class="bg-grid-red fixed inset-0 opacity-10"></div>
 
     <template x-if="view === 'active'">
         <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
             
-            <header class="p-10 glass-red rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl">
+            <header class="p-10 glass-red rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
                 <div class="flex items-center gap-8">
-                    <button onclick="window.location.href='index.html'" class="p-5 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all shadow-lg">
-                        <i data-lucide="chevron-left" class="text-gold w-8 h-8"></i>
+                    <button onclick="window.location.href='index.html'" class="p-5 glass rounded-2xl border border-white/10 hover:border-gold transition-all shadow-lg group">
+                        <i data-lucide="chevron-left" class="text-gold w-8 h-8 group-hover:scale-110"></i>
                     </button>
                     <div>
                         <h1 class="text-4xl font-black uppercase tracking-tighter italic text-red-500">Directorate HQ</h1>
@@ -124,54 +128,50 @@
                         <p class="text-3xl font-black terminal-font text-white" x-text="currentTime"></p>
                         <p class="text-[10px] text-red-500 uppercase font-black tracking-widest" x-text="'CLEARANCE: MASTER ADMIN'"></p>
                     </div>
-                    <div class="flex gap-4">
-                        <button @click="loginWithGoogle()" class="p-5 border border-white/10 text-gold/50 rounded-2xl hover:text-gold transition-all">
-                            <i data-lucide="chrome" class="w-6 h-6"></i>
-                        </button>
-                        <button @click="logout()" class="p-5 border border-red-500/30 text-red-500 rounded-2xl hover:bg-red-500/10 transition-all">
-                            <i data-lucide="power" class="w-6 h-6"></i>
-                        </button>
-                    </div>
+                    <button @click="logout()" class="p-6 border border-red-500/30 text-red-500 rounded-3xl hover:bg-red-500/10 transition-all shadow-xl shadow-red-500/10">
+                        <i data-lucide="power" class="w-7 h-7"></i>
+                    </button>
                 </div>
             </header>
-
+            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 
                 <div class="lg:col-span-2 space-y-12">
                     
-                    <div class="glass-red p-12 rounded-[4rem] shadow-2xl space-y-10 border-t-4 border-red-600/50">
+                    <div class="glass-red p-12 rounded-[4rem] shadow-2xl space-y-10 border-t-4 border-red-600">
                         <div class="flex items-center gap-6 border-b border-red-500/10 pb-8">
-                            <div class="p-5 bg-red-600 rounded-[2rem] text-white shadow-xl shadow-red-600/40">
+                            <div class="p-5 bg-red-600 rounded-[2rem] text-white shadow-2xl shadow-red-600/40">
                                 <i data-lucide="radio" class="animate-pulse w-10 h-10"></i>
                             </div>
                             <h3 class="text-2xl font-black uppercase italic tracking-widest">Global Directive</h3>
                         </div>
                         
                         <textarea x-model="broadcastInput" 
-                            class="w-full h-72 bg-black/40 border border-red-500/10 p-10 rounded-[3rem] outline-none text-[15px] uppercase terminal-font leading-relaxed focus:border-red-500/50 transition-all placeholder:text-zinc-800"
-                            placeholder="Enter directive for all operative grids..."></textarea>
+                            class="w-full h-80 bg-black/40 border border-red-500/10 p-10 rounded-[3rem] outline-none text-[16px] uppercase terminal-font leading-relaxed focus:border-red-500/50 transition-all placeholder:text-zinc-800"
+                            placeholder="Enter directive for immediate synchronization..."></textarea>
                         
-                        <div class="flex justify-end">
+                        <div class="flex justify-between items-center">
+                            <p class="text-[10px] text-zinc-600 font-black uppercase tracking-widest">Target: All Active Operative Grids</p>
                             <button @click="sendBroadcast()" 
-                                class="px-16 py-7 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.2em]">
+                                class="px-16 py-8 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-xs tracking-[0.3em]">
                                 Execute Transmission
                             </button>
                         </div>
                     </div>
 
-                    <div class="glass p-12 rounded-[3.5rem] border border-white/5 space-y-8 shadow-inner">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-black uppercase tracking-[0.3em] text-gold flex items-center gap-3 italic">
-                                <i data-lucide="activity" class="w-5 h-5"></i> Operative Intelligence
+                    <div class="glass p-12 rounded-[4rem] border border-white/5 space-y-10 shadow-inner">
+                        <div class="flex items-center justify-between border-b border-white/5 pb-6">
+                            <h3 class="text-sm font-black uppercase tracking-[0.3em] text-gold flex items-center gap-4 italic">
+                                <i data-lucide="activity" class="w-6 h-6"></i> Live Operative Intelligence
                             </h3>
-                            <span class="text-[10px] text-zinc-600 font-black uppercase tracking-widest">eMalahleni Sector</span>
+                            <span class="text-[10px] text-zinc-500 font-black uppercase">eMalahleni Sector</span>
                         </div>
-                        <div class="space-y-4 max-h-80 overflow-y-auto custom-scrollbar">
+                        <div class="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-4">
                             <template x-for="msg in liveMessages" :key="msg.id">
-                                <div class="p-5 bg-white/[0.02] border-l-4 border-red-600 rounded-r-2xl flex justify-between items-center transition-all hover:bg-white/[0.05]">
+                                <div class="p-6 bg-white/[0.02] border-l-4 border-red-600 rounded-r-3xl flex justify-between items-center transition-all hover:bg-white/[0.05]">
                                     <div>
-                                        <p class="text-[8px] text-zinc-500 font-black uppercase tracking-widest" x-text="msg.username"></p>
-                                        <p class="text-[12px] text-zinc-200 terminal-font mt-1" x-text="msg.content"></p>
+                                        <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest" x-text="msg.username"></p>
+                                        <p class="text-[13px] text-zinc-200 terminal-font mt-2" x-text="msg.content"></p>
                                     </div>
                                     <span class="text-[10px] text-zinc-700 font-black terminal-font" x-text="new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})"></span>
                                 </div>
@@ -182,62 +182,71 @@
 
                 <div class="space-y-12">
                     
-                    <div class="glass-red p-12 rounded-[6rem] text-center relative group shadow-[0_0_80px_rgba(212,175,55,0.05)]">
-                        <div class="absolute inset-0 bg-radial-gradient from-red-600/5 to-transparent"></div>
+                    <div class="glass-red p-12 rounded-[6rem] text-center relative group shadow-[0_0_80px_rgba(239,68,68,0.1)]">
+                        <div class="absolute inset-0 bg-radial-gradient from-red-600/10 to-transparent"></div>
                         
-                        <div class="w-full aspect-square mx-auto relative z-10 transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-105">
-                            <img src="assets/images/1000219947.png" alt="MOG DIRECTORATE SEAL" class="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+                        <div class="w-full aspect-square mx-auto relative z-10 transition-transform duration-1000 group-hover:scale-105">
+                            <img src="assets/images/1000219947.png" alt="DIRECTORATE SEAL" class="w-full h-full object-contain filter drop-shadow-[0_0_40px_rgba(239,68,68,0.3)]">
                             <div class="absolute inset-0 border-8 border-gold/5 rounded-full animate-pulse"></div>
                         </div>
 
                         <div class="pt-12 border-t border-red-500/10 mt-12 relative z-10">
                             <h3 class="text-3xl font-black uppercase italic tracking-tighter">Command Seal</h3>
-                            <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mt-4">Authorized Admin Point // 2026</p>
+                            <p class="text-[11px] text-zinc-600 uppercase font-black tracking-widest mt-4">Authorized Admin Point // 2026</p>
                         </div>
                     </div>
 
-                    <div class="glass-red p-12 rounded-[4rem] text-center border-gold/30 shadow-2xl relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4"><i data-lucide="trending-up" class="text-gold w-6 h-6 opacity-20"></i></div>
-                        <h4 class="text-[11px] font-black uppercase text-gold tracking-[0.5em] mb-6 italic">Brand Wealth Index</h4>
-                        <div class="space-y-2">
-                            <p class="text-6xl font-black text-white terminal-font" x-text="wealthIndex.value"></p>
-                            <p class="text-[12px] font-black text-green-500 uppercase tracking-widest" x-text="wealthIndex.growth + ' MOGV GAIN'"></p>
+                    <div class="wealth-card p-12 rounded-[4rem] text-center border border-gold/30 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-6 opacity-10">
+                            <i data-lucide="trending-up" class="w-12 h-12 text-gold"></i>
+                        </div>
+                        <h4 class="text-[12px] font-black uppercase text-gold tracking-[0.5em] mb-8 italic">Brand Wealth Index</h4>
+                        <div class="space-y-4">
+                            <p class="text-7xl font-black text-white terminal-font" x-text="wealthIndex.value"></p>
+                            <p class="text-[13px] font-black text-green-500 uppercase tracking-widest" x-text="wealthIndex.growth + ' GAIN'"></p>
+                        </div>
+                        <div class="mt-10 pt-8 border-t border-gold/10">
+                            <p class="text-[10px] text-zinc-500 uppercase font-black" x-text="'Currency Unit: ' + wealthIndex.currency"></p>
                         </div>
                     </div>
 
-                    <div class="glass p-10 rounded-[3rem] border border-white/5 space-y-5 shadow-xl">
-                        <div class="flex justify-between items-center text-[10px] font-black uppercase">
-                            <span class="text-zinc-500">Operatives Active</span>
-                            <span class="text-white" x-text="stats.activeOperatives"></span>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div class="glass p-10 rounded-[3rem] border border-white/5 flex items-center justify-between shadow-xl">
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase font-black mb-1">Operatives Active</p>
+                                <p class="text-3xl font-black text-white" x-text="stats.operatives"></p>
+                            </div>
+                            <i data-lucide="users" class="text-red-500 w-8 h-8 opacity-20"></i>
                         </div>
-                        <div class="w-full h-1 bg-white/5 rounded-full"><div class="h-full bg-red-600 w-3/4 rounded-full"></div></div>
-                        <div class="flex justify-between items-center text-[10px] font-black uppercase">
-                            <span class="text-zinc-500">Grid Integrity</span>
-                            <span class="text-green-500" x-text="stats.systemIntegrity"></span>
+                        <div class="glass p-10 rounded-[3rem] border border-white/5 flex items-center justify-between shadow-xl">
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase font-black mb-1">Grid Integrity</p>
+                                <p class="text-3xl font-black text-green-500" x-text="stats.integrity"></p>
+                            </div>
+                            <i data-lucide="shield-check" class="text-green-500 w-8 h-8 opacity-20"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <footer class="mt-24 pt-12 border-t border-white/5 text-center text-zinc-600">
-                <p class="text-[12px] uppercase font-black tracking-[0.6em] italic">NCC MASTER SYSTEM v3.0 // SECURED DIRECTORATE CHANNEL</p>
-                <div class="flex justify-center gap-12 mt-10 opacity-20">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                    <i data-lucide="fingerprint" class="w-6 h-6"></i>
-                    <i data-lucide="cpu" class="w-6 h-6"></i>
-                    <i data-lucide="lock" class="w-6 h-6"></i>
+            <footer class="mt-24 pt-16 border-t border-white/5 text-center text-zinc-700">
+                <p class="text-[13px] uppercase font-black tracking-[0.7em] italic">NCC MASTER SYSTEM v3.0 // SECURED DIRECTORATE CHANNEL</p>
+                <div class="flex justify-center gap-16 mt-12 opacity-20">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                    <i data-lucide="fingerprint" class="w-8 h-8"></i>
+                    <i data-lucide="cpu" class="w-8 h-8"></i>
+                    <i data-lucide="lock" class="w-8 h-8"></i>
                 </div>
             </footer>
         </div>
     </template>
 
     <template x-if="view === 'loading'">
-        <div class="h-screen w-full flex flex-col items-center justify-center space-y-8">
+        <div class="h-screen w-full flex flex-col items-center justify-center space-y-10">
             <div class="loader-red"></div>
-            <p class="text-[12px] font-black text-red-500 uppercase tracking-[0.5em] animate-pulse">Authenticating Master Clearance...</p>
+            <p class="text-[14px] font-black text-red-500 uppercase tracking-[0.6em] animate-pulse">Authenticating Master Clearance...</p>
         </div>
     </template>
 
 </body>
 </html>
-
