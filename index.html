@@ -57,17 +57,13 @@
                     if (session) {
                         this.setupUser(session.user);
                     } else {
-                        // Check for the Google OAuth return fragment
+                        // Detect OAuth return hash for Vercel deployment
                         if (window.location.hash.includes('access_token')) {
                             this.view = 'gate';
-                            // Give Supabase a moment to handle the session fragment
                             setTimeout(async () => {
                                 const { data: { session: oauthSession } } = await sb.auth.getSession();
-                                if (oauthSession) {
-                                    this.setupUser(oauthSession.user);
-                                } else {
-                                    this.view = 'auth';
-                                }
+                                if (oauthSession) this.setupUser(oauthSession.user);
+                                else this.view = 'auth';
                             }, 1000);
                         } else {
                             this.view = 'auth';
@@ -98,15 +94,13 @@
                     }, 1000);
                 },
 
-                // --- LOGIN BUTTON ACTIONS ---
+                // --- BUTTON ACTIONS ---
                 async loginWithGoogle() {
                     this.isLoading = true;
                     this.errorMsg = '';
                     const { error } = await sb.auth.signInWithOAuth({ 
                         provider: 'google', 
-                        options: { 
-                            redirectTo: window.location.origin 
-                        } 
+                        options: { redirectTo: window.location.origin } 
                     });
                     if (error) { this.errorMsg = "AUTH_FAIL: " + error.message; this.isLoading = false; }
                 },
@@ -127,7 +121,7 @@
                 },
 
                 async registerUser() {
-                    if (this.passwordInput !== this.confirmPassword) { this.errorMsg = 'ENROLL_FAIL: KEY_MISMATCH'; return; }
+                    if (this.passwordInput !== this.confirmPassword) { this.errorMsg = 'KEY_MISMATCH'; return; }
                     this.isLoading = true;
                     const { error } = await sb.auth.signUp({ 
                         email: this.emailInput.trim(), 
@@ -142,7 +136,6 @@
                     }
                 },
 
-                // --- DATA HANDLING ---
                 async loadMessages() {
                     const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
                     if (data) { this.messages = data; this.scrollToBottom(); }
@@ -202,7 +195,7 @@
     <template x-if="view === 'gate'">
         <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-[500]">
             <div class="loader"></div>
-            <p class="text-[12px] font-black text-gold uppercase tracking-[0.6em] animate-pulse">Syncing NCC Mainframe...</p>
+            <p class="text-[12px] font-black text-gold uppercase tracking-[0.6em] animate-pulse">Establishing Connection...</p>
         </div>
     </template>
 
@@ -222,14 +215,14 @@
                 </button>
                 
                 <p x-show="errorMsg" x-text="errorMsg" class="text-red-600 text-[10px] font-black uppercase tracking-widest text-center mt-4"></p>
-                <button @click="authMode = 'register'" class="text-[9px] text-zinc-600 uppercase font-black mt-4 hover:text-gold transition-colors underline">New Operative Enrollment</button>
+                <button @click="authMode = 'register'" class="text-[9px] text-zinc-600 uppercase font-black mt-4 hover:text-gold transition-colors underline">Enroll New Operative</button>
             </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
         <div class="min-h-screen flex flex-col z-20 relative animate-fade-in">
-            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100] shadow-2xl">
+            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100]">
                 <div class="flex items-center gap-5">
                     <img src="assets/images/logo.png" class="w-14 h-14 object-contain">
                     <div>
@@ -241,7 +234,7 @@
                 <div class="flex items-center gap-6">
                     <div class="text-right mr-4 border-r border-white/10 pr-6 hidden md:block text-white">
                         <p class="text-[16px] font-black terminal-font" x-text="currentTime"></p>
-                        <p class="text-[7px] text-gold/40 uppercase font-black" x-text="'SESSION_UPTIME: ' + sessionDuration"></p>
+                        <p class="text-[7px] text-gold/40 uppercase font-black" x-text="'SESSION: ' + sessionDuration"></p>
                     </div>
                     <button x-show="isDirector" onclick="window.location.href='directorate.html'" class="p-4 border border-red-600 text-red-600 rounded-2xl animate-pulse"><i data-lucide="shield-alert"></i></button>
                     <button @click="logout()" class="p-4 border border-red-900/30 text-red-500 rounded-2xl"><i data-lucide="power"></i></button>
@@ -277,42 +270,34 @@
                 </div>
                 
                 <div class="text-center py-20 animate-fade-in">
-                    <p class="text-[15px] text-gold font-black uppercase tracking-[1em] italic leading-relaxed drop-shadow-2xl">
-                        DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.
-                    </p>
+                    <p class="text-[14px] text-gold font-black uppercase tracking-[1em] italic leading-relaxed">DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.</p>
                 </div>
 
-                <div class="glass p-12 rounded-[4rem] border border-white/5 mt-12 shadow-2xl relative overflow-hidden">
-                    <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-3 italic mb-10">
-                        <i data-lucide="users" class="w-6 h-6 text-green-500"></i> Personnel Activity Feed
+                <div class="glass p-10 rounded-[4rem] border border-white/5 mt-12 shadow-2xl">
+                    <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-3 italic mb-8">
+                        <i data-lucide="users" class="w-5 h-5 text-green-500"></i> Personnel Activity Hub
                     </h3>
-                    <div class="flex gap-10 overflow-x-auto pb-6 custom-scrollbar scroll-smooth">
+                    <div class="flex gap-8 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
                         <template x-for="op in operatives" :key="op.id">
-                            <div class="flex-shrink-0 w-28 text-center space-y-4">
-                                <div class="w-20 h-20 bg-white/5 rounded-full mx-auto border border-gold/10 flex items-center justify-center relative">
-                                    <i data-lucide="user" class="text-zinc-700 w-8 h-8"></i>
-                                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-4 border-black animate-pulse shadow-[0_0_15px_#22c55e]"></div>
+                            <div class="flex-shrink-0 w-24 text-center space-y-3">
+                                <div class="w-16 h-16 bg-white/5 rounded-full mx-auto border border-gold/10 flex items-center justify-center relative">
+                                    <i data-lucide="user" class="text-zinc-700"></i>
+                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
                                 </div>
-                                <p class="text-[10px] font-black uppercase truncate text-zinc-300 tracking-widest" x-text="op.handle"></p>
+                                <p class="text-[9px] font-black uppercase truncate text-zinc-300" x-text="op.handle"></p>
                             </div>
                         </template>
                     </div>
                 </div>
             </main>
 
-            <footer class="border-t border-white/5 mt-24 p-20 bg-black/80 backdrop-blur-3xl text-center">
+            <footer class="border-t border-white/5 mt-20 p-20 bg-black/80 text-center">
                 <div class="flex justify-center gap-14 text-zinc-500 mb-12">
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="instagram" class="w-8 h-8"></i>
-                    </a>
-                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="message-circle" class="w-8 h-8"></i>
-                    </a>
-                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="youtube" class="w-8 h-8"></i>
-                    </a>
+                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="instagram" class="w-8 h-8"></i></a>
+                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="message-circle" class="w-8 h-8"></i></a>
+                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="youtube" class="w-8 h-8"></i></a>
                 </div>
-                <p class="text-[11px] text-zinc-800 font-black uppercase tracking-[1em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
+                <p class="text-[10px] text-zinc-800 font-black uppercase tracking-[0.8em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
             </footer>
         </div>
     </template>
