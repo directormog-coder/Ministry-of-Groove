@@ -16,7 +16,7 @@ body {
     background-color: var(--bg-black);
     color: #ffffff;
     font-family: 'JetBrains Mono', 'Courier New', monospace;
-    font-size: 16px; /* GLOBAL FONT SCALE */
+    font-size: 16px; /* GLOBAL SCALE BASE */
     line-height: 1.6;
     overflow-x: hidden;
     margin: 0;
@@ -28,7 +28,7 @@ body {
 p, span, a, li, button, input, textarea { font-size: 15px; }
 .terminal-font { font-family: 'Courier New', monospace; font-size: 15px; letter-spacing: 0.05em; }
 
-/* UPGRADED: ELECTRIC BLUE CIRCUIT BACKGROUND */
+/* ELECTRIC BLUE CIRCUITRY BACKGROUND */
 .bg-circuit-pattern {
     position: fixed;
     inset: -50%;
@@ -40,12 +40,10 @@ p, span, a, li, button, input, textarea { font-size: 15px; }
         linear-gradient(0deg, transparent 40px, var(--electric-blue-glow) 40px, var(--electric-blue-glow) 42px, transparent 42px),
         repeating-linear-gradient(45deg, transparent, transparent 80px, rgba(212, 175, 55, 0.02) 80px, rgba(212, 175, 55, 0.02) 82px);
     background-size: 80px 80px, 80px 80px, cover;
-    background-position: center;
     animation: circuitFlow 30s linear infinite;
     opacity: 0.4;
 }
 
-/* Circuit Nodes */
 .bg-circuit-pattern::after {
     content: '';
     position: absolute;
@@ -59,29 +57,17 @@ p, span, a, li, button, input, textarea { font-size: 15px; }
     animation: nodePulse 5s ease-in-out infinite alternate;
 }
 
-.bg-grid {
-    background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px);
-    background-size: 30px 30px;
-}
-
-/* Animations & Components */
 @keyframes circuitFlow { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-80px, -80px) rotate(360deg); } }
 @keyframes nodePulse { 0% { opacity: 0.3; } 100% { opacity: 0.9; } }
-@keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-.loader { width: 32px; height: 32px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+/* UI COMPONENTS */
+.glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); }
+.glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.1); }
+.circuit-vignette { position: fixed; inset: 0; z-index: 10; background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.9) 100%); pointer-events: none; }
+.loader { width: 32px; height: 32px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 .scanline { width: 100%; height: 100px; z-index: 100; background: linear-gradient(0deg, transparent 0%, rgba(0, 242, 255, 0.02) 50%, transparent 100%); position: fixed; top: -100px; animation: moveScanline 8s linear infinite; pointer-events: none; }
 @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
 
-.glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); }
-.glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.1); }
-
-.tile-animate { animation: tilePop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-@keyframes tilePop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-/* Social & Media Player */
-.audio-bar { width: 3px; background: var(--gold); animation: audio-bounce 1s infinite ease-in-out; }
-@keyframes audio-bounce { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+/* Grid Accents */
+.bg-grid { background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px); background-size: 30px 30px; }
