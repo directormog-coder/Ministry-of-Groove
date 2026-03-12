@@ -5,59 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY OF GROOVE | NCC MASTER v3.0</title>
     
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
 
+    <style>
+        /* FULL COLOUR OVERRIDE */
+        [x-cloak] { display: none !important; }
+        
+        /* Permanent Tile Highlighting */
+        .tile-blue { border-color: #3b82f6 !important; background: rgba(59, 130, 246, 0.1) !important; box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+        .tile-green { border-color: #22c55e !important; background: rgba(34, 197, 94, 0.1) !important; box-shadow: 0 0 20px rgba(34, 197, 94, 0.2); }
+        .tile-purple { border-color: #a855f7 !important; background: rgba(168, 85, 247, 0.1) !important; box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+        .tile-gold { border-color: #D4AF37 !important; background: rgba(212, 175, 55, 0.1) !important; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+        .tile-red { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+        .tile-zinc { border-color: #71717a !important; background: rgba(113, 113, 122, 0.1) !important; box-shadow: 0 0 20px rgba(113, 113, 122, 0.2); }
+
+        /* Social Brand Colours */
+        .icon-instagram { color: #E4405F !important; filter: drop-shadow(0 0 10px rgba(228, 64, 95, 0.4)); }
+        .icon-whatsapp { color: #25D366 !important; filter: drop-shadow(0 0 10px rgba(37, 211, 102, 0.4)); }
+        .icon-youtube { color: #FF0000 !important; filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.4)); }
+    </style>
+
     <script>
-        // MASTER CONFIGURATION
         const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
         let sb = null;
 
         function nccMasterEngine() {
             return {
-                // --- SYSTEM STATE ---
-                view: 'gate', 
-                authMode: 'login',
-                isLoading: false,
-                errorMsg: '',
-                isOnline: navigator.onLine,
-                currentTime: '',
-                sessionStart: null,
-                sessionDuration: '00:00',
-
-                // --- AUTH DATA ---
-                emailInput: '',
-                passwordInput: '',
-                confirmPassword: '',
-                handleInput: '',
-                username: '',
-                isDirector: false,
-
-                // --- GRID DATA ---
-                subView: 'grid',
-                activeBroadcast: null,
-                operatives: [],
-                messages: [],
-                msgInput: '',
+                view: 'gate', authMode: 'login', isLoading: false, errorMsg: '',
+                username: '', isDirector: false, emailInput: '', passwordInput: '',
+                subView: 'grid', messages: [], msgInput: '', activeBroadcast: null,
+                operatives: [], currentTime: '', sessionStart: null, sessionDuration: '00:00',
 
                 async init() {
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    
-                    // --- THE GOOGLE AUTH GATE LOGIC ---
                     const { data: { session } } = await sb.auth.getSession();
                     
                     if (session) {
                         this.setupUser(session.user);
                     } else {
-                        // Detect OAuth return hash for Vercel deployment
                         if (window.location.hash.includes('access_token')) {
                             this.view = 'gate';
                             setTimeout(async () => {
@@ -69,15 +59,9 @@
                             this.view = 'auth';
                         }
                     }
-
-                    // System Heartbeat
                     setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
-                    this.subscribeToBroadcasts();
                     this.loadSocialHub();
-                    
                     this.$watch('view', () => this.$nextTick(() => lucide.createIcons()));
-                    window.addEventListener('online', () => this.isOnline = true);
-                    window.addEventListener('offline', () => this.isOnline = false);
                 },
 
                 setupUser(user) {
@@ -86,88 +70,32 @@
                     this.view = 'grid'; 
                     this.sessionStart = Date.now();
                     this.loadMessages();
-                    this.subscribeToMessages();
-                    
                     setInterval(() => {
                         const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
                         this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
                     }, 1000);
                 },
 
-                // --- BUTTON ACTIONS ---
                 async loginWithGoogle() {
                     this.isLoading = true;
-                    this.errorMsg = '';
-                    const { error } = await sb.auth.signInWithOAuth({ 
-                        provider: 'google', 
-                        options: { redirectTo: window.location.origin } 
-                    });
-                    if (error) { this.errorMsg = "AUTH_FAIL: " + error.message; this.isLoading = false; }
+                    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
                 },
 
                 async loginUser() {
-                    if (!this.emailInput || !this.passwordInput) return;
                     this.isLoading = true; this.errorMsg = '';
-                    const { data, error } = await sb.auth.signInWithPassword({ 
-                        email: this.emailInput.trim(), 
-                        password: this.passwordInput 
-                    });
-                    if (error) { 
-                        this.errorMsg = "INVALID LOGIN CREDENTIALS"; 
-                        this.isLoading = false; 
-                    } else { 
-                        this.setupUser(data.user); 
-                    }
-                },
-
-                async registerUser() {
-                    if (this.passwordInput !== this.confirmPassword) { this.errorMsg = 'KEY_MISMATCH'; return; }
-                    this.isLoading = true;
-                    const { error } = await sb.auth.signUp({ 
-                        email: this.emailInput.trim(), 
-                        password: this.passwordInput, 
-                        options: { data: { handle: this.handleInput.toUpperCase() } } 
-                    });
-                    if (error) { this.errorMsg = error.message.toUpperCase(); this.isLoading = false; }
-                    else { 
-                        this.authMode = 'login'; 
-                        this.errorMsg = 'ENROLLMENT SUCCESS. CHECK EMAIL.'; 
-                        this.isLoading = false; 
-                    }
+                    const { data, error } = await sb.auth.signInWithPassword({ email: this.emailInput.trim(), password: this.passwordInput });
+                    if (error) { this.errorMsg = "INVALID LOGIN CREDENTIALS"; this.isLoading = false; }
+                    else { this.setupUser(data.user); }
                 },
 
                 async loadMessages() {
                     const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                    if (data) { this.messages = data; this.scrollToBottom(); }
-                },
-
-                subscribeToMessages() {
-                    sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                        this.messages.push(payload.new);
-                        this.scrollToBottom();
-                    }).subscribe();
-                },
-
-                async sendMessage() {
-                    if (!this.msgInput.trim()) return;
-                    await sb.from('messages').insert({ username: this.username, content: this.msgInput });
-                    this.msgInput = '';
+                    if (data) this.messages = data;
                 },
 
                 async loadSocialHub() {
                     const { data } = await sb.from('profiles').select('*').limit(15);
                     if (data) this.operatives = data;
-                },
-
-                subscribeToBroadcasts() {
-                    sb.channel('public:broadcasts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
-                        this.activeBroadcast = payload.new.content;
-                        setTimeout(() => { this.activeBroadcast = null; }, 15000);
-                    }).subscribe();
-                },
-
-                scrollToBottom() {
-                    this.$nextTick(() => { if(this.$refs.chatContainer) this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight; });
                 },
 
                 logout() { sb.auth.signOut().then(() => window.location.reload()); }
@@ -177,129 +105,107 @@
 </head>
 <body x-data="nccMasterEngine()" x-init="init()" x-cloak class="relative min-h-screen bg-black">
 
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid fixed inset-0 z-0 opacity-20"></div>
-    <div class="circuit-vignette"></div>
+    <div class="bg-circuit-pattern" style="opacity: 0.7;"></div> <div class="bg-grid fixed inset-0 z-0 opacity-30"></div>
     <div class="scanline"></div>
 
-    <template x-if="activeBroadcast">
-        <div class="fixed top-0 left-0 right-0 z-[1000] bg-red-600 p-6 text-center border-b-4 border-white animate-pulse shadow-2xl">
-            <div class="max-w-7xl mx-auto flex items-center justify-center gap-6 text-white font-black">
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-                <span class="text-xl uppercase italic tracking-tighter" x-text="activeBroadcast"></span>
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-            </div>
-        </div>
-    </template>
-
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-[500]">
-            <div class="loader"></div>
-            <p class="text-[12px] font-black text-gold uppercase tracking-[0.6em] animate-pulse">Establishing Connection...</p>
-        </div>
-    </template>
-
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-8 text-center z-[500] relative animate-fade-in">
-            <img src="assets/images/logo.png" class="w-44 h-44 mb-8 object-contain filter drop-shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+        <div class="h-screen flex flex-col items-center justify-center p-8 z-[100] relative">
+            <img src="assets/images/logo.png" class="w-48 h-48 mb-8 object-contain filter drop-shadow-[0_0_20px_#D4AF37]">
             <p class="text-white font-black uppercase tracking-[0.2em] text-[14px] mb-10">Ministry of Groove</p>
             
             <div class="w-full max-w-sm space-y-4">
-                <input x-model="emailInput" type="email" placeholder="DIRECTOR.MOG@GMAIL.COM" class="w-full bg-black/60 border border-white/20 p-5 rounded-2xl text-center text-white text-[11px] uppercase outline-none focus:border-gold">
-                <input x-model="passwordInput" type="password" placeholder="••••••••••" class="w-full bg-black/60 border border-white/20 p-5 rounded-2xl text-center text-white text-[11px] outline-none focus:border-gold">
+                <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black/80 border border-white/30 p-5 rounded-2xl text-center text-white text-[11px] outline-none">
+                <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black/80 border border-white/30 p-5 rounded-2xl text-center text-white text-[11px] outline-none">
                 
-                <button @click="loginUser()" class="w-full py-5 bg-[#D4AF37] text-black font-black uppercase rounded-[2rem] text-sm hover:scale-105 transition-all shadow-xl">Initialize Access</button>
+                <button @click="loginUser()" class="w-full py-5 bg-[#D4AF37] text-black font-black uppercase rounded-[2rem] text-sm shadow-[0_0_20px_rgba(212,175,55,0.4)]">Initialize Access</button>
                 
-                <button @click="loginWithGoogle()" class="w-full py-5 bg-white/5 border border-white/10 text-white font-bold uppercase rounded-[2rem] text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-3">
-                   <i data-lucide="chrome" class="w-4 h-4 text-gold"></i> Sign In With Google
+                <button @click="loginWithGoogle()" class="w-full py-5 bg-white text-black font-bold uppercase rounded-[2rem] text-[10px] flex items-center justify-center gap-3">
+                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4"> Sign In With Google
                 </button>
                 
-                <p x-show="errorMsg" x-text="errorMsg" class="text-red-600 text-[10px] font-black uppercase tracking-widest text-center mt-4"></p>
-                <button @click="authMode = 'register'" class="text-[9px] text-zinc-600 uppercase font-black mt-4 hover:text-gold transition-colors underline">Enroll New Operative</button>
+                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[10px] font-black uppercase text-center mt-4"></p>
             </div>
         </div>
     </template>
 
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col z-20 relative animate-fade-in">
-            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100]">
+        <div class="min-h-screen flex flex-col z-20 relative">
+            <header class="p-6 border-b border-gold/20 glass-strong flex justify-between items-center sticky top-0 z-[100]">
                 <div class="flex items-center gap-5">
-                    <img src="assets/images/logo.png" class="w-14 h-14 object-contain">
-                    <div>
-                        <p class="text-[12px] font-black uppercase italic tracking-[0.2em] leading-tight text-white">Ministry of Groove</p>
-                        <p class="text-[8px] text-gold/60 uppercase font-black tracking-widest mt-1" x-text="'CLEARANCE: ' + username"></p>
-                    </div>
+                    <img src="assets/images/logo.png" class="w-16 h-16 object-contain">
+                    <p class="text-[12px] font-black uppercase italic tracking-[0.2em] text-white">Ministry of Groove</p>
                 </div>
-                
-                <div class="flex items-center gap-6">
-                    <div class="text-right mr-4 border-r border-white/10 pr-6 hidden md:block text-white">
-                        <p class="text-[16px] font-black terminal-font" x-text="currentTime"></p>
-                        <p class="text-[7px] text-gold/40 uppercase font-black" x-text="'SESSION: ' + sessionDuration"></p>
-                    </div>
-                    <button x-show="isDirector" onclick="window.location.href='directorate.html'" class="p-4 border border-red-600 text-red-600 rounded-2xl animate-pulse"><i data-lucide="shield-alert"></i></button>
-                    <button @click="logout()" class="p-4 border border-red-900/30 text-red-500 rounded-2xl"><i data-lucide="power"></i></button>
-                </div>
+                <button @click="logout()" class="p-4 border border-red-500 text-red-500 rounded-2xl bg-red-500/10"><i data-lucide="power"></i></button>
             </header>
 
             <main class="p-8 max-w-7xl mx-auto w-full flex-grow">
-                <div x-show="subView === 'grid'" class="grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16 animate-fade-in">
-                    <div @click="subView = 'chat'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-blue-500/10 hover:border-blue-500/60 shadow-xl group transition-all">
-                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">The Grid</span>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+                    <div @click="subView = 'chat'" class="tile-blue p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">The Grid</span>
                     </div>
-                    <div onclick="window.location.href='dossier.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-green-500/10 hover:border-green-500/60 shadow-xl group transition-all">
-                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-10 h-10 group-hover:rotate-12"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dossier</span>
+                    <div onclick="window.location.href='dossier.html'" class="tile-green p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">Dossier</span>
                     </div>
-                    <div onclick="window.location.href='gallery.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-purple-500/10 hover:border-purple-500/60 shadow-xl group transition-all">
-                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Gallery</span>
+                    <div onclick="window.location.href='gallery.html'" class="tile-purple p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">Gallery</span>
                     </div>
-                    <div onclick="window.location.href='frequency.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-gold/10 hover:border-gold/60 shadow-xl group transition-all">
-                        <i data-lucide="activity" class="mx-auto mb-4 text-gold w-10 h-10 group-hover:animate-pulse"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Frequency</span>
+                    <div onclick="window.location.href='frequency.html'" class="tile-gold p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="activity" class="mx-auto mb-4 text-gold w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">Frequency</span>
                     </div>
-                    <div onclick="window.location.href='dispatch.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-red-500/10 hover:border-red-500/60 shadow-xl group transition-all">
-                        <i data-lucide="radio" class="mx-auto mb-4 text-red-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dispatch</span>
+                    <div onclick="window.location.href='dispatch.html'" class="tile-red p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="radio" class="mx-auto mb-4 text-red-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">Dispatch</span>
                     </div>
-                    <div onclick="window.location.href='archives.html'" class="glass p-12 rounded-[3.5rem] text-center cursor-pointer border-zinc-500/10 hover:border-zinc-500/60 shadow-xl group transition-all">
-                        <i data-lucide="database" class="mx-auto mb-4 text-zinc-400 w-10 h-10 group-hover:scale-105"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Vault</span>
+                    <div onclick="window.location.href='archives.html'" class="tile-zinc p-12 rounded-[3.5rem] text-center cursor-pointer border-2 transition-all">
+                        <i data-lucide="database" class="mx-auto mb-4 text-zinc-400 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase text-white block">Vault</span>
                     </div>
-                </div>
-                
-                <div class="text-center py-20 animate-fade-in">
-                    <p class="text-[14px] text-gold font-black uppercase tracking-[1em] italic leading-relaxed">DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.</p>
                 </div>
 
-                <div class="glass p-10 rounded-[4rem] border border-white/5 mt-12 shadow-2xl">
-                    <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-3 italic mb-8">
-                        <i data-lucide="users" class="w-5 h-5 text-green-500"></i> Personnel Activity Hub
+                <div class="text-center py-20">
+                    <p class="text-[18px] text-gold font-black uppercase tracking-[0.8em] italic leading-relaxed drop-shadow-[0_0_10px_#D4AF37]">
+                        DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.
+                    </p>
+                </div>
+
+                <div class="glass p-12 rounded-[4rem] border border-gold/20 shadow-2xl mt-12">
+                    <h3 class="text-sm font-black uppercase text-gold tracking-widest flex items-center gap-3 italic mb-10">
+                        <i data-lucide="users" class="text-green-500"></i> Active Personnel
                     </h3>
-                    <div class="flex gap-8 overflow-x-auto pb-4 custom-scrollbar scroll-smooth">
+                    <div class="flex gap-10 overflow-x-auto pb-4">
                         <template x-for="op in operatives" :key="op.id">
-                            <div class="flex-shrink-0 w-24 text-center space-y-3">
-                                <div class="w-16 h-16 bg-white/5 rounded-full mx-auto border border-gold/10 flex items-center justify-center relative">
-                                    <i data-lucide="user" class="text-zinc-700"></i>
-                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+                            <div class="flex-shrink-0 w-28 text-center">
+                                <div class="w-20 h-20 bg-green-500/10 rounded-full mx-auto border-2 border-green-500 flex items-center justify-center relative">
+                                    <i data-lucide="user" class="text-green-500 w-8 h-8"></i>
+                                    <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
                                 </div>
-                                <p class="text-[9px] font-black uppercase truncate text-zinc-300" x-text="op.handle"></p>
+                                <p class="text-[11px] font-black uppercase mt-3 text-white" x-text="op.handle"></p>
                             </div>
                         </template>
                     </div>
                 </div>
             </main>
 
-            <footer class="border-t border-white/5 mt-20 p-20 bg-black/80 text-center">
-                <div class="flex justify-center gap-14 text-zinc-500 mb-12">
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="instagram" class="w-8 h-8"></i></a>
-                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="message-circle" class="w-8 h-8"></i></a>
-                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl"><i data-lucide="youtube" class="w-8 h-8"></i></a>
+            <footer class="border-t border-gold/20 mt-24 p-20 bg-black text-center">
+                <div class="flex justify-center gap-16 mb-12">
+                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-6 bg-white/5 rounded-full border border-white/10 hover:scale-110 transition-all">
+                        <i data-lucide="instagram" class="w-10 h-10 icon-instagram"></i>
+                    </a>
+                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-6 bg-white/5 rounded-full border border-white/10 hover:scale-110 transition-all">
+                        <i data-lucide="message-circle" class="w-10 h-10 icon-whatsapp"></i>
+                    </a>
+                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-6 bg-white/5 rounded-full border border-white/10 hover:scale-110 transition-all">
+                        <i data-lucide="youtube" class="w-10 h-10 icon-youtube"></i>
+                    </a>
                 </div>
-                <p class="text-[10px] text-zinc-800 font-black uppercase tracking-[0.8em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
+                <p class="text-[11px] text-zinc-500 font-black uppercase tracking-[1em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
             </footer>
         </div>
     </template>
 </body>
 </html>
+
