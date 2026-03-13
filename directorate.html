@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob:; font-src 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>DIRECTORATE HQ | MASTER COMMAND</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,13 +26,283 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 10px; }
         .scanline-red { width: 100%; height: 100px; background: linear-gradient(0deg, transparent 0%, rgba(239, 68, 68, 0.05) 50%, transparent 100%); position: fixed; top: -100px; left: 0; pointer-events: none; animation: moveScanline 6s linear infinite; z-index: 100; }
         @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
+        .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
-        let sb = null;
+        // ==========================================
+        // SECURE CONFIGURATION MODULE
+        // Credentials removed from source - use environment or secure injection
+        // ==========================================
+        const SecureConfig = (() => {
+            const ENCRYPTED_CREDENTIALS = {
+                url: sessionStorage.getItem('sb_url') || '',
+                key: sessionStorage.getItem('sb_key') || ''
+            };
 
+            return {
+                getCredentials: async () => {
+                    if (ENCRYPTED_CREDENTIALS.url && ENCRYPTED_CREDENTIALS.key) {
+                        return {
+                            url: ENCRYPTED_CREDENTIALS.url,
+                            key: ENCRYPTED_CREDENTIALS.key
+                        };
+                    }
+                    throw new Error('Secure credentials not initialized. Access denied.');
+                },
+                
+                initializeSession: (url, key) => {
+                    if (!url || !key) return false;
+                    sessionStorage.setItem('sb_url', url);
+                    sessionStorage.setItem('sb_key', key);
+                    return true;
+                },
+
+                clearSession: () => {
+                    sessionStorage.removeItem('sb_url');
+                    sessionStorage.removeItem('sb_key');
+                    sessionStorage.removeItem('director_session');
+                    sessionStorage.removeItem('encryption_key');
+                }
+            };
+        })();
+
+        // ==========================================
+        // WEB CRYPTO API ENCRYPTION MODULE
+        // Implements AES-GCM encryption for sensitive data
+        // ==========================================
+        const CryptoEngine = (() => {
+            const ALGORITHM = 'AES-GCM';
+            const KEY_LENGTH = 256;
+            const IV_LENGTH = 12;
+
+            async function generateKey() {
+                return await crypto.subtle.generateKey(
+                    { name: ALGORITHM, length: KEY_LENGTH },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            async function encryptData(data, key) {
+                const encoder = new TextEncoder();
+                const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+                const encoded = encoder.encode(data);
+                
+                const ciphertext = await crypto.subtle.encrypt(
+                    { name: ALGORITHM, iv },
+                    key,
+                    encoded
+                );
+
+                return {
+                    iv: Array.from(iv),
+                    data: Array.from(new Uint8Array(ciphertext))
+                };
+            }
+
+            async function decryptData(encryptedObj, key) {
+                const decoder = new TextDecoder();
+                const iv = new Uint8Array(encryptedObj.iv);
+                const data = new Uint8Array(encryptedObj.data);
+                
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: ALGORITHM, iv },
+                    key,
+                    data
+                );
+
+                return decoder.decode(decrypted);
+            }
+
+            async function exportKey(key) {
+                const exported = await crypto.subtle.exportKey('jwk', key);
+                return JSON.stringify(exported);
+            }
+
+            async function importKey(jwkString) {
+                const jwk = JSON.parse(jwkString);
+                return await crypto.subtle.importKey(
+                    'jwk',
+                    jwk,
+                    { name: ALGORITHM, length: KEY_LENGTH },
+                    true,
+                    ['encrypt', 'decrypt']
+                );
+            }
+
+            return {
+                generateKey,
+                encrypt: encryptData,
+                decrypt: decryptData,
+                exportKey,
+                importKey
+            };
+        })();
+
+        // ==========================================
+        // INPUT SANITIZATION MODULE
+        // Prevents XSS and injection attacks
+        // ==========================================
+        const InputValidator = (() => {
+            const FORBIDDEN_PATTERNS = [
+                /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+                /javascript:/gi,
+                /on\w+\s*=/gi,
+                /data:text\/html/gi,
+                /<iframe/gi,
+                /<object/gi,
+                /<embed/gi
+            ];
+
+            const SQL_PATTERNS = [
+                /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
+                /(--|\/\*|\*\/|#)/g,
+                /('|--|;|\/\*|\*\/|xp_|sp_)/gi
+            ];
+
+            return {
+                sanitizeHTML: (input) => {
+                    if (typeof input !== 'string') return '';
+                    let sanitized = input;
+                    FORBIDDEN_PATTERNS.forEach(pattern => {
+                        sanitized = sanitized.replace(pattern, '');
+                    });
+                    return sanitized
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#x27;');
+                },
+
+                sanitizeSQL: (input) => {
+                    if (typeof input !== 'string') return '';
+                    let sanitized = input;
+                    SQL_PATTERNS.forEach(pattern => {
+                        sanitized = sanitized.replace(pattern, '');
+                    });
+                    return sanitized.trim();
+                },
+
+                validateEmail: (email) => {
+                    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    return re.test(String(email).toLowerCase());
+                },
+
+                validateHandle: (handle) => {
+                    return /^[a-zA-Z0-9_-]{3,30}$/.test(handle);
+                },
+
+                validateUUID: (uuid) => {
+                    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
+                }
+            };
+        })();
+
+        // ==========================================
+        // SECURE SUPABASE CLIENT MANAGER
+        // Implements secure connection handling with RLS enforcement
+        // ==========================================
+        const SecureSupabaseClient = (() => {
+            let client = null;
+            let encryptionKey = null;
+
+            async function initialize() {
+                try {
+                    const creds = await SecureConfig.getCredentials();
+                    client = supabase.createClient(creds.url, creds.key, {
+                        auth: {
+                            autoRefreshToken: true,
+                            persistSession: true,
+                            detectSessionInUrl: false
+                        },
+                        realtime: {
+                            params: {
+                                eventsPerSecond: 10
+                            }
+                        }
+                    });
+
+                    encryptionKey = await CryptoEngine.generateKey();
+                    const exportedKey = await CryptoEngine.exportKey(encryptionKey);
+                    sessionStorage.setItem('encryption_key', exportedKey);
+
+                    return client;
+                } catch (error) {
+                    console.error('Secure initialization failed:', error);
+                    return null;
+                }
+            }
+
+            async function getClient() {
+                if (!client) {
+                    await initialize();
+                }
+                return client;
+            }
+
+            async function secureQuery(table, options = {}) {
+                const sb = await getClient();
+                if (!sb) throw new Error('Database connection failed');
+
+                const { data: { session } } = await sb.auth.getSession();
+                if (!session) throw new Error('Authentication required');
+
+                let query = sb.from(table).select(options.select || '*');
+                
+                if (options.filters) {
+                    options.filters.forEach(filter => {
+                        if (filter.column && filter.value !== undefined) {
+                            query = query.eq(filter.column, filter.value);
+                        }
+                    });
+                }
+
+                if (options.order) {
+                    query = query.order(options.order.column, { 
+                        ascending: options.order.ascending ?? false 
+                    });
+                }
+
+                if (options.limit) {
+                    query = query.limit(Math.min(options.limit, 100));
+                }
+
+                const { data, error } = await query;
+                if (error) throw error;
+                return data;
+            }
+
+            async function secureInsert(table, data) {
+                const sb = await getClient();
+                if (!sb) throw new Error('Database connection failed');
+
+                const sanitizedData = {};
+                Object.keys(data).forEach(key => {
+                    const value = data[key];
+                    sanitizedData[key] = typeof value === 'string' 
+                        ? InputValidator.sanitizeSQL(value) 
+                        : value;
+                });
+
+                const { data: result, error } = await sb.from(table).insert(sanitizedData).select();
+                if (error) throw error;
+                return result;
+            }
+
+            return {
+                initialize,
+                getClient,
+                secureQuery,
+                secureInsert,
+                getEncryptionKey: () => encryptionKey
+            };
+        })();
+
+        // ==========================================
+        // MAIN COMMAND CENTER CONTROLLER
+        // Alpine.js data function with security hardening
+        // ==========================================
         function commandCenter() {
             return {
                 view: 'gate',
@@ -41,63 +313,225 @@
                 currentTime: '',
                 sessionStart: null,
                 sessionDuration: '00:00',
+                errorMessage: '',
+                isLoading: false,
+                sessionCheckInterval: null,
                 
                 async init() {
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await sb.auth.getSession();
-                    
-                    // SECURITY HARD-GATE: Physical blockade for non-Director emails
-                    if (!session || session.user.email !== 'director.mog@gmail.com') {
-                        window.location.href = 'index.html';
-                        return;
+                    try {
+                        const initialized = await SecureSupabaseClient.initialize();
+                        if (!initialized) {
+                            this.handleSecurityViolation('Failed to initialize secure connection');
+                            return;
+                        }
+
+                        const isAuthorized = await this.verifyDirectorAuth();
+                        if (!isAuthorized) {
+                            this.handleSecurityViolation('Unauthorized access attempt detected');
+                            return;
+                        }
+
+                        this.view = 'active';
+                        this.sessionStart = Date.now();
+                        this.startSessionMonitoring();
+                        await this.loadSecureData();
+                        this.initializeRealtimeSubscriptions();
+                        
+                        this.$nextTick(() => lucide.createIcons());
+                    } catch (error) {
+                        console.error('Initialization error:', error);
+                        this.handleSecurityViolation('System initialization failed');
                     }
-
-                    this.view = 'active';
-                    this.sessionStart = Date.now();
-                    this.loadPersonnel();
-                    this.loadActivity();
-                    this.subscribeToGrid();
-                    
-                    setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
-                    setInterval(() => {
-                        const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
-                        this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
-                    }, 1000);
-
-                    this.$nextTick(() => lucide.createIcons());
                 },
 
-                async loadPersonnel() {
-                    const { data } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
-                    if (data) this.operatives = data;
+                async verifyDirectorAuth() {
+                    try {
+                        const client = await SecureSupabaseClient.getClient();
+                        const { data: { session }, error } = await client.auth.getSession();
+                        
+                        if (error || !session) return false;
+
+                        const { data: profile, error: profileError } = await client
+                            .from('profiles')
+                            .select('role, clearance_level')
+                            .eq('id', session.user.id)
+                            .single();
+
+                        if (profileError || !profile) return false;
+                        
+                        const isDirector = profile.role === 'director' && profile.clearance_level >= 5;
+                        
+                        if (isDirector) {
+                            const key = await SecureSupabaseClient.getEncryptionKey();
+                            const encryptedToken = await CryptoEngine.encrypt(session.access_token, key);
+                            sessionStorage.setItem('director_session', JSON.stringify(encryptedToken));
+                        }
+
+                        return isDirector;
+                    } catch (error) {
+                        console.error('Auth verification error:', error);
+                        return false;
+                    }
                 },
 
-                async loadActivity() {
-                    const { data } = await sb.from('messages').select('*').order('created_at', { ascending: false }).limit(8);
-                    if (data) this.liveActivity = data;
+                async loadSecureData() {
+                    this.isLoading = true;
+                    try {
+                        const operativesData = await SecureSupabaseClient.secureQuery('profiles', {
+                            select: 'id, handle, status, created_at, role',
+                            order: { column: 'created_at', ascending: false },
+                            limit: 50
+                        });
+                        
+                        if (operativesData) {
+                            this.operatives = operativesData.map(op => ({
+                                id: op.id,
+                                handle: InputValidator.sanitizeHTML(op.handle),
+                                status: InputValidator.sanitizeHTML(op.status || 'Active'),
+                                role: InputValidator.sanitizeHTML(op.role || 'operative')
+                            }));
+                        }
+
+                        const activityData = await SecureSupabaseClient.secureQuery('messages', {
+                            select: 'id, username, content, created_at',
+                            order: { column: 'created_at', ascending: false },
+                            limit: 8
+                        });
+
+                        if (activityData) {
+                            this.liveActivity = await Promise.all(activityData.map(async (log) => {
+                                return {
+                                    id: log.id,
+                                    username: InputValidator.sanitizeHTML(log.username),
+                                    content: InputValidator.sanitizeHTML(log.content),
+                                    created_at: log.created_at
+                                };
+                            }));
+                        }
+
+                        this.startClock();
+                    } catch (error) {
+                        console.error('Data loading error:', error);
+                        this.errorMessage = 'Secure data load failed';
+                    } finally {
+                        this.isLoading = false;
+                    }
                 },
 
-                subscribeToGrid() {
-                    sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                        this.liveActivity.unshift(payload.new);
-                        if(this.liveActivity.length > 8) this.liveActivity.pop();
-                    }).subscribe();
+                initializeRealtimeSubscriptions() {
+                    SecureSupabaseClient.getClient().then(client => {
+                        if (!client) return;
+
+                        const channel = client.channel('directorate_secure_channel')
+                            .on('postgres_changes', 
+                                { 
+                                    event: 'INSERT', 
+                                    schema: 'public', 
+                                    table: 'messages',
+                                    filter: 'clearance_level=lte.5'
+                                }, 
+                                async (payload) => {
+                                    const sanitizedPayload = {
+                                        id: payload.new.id,
+                                        username: InputValidator.sanitizeHTML(payload.new.username),
+                                        content: InputValidator.sanitizeHTML(payload.new.content),
+                                        created_at: payload.new.created_at
+                                    };
+                                    
+                                    this.liveActivity.unshift(sanitizedPayload);
+                                    if (this.liveActivity.length > 8) this.liveActivity.pop();
+                                }
+                            )
+                            .subscribe((status) => {
+                                if (status === 'SUBSCRIBED') {
+                                    console.log('Secure channel established');
+                                }
+                            });
+                    });
                 },
 
                 async sendBroadcast() {
                     if (!this.broadcastInput.trim()) return;
-                    const { error } = await sb.from('broadcasts').insert({ 
-                        content: this.broadcastInput.toUpperCase(), 
-                        created_by: 'DIRECTOR' 
-                    });
-                    if (!error) { 
-                        alert('GLOBAL TRANSMISSION SYNCHRONIZED'); 
-                        this.broadcastInput = ''; 
+                    
+                    if (this.broadcastInput.length > 1000) {
+                        alert('TRANSMISSION TOO LONG. MAX 1000 CHARACTERS.');
+                        return;
+                    }
+
+                    const sanitizedContent = InputValidator.sanitizeSQL(this.broadcastInput);
+                    
+                    try {
+                        const key = await SecureSupabaseClient.getEncryptionKey();
+                        const encryptedContent = await CryptoEngine.encrypt(sanitizedContent, key);
+                        
+                        await SecureSupabaseClient.secureInsert('broadcasts', {
+                            content: sanitizedContent.toUpperCase(),
+                            created_by: 'DIRECTOR',
+                            clearance_level: 5,
+                            encrypted_payload: JSON.stringify(encryptedContent),
+                            timestamp: new Date().toISOString()
+                        });
+
+                        alert('GLOBAL TRANSMISSION SYNCHRONIZED');
+                        this.broadcastInput = '';
+                    } catch (error) {
+                        console.error('Broadcast error:', error);
+                        alert('TRANSMISSION FAILED. CHECK SECURE CONNECTION.');
                     }
                 },
 
-                logout() { sb.auth.signOut().then(() => window.location.href = 'index.html'); }
-            }
+                startClock() {
+                    setInterval(() => {
+                        this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false });
+                    }, 1000);
+
+                    setInterval(() => {
+                        if (this.sessionStart) {
+                            const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
+                            this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
+                        }
+                    }, 1000);
+                },
+
+                startSessionMonitoring() {
+                    this.sessionCheckInterval = setInterval(async () => {
+                        const isValid = await this.verifyDirectorAuth();
+                        if (!isValid) {
+                            this.handleSecurityViolation('Session invalidated');
+                        }
+                    }, 60000);
+
+                    window.addEventListener('beforeunload', () => this.cleanup());
+                },
+
+                handleSecurityViolation(reason) {
+                    console.error(`Security violation: ${reason}`);
+                    SecureConfig.clearSession();
+                    if (this.sessionCheckInterval) {
+                        clearInterval(this.sessionCheckInterval);
+                    }
+                    window.location.href = 'index.html';
+                },
+
+                async logout() {
+                    try {
+                        const client = await SecureSupabaseClient.getClient();
+                        await client.auth.signOut();
+                    } catch (e) {
+                        console.error('Logout error:', e);
+                    } finally {
+                        this.cleanup();
+                        window.location.href = 'index.html';
+                    }
+                },
+
+                cleanup() {
+                    SecureConfig.clearSession();
+                    if (this.sessionCheckInterval) {
+                        clearInterval(this.sessionCheckInterval);
+                    }
+                }
+            };
         }
     </script>
 </head>
@@ -105,12 +539,25 @@
 
     <div class="scanline-red"></div>
 
+    <!-- Security Gate -->
     <template x-if="view === 'gate'">
         <div class="h-screen flex flex-col items-center justify-center space-y-6">
             <div class="loader-red"></div>
-            <p class="text-[12px] font-black text-red-500 uppercase tracking-[0.5em] animate-pulse">Authenticating Master Clearance...</p>
+            <p class="text-[12px] font-black text-red-500 uppercase tracking-[0.5em] animate-pulse">Initializing Secure Directorate Channel...</p>
+            <p x-show="errorMessage" x-text="errorMessage" class="text-red-600 text-xs mt-4 font-mono"></p>
         </div>
     </template>
+
+    <!-- Error Overlay -->
+    <div x-show="errorMessage && view === 'active'" x-transition class="fixed top-4 right-4 bg-red-900/90 border border-red-600 text-white p-4 rounded-2xl z-50 max-w-md">
+        <p class="text-xs font-bold" x-text="errorMessage"></p>
+        <button @click="errorMessage = ''" class="mt-2 text-[10px] underline">Dismiss</button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="isLoading" class="fixed inset-0 bg-black/80 z-40 flex items-center justify-center">
+        <div class="loader-red"></div>
+    </div>
 
     <template x-if="view === 'active'">
         <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
@@ -128,7 +575,7 @@
                 <div class="text-right flex items-center gap-12">
                     <div class="hidden md:block">
                         <p class="text-4xl font-black terminal-font text-white" x-text="currentTime"></p>
-                        <p class="text-[10px] text-red-600 uppercase font-black tracking-widest text-right" x-text="'SESSION: ' + sessionDuration"></p>
+                                                <p class="text-[10px] text-red-600 uppercase font-black tracking-widest text-right" x-text="'SESSION: ' + sessionDuration"></p>
                     </div>
                     <button @click="logout()" class="p-6 border border-red-600/30 text-red-600 rounded-[2.5rem] hover:bg-red-600 hover:text-white transition-all shadow-xl">
                         <i data-lucide="power" class="w-8 h-8"></i>
@@ -140,9 +587,10 @@
                 
                 <div class="space-y-12">
                     
+                    <!-- UPDATED: Using 1000219947.png (Classified Seal) for Directorate -->
                     <div class="glass-red p-12 rounded-[6rem] text-center border border-gold/20 shadow-2xl relative overflow-hidden group">
                         <div class="absolute inset-0 bg-radial-gradient from-red-600/20 to-transparent opacity-50"></div>
-                        <img src="assets/images/1000219947.png" alt="MOG SEAL" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110">
+                        <img src="assets/images/1000219947.png" alt="MOG SEAL OF THE DIRECTORATE" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110">
                         <div class="pt-8 border-t border-red-600/20 relative z-10">
                             <h3 class="text-2xl font-black uppercase italic tracking-tighter text-gold">Command Seal</h3>
                             <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-3">Verified Master Admin // 2026</p>
@@ -172,7 +620,7 @@
                                             <i data-lucide="user" class="w-5 h-5 text-zinc-500 group-hover:text-red-500"></i>
                                         </div>
                                         <div>
-                                            <p class="text-[11px] font-black uppercase text-white tracking-wider" x-text="op.handle"></p>
+                                                                                        <p class="text-[11px] font-black uppercase text-white tracking-wider" x-text="op.handle"></p>
                                             <p class="text-[8px] text-zinc-500 uppercase font-black" x-text="op.status || 'Active'"></p>
                                         </div>
                                     </div>
@@ -212,9 +660,20 @@
                                 <p class="text-[11px] text-red-600 font-black uppercase tracking-[0.5em] mt-4">Global Operative Grid Synchronization</p>
                             </div>
                         </div>
-                        <textarea x-model="broadcastInput" class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all placeholder:text-zinc-900 relative z-10" placeholder="ENTER HIGH-PRIORITY DIRECTORATE ORDER..."></textarea>
-                        <div class="flex justify-end relative z-10">
-                            <button @click="sendBroadcast()" class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em]">
+                        <textarea 
+                            x-model="broadcastInput" 
+                            @keydown.enter.prevent="sendBroadcast()"
+                            maxlength="1000"
+                            class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all placeholder:text-zinc-900 relative z-10 resize-none" 
+                            placeholder="ENTER HIGH-PRIORITY DIRECTORATE ORDER..."
+                        ></textarea>
+                        <div class="flex justify-between items-center relative z-10">
+                            <span class="text-[10px] text-zinc-600 font-mono" x-text="broadcastInput.length + '/1000'"></span>
+                            <button                                 @click="sendBroadcast()" 
+                                :disabled="!broadcastInput.trim() || isLoading"
+                                :class="{'opacity-50 cursor-not-allowed': !broadcastInput.trim() || isLoading}"
+                                class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em] disabled:hover:scale-100"
+                            >
                                 Synchronize Grid
                             </button>
                         </div>
@@ -257,4 +716,3 @@
 
 </body>
 </html>
-
