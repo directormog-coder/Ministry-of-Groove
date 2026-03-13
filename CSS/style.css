@@ -1,13 +1,24 @@
 /* ==========================================================================
    MINISTRY OF GROOVE | MASTER STYLE ENGINE v4.0
-   DESIGN: TACTICAL ELECTRIC BLUE CIRCUITRY
+   Design Language: Tactical Electric Blue / Unified Gold
+   Font Standard: JetBrains Mono (Tech/Dev Optimized)
    ========================================================================== */
 
+/* 1. TYPOGRAPHY SHIELD (Poster Format Scaling)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
 :root {
+    /* MOG BRAND PALETTE (From logo.png) */
     --gold: #D4AF37;
     --gold-glow: rgba(212, 175, 55, 0.4);
+    --gold-dim: rgba(212, 175, 55, 0.1);
+    
+    /* NCC TACTICAL PALETTE */
     --electric-blue: #00F2FF; 
     --electric-blue-glow: rgba(0, 242, 255, 0.2);
+    
+    /* Surfaces */
     --bg-black: #050508;
     --glass-border: rgba(255, 255, 255, 0.05);
 }
@@ -15,8 +26,8 @@
 body {
     background-color: var(--bg-black);
     color: #ffffff;
-    font-family: 'JetBrains Mono', 'Courier New', monospace;
-    font-size: 16px; /* GLOBAL SCALE BASE */
+    font-family: 'JetBrains Mono', monospace; /* LATEST STANDARD */
+    font-size: 16px; /* 2px GLOBAL INCREASE */
     line-height: 1.6;
     overflow-x: hidden;
     margin: 0;
@@ -24,11 +35,17 @@ body {
 
 [x-cloak] { display: none !important; }
 
-/* Global Typography Scaling */
+/* Poster Format Scaling for internal elements */
 p, span, a, li, button, input, textarea { font-size: 15px; }
-.terminal-font { font-family: 'Courier New', monospace; font-size: 15px; letter-spacing: 0.05em; }
+.text-xs, .text-\[10px\], .text-\[8px\] { font-size: 13px !important; }
+.text-sm, .text-\[12px\] { font-size: 15px !important; }
+.terminal-font { font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.05em; }
 
-/* ELECTRIC BLUE CIRCUITRY BACKGROUND */
+/* ==========================================================================
+   2. UPGRADED: TACTICAL BACKGROUNDS (Vibrant)
+   ========================================================================== */
+
+/* Electric Blue Circuit Pattern (Mimicking logo.png Interior) */
 .bg-circuit-pattern {
     position: fixed;
     inset: -50%;
@@ -36,14 +53,19 @@ p, span, a, li, button, input, textarea { font-size: 15px; }
     background-color: #000;
     overflow: hidden;
     background-image: 
+        /* Vertical Electric Lines */
         linear-gradient(90deg, transparent 40px, var(--electric-blue-glow) 40px, var(--electric-blue-glow) 42px, transparent 42px),
+        /* Horizontal Electric Lines */
         linear-gradient(0deg, transparent 40px, var(--electric-blue-glow) 40px, var(--electric-blue-glow) 42px, transparent 42px),
+        /* Gold Base Traces */
         repeating-linear-gradient(45deg, transparent, transparent 80px, rgba(212, 175, 55, 0.02) 80px, rgba(212, 175, 55, 0.02) 82px);
     background-size: 80px 80px, 80px 80px, cover;
+    background-position: center;
     animation: circuitFlow 30s linear infinite;
-    opacity: 0.4;
+    opacity: 0.7; /* INCREASED VIBRANCY */
 }
 
+/* Pulsing Circuit Nodes */
 .bg-circuit-pattern::after {
     content: '';
     position: absolute;
@@ -57,17 +79,57 @@ p, span, a, li, button, input, textarea { font-size: 15px; }
     animation: nodePulse 5s ease-in-out infinite alternate;
 }
 
-@keyframes circuitFlow { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-80px, -80px) rotate(360deg); } }
-@keyframes nodePulse { 0% { opacity: 0.3; } 100% { opacity: 0.9; } }
+/* Base Operative Grid (Gold) */
+.bg-grid {
+    background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px);
+    background-size: 30px 30px;
+}
 
-/* UI COMPONENTS */
-.glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); }
-.glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.1); }
-.circuit-vignette { position: fixed; inset: 0; z-index: 10; background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.9) 100%); pointer-events: none; }
-.loader { width: 32px; height: 32px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes circuitFlow { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-80px, -80px) rotate(360deg); } }
+@keyframes nodePulse { 0% { opacity: 0.3; transform: scale(1); } 100% { opacity: 0.9; transform: scale(1.1); } }
+
+/* Scanlines & Vignette */
 .scanline { width: 100%; height: 100px; z-index: 100; background: linear-gradient(0deg, transparent 0%, rgba(0, 242, 255, 0.02) 50%, transparent 100%); position: fixed; top: -100px; animation: moveScanline 8s linear infinite; pointer-events: none; }
 @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
+.circuit-vignette { position: fixed; inset: 0; z-index: 10; background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.9) 100%); pointer-events: none; }
 
-/* Grid Accents */
-.bg-grid { background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px); background-size: 30px 30px; }
+/* ==========================================================================
+   3. COLOUR RESTORATION & UNIFICATION
+   ========================================================================== */
+
+/* 100% Logo-Drivien Colors (No external hues) */
+.glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); }
+.glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.1); }
+
+/* Unified Hover States (Gold Glow) */
+a, button, [onclick] { transition: all 0.3s ease; }
+[onclick]:hover { border-color: var(--gold) !important; box-shadow: 0 0 20px var(--gold-glow) !important; transform: scale(1.02); }
+
+/* Social Icons - Colourful Restoration (No Grayscale) */
+.socials-colourful a:nth-child(1):hover { color: #E4405F !important; border-color: #E4405F !important; background: rgba(228, 64, 95, 0.1) !important; } /* Instagram */
+.socials-colourful a:nth-child(2):hover { color: #25D366 !important; border-color: #25D366 !important; background: rgba(37, 211, 102, 0.1) !important; } /* WhatsApp */
+.socials-colourful a:nth-child(3):hover { color: #FF0000 !important; border-color: #FF0000 !important; background: rgba(255, 0, 0, 0.1) !important; } /* YouTube */
+
+/* ============================================
+   4.NCC TACTICAL COMPONENTS
+   ============================================ */
+
+/* Tactical Loading Spinner */
+.loader { width: 32px; height: 32px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+@keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Chat Custom Scrollbar (Gold) */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+/* Social Audio Bar */
+.audio-bar { width: 3px; background: var(--gold); animation: audio-bounce 1s infinite ease-in-out; }
+@keyframes audio-bounce { 0%, 100% { height: 20%; } 50% { height: 100%; } }
+
+/* Tile Animations */
+.tile-animate { animation: tilePop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+@keyframes tilePop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Max Width for Vercel/PWA Scale */
+.max-w-7xl { max-width: 80rem; margin-left: auto; margin-right: auto; }
+
