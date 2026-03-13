@@ -5,16 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MINISTRY OF GROOVE | NCC MASTER v3.0</title>
     
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="CSS/style.css">
+
+    <style>
+        [x-cloak] { display: none !important; }
+        
+        /* Unified Poster Typography */
+        .brand-title { font-size: 28px; font-weight: 900; letter-spacing: 0.3em; color: #D4AF37; text-transform: uppercase; font-style: italic; }
+        .brand-slogan { font-size: 14px; font-weight: 700; letter-spacing: 0.6em; color: rgba(212, 175, 55, 0.6); text-transform: uppercase; }
+
+        /* Social Brand Colors - No Gray */
+        .social-instagram { color: #E4405F; }
+        .social-whatsapp { color: #25D366; }
+        .social-youtube { color: #FF0000; }
+        .social-tiktok { color: #00f2ea; }
+        .social-facebook { color: #1877F2; }
+        .social-x { color: #ffffff; }
+
+        /* Tactical Tile Highlights */
+        .tile-highlight { border: 2px solid #D4AF37 !important; background: rgba(212, 175, 55, 0.1) !important; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2); transition: all 0.4s ease; }
+        .tile-highlight:hover { transform: scale(1.05); background: rgba(212, 175, 55, 0.2) !important; }
+    </style>
 
     <script>
         const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
@@ -23,30 +38,23 @@
 
         function nccMasterEngine() {
             return {
-                // --- SYSTEM STATE ---
-                view: 'gate', authMode: 'login', isLoading: false, errorMsg: '',
-                isOnline: navigator.onLine, currentTime: '', sessionStart: null, sessionDuration: '00:00',
-
-                // --- AUTH DATA ---
-                emailInput: '', passwordInput: '', confirmPassword: '', handleInput: '',
-                username: '', isDirector: false,
-
-                // --- GRID NAVIGATION & DATA ---
-                subView: 'grid', activeBroadcast: null, operatives: [],
-                messages: [], msgInput: '',
-                nowPlaying: null, isPlaying: false,
+                view: 'gate',
+                isLoading: false,
+                emailInput: '',
+                passwordInput: '',
+                username: '',
+                operatives: [],
 
                 async init() {
-                    console.log("NCC MASTER: INITIALIZING ENGINE...");
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     
-                    // --- G-AUTH GATEKEEPER ---
-                    // Audit session for active operative or Google Auth redirect
+                    // --- THE GOOGLE AUTH HARD-GATE ---
                     const { data: { session } } = await sb.auth.getSession();
-                    if (session) { 
-                        this.setupUser(session.user); 
-                    } else { 
-                        // If no session, check for Google redirect fragments
+                    
+                    if (session) {
+                        this.setupUser(session.user);
+                    } else {
+                        // Detect Google OAuth return fragment
                         if (window.location.hash.includes('access_token')) {
                             this.view = 'gate';
                             setTimeout(async () => {
@@ -55,101 +63,39 @@
                                 else this.view = 'auth';
                             }, 1000);
                         } else {
-                            this.view = 'auth'; 
+                            this.view = 'auth';
                         }
                     }
-
-                    // System Heartbeat
-                    setInterval(() => { this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false }); }, 1000);
-
-                    // Global Event Listeners
-                    this.subscribeToBroadcasts();
                     this.loadSocialHub();
-                    
                     this.$watch('view', () => this.$nextTick(() => lucide.createIcons()));
-                    window.addEventListener('online', () => this.isOnline = true);
-                    window.addEventListener('offline', () => this.isOnline = false);
                 },
 
                 setupUser(user) {
                     this.username = user.user_metadata.handle || user.email.split('@')[0];
-                    this.isDirector = user.email === 'director.mog@gmail.com';
                     this.view = 'grid'; 
-                    this.sessionStart = Date.now();
-                    
-                    // Initialize Data Streams
-                    this.loadMessages();
-                    this.subscribeToMessages();
-                    
-                    // Session Timer
-                    setInterval(() => {
-                        const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
-                        this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
-                    }, 1000);
                 },
 
-                // --- AUTHENTICATION METHODS ---
                 async loginWithGoogle() {
                     this.isLoading = true;
                     await sb.auth.signInWithOAuth({ 
                         provider: 'google', 
-                        // Redirect must be the exact Vercel URL, wildcarded for sub-paths
                         options: { redirectTo: window.location.origin } 
                     });
                 },
 
-                async loginUser() {
-                    if (!this.emailInput || !this.passwordInput) return;
-                    this.isLoading = true; this.errorMsg = '';
-                    const { data, error } = await sb.auth.signInWithPassword({ email: this.emailInput.trim(), password: this.passwordInput });
-                    if (error) { this.errorMsg = "INVALID CREDENTIALS"; this.isLoading = false; }
+                async loginManual() {
+                    this.isLoading = true;
+                    const { data, error } = await sb.auth.signInWithPassword({ 
+                        email: this.emailInput.trim(), 
+                        password: this.passwordInput 
+                    });
+                    if (error) { alert("ACCESS DENIED"); this.isLoading = false; }
                     else { this.setupUser(data.user); }
                 },
 
-                async registerUser() {
-                    if (this.passwordInput !== this.confirmPassword) { this.errorMsg = 'KEY MISMATCH'; return; }
-                    this.isLoading = true;
-                    const { error } = await sb.auth.signUp({ 
-                        email: this.emailInput.trim(), password: this.passwordInput, 
-                        options: { data: { handle: this.handleInput.toUpperCase() } } 
-                    });
-                    if (error) { this.errorMsg = error.message.toUpperCase(); this.isLoading = false; }
-                    else { this.authMode = 'login'; this.errorMsg = 'ENROLLMENT SUCCESS. LOGIN.'; this.isLoading = false; }
-                },
-
-                // --- DATA HANDLING ---
-                async loadMessages() {
-                    const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-                    if (data) { this.messages = data; this.scrollToBottom(); }
-                },
-
-                subscribeToMessages() {
-                    sb.channel('public:messages').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                        this.messages.push(payload.new);
-                        this.scrollToBottom();
-                    }).subscribe();
-                },
-
-                async sendMessage() {
-                    if (!this.msgInput.trim()) return;
-                    await sb.from('messages').insert({ username: this.username, content: this.msgInput });
-                    this.msgInput = '';
-                },
-
                 async loadSocialHub() {
-                    const { data } = await sb.from('profiles').select('*').limit(15);
+                    const { data } = await sb.from('profiles').select('*').limit(12);
                     if (data) this.operatives = data;
-                },
-
-                subscribeToBroadcasts() {
-                    sb.channel('public:broadcasts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, payload => {
-                        this.activeBroadcast = payload.new.content;
-                        setTimeout(() => { this.activeBroadcast = null; }, 15000);
-                    }).subscribe();
-                },
-
-                scrollToBottom() {
-                    this.$nextTick(() => { if(this.$refs.chatContainer) this.$refs.chatContainer.scrollTop = this.$refs.chatContainer.scrollHeight; });
                 },
 
                 logout() { sb.auth.signOut().then(() => window.location.reload()); }
@@ -157,167 +103,102 @@
         }
     </script>
 </head>
-<body x-data="nccMasterEngine()" x-init="init()" x-cloak class="relative min-h-screen">
+<body x-data="nccMasterEngine()" x-init="init()" x-cloak class="bg-black relative min-h-screen text-white overflow-x-hidden">
 
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid fixed inset-0 z-0 opacity-20"></div>
+    <div class="bg-circuit-pattern" style="opacity: 0.8;"></div>
     <div class="circuit-vignette"></div>
-    <div class="scanline"></div>
-
-    <template x-if="activeBroadcast">
-        <div class="fixed top-0 left-0 right-0 z-[600] bg-red-600 p-6 text-center shadow-[0_0_50px_rgba(239,68,68,0.5)] border-b-4 border-white animate-pulse">
-            <div class="flex items-center justify-center gap-6">
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-                <span class="text-xl font-black uppercase italic tracking-tighter" x-text="activeBroadcast"></span>
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-            </div>
-        </div>
-    </template>
-
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-[100]">
-            <div class="loader"></div>
-            <p class="text-[12px] font-black text-gold uppercase tracking-[0.6em] animate-pulse">Establishing Connection...</p>
-        </div>
-    </template>
 
     <template x-if="view === 'auth'">
-        <div class="h-screen flex flex-col items-center justify-center p-8 text-center bg-black z-[100] relative animate-fade-in">
-            <img src="assets/images/logo.png" class="w-48 h-48 mb-12 object-contain filter drop-shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-            <div class="w-full max-w-md space-y-6">
-                <h2 class="text-white font-black uppercase tracking-[0.4em] text-[11px] italic mb-10 leading-relaxed">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</h2>
+        <div class="h-screen flex flex-col items-center justify-center p-8 z-[100] relative">
+            <div class="flex items-center gap-6 mb-4">
+                <img src="assets/images/logo.png" class="w-24 h-24 object-contain filter drop-shadow-[0_0_20px_#D4AF37]">
+                <h1 class="brand-title">Ministry of Groove</h1>
+            </div>
+            <p class="brand-slogan mb-12">Decrypting the Culture. Synchronizing the Grid.</p>
+            
+            <div class="w-full max-w-sm space-y-4 glass-strong p-10 rounded-[3rem] border border-gold/10">
+                <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black/80 border border-white/20 p-5 rounded-2xl text-center outline-none uppercase text-[11px]">
+                <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black/80 border border-white/20 p-5 rounded-2xl text-center outline-none text-[11px]" @keyup.enter="loginManual()">
                 
-                <div x-show="authMode === 'login'" class="space-y-4">
-                    <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
-                    <input x-model="passwordInput" type="password" placeholder="PASSWORD" class="w-full bg-black border border-white/10 p-5 rounded-2xl text-center outline-none uppercase text-[10px] focus:border-gold">
-                    <button @click="loginUser()" class="w-full py-5 bg-gold text-black font-black uppercase rounded-full shadow-2xl hover:scale-105 transition-all text-xs tracking-widest">Initialize Access</button>
-                    <button @click="loginWithGoogle()" class="w-full py-5 bg-white/5 border border-white/10 text-white text-[10px] font-bold uppercase rounded-full flex items-center justify-center gap-3 hover:bg-white/10">
-                        <i data-lucide="chrome" class="w-5 h-5 text-gold"></i> Sign in with Google
-                    </button>
-                    <button @click="authMode = 'register'" class="text-[9px] text-zinc-500 uppercase font-black mt-8 tracking-widest hover:text-gold transition-colors underline decoration-gold/20">Enroll New Operative</button>
+                <button @click="loginManual()" class="w-full py-5 bg-[#D4AF37] text-black font-black uppercase rounded-[2rem] text-sm shadow-[0_0_20px_rgba(212,175,55,0.4)]">Initialize Access</button>
+                
+                <div class="flex items-center gap-4 py-2">
+                    <div class="h-px bg-white/10 flex-grow"></div>
+                    <span class="text-[8px] font-black uppercase">OR</span>
+                    <div class="h-px bg-white/10 flex-grow"></div>
                 </div>
 
-                <div x-show="authMode === 'register'" class="space-y-4" x-transition>
-                    <input x-model="handleInput" placeholder="OPERATIVE HANDLE" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="emailInput" type="email" placeholder="EMAIL" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="passwordInput" type="password" placeholder="SECURITY KEY" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <input x-model="confirmPassword" type="password" placeholder="CONFIRM KEY" class="w-full bg-black border border-white/10 p-4 rounded-xl text-center outline-none uppercase text-[10px]">
-                    <button @click="registerUser()" class="w-full py-5 bg-white text-black font-black uppercase rounded-full shadow-2xl text-[10px]">Confirm Enrollment</button>
-                    <button @click="authMode = 'login'" class="text-[8px] text-zinc-500 uppercase font-black mt-4 underline decoration-white/20">Return to Login</button>
-                </div>
-                <p x-show="errorMsg" x-text="errorMsg" class="text-red-500 text-[10px] font-black uppercase mt-6 bg-red-500/10 py-3 rounded-full border border-red-500/20"></p>
+                <button @click="loginWithGoogle()" class="w-full py-5 bg-white text-black font-bold uppercase rounded-[2rem] text-[10px] flex items-center justify-center gap-3">
+                   <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-4 h-4"> Sign In With Google
+                </button>
             </div>
         </div>
     </template>
-    
+
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col z-20 relative animate-fade-in">
-            <header class="p-6 border-b border-gold/10 glass-strong flex justify-between items-center sticky top-0 z-[100] shadow-2xl">
-                <div class="flex items-center gap-5">
-                    <img src="assets/images/logo.png" class="w-14 h-14 object-contain">
-                    <div class="hidden sm:block">
-                        <p class="text-[12px] font-black uppercase italic tracking-[0.2em] leading-tight text-white">Ministry of Groove</p>
-                        <p class="text-[8px] text-gold/60 uppercase font-black tracking-widest mt-1" x-text="'CLEARANCE: ' + username"></p>
+        <div class="min-h-screen flex flex-col z-20 relative">
+            <header class="p-8 border-b border-gold/20 glass-strong flex justify-between items-center sticky top-0">
+                <div class="flex items-center gap-6">
+                    <img src="assets/images/logo.png" class="w-16 h-16 object-contain">
+                    <div class="flex flex-col">
+                        <h2 class="text-xl font-black uppercase italic tracking-widest text-white">Ministry of Groove</h2>
+                        <span class="text-[9px] text-gold font-black uppercase tracking-[0.4em] mt-1" x-text="'CLEARANCE: ' + username"></span>
+                    </div>
+                </div>
+                <button @click="logout()" class="p-5 border border-red-500 text-red-500 rounded-2xl hover:bg-red-500 hover:text-white transition-all"><i data-lucide="power"></i></button>
+            </header>
+
+            <main class="p-10 max-w-7xl mx-auto w-full flex-grow">
+                <div class="text-center py-16">
+                    <p class="brand-slogan leading-loose">Decrypting the Culture.<br>Synchronizing the Grid.</p>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                    <div onclick="window.location.href='dossier.html'" class="tile-highlight p-14 rounded-[4rem] text-center cursor-pointer">
+                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase tracking-widest">Dossier</span>
+                    </div>
+                    <div onclick="window.location.href='gallery.html'" class="tile-highlight p-14 rounded-[4rem] text-center cursor-pointer">
+                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase tracking-widest">Gallery</span>
+                    </div>
+                    <div onclick="window.location.href='frequency.html'" class="tile-highlight p-14 rounded-[4rem] text-center cursor-pointer">
+                        <i data-lucide="activity" class="mx-auto mb-4 text-gold w-12 h-12"></i>
+                        <span class="text-[14px] font-black uppercase tracking-widest">Frequency</span>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-6">
-                    <div class="text-right mr-4 border-r border-white/10 pr-6 hidden md:block">
-                        <p class="text-[16px] font-black terminal-font text-white" x-text="currentTime"></p>
-                        <p class="text-[7px] text-gold/40 uppercase font-black tracking-widest" x-text="'SESSION: ' + sessionDuration"></p>
+                <div class="mt-20 glass p-12 rounded-[5rem] border border-gold/10">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <h3 class="text-xs font-black uppercase text-gold tracking-widest italic">Live Personnel Activity</h3>
                     </div>
-                    <button x-show="isDirector" onclick="window.location.href='directorate.html'" class="p-4 border border-red-600 text-red-600 rounded-2xl animate-pulse"><i data-lucide="shield-alert"></i></button>
-                    <button @click="logout()" class="p-4 border border-red-900/30 text-red-500 rounded-2xl"><i data-lucide="power"></i></button>
-                </div>
-            </header>
-
-            <main class="p-6 md:p-12 space-y-12 max-w-7xl mx-auto w-full flex-grow">
-                <div x-show="subView === 'grid'" class="grid grid-cols-2 lg:grid-cols-3 gap-8 mb-16 animate-fade-in">
-                    <div @click="subView = 'chat'" class="tile-blue glass p-12 rounded-[3.5rem] text-center cursor-pointer border-blue-500/10 hover:border-blue-500/60 shadow-xl group transition-all">
-                        <i data-lucide="message-square" class="mx-auto mb-4 text-blue-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">The Grid</span>
-                    </div>
-                    <div onclick="window.location.href='dossier.html'" class="tile-green glass p-12 rounded-[3.5rem] text-center cursor-pointer border-green-500/10 hover:border-green-500/60 shadow-xl group transition-all">
-                        <i data-lucide="user-cog" class="mx-auto mb-4 text-green-500 w-10 h-10 group-hover:rotate-12"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dossier</span>
-                    </div>
-                    <div onclick="window.location.href='gallery.html'" class="tile-purple glass p-12 rounded-[3.5rem] text-center cursor-pointer border-purple-500/10 hover:border-purple-500/60 shadow-xl group transition-all">
-                        <i data-lucide="camera" class="mx-auto mb-4 text-purple-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Gallery</span>
-                    </div>
-                    <div onclick="window.location.href='frequency.html'" class="tile-gold glass p-12 rounded-[3.5rem] text-center cursor-pointer border-gold/10 hover:border-gold/60 shadow-xl group transition-all">
-                        <i data-lucide="activity" class="mx-auto mb-4 text-gold w-10 h-10 group-hover:animate-pulse"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Frequency</span>
-                    </div>
-                    <div onclick="window.location.href='dispatch.html'" class="tile-red glass p-12 rounded-[3.5rem] text-center cursor-pointer border-red-500/10 hover:border-red-500/60 shadow-xl group transition-all">
-                        <i data-lucide="radio" class="mx-auto mb-4 text-red-500 w-10 h-10 group-hover:scale-110"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Dispatch</span>
-                    </div>
-                    <div onclick="window.location.href='archives.html'" class="tile-zinc glass p-12 rounded-[3.5rem] text-center cursor-pointer border-zinc-500/10 hover:border-zinc-500/60 shadow-xl group transition-all">
-                        <i data-lucide="database" class="mx-auto mb-4 text-zinc-400 w-10 h-10 group-hover:scale-105"></i>
-                        <span class="text-[12px] font-black uppercase text-white tracking-widest block">Vault</span>
-                    </div>
-                </div>
-
-                <div class="text-center py-20 animate-fade-in">
-                    <p class="text-[18px] text-gold font-black uppercase tracking-[0.8em] italic leading-relaxed drop-shadow-[0_0_10px_#D4AF37]">
-                        DECRYPTING THE CULTURE.<br>SYNCHRONIZING THE GRID.
-                    </p>
-                </div>
-
-                <div x-show="subView === 'chat'" class="space-y-4 animate-fade-in relative z-10">
-                    <button @click="subView = 'grid'" class="text-[11px] font-black uppercase text-gold flex items-center gap-3 mb-6 hover:translate-x-[-5px] transition-transform">
-                        <i data-lucide="chevron-left" class="w-5 h-5"></i> Back to Tactical Grid
-                    </button>
-                    <div class="glass-strong rounded-[3rem] h-[55vh] flex flex-col overflow-hidden shadow-2xl">
-                        <div class="flex-grow overflow-y-auto p-8 space-y-6 custom-scrollbar" x-ref="chatContainer">
-                            <template x-for="msg in messages" :key="msg.id">
-                                <div :class="msg.username === username ? 'ml-auto text-right items-end' : 'mr-auto text-left items-start'" class="flex flex-col max-w-[85%] animate-slide-up">
-                                    <span class="text-[7px] text-zinc-500 uppercase font-black mb-1" x-text="msg.username"></span>
-                                    <div :class="msg.username === username ? 'bg-gold/10 border-gold/20' : 'bg-white/5 border-white/10 text-zinc-300'" class="p-4 border rounded-2xl text-[13px] leading-relaxed" x-text="msg.content"></div>
-                                </div>
-                            </template>
-                        </div>
-                        <form @submit.prevent="sendMessage()" class="p-6 bg-black/40 border-t border-gold/10 flex gap-4">
-                            <input x-model="msgInput" placeholder="COMMAND UPLINK..." class="flex-grow bg-transparent text-[12px] outline-none terminal-font uppercase">
-                            <button type="submit" class="text-gold"><i data-lucide="send" class="w-6 h-6"></i></button>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="glass p-10 rounded-[4rem] border border-white/5 mt-12 shadow-2xl">
-                    <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-3 italic mb-8">
-                        <i data-lucide="users" class="w-5 h-5 text-green-500"></i> Personnel Activity Feed
-                    </h3>
-                    <div class="flex gap-8 overflow-x-auto pb-6 custom-scrollbar scroll-smooth">
+                    <div class="flex gap-12 overflow-x-auto pb-6 custom-scrollbar">
                         <template x-for="op in operatives" :key="op.id">
-                            <div class="flex-shrink-0 w-24 text-center space-y-3">
-                                <div class="w-16 h-16 bg-white/5 rounded-full mx-auto border border-gold/10 flex items-center justify-center relative">
-                                    <i data-lucide="user" class="text-zinc-700 w-8 h-8"></i>
-                                    <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse shadow-[0_0_15px_#22c55e]"></div>
+                            <div class="flex-shrink-0 text-center">
+                                <div class="w-20 h-20 bg-white/5 rounded-full border-2 border-gold/20 flex items-center justify-center mb-4">
+                                    <i data-lucide="user" class="text-zinc-700"></i>
                                 </div>
-                                <p class="text-[9px] font-black uppercase truncate text-zinc-300 tracking-widest" x-text="op.handle"></p>
+                                <span class="text-[10px] font-black uppercase" x-text="op.handle"></span>
                             </div>
                         </template>
                     </div>
                 </div>
             </main>
 
-            <footer class="border-t border-white/5 mt-24 p-20 bg-black/80 backdrop-blur-3xl text-center">
-                <div class="flex justify-center gap-14 text-zinc-500 mb-12 socials-colourful">
-                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="instagram" class="w-8 h-8"></i>
-                    </a>
-                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="message-circle" class="w-8 h-8"></i>
-                    </a>
-                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="p-5 bg-white/5 rounded-full border border-white/5 hover:bg-gold hover:text-black transition-all shadow-xl">
-                        <i data-lucide="youtube" class="w-8 h-8"></i>
-                    </a>
+            <footer class="border-t border-gold/20 p-20 bg-black text-center relative overflow-hidden">
+                <div class="flex flex-wrap justify-center gap-14 mb-14">
+                    <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="instagram" class="w-10 h-10 social-instagram"></i></a>
+                    <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="message-circle" class="w-10 h-10 social-whatsapp"></i></a>
+                    <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="youtube" class="w-10 h-10 social-youtube"></i></a>
+                    <a href="https://tiktok.com/@ministryofgroove" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="music-2" class="w-10 h-10 social-tiktok"></i></a>
+                    <a href="https://facebook.com/ministryofgroove" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="facebook" class="w-10 h-10 social-facebook"></i></a>
+                    <a href="https://x.com/ministryofgroove" target="_blank" class="hover:scale-125 transition-all"><i data-lucide="twitter" class="w-10 h-10 social-x"></i></a>
                 </div>
-                <p class="text-[11px] text-zinc-800 font-black uppercase tracking-[1em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
+                <p class="text-[11px] text-zinc-500 font-black uppercase tracking-[1em] italic">© 2026 MINISTRY OF GROOVE // NCC MASTER v3.0</p>
             </footer>
         </div>
     </template>
+
 </body>
 </html>
