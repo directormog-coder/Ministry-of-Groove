@@ -1,38 +1,63 @@
-// 1. LOGIN LOGIC
-function handleLogin(role, password) {
-    // Define your access codes here
-    const CREDENTIALS = {
-        director: { pass: 'COMMAND-01', target: 'pages/directorate.html' },
-        operative: { pass: 'GROOVE-99', target: 'index.html' }
-    };
+/**
+ * 📀 MINISTRY OF GROOVE | AUTH ENGINE v5.0
+ * Secure Gatekeeping & Grid Synchronization
+ */
 
-    if (CREDENTIALS[role] && password === CREDENTIALS[role].pass) {
-        localStorage.setItem('userRole', role);
-        localStorage.setItem('isAuth', 'true');
-        window.location.href = CREDENTIALS[role].target;
-    } else {
-        alert("ACCESS DENIED: Credentials not recognized by the Ministry.");
+const SecureAuth = {
+    // 1. SESSION PING: Verifies database handshake
+    async verifyGrid() {
+        try {
+            const { data, error } = await sb.from('profiles').select('status').limit(1).single();
+            if (error) throw error;
+            return { status: 'SECURE', data };
+        } catch (err) {
+            console.error("📡 SIGNAL LOST:", err.message);
+            return { status: 'OFFLINE' };
+        }
+    },
+
+    // 2. ROLE GATE: Determines Operative vs Director
+    handleLogin(email) {
+        // Define your Director clearance here
+        const directorEmail = 'director.mog@gmail.com'; 
+        
+        if (email === directorEmail) {
+            localStorage.setItem('userRole', 'director');
+            return 'director';
+        } else {
+            localStorage.setItem('userRole', 'operative');
+            return 'operative';
+        }
+    },
+
+    // 3. TERMINATE: Securely wipes session
+    terminate() {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '../login.html'; // Adjust path if in /pages
     }
-}
+};
 
-// 2. SECURITY CHECK (Run this on every page)
-function checkAccess(requiredRole) {
-    const role = localStorage.getItem('userRole');
-    const auth = localStorage.getItem('isAuth');
-
-    if (!auth || (requiredRole && role !== requiredRole)) {
-        // If not logged in or wrong role, kick back to login gate
-        // The "../" is used if the file is inside the /pages/ folder
-        const pathPrefix = window.location.pathname.includes('pages/') ? '../' : '';
-        window.location.href = pathPrefix + 'login.html';
+// Integration with your Alpine.js Engine
+function nccMasterEngine() {
+    return {
+        view: 'gate',
+        connection: 'CONNECTING...',
+        
+        async init() {
+            const role = localStorage.getItem('userRole');
+            const { status } = await SecureAuth.verifyGrid();
+            
+            this.connection = status;
+            
+            if (role && status === 'SECURE') {
+                this.view = 'grid';
+            } else {
+                this.view = 'auth';
+            }
+            
+            // Re-render Lucide icons
+            if (window.lucide) lucide.createIcons();
+        }
     }
-}
-
-// 3. LOGOUT LOGIC
-function logout() {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('isAuth');
-    
-    const pathPrefix = window.location.pathname.includes('pages/') ? '../' : '';
-    window.location.href = pathPrefix + 'login.html';
 }
