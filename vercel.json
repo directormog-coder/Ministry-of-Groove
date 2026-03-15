@@ -1,11 +1,22 @@
 {
   "version": 2,
+  "name": "ministry-of-groove",
   "buildCommand": "npm run build",
   "outputDirectory": ".",
   "framework": null,
+  "installCommand": "npm install",
+  
   "rewrites": [
-    { "source": "/auth/callback", "destination": "/login.html" }
+    {
+      "source": "/auth/callback",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/dashboard.html"
+    }
   ],
+  
   "headers": [
     {
       "source": "/(.*)",
@@ -25,8 +36,29 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        }
+      ]
+    },
+    {
+      "source": "/login.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
         }
       ]
     }
-  ]
+  ],
+  
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
