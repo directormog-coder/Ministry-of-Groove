@@ -1,26 +1,67 @@
-# OS Metadata
-.DS_Store
-Thumbs.db
+# ==========================================
+# SECURITY - NEVER COMMIT THESE
+# ==========================================
 
-# IDE/Editor folders
-.vscode/
-.idea/
-*.swp
-*.sublime-project
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
 
-# Logs and temporary files
-*.log
+# Apple Private Keys (CRITICAL)
+*.p8
+AuthKey*.p8
+*.p12
+*.cer
+*.mobileprovision
+
+# ==========================================
+# NODE.JS
+# ==========================================
+node_modules/
+package-lock.json
+yarn.lock
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.tmp/
 
-# If you ever use Node.js/Packages
-node_modules/
+# ==========================================
+# OPERATING SYSTEM
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# IDE & EDITOR
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# ==========================================
+# LOGS & TEMP
+# ==========================================
+*.log
+logs/
+tmp/
+temp/
+.cache/
+
+# ==========================================
+# BUILD & DEPLOY
+# ==========================================
 dist/
 build/
-
-# Local Environment Secrets (If you add them later)
-.env
-.env.local
-
+.vercel
+.netlify
