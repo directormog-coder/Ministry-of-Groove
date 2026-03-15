@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://appleid.cdn-apple.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://appleid.cdn-apple.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
+    <meta name="robots" content="noindex, nofollow">
     <title>Ministry of Groove | Secure Access Terminal</title>
     
     <!-- Supabase Client -->
@@ -28,7 +29,7 @@
                 MINISTRY OF GROOVE
             </div>
             <div class="text-muted terminal-font" style="font-size: 12px; margin-top: 0.5rem; letter-spacing: 0.1em;">
-                // SECURE ACCESS TERMINAL v5.1
+                // SECURE ACCESS TERMINAL v{{APP_VERSION}}
             </div>
             <div class="terminal-font" style="font-size: 10px; color: var(--electric-blue); margin-top: 0.25rem;">
                 [SUPABASE_SECURE_CONNECTION_ESTABLISHED]
@@ -87,17 +88,24 @@
 
     <script>
         // ==========================================
-        // SUPABASE CONFIGURATION (INJECTED AT BUILD)
+        // SECURE CONFIGURATION (INJECTED AT BUILD)
         // ==========================================
         const SUPABASE_URL = '{{SUPABASE_URL}}';
         const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
+        const APPLE_SERVICES_ID = '{{APPLE_SERVICES_ID}}';
+        const APPLE_REDIRECT_URI = '{{APPLE_REDIRECT_URI}}';
         
-        // Initialize Supabase client
-        let supabase;
+        // Security: Validate injection worked
+        if (SUPABASE_ANON_KEY === '{{SUPABASE_ANON_KEY}}') {
+            console.error('[MOG SECURITY] Build injection failed - using fallback');
+        }
+        
+        // Initialize Supabase
+        let supabase = null;
         
         try {
-            if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === '{{SUPABASE_ANON_KEY}}') {
-                throw new Error('Supabase Anon Key not configured. Build may have failed.');
+            if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('{{')) {
+                throw new Error('Invalid Supabase configuration');
             }
             
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -108,52 +116,39 @@
                 }
             });
             
-            console.log('[MOG AUTH] Supabase initialized successfully');
+            console.log('[MOG AUTH] Secure connection established');
         } catch (error) {
-            console.error('[MOG AUTH] Supabase initialization failed:', error);
-            showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
-            document.querySelector('.btn-command').disabled = true;
-            document.getElementById('apple-signin-btn').disabled = true;
+            console.error('[MOG AUTH] Initialization failed:', error);
+            document.body.innerHTML = '<div style="color:red;text-align:center;padding:50px;">AUTHENTICATION SERVICE UNAVAILABLE</div>';
+            throw error;
         }
 
         // ==========================================
-        // APPLE SIGN-IN CONFIGURATION (INJECTED AT BUILD)
+        // APPLE SIGN-IN
         // ==========================================
-        const APPLE_SERVICES_ID = '{{APPLE_SERVICES_ID}}';
-        const APPLE_REDIRECT_URI = '{{APPLE_REDIRECT_URI}}';
-        
-        // Generate cryptographically secure nonce
-        function generateNonce() {
-            const array = new Uint8Array(16);
-            crypto.getRandomValues(array);
-            return Array.from(array, dec => ('0' + dec.toString(16)).substr(-2)).join('');
-        }
-
         let currentNonce = null;
-
-        // Initialize Apple Sign-In
+        
         function initAppleAuth() {
+            if (!APPLE_SERVICES_ID || APPLE_SERVICES_ID.includes('{{')) {
+                console.log('[MOG AUTH] Apple Sign-In not configured');
+                document.getElementById('apple-btn-container').style.display = 'none';
+                return;
+            }
+            
             try {
-                // Check if Apple config is valid
-                if (!APPLE_SERVICES_ID || APPLE_SERVICES_ID === '{{APPLE_SERVICES_ID}}') {
-                    console.warn('[MOG AUTH] Apple Sign-In not configured');
-                    document.getElementById('apple-btn-container').style.display = 'none';
-                    return;
-                }
-                
-                currentNonce = generateNonce();
+                currentNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+                    .map(b => b.toString(16).padStart(2, '0')).join('');
                 
                 AppleID.auth.init({
                     clientId: APPLE_SERVICES_ID,
                     scope: 'name email',
                     redirectURI: APPLE_REDIRECT_URI,
-                    state: generateSecureState(),
+                    state: 'mog_' + Math.random().toString(36).substring(2, 15),
                     nonce: currentNonce,
                     usePopup: true
                 });
                 
-                console.log('[MOG AUTH] Apple Sign-In initialized');
-                showSessionStatus('APPLE_AUTH_READY');
+                console.log('[MOG AUTH] Apple Sign-In ready');
             } catch (error) {
                 console.error('[MOG AUTH] Apple init failed:', error);
                 document.getElementById('apple-btn-container').style.display = 'none';
@@ -161,199 +156,77 @@
         }
 
         // ==========================================
-        // APPLE SIGN-IN HANDLER
+        // AUTH HANDLERS
         // ==========================================
         document.getElementById('apple-signin-btn').addEventListener('click', async () => {
-            if (!supabase) {
-                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
-                return;
-            }
-            
             try {
-                showSessionStatus('INITIATING_APPLE_AUTH...');
-                
                 const response = await AppleID.auth.signIn();
-                
-                // Extract tokens from Apple response
                 const { authorization, user } = response;
-                const idToken = authorization.id_token;
                 
-                showSessionStatus('VERIFYING_IDENTITY...');
-                
-                // CRITICAL: Send to Supabase for validation
                 const { data, error } = await supabase.auth.signInWithIdToken({
                     provider: 'apple',
-                    token: idToken,
+                    token: authorization.id_token,
                     nonce: currentNonce
                 });
-
+                
                 if (error) throw error;
-
-                // Handle first-time user data (Apple only sends name on first sign-in)
-                if (user && user.name) {
-                    const fullName = [
-                        user.name.firstName,
-                        user.name.middleName,
-                        user.name.lastName
-                    ].filter(Boolean).join(' ');
-                    
-                    // Update user metadata in Supabase
+                
+                // Update profile on first sign-in
+                if (user?.name) {
+                    const fullName = [user.name.firstName, user.name.lastName]
+                        .filter(Boolean).join(' ');
                     await supabase.auth.updateUser({
-                        data: {
-                            full_name: fullName,
-                            given_name: user.name.firstName,
-                            family_name: user.name.lastName,
-                            auth_provider: 'apple'
-                        }
+                        data: { full_name: fullName, auth_provider: 'apple' }
                     });
                 }
-
-                showSessionStatus('AUTHENTICATION_SUCCESSFUL');
-                await handleSuccessfulAuth(data);
                 
+                window.location.href = '/dashboard.html';
             } catch (error) {
-                console.error('[MOG AUTH] Apple sign in failed:', error);
                 showAlert(`AUTHENTICATION_FAILED: ${error.message}`);
             }
         });
 
-        // ==========================================
-        // EMAIL/PASSWORD AUTH (Supabase Auth)
-        // ==========================================
         async function handleEmailLogin(e) {
             e.preventDefault();
-            
-            if (!supabase) {
-                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
-                return;
-            }
-            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
             try {
-                showSessionStatus('AUTHENTICATING...');
-                
                 const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
+                    email, password
                 });
-
+                
                 if (error) throw error;
-                
-                showSessionStatus('ACCESS_GRANTED');
-                await handleSuccessfulAuth(data);
-                
+                window.location.href = '/dashboard.html';
             } catch (error) {
-                console.error('[MOG AUTH] Login failed:', error);
                 showAlert(`ACCESS_DENIED: ${error.message}`);
             }
         }
 
-        // ==========================================
-        // SUPABASE OAUTH FLOW (Alternative)
-        // ==========================================
-        async function signInWithAppleOAuth() {
-            if (!supabase) {
-                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
-                return;
-            }
-            
-            const { data, error } = await supabase.auth.signInWithOAuth({
-                provider: 'apple',
-                options: {
-                    redirectTo: APPLE_REDIRECT_URI,
-                    scopes: 'name email'
-                }
-            });
-            
-            if (error) {
-                showAlert(`OAUTH_INIT_FAILED: ${error.message}`);
-            }
-        }
-
-        // ==========================================
-        // SESSION MANAGEMENT
-        // ==========================================
-        async function handleSuccessfulAuth(data) {
-            console.log('[MOG AUTH] Session established:', data.session.user.email);
-            
-            // Redirect to secure area
-            setTimeout(() => {
-                window.location.href = '/dashboard.html';
-            }, 1000);
-        }
-
         async function abortSession() {
-            showSessionStatus('TERMINATING_SESSION...');
-            
-            if (supabase) {
-                const { error } = await supabase.auth.signOut();
-                if (error) {
-                    console.error('[MOG AUTH] Logout error:', error);
-                }
-            }
-            
-            // Clear storage
+            await supabase.auth.signOut();
             localStorage.clear();
-            sessionStorage.clear();
-            
-            showSessionStatus('SESSION_TERMINATED');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 500);
-        }
-
-        // ==========================================
-        // UTILITY FUNCTIONS
-        // ==========================================
-        function generateSecureState() {
-            return 'mog_' + btoa(crypto.getRandomValues(new Uint32Array(4)).join('')).substring(0, 16);
+            window.location.href = '/';
         }
 
         function showAlert(message) {
             const alert = document.getElementById('auth-alert');
             alert.textContent = message;
             alert.style.display = 'block';
-            setTimeout(() => {
-                alert.style.display = 'none';
-            }, 5000);
-        }
-
-        function showSessionStatus(status) {
-            const statusEl = document.getElementById('session-status');
-            const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
-            statusEl.textContent = `[${timestamp}] ${status}`;
-            statusEl.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
         }
 
         // ==========================================
-        // INITIALIZATION
+        // INIT
         // ==========================================
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             initAppleAuth();
             
-            // Check for existing session
-            if (supabase) {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    console.log('[MOG AUTH] Existing session found');
-                    showSessionStatus('EXISTING_SESSION_DETECTED');
-                }
-            }
-        });
-
-        // Listen for auth state changes
-        if (supabase) {
-            supabase.auth.onAuthStateChange((event, session) => {
-                console.log('[MOG AUTH] State change:', event);
-                if (event === 'SIGNED_IN') {
-                    showSessionStatus('SIGNED_IN');
-                } else if (event === 'SIGNED_OUT') {
-                    showSessionStatus('SIGNED_OUT');
-                }
+            // Check existing session
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) window.location.href = '/dashboard.html';
             });
-        }
+        });
     </script>
 </body>
 </html>
