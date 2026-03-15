@@ -4,30 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MOG | FREQUENCY UPLINK</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="CSS/style.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
     
     <style>
         [x-cloak] { display: none !important; }
-        .bg-grid-gold { background-image: radial-gradient(circle, #D4AF37 1px, transparent 1px); background-size: 30px 30px; }
-        .glass-gold { background: rgba(15, 12, 5, 0.97); backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 30px 30px; }
+        .glass-gold-strong { background: rgba(10, 10, 15, 0.97); backdrop-filter: blur(35px); border: 1px solid rgba(212, 175, 55, 0.2); }
         
         /* AUDIO VISUALIZER BARS */
         .visualizer { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
-        .v-bar { width: 4px; background: #D4AF37; border-radius: 2px; animation: bounce 1s infinite ease-in-out; }
+        .v-bar { width: 4px; background: var(--gold); border-radius: 2px; animation: bounce 1s infinite ease-in-out; }
         @keyframes bounce { 
             0%, 100% { height: 10%; opacity: 0.3; } 
             50% { height: 100%; opacity: 1; } 
         }
 
-        .loader-gold { width: 35px; height: 35px; border: 4px solid #D4AF37; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .chart-row:hover { background: rgba(212, 175, 55, 0.08); transform: translateX(10px); }
+        .chart-row:hover { background: rgba(212, 175, 55, 0.08); transform: translateX(10px); border-color: var(--electric); }
         .chart-row { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 
@@ -45,63 +46,78 @@
                 signalStrength: 94,
 
                 async init() {
+                    // 1. Security Gate Check
+                    const role = localStorage.getItem('userRole');
+                    if (!role) {
+                        window.location.href = '../login.html';
+                        return;
+                    }
+
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     const { data: { session } } = await sb.auth.getSession();
                     
                     if (!session) {
-                        window.location.href = 'index.html';
+                        window.location.href = '../index.html';
                         return;
                     }
 
-                    this.isDirector = session.user.email === 'director.mog@gmail.com';
+                    this.isDirector = role === 'director';
                     this.view = 'active';
                     this.loadFrequencyData();
                     this.$nextTick(() => lucide.createIcons());
                 },
 
                 async loadFrequencyData() {
-                    // Logic: Fetch Amapiano Chart from 'frequency' table
                     const { data } = await sb.from('frequency').select('*').order('votes', { ascending: false }).limit(10);
                     if (data) this.chartItems = data;
                 },
 
                 async castVote(id) {
-                    // Logic: Increment signal weight for a specific frequency
+                    // Increment logic for Supabase (Direct update)
+                    const { error } = await sb.rpc('increment_vote', { row_id: id }); 
                     alert('SIGNAL WEIGHT INCREASED. FREQUENCY LOCKED.');
+                    this.loadFrequencyData();
                 },
 
-                logout() { sb.auth.signOut(); window.location.href = 'index.html'; }
+                logout() { 
+                    localStorage.clear();
+                    sb.auth.signOut().then(() => window.location.href = '../login.html'); 
+                }
             }
         }
     </script>
 </head>
-<body x-data="frequencyEngine()" x-init="init()" x-cloak class="bg-black text-white bg-grid-gold min-h-screen relative overflow-x-hidden selection:bg-gold/30">
+<body x-data="frequencyEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
+
+    <div class="bg-circuit-pattern"></div>
+    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
+    <div class="circuit-vignette"></div>
 
     <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
             <div class="loader-gold"></div>
-            <p class="text-[11px] font-black text-gold uppercase tracking-[0.5em] animate-pulse">Scanning Frequencies...</p>
+            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Scanning Frequencies...</p>
         </div>
     </template>
 
     <template x-if="view === 'active'">
         <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
             
-            <header class="p-8 glass-gold rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl">
+            <header class="p-8 glass-gold-strong rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl">
                 <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
+                    <button onclick="window.location.href='../index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
                         <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
                     </button>
                     <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold">Frequency Uplink</h1>
-                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-1">Audio Surveillance // Sector 7G</p>
+                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Frequency Uplink</h1>
+                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Audio Surveillance // Sector 7G</p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-8">
                     <div class="text-right hidden sm:block">
                         <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Signal Integrity</p>
-                        <p class="text-xl font-black terminal-font text-green-500" x-text="signalStrength + '%'"></p>
+                        <p class="text-xl font-black terminal-font text-electric" x-text="signalStrength + '%'"></p>
                     </div>
                     <div class="visualizer">
                         <div class="v-bar"></div>
@@ -116,7 +132,8 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 
                 <div class="space-y-10">
-                    <div class="glass-gold p-10 rounded-[4rem] border border-gold/10 shadow-2xl relative overflow-hidden">
+                    <div class="glass-gold-strong p-10 rounded-[4rem] border border-gold/10 shadow-2xl relative overflow-hidden">
+                        <div class="absolute -top-10 -left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl"></div>
                         <h3 class="text-xs font-black uppercase text-gold tracking-widest mb-8 italic flex items-center gap-3">
                             <i data-lucide="radio"></i> Master Signal
                         </h3>
@@ -127,32 +144,32 @@
                             </div>
                             <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
                                 <p class="text-[8px] text-zinc-600 uppercase font-black mb-1">Target Sector</p>
-                                <p class="text-xs font-black terminal-font uppercase text-zinc-300">eMalahleni / Highveld</p>
+                                <p class="text-xs font-black terminal-font uppercase text-zinc-300">Highveld / Sector 7G</p>
                             </div>
                         </div>
-                        <button class="mt-8 w-full py-4 bg-gold text-black font-black uppercase rounded-full text-[10px] tracking-widest hover:scale-105 transition-all">Optimize Uplink</button>
+                        <button class="btn-command w-full mt-8 py-4 text-[10px]">Optimize Uplink</button>
                     </div>
 
-                    <div class="glass p-8 rounded-[3rem] border border-white/5">
-                        <h4 class="text-[10px] text-zinc-500 uppercase font-black mb-6 tracking-widest">System Nodes</h4>
+                    <div class="glass p-8 rounded-[3rem] border border-white/5 shadow-xl">
+                        <h4 class="terminal-font text-[10px] text-zinc-500 mb-6 tracking-widest italic">System Nodes</h4>
                         <div class="grid grid-cols-2 gap-4">
-                            <button onclick="window.location.href='index.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center">
-                                <i data-lucide="message-square" class="mx-auto mb-2 text-blue-400"></i>
-                                <span class="text-[8px] font-black uppercase">Grid</span>
+                            <button onclick="window.location.href='../index.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center border border-white/5">
+                                <i data-lucide="layout-grid" class="mx-auto mb-2 text-gold"></i>
+                                <span class="text-[8px] font-black uppercase">Hub</span>
                             </button>
-                            <button onclick="window.location.href='dispatch.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center">
-                                <i data-lucide="radio" class="mx-auto mb-2 text-red-500"></i>
-                                <span class="text-[8px] font-black uppercase">Dispatch</span>
+                            <button onclick="window.location.href='dossier.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center border border-white/5">
+                                <i data-lucide="shield-check" class="mx-auto mb-2 text-electric"></i>
+                                <span class="text-[8px] font-black uppercase">Dossier</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <div class="lg:col-span-2">
-                    <div class="glass-gold p-10 rounded-[4rem] border border-gold/10 shadow-2xl">
+                    <div class="glass-gold-strong p-10 rounded-[4rem] border border-gold/10 shadow-2xl">
                         <div class="flex items-center justify-between mb-10 border-b border-gold/10 pb-8">
                             <div>
-                                <h3 class="text-2xl font-black uppercase italic tracking-tighter">Frequency Rankings</h3>
+                                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Frequency Rankings</h3>
                                 <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mt-2">The Top 10 Amapiano Directives</p>
                             </div>
                             <i data-lucide="trending-up" class="text-gold w-10 h-10 opacity-20"></i>
@@ -165,13 +182,13 @@
                                         <span class="text-xl font-black terminal-font text-gold/40" x-text="(index + 1).toString().padStart(2, '0')"></span>
                                         <div>
                                             <p class="text-sm font-black uppercase tracking-wider text-white" x-text="item.title"></p>
-                                            <p class="text-[9px] text-zinc-600 uppercase font-black" x-text="item.artist"></p>
+                                            <p class="text-[9px] text-zinc-600 uppercase font-black italic" x-text="item.artist"></p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-6">
                                         <div class="text-right hidden sm:block">
                                             <p class="text-[8px] text-zinc-700 uppercase font-black">Weight</p>
-                                            <p class="text-[10px] font-black terminal-font text-gold" x-text="item.votes"></p>
+                                            <p class="text-[10px] font-black terminal-font text-electric" x-text="item.votes"></p>
                                         </div>
                                         <button @click="castVote(item.id)" class="p-4 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all">
                                             <i data-lucide="zap" class="w-5 h-5"></i>
@@ -182,7 +199,7 @@
 
                             <div x-show="chartItems.length === 0" class="py-20 text-center opacity-20">
                                 <i data-lucide="music" class="mx-auto mb-4 w-12 h-12"></i>
-                                <p class="text-[10px] uppercase font-black tracking-widest">No Frequencies Logged</p>
+                                <p class="terminal-font text-[10px] uppercase tracking-widest">No Frequencies Logged</p>
                             </div>
                         </div>
                     </div>
@@ -190,12 +207,11 @@
             </div>
 
             <footer class="mt-24 pt-10 border-t border-white/5 text-center text-zinc-800">
-                <p class="text-[10px] uppercase font-black tracking-[0.6em] italic leading-relaxed">
+                <p class="terminal-font text-[11px] uppercase tracking-[0.6em] italic leading-relaxed">
                     DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
                 </p>
             </footer>
         </div>
     </template>
-
 </body>
 </html>
