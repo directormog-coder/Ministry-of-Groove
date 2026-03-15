@@ -2,76 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ministry-of-Groove | Access Gate</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>MOG | CENTRAL ACCESS GATE</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
-    <style>
-        body {
-            background-color: #0a0a0a;
-            color: #00ff41; /* Matrix/Command-line green */
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            border: 2px solid #00ff41;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 0 15px #00ff41;
-            background: #111;
-            width: 300px;
-        }
-        h2 { margin-bottom: 1.5rem; letter-spacing: 2px; }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #222;
-            border: 1px solid #00ff41;
-            color: #00ff41;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #00ff41;
-            color: #000;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        button:hover { background: #008f11; }
-        .footer-note { font-size: 0.7rem; margin-top: 20px; color: #666; }
-    </style>
 </head>
-<body>
+<body x-data="nccMasterEngine()" class="bg-black text-white min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
 
-    <div class="login-container">
-        <h2>CENTRAL ACCESS</h2>
+    <div class="bg-circuit-pattern"></div>
+    <div class="circuit-vignette"></div>
+
+    <div class="w-full max-w-md z-10 animate-fade-in">
+        <div class="flex flex-col items-center mb-10">
+            <img src="assets/images/logo.png" alt="MOG" class="w-32 h-32 mb-6 filter drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+            <h1 class="brand-title text-2xl text-center">Ministry of Groove</h1>
+            <p class="terminal-font text-[10px] text-gold/60 mt-2 uppercase tracking-[0.5em]">Central Operations Gate</p>
+        </div>
+
+        <div class="glass p-8 rounded-[2.5rem] border border-gold/20 space-y-6 shadow-2xl">
+            <div class="space-y-4">
+                <input x-model="authForm.id" type="text" placeholder="IDENTIFICATION" class="ncc-input text-center">
+                <input x-model="authForm.pass" type="password" placeholder="PASSCODE" class="ncc-input text-center">
+                
+                <button @click="loginManual()" class="btn-command w-full py-4 mt-2">
+                    AUTHORIZE ACCESS
+                </button>
+            </div>
+
+            <div class="relative py-2 flex items-center">
+                <div class="flex-grow border-t border-white/5"></div>
+                <span class="px-4 text-[8px] text-white/20 uppercase tracking-[0.5em]">OR</span>
+                <div class="flex-grow border-t border-white/5"></div>
+            </div>
+
+            <button @click="loginWithGoogle()" class="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-5 h-5" alt="Google">
+                <span class="text-xs font-bold uppercase tracking-widest">Biometric Uplink</span>
+            </button>
+        </div>
         
-        <input type="text" id="username" placeholder="IDENTIFICATION">
-        <input type="password" id="passcode" placeholder="PASSCODE">
-        
-        <button onclick="attemptLogin()">AUTHORIZE ACCESS</button>
-        
-        <p class="footer-note">Unauthorized access is monitored.</p>
+        <p class="text-center mt-8 text-[9px] text-white/20 uppercase tracking-[0.4em]">Unauthorized access is recorded.</p>
     </div>
 
     <script src="js/auth.js"></script>
     <script>
-        function attemptLogin() {
-            const user = document.getElementById('username').value.toLowerCase();
-            const pass = document.getElementById('passcode').value;
-            
-            // This calls the function we wrote in auth.js
-            handleLogin(user, pass);
-        }
+        // Trigger icons
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
     </script>
 </body>
 </html>
-
