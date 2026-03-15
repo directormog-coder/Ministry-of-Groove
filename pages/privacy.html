@@ -4,65 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Shield | Ministry of Groove</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="CSS/style.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
+    
+    <style>
+        .glass-shield { 
+            background: rgba(10, 10, 15, 0.98); 
+            backdrop-filter: blur(40px); 
+            border: 1px solid rgba(212, 175, 55, 0.2); 
+        }
+        .section-header {
+            border-left: 3px solid var(--gold);
+            padding-left: 12px;
+            margin-bottom: 12px;
+        }
+    </style>
 </head>
-<body class="bg-black text-white min-h-screen bg-grid">
-    <div class="max-w-2xl mx-auto p-6">
-        <header class="flex items-center gap-4 mb-8">
-            <button onclick="history.back()" class="p-3 glass rounded-full hover:bg-white/10 transition-all">
+<body class="bg-black text-white min-h-screen relative overflow-x-hidden">
+
+    <div class="bg-circuit-pattern" aria-hidden="true"></div>
+    <div class="circuit-vignette" aria-hidden="true"></div>
+
+    <div class="max-w-2xl mx-auto p-6 relative z-10 animate-fade-in">
+        <header class="flex items-center gap-4 mb-8 mt-6">
+            <button onclick="window.location.href='../index.html'" class="p-3 bg-white/5 border border-white/10 rounded-full hover:border-gold transition-all">
                 <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
             </button>
-            <h1 class="text-lg font-black uppercase tracking-widest italic">Privacy Shield</h1>
+            <div class="flex items-center gap-3">
+                <img src="../assets/images/logo.png" alt="MOG" class="w-8 h-8">
+                <h1 class="terminal-font text-lg font-black uppercase italic tracking-widest text-gold">Privacy Shield</h1>
+            </div>
         </header>
 
-        <div class="glass rounded-[2.5rem] p-8 space-y-6">
-            <div class="flex items-center gap-3 mb-6">
-                <i data-lucide="lock" class="w-8 h-8 text-gold"></i>
+        <div class="glass-shield rounded-[2.5rem] p-8 space-y-8 shadow-2xl">
+            <div class="flex items-center gap-4 mb-6 border-b border-white/5 pb-6">
+                <div class="p-4 bg-gold/10 rounded-2xl">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-gold"></i>
+                </div>
                 <div>
-                    <h2 class="text-sm font-black uppercase">Data Protection</h2>
-                    <p class="text-[10px] text-zinc-500">Military-grade encryption</p>
+                    <h2 class="text-sm font-black uppercase tracking-tighter">Operational Security</h2>
+                    <p class="text-[10px] text-electric uppercase font-black tracking-widest">Protocol: AES-256-GCM Active</p>
                 </div>
             </div>
 
-            <div class="space-y-6 text-[12px] text-zinc-300 leading-relaxed">
+            <div class="space-y-8 text-[12px] text-zinc-300 leading-relaxed terminal-font">
                 <section>
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Encryption Standards</h3>
-                    <p>All data is secured using AES-256 encryption. Communications are end-to-end encrypted and cannot be intercepted by third parties. Your operational security is our priority.</p>
+                    <div class="section-header">
+                        <h3 class="text-gold font-black uppercase text-sm">Encryption Standards</h3>
+                    </div>
+                    <p>All transmissions are secured via end-to-end encryption. The Ministry utilizes military-grade cryptographic protocols to ensure that sector communication remains strictly within the grid.</p>
                 </section>
 
                 <section>
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Data Collection</h3>
-                    <p>We collect only essential operational data: handle, transmission logs, and uploaded assets. Location data is anonymized and never stored permanently. No personal identifiers are retained.</p>
+                    <div class="section-header">
+                        <h3 class="text-gold font-black uppercase text-sm">Data Collection</h3>
+                    </div>
+                    <p>The Ministry logs only essential metadata: Operative handles, transmission timestamps, and visual assets. Location telemetry is anonymized and auto-purged upon session termination.</p>
                 </section>
 
                 <section>
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Data Retention</h3>
-                    <p>Messages are ephemeral and auto-purge after 30 days. Gallery assets remain until manually deleted by the operative or Directorate. Access logs are maintained for 90 days for security purposes.</p>
+                    <div class="section-header">
+                        <h3 class="text-gold font-black uppercase text-sm">Retention & Purge</h3>
+                    </div>
+                    <p>Broadcasts and ephemeral data are auto-redacted after 30 days. Permanent archives in the Vault remain under the jurisdiction of the Directorate until manual decommissioning.</p>
                 </section>
 
                 <section>
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Third Parties</h3>
-                    <p>The Ministry of Groove does not sell, trade, or transfer your data to external entities. All data remains within secure Ministry servers.</p>
-                </section>
-
-                <section>
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">Your Rights</h3>
-                    <p>Operatives may request data deletion at any time. Contact Directorate for data export or deletion requests. Response time is within 72 hours.</p>
+                    <div class="section-header">
+                        <h3 class="text-gold font-black uppercase text-sm">Third-Party Integrity</h3>
+                    </div>
+                    <p>Zero-sharing policy. MOG assets are never traded, sold, or exposed to external surveillance entities. The grid is self-contained and sovereign.</p>
                 </section>
             </div>
 
-            <div class="pt-6 border-t border-white/10 flex gap-3">
-                <button onclick="history.back()" class="flex-1 py-4 bg-gold text-black font-black uppercase rounded-full hover:bg-yellow-400 transition-all">
-                    Acknowledge
+            <div class="pt-8 border-t border-white/10 flex flex-col sm:flex-row gap-4">
+                <button onclick="window.location.href='../index.html'" class="btn-command flex-1 py-4 text-xs">
+                    ACKNOWLEDGE
                 </button>
-                <a href="mailto:director.mog@gmail.com" class="flex-1 py-4 bg-white/10 text-white font-black uppercase rounded-full hover:bg-white/20 transition-all text-center flex items-center justify-center gap-2">
+                <a href="mailto:director.mog@gmail.com" class="flex-1 py-4 bg-white/5 border border-white/10 text-white font-black uppercase rounded-full hover:bg-white/10 transition-all text-center flex items-center justify-center gap-2 text-[10px] tracking-widest">
                     <i data-lucide="mail" class="w-4 h-4"></i>
-                    Contact
+                    CONTACT DIRECTORATE
                 </a>
             </div>
         </div>
+
+        <footer class="mt-12 text-center opacity-20">
+            <p class="text-[9px] uppercase tracking-[0.5em] italic">NCC Privacy Protocol v5.0 // Sector 7G</p>
+        </footer>
     </div>
     <script>lucide.createIcons();</script>
 </body>
