@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # IMPORTANT: This fixes the TruffleHog error
+          fetch-depth: 0
 
       - name: Run TruffleHog Secret Scanner
         uses: trufflesecurity/trufflehog@main
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'  # Updated from 20 to 22
+          node-version: '22'
 
       - name: Install Dependencies
         run: npm ci
