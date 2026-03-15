@@ -1,7 +1,7 @@
 /* ==========================================================================
-   MINISTRY OF GROOVE | MASTER STYLE ENGINE v5.0
+   MINISTRY OF GROOVE | MASTER STYLE ENGINE v5.1
    Design Language: Tactical Electric Blue / Unified Gold
-   Updated for Modular Repository Structure
+   Updated: 2026-03-15 | Added Apple Sign-In Compliance & Auth Components
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
@@ -20,6 +20,11 @@
     --bg-black: #050508;
     --glass-border: rgba(255, 255, 255, 0.05);
     --critical-red: #ff4b2b;
+    
+    /* Apple Sign-In Compliance Colors */
+    --apple-black: #000000;
+    --apple-white: #FFFFFF;
+    --apple-border: rgba(255, 255, 255, 0.2);
 }
 
 /* 1. GLOBAL RESET & TYPOGRAPHY */
@@ -68,7 +73,7 @@ p, span, a, li, button, input { font-size: 15px; }
     pointer-events: none;
 }
 
-/* 3. TACTICAL COMPONENTS (GLASSMORPISM) */
+/* 3. TACTICAL COMPONENTS (GLASSMORPHISM) */
 .glass {
     background: rgba(10, 10, 15, 0.8);
     backdrop-filter: blur(20px);
@@ -114,7 +119,133 @@ p, span, a, li, button, input { font-size: 15px; }
     box-shadow: 0 0 20px rgba(255, 75, 43, 0.4);
 }
 
-/* 5. MEDIA HANDLING */
+/* 5. APPLE SIGN-IN BUTTON COMPLIANCE */
+/* Apple Guidelines: Minimum 140pt width, 30pt height, black/white only */
+
+.auth-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Apple Sign-In Button Wrapper - Ensures compliance with Apple's HIG */
+.apple-signin-wrapper {
+    width: 100%;
+    min-width: 140px;
+    height: 44px; /* Apple's recommended minimum for touch */
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apple-signin-wrapper:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Apple Button for Tactical Theme (Black variant for dark backgrounds) */
+.btn-apple-custom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: var(--apple-black);
+    border: 1px solid var(--apple-border);
+    border-radius: 8px;
+    color: var(--apple-white);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 17px; /* 43% of button height per Apple guidelines */
+    font-weight: 400;
+    letter-spacing: -0.022em;
+    cursor: pointer;
+    padding: 0 16px;
+    gap: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.btn-apple-custom::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFFFFF' d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.22 7.13-.57 1.5-1.31 2.99-2.27 4.08zm-5.85-15.1c.07-2.04 1.76-3.79 3.74-3.94.29 2.32-1.97 4.5-3.74 3.94z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    flex-shrink: 0;
+}
+
+.btn-apple-custom:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Alternative: White button for light backgrounds */
+.btn-apple-white {
+    background: var(--apple-white);
+    color: var(--apple-black);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.btn-apple-white::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000000' d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.22 7.13-.57 1.5-1.31 2.99-2.27 4.08zm-5.85-15.1c.07-2.04 1.76-3.79 3.74-3.94.29 2.32-1.97 4.5-3.74 3.94z'/%3E%3C/svg%3E");
+}
+
+/* Divider for auth options */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 1rem 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+}
+
+/* 6. FORM ELEMENTS - TACTICAL STYLING */
+.form-tactical {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input-tactical {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.input-tactical:focus {
+    border-color: var(--electric-blue);
+    box-shadow: 0 0 0 3px var(--electric-blue-glow);
+}
+
+.input-tactical::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* 7. MEDIA HANDLING */
 video, img {
     border-radius: 0.5rem;
     border: 1px solid var(--glass-border);
@@ -124,4 +255,44 @@ video, img {
 .media-hover:hover {
     filter: brightness(1.1) contrast(1.1);
     border-color: var(--electric-blue);
+}
+
+/* 8. UTILITY CLASSES */
+.text-gold { color: var(--gold); }
+.text-electric { color: var(--electric-blue); }
+.text-muted { color: rgba(255, 255, 255, 0.6); }
+
+.glow-gold { text-shadow: 0 0 20px var(--gold-glow); }
+.glow-electric { text-shadow: 0 0 20px var(--electric-blue-glow); }
+
+/* 9. RESPONSIVE ADJUSTMENTS */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+    
+    .apple-signin-wrapper {
+        height: 44px; /* Maintain minimum touch target */
+    }
+    
+    .btn-apple-custom {
+        font-size: 16px;
+    }
+}
+
+/* 10. ACCESSIBILITY ENHANCEMENTS */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visible for keyboard navigation */
+button:focus-visible,
+input:focus-visible {
+    outline: 2px solid var(--electric-blue);
+    outline-offset: 2px;
 }
