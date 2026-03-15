@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://appleid.cdn-apple.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
     <meta name="robots" content="noindex, nofollow">
     <title>Ministry of Groove | Secure Access Terminal</title>
     
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Apple Sign-In SDK -->
-    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
@@ -40,16 +37,6 @@
         <div id="auth-alert" class="terminal-font" style="color: var(--critical-red); font-size: 12px; text-align: center; margin-bottom: 1rem; padding: 8px; border: 1px solid var(--critical-red); background: rgba(255, 75, 43, 0.1); border-radius: 4px; display: none;">
         </div>
 
-        <!-- Apple Sign In -->
-        <div class="apple-signin-wrapper" id="apple-btn-container" style="margin-bottom: 1rem;">
-            <button class="btn-apple-custom" id="apple-signin-btn" type="button">
-                Sign in with Apple
-            </button>
-        </div>
-
-        <!-- Divider -->
-        <div class="auth-divider">Or Authenticate With</div>
-
         <!-- Email/Password Form -->
         <form class="form-tactical" id="login-form" onsubmit="handleEmailLogin(event)">
             <input 
@@ -75,6 +62,28 @@
             </button>
         </form>
 
+        <!-- Magic Link Option -->
+        <div style="text-align: center; margin-top: 1rem;">
+            <button onclick="toggleMagicLink()" class="terminal-font text-gold" style="background: none; border: none; cursor: pointer; font-size: 11px; text-decoration: underline;">
+                USE MAGIC LINK INSTEAD
+            </button>
+        </div>
+
+        <!-- Magic Link Form (Hidden by default) -->
+        <form class="form-tactical" id="magic-link-form" onsubmit="handleMagicLink(event)" style="display: none; margin-top: 1rem;">
+            <input 
+                type="email" 
+                id="magic-email" 
+                class="input-tactical" 
+                placeholder="OPERATIVE_ID@DOMAIN" 
+                required
+                autocomplete="email"
+            >
+            <button type="submit" class="btn-command" style="width: 100%;">
+                SEND SECURE LINK
+            </button>
+        </form>
+
         <!-- Session Status -->
         <div id="session-status" class="terminal-font" style="font-size: 11px; text-align: center; margin-top: 1rem; color: var(--electric-blue); display: none;">
         </div>
@@ -92,12 +101,10 @@
         // ==========================================
         const SUPABASE_URL = '{{SUPABASE_URL}}';
         const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
-        const APPLE_SERVICES_ID = '{{APPLE_SERVICES_ID}}';
-        const APPLE_REDIRECT_URI = '{{APPLE_REDIRECT_URI}}';
         
         // Security: Validate injection worked
         if (SUPABASE_ANON_KEY === '{{SUPABASE_ANON_KEY}}') {
-            console.error('[MOG SECURITY] Build injection failed - using fallback');
+            console.error('[MOG SECURITY] Build injection failed - check environment variables');
         }
         
         // Initialize Supabase
@@ -124,88 +131,93 @@
         }
 
         // ==========================================
-        // APPLE SIGN-IN
+        // AUTH HANDLERS
         // ==========================================
-        let currentNonce = null;
         
-        function initAppleAuth() {
-            if (!APPLE_SERVICES_ID || APPLE_SERVICES_ID.includes('{{')) {
-                console.log('[MOG AUTH] Apple Sign-In not configured');
-                document.getElementById('apple-btn-container').style.display = 'none';
+        async function handleEmailLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            
+            // Basic validation
+            if (!email || !password) {
+                showAlert('ACCESS_DENIED: Credentials required');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showAlert('ACCESS_DENIED: Invalid access code format');
                 return;
             }
             
             try {
-                currentNonce = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-                    .map(b => b.toString(16).padStart(2, '0')).join('');
-                
-                AppleID.auth.init({
-                    clientId: APPLE_SERVICES_ID,
-                    scope: 'name email',
-                    redirectURI: APPLE_REDIRECT_URI,
-                    state: 'mog_' + Math.random().toString(36).substring(2, 15),
-                    nonce: currentNonce,
-                    usePopup: true
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email, 
+                    password
                 });
                 
-                console.log('[MOG AUTH] Apple Sign-In ready');
+                if (error) throw error;
+                
+                // Security: Clear sensitive fields
+                document.getElementById('password').value = '';
+                
+                // Redirect based on role
+                const role = data.user?.user_metadata?.role || 'operative';
+                const redirectMap = {
+                    'director': '/pages/directorate.html',
+                    'operative': '/hub.html',
+                    'admin': '/pages/admin.html'
+                };
+                
+                window.location.href = redirectMap[role] || '/hub.html';
+                
             } catch (error) {
-                console.error('[MOG AUTH] Apple init failed:', error);
-                document.getElementById('apple-btn-container').style.display = 'none';
+                showAlert(`ACCESS_DENIED: ${error.message}`);
+                document.getElementById('password').value = '';
             }
         }
 
-        // ==========================================
-        // AUTH HANDLERS
-        // ==========================================
-        document.getElementById('apple-signin-btn').addEventListener('click', async () => {
-            try {
-                const response = await AppleID.auth.signIn();
-                const { authorization, user } = response;
-                
-                const { data, error } = await supabase.auth.signInWithIdToken({
-                    provider: 'apple',
-                    token: authorization.id_token,
-                    nonce: currentNonce
-                });
-                
-                if (error) throw error;
-                
-                // Update profile on first sign-in
-                if (user?.name) {
-                    const fullName = [user.name.firstName, user.name.lastName]
-                        .filter(Boolean).join(' ');
-                    await supabase.auth.updateUser({
-                        data: { full_name: fullName, auth_provider: 'apple' }
-                    });
-                }
-                
-                window.location.href = '/dashboard.html';
-            } catch (error) {
-                showAlert(`AUTHENTICATION_FAILED: ${error.message}`);
-            }
-        });
-
-        async function handleEmailLogin(e) {
+        async function handleMagicLink(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('magic-email').value.trim().toLowerCase();
+            
+            if (!email) {
+                showAlert('ACCESS_DENIED: Email required');
+                return;
+            }
             
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email, password
+                const { error } = await supabase.auth.signInWithOtp({
+                    email,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/hub.html'
+                    }
                 });
                 
                 if (error) throw error;
-                window.location.href = '/dashboard.html';
+                
+                showAlert('SUCCESS: Secure link dispatched to your terminal');
+                document.getElementById('magic-email').value = '';
+                
             } catch (error) {
-                showAlert(`ACCESS_DENIED: ${error.message}`);
+                showAlert(`TRANSMISSION_FAILED: ${error.message}`);
             }
+        }
+
+        function toggleMagicLink() {
+            const form = document.getElementById('magic-link-form');
+            const isVisible = form.style.display !== 'none';
+            form.style.display = isVisible ? 'none' : 'block';
         }
 
         async function abortSession() {
-            await supabase.auth.signOut();
+            try {
+                await supabase.auth.signOut();
+            } catch (e) {
+                console.error('Logout error:', e);
+            }
             localStorage.clear();
+            sessionStorage.clear();
             window.location.href = '/';
         }
 
@@ -217,14 +229,27 @@
         }
 
         // ==========================================
+        // SECURITY: Prevent credential caching
+        // ==========================================
+        window.addEventListener('beforeunload', () => {
+            document.getElementById('password').value = '';
+        });
+
+        // ==========================================
         // INIT
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            initAppleAuth();
-            
             // Check existing session
             supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session) window.location.href = '/dashboard.html';
+                if (session) {
+                    const role = session.user?.user_metadata?.role || 'operative';
+                    const redirectMap = {
+                        'director': '/pages/directorate.html',
+                        'operative': '/hub.html',
+                        'admin': '/pages/admin.html'
+                    };
+                    window.location.href = redirectMap[role] || '/hub.html';
+                }
             });
         });
     </script>
