@@ -1,0 +1,12 @@
+{
+  "name": "ministry-of-groove-auth",
+  "version": "1.0.0",
+  "description": "Apple Sign-In Secret Generator",
+  "scripts": {
+    "generate-apple-secret": "node scripts/generate-apple-secret.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "dotenv": "^16.4.5"
+  }
+}
