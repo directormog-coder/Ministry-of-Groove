@@ -8,23 +8,41 @@
 .env.*.local
 .env.development
 .env.production
+.env.staging
+.env.test
 
-# Apple Private Keys (CRITICAL)
-*.p8
-AuthKey*.p8
-*.p12
-*.cer
-*.mobileprovision
+# Secrets & Keys (CRITICAL)
+*.pem
+*.key
+*.crt
+*.der
+*.priv
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.keystore
+*.jks
+
+# OAuth & API Credentials
+credentials.json
+token.json
+*secret*
+*apikey*
+*api-key*
 
 # ==========================================
-# NODE.JS
+# NODE.JS / PNPM
 # ==========================================
 node_modules/
+.pnpm-store/
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # ==========================================
 # OPERATING SYSTEM
@@ -37,6 +55,7 @@ yarn-error.log*
 ehthumbs.db
 Thumbs.db
 desktop.ini
+*.lnk
 
 # ==========================================
 # IDE & EDITOR
@@ -48,6 +67,10 @@ desktop.ini
 *~
 *.sublime-workspace
 *.sublime-project
+.atom/
+.brackets.json
+.vs/
+*.code-workspace
 
 # ==========================================
 # LOGS & TEMP
@@ -57,11 +80,101 @@ logs/
 tmp/
 temp/
 .cache/
+*.pid
+*.seed
+*.pid.lock
 
 # ==========================================
 # BUILD & DEPLOY
 # ==========================================
 dist/
 build/
+out/
 .vercel
 .netlify
+.firebase/
+.terraform/
+.serverless/
+
+# ==========================================
+# TESTING & COVERAGE
+# ==========================================
+coverage/
+.nyc_output/
+*.lcov
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
+
+# ==========================================
+# DATABASE
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+dump.rdb
+*.sql
+!schema.sql
+!migrations/*.sql
+
+# ==========================================
+# SUPABASE
+# ==========================================
+/supabase/.branches
+/supabase/.temp
+/supabase/.env
+
+# ==========================================
+# MINISTRY OF GROOVE SPECIFIC
+# ==========================================
+# Uploaded media assets (stored in Supabase Storage)
+uploads/
+media/
+archives/
+
+# Generated cryptographic artifacts
+.crypto/
+*.encrypted
+*.salt
+
+# Local development certificates
+localhost.pem
+localhost-key.pem
+
+# ==========================================
+# FRAMEWORK SPECIFIC
+# ==========================================
+# Vite
+.vite/
+*.local
+
+# Next.js
+.next/
+out/
+
+# Nuxt
+.nuxt/
+.nitro/
+.output/
+
+# SvelteKit
+.svelte-kit/
+
+# Astro
+.astro/
+
+# Remix
+.cache/
+build/
+public/build/
+
+# ==========================================
+# MISC
+# ==========================================
+*.bak
+*.orig
+*.rej
+*.patch
+*.diff
