@@ -87,18 +87,17 @@
 
     <script>
         // ==========================================
-        // SUPABASE CONFIGURATION
+        // SUPABASE CONFIGURATION (INJECTED AT BUILD)
         // ==========================================
-        // Vercel automatically injects these at build time
-        const SUPABASE_URL = process.env.SUPABASE_URL || 'https://fgkljjgxecjmiiaptiug.supabase.co';
-        const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+        const SUPABASE_URL = '{{SUPABASE_URL}}';
+        const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
         
         // Initialize Supabase client
         let supabase;
         
         try {
-            if (!SUPABASE_ANON_KEY) {
-                throw new Error('Supabase Anon Key is not configured. Please set SUPABASE_ANON_KEY environment variable.');
+            if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === '{{SUPABASE_ANON_KEY}}') {
+                throw new Error('Supabase Anon Key not configured. Build may have failed.');
             }
             
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -108,6 +107,8 @@
                     detectSessionInUrl: true
                 }
             });
+            
+            console.log('[MOG AUTH] Supabase initialized successfully');
         } catch (error) {
             console.error('[MOG AUTH] Supabase initialization failed:', error);
             showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
@@ -116,11 +117,10 @@
         }
 
         // ==========================================
-        // APPLE SIGN-IN CONFIGURATION
+        // APPLE SIGN-IN CONFIGURATION (INJECTED AT BUILD)
         // ==========================================
-        // CRITICAL: These must match your Apple Developer Portal settings exactly
-        const APPLE_SERVICES_ID = 'YOUR_APPLE_SERVICES_ID'; // e.g., 'com.ministryofgroove.web'
-        const APPLE_REDIRECT_URI = 'https://yourdomain.com/auth/callback'; // Must match Supabase callback URL
+        const APPLE_SERVICES_ID = '{{APPLE_SERVICES_ID}}';
+        const APPLE_REDIRECT_URI = '{{APPLE_REDIRECT_URI}}';
         
         // Generate cryptographically secure nonce
         function generateNonce() {
@@ -134,6 +134,13 @@
         // Initialize Apple Sign-In
         function initAppleAuth() {
             try {
+                // Check if Apple config is valid
+                if (!APPLE_SERVICES_ID || APPLE_SERVICES_ID === '{{APPLE_SERVICES_ID}}') {
+                    console.warn('[MOG AUTH] Apple Sign-In not configured');
+                    document.getElementById('apple-btn-container').style.display = 'none';
+                    return;
+                }
+                
                 currentNonce = generateNonce();
                 
                 AppleID.auth.init({
@@ -149,7 +156,7 @@
                 showSessionStatus('APPLE_AUTH_READY');
             } catch (error) {
                 console.error('[MOG AUTH] Apple init failed:', error);
-                showAlert('APPLE AUTHENTICATION UNAVAILABLE');
+                document.getElementById('apple-btn-container').style.display = 'none';
             }
         }
 
@@ -246,7 +253,6 @@
         // ==========================================
         // SUPABASE OAUTH FLOW (Alternative)
         // ==========================================
-        // Use this if you prefer redirect flow over popup
         async function signInWithAppleOAuth() {
             if (!supabase) {
                 showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
@@ -256,7 +262,7 @@
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'apple',
                 options: {
-                    redirectTo: 'https://yourdomain.com/auth/callback',
+                    redirectTo: APPLE_REDIRECT_URI,
                     scopes: 'name email'
                 }
             });
@@ -270,7 +276,6 @@
         // SESSION MANAGEMENT
         // ==========================================
         async function handleSuccessfulAuth(data) {
-            // Store session securely (Supabase handles this automatically with persistSession)
             console.log('[MOG AUTH] Session established:', data.session.user.email);
             
             // Redirect to secure area
@@ -289,7 +294,7 @@
                 }
             }
             
-            // Clear any local storage
+            // Clear storage
             localStorage.clear();
             sessionStorage.clear();
             
@@ -334,7 +339,6 @@
                 if (session) {
                     console.log('[MOG AUTH] Existing session found');
                     showSessionStatus('EXISTING_SESSION_DETECTED');
-                    // Optionally auto-redirect: window.location.href = '/dashboard.html';
                 }
             }
         });
