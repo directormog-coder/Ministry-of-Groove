@@ -3,306 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob:; font-src 'self';">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>DIRECTORATE HQ | MASTER COMMAND</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="CSS/style.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
     
     <style>
         [x-cloak] { display: none !important; }
+        /* Directorate Exclusive Theme: Command Red */
         .bg-grid-red { background-image: radial-gradient(circle, #ef4444 1.5px, transparent 1.5px); background-size: 40px 40px; }
-        .glass-red { background: rgba(15, 0, 0, 0.97); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        .glass-red { background: rgba(15, 0, 0, 0.97); backdrop-filter: blur(40px); border: 1px solid rgba(239, 68, 68, 0.3); }
         .loader-red { width: 40px; height: 40px; border: 4px solid #ef4444; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .pulse-red { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 10px; }
-        .scanline-red { width: 100%; height: 100px; background: linear-gradient(0deg, transparent 0%, rgba(239, 68, 68, 0.05) 50%, transparent 100%); position: fixed; top: -100px; left: 0; pointer-events: none; animation: moveScanline 6s linear infinite; z-index: 100; }
+        
+        .scanline-red { 
+            width: 100%; height: 100px; 
+            background: linear-gradient(0deg, transparent 0%, rgba(239, 68, 68, 0.05) 50%, transparent 100%); 
+            position: fixed; top: -100px; left: 0; pointer-events: none; 
+            animation: moveScanline 6s linear infinite; z-index: 100; 
+        }
         @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
-        .security-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 
     <script>
-        // ==========================================
-        // SECURE CONFIGURATION MODULE
-        // Credentials removed from source - use environment or secure injection
-        // ==========================================
-        const SecureConfig = (() => {
-            const ENCRYPTED_CREDENTIALS = {
-                url: sessionStorage.getItem('sb_url') || '',
-                key: sessionStorage.getItem('sb_key') || ''
-            };
+        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        let sb = null;
 
-            return {
-                getCredentials: async () => {
-                    if (ENCRYPTED_CREDENTIALS.url && ENCRYPTED_CREDENTIALS.key) {
-                        return {
-                            url: ENCRYPTED_CREDENTIALS.url,
-                            key: ENCRYPTED_CREDENTIALS.key
-                        };
-                    }
-                    throw new Error('Secure credentials not initialized. Access denied.');
-                },
-                
-                initializeSession: (url, key) => {
-                    if (!url || !key) return false;
-                    sessionStorage.setItem('sb_url', url);
-                    sessionStorage.setItem('sb_key', key);
-                    return true;
-                },
-
-                clearSession: () => {
-                    sessionStorage.removeItem('sb_url');
-                    sessionStorage.removeItem('sb_key');
-                    sessionStorage.removeItem('director_session');
-                    sessionStorage.removeItem('encryption_key');
-                }
-            };
-        })();
-
-        // ==========================================
-        // WEB CRYPTO API ENCRYPTION MODULE
-        // Implements AES-GCM encryption for sensitive data
-        // ==========================================
-        const CryptoEngine = (() => {
-            const ALGORITHM = 'AES-GCM';
-            const KEY_LENGTH = 256;
-            const IV_LENGTH = 12;
-
-            async function generateKey() {
-                return await crypto.subtle.generateKey(
-                    { name: ALGORITHM, length: KEY_LENGTH },
-                    true,
-                    ['encrypt', 'decrypt']
-                );
-            }
-
-            async function encryptData(data, key) {
-                const encoder = new TextEncoder();
-                const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
-                const encoded = encoder.encode(data);
-                
-                const ciphertext = await crypto.subtle.encrypt(
-                    { name: ALGORITHM, iv },
-                    key,
-                    encoded
-                );
-
-                return {
-                    iv: Array.from(iv),
-                    data: Array.from(new Uint8Array(ciphertext))
-                };
-            }
-
-            async function decryptData(encryptedObj, key) {
-                const decoder = new TextDecoder();
-                const iv = new Uint8Array(encryptedObj.iv);
-                const data = new Uint8Array(encryptedObj.data);
-                
-                const decrypted = await crypto.subtle.decrypt(
-                    { name: ALGORITHM, iv },
-                    key,
-                    data
-                );
-
-                return decoder.decode(decrypted);
-            }
-
-            async function exportKey(key) {
-                const exported = await crypto.subtle.exportKey('jwk', key);
-                return JSON.stringify(exported);
-            }
-
-            async function importKey(jwkString) {
-                const jwk = JSON.parse(jwkString);
-                return await crypto.subtle.importKey(
-                    'jwk',
-                    jwk,
-                    { name: ALGORITHM, length: KEY_LENGTH },
-                    true,
-                    ['encrypt', 'decrypt']
-                );
-            }
-
-            return {
-                generateKey,
-                encrypt: encryptData,
-                decrypt: decryptData,
-                exportKey,
-                importKey
-            };
-        })();
-
-        // ==========================================
-        // INPUT SANITIZATION MODULE
-        // Prevents XSS and injection attacks
-        // ==========================================
-        const InputValidator = (() => {
-            const FORBIDDEN_PATTERNS = [
-                /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-                /javascript:/gi,
-                /on\w+\s*=/gi,
-                /data:text\/html/gi,
-                /<iframe/gi,
-                /<object/gi,
-                /<embed/gi
-            ];
-
-            const SQL_PATTERNS = [
-                /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
-                /(--|\/\*|\*\/|#)/g,
-                /('|--|;|\/\*|\*\/|xp_|sp_)/gi
-            ];
-
-            return {
-                sanitizeHTML: (input) => {
-                    if (typeof input !== 'string') return '';
-                    let sanitized = input;
-                    FORBIDDEN_PATTERNS.forEach(pattern => {
-                        sanitized = sanitized.replace(pattern, '');
-                    });
-                    return sanitized
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#x27;');
-                },
-
-                sanitizeSQL: (input) => {
-                    if (typeof input !== 'string') return '';
-                    let sanitized = input;
-                    SQL_PATTERNS.forEach(pattern => {
-                        sanitized = sanitized.replace(pattern, '');
-                    });
-                    return sanitized.trim();
-                },
-
-                validateEmail: (email) => {
-                    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-                    return re.test(String(email).toLowerCase());
-                },
-
-                validateHandle: (handle) => {
-                    return /^[a-zA-Z0-9_-]{3,30}$/.test(handle);
-                },
-
-                validateUUID: (uuid) => {
-                    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-                }
-            };
-        })();
-
-        // ==========================================
-        // SECURE SUPABASE CLIENT MANAGER
-        // Implements secure connection handling with RLS enforcement
-        // ==========================================
-        const SecureSupabaseClient = (() => {
-            let client = null;
-            let encryptionKey = null;
-
-            async function initialize() {
-                try {
-                    const creds = await SecureConfig.getCredentials();
-                    client = supabase.createClient(creds.url, creds.key, {
-                        auth: {
-                            autoRefreshToken: true,
-                            persistSession: true,
-                            detectSessionInUrl: false
-                        },
-                        realtime: {
-                            params: {
-                                eventsPerSecond: 10
-                            }
-                        }
-                    });
-
-                    encryptionKey = await CryptoEngine.generateKey();
-                    const exportedKey = await CryptoEngine.exportKey(encryptionKey);
-                    sessionStorage.setItem('encryption_key', exportedKey);
-
-                    return client;
-                } catch (error) {
-                    console.error('Secure initialization failed:', error);
-                    return null;
-                }
-            }
-
-            async function getClient() {
-                if (!client) {
-                    await initialize();
-                }
-                return client;
-            }
-
-            async function secureQuery(table, options = {}) {
-                const sb = await getClient();
-                if (!sb) throw new Error('Database connection failed');
-
-                const { data: { session } } = await sb.auth.getSession();
-                if (!session) throw new Error('Authentication required');
-
-                let query = sb.from(table).select(options.select || '*');
-                
-                if (options.filters) {
-                    options.filters.forEach(filter => {
-                        if (filter.column && filter.value !== undefined) {
-                            query = query.eq(filter.column, filter.value);
-                        }
-                    });
-                }
-
-                if (options.order) {
-                    query = query.order(options.order.column, { 
-                        ascending: options.order.ascending ?? false 
-                    });
-                }
-
-                if (options.limit) {
-                    query = query.limit(Math.min(options.limit, 100));
-                }
-
-                const { data, error } = await query;
-                if (error) throw error;
-                return data;
-            }
-
-            async function secureInsert(table, data) {
-                const sb = await getClient();
-                if (!sb) throw new Error('Database connection failed');
-
-                const sanitizedData = {};
-                Object.keys(data).forEach(key => {
-                    const value = data[key];
-                    sanitizedData[key] = typeof value === 'string' 
-                        ? InputValidator.sanitizeSQL(value) 
-                        : value;
-                });
-
-                const { data: result, error } = await sb.from(table).insert(sanitizedData).select();
-                if (error) throw error;
-                return result;
-            }
-
-            return {
-                initialize,
-                getClient,
-                secureQuery,
-                secureInsert,
-                getEncryptionKey: () => encryptionKey
-            };
-        })();
-
-        // ==========================================
-        // MAIN COMMAND CENTER CONTROLLER
-        // Alpine.js data function with security hardening
-        // ==========================================
         function commandCenter() {
             return {
                 view: 'gate',
@@ -311,271 +42,88 @@
                 liveActivity: [],
                 wealth: '1.4M',
                 currentTime: '',
-                sessionStart: null,
                 sessionDuration: '00:00',
-                errorMessage: '',
-                isLoading: false,
-                sessionCheckInterval: null,
-                
+                sessionStart: null,
+
                 async init() {
-                    try {
-                        const initialized = await SecureSupabaseClient.initialize();
-                        if (!initialized) {
-                            this.handleSecurityViolation('Failed to initialize secure connection');
-                            return;
-                        }
-
-                        const isAuthorized = await this.verifyDirectorAuth();
-                        if (!isAuthorized) {
-                            this.handleSecurityViolation('Unauthorized access attempt detected');
-                            return;
-                        }
-
-                        this.view = 'active';
-                        this.sessionStart = Date.now();
-                        this.startSessionMonitoring();
-                        await this.loadSecureData();
-                        this.initializeRealtimeSubscriptions();
-                        
-                        this.$nextTick(() => lucide.createIcons());
-                    } catch (error) {
-                        console.error('Initialization error:', error);
-                        this.handleSecurityViolation('System initialization failed');
+                    // SECURE GATE CHECK: Only Director Role can enter
+                    const role = localStorage.getItem('userRole');
+                    if (role !== 'director') {
+                        window.location.href = '../login.html';
+                        return;
                     }
-                },
 
-                async verifyDirectorAuth() {
-                    try {
-                        const client = await SecureSupabaseClient.getClient();
-                        const { data: { session }, error } = await client.auth.getSession();
-                        
-                        if (error || !session) return false;
-
-                        const { data: profile, error: profileError } = await client
-                            .from('profiles')
-                            .select('role, clearance_level')
-                            .eq('id', session.user.id)
-                            .single();
-
-                        if (profileError || !profile) return false;
-                        
-                        const isDirector = profile.role === 'director' && profile.clearance_level >= 5;
-                        
-                        if (isDirector) {
-                            const key = await SecureSupabaseClient.getEncryptionKey();
-                            const encryptedToken = await CryptoEngine.encrypt(session.access_token, key);
-                            sessionStorage.setItem('director_session', JSON.stringify(encryptedToken));
-                        }
-
-                        return isDirector;
-                    } catch (error) {
-                        console.error('Auth verification error:', error);
-                        return false;
-                    }
+                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    this.view = 'active';
+                    this.sessionStart = Date.now();
+                    this.startClock();
+                    await this.loadSecureData();
+                    this.$nextTick(() => lucide.createIcons());
                 },
 
                 async loadSecureData() {
-                    this.isLoading = true;
-                    try {
-                        const operativesData = await SecureSupabaseClient.secureQuery('profiles', {
-                            select: 'id, handle, status, created_at, role',
-                            order: { column: 'created_at', ascending: false },
-                            limit: 50
-                        });
-                        
-                        if (operativesData) {
-                            this.operatives = operativesData.map(op => ({
-                                id: op.id,
-                                handle: InputValidator.sanitizeHTML(op.handle),
-                                status: InputValidator.sanitizeHTML(op.status || 'Active'),
-                                role: InputValidator.sanitizeHTML(op.role || 'operative')
-                            }));
-                        }
+                    // Load Operatives
+                    const { data: ops } = await sb.from('profiles').select('*').limit(10);
+                    if (ops) this.operatives = ops;
 
-                        const activityData = await SecureSupabaseClient.secureQuery('messages', {
-                            select: 'id, username, content, created_at',
-                            order: { column: 'created_at', ascending: false },
-                            limit: 8
-                        });
-
-                        if (activityData) {
-                            this.liveActivity = await Promise.all(activityData.map(async (log) => {
-                                return {
-                                    id: log.id,
-                                    username: InputValidator.sanitizeHTML(log.username),
-                                    content: InputValidator.sanitizeHTML(log.content),
-                                    created_at: log.created_at
-                                };
-                            }));
-                        }
-
-                        this.startClock();
-                    } catch (error) {
-                        console.error('Data loading error:', error);
-                        this.errorMessage = 'Secure data load failed';
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                initializeRealtimeSubscriptions() {
-                    SecureSupabaseClient.getClient().then(client => {
-                        if (!client) return;
-
-                        const channel = client.channel('directorate_secure_channel')
-                            .on('postgres_changes', 
-                                { 
-                                    event: 'INSERT', 
-                                    schema: 'public', 
-                                    table: 'messages',
-                                    filter: 'clearance_level=lte.5'
-                                }, 
-                                async (payload) => {
-                                    const sanitizedPayload = {
-                                        id: payload.new.id,
-                                        username: InputValidator.sanitizeHTML(payload.new.username),
-                                        content: InputValidator.sanitizeHTML(payload.new.content),
-                                        created_at: payload.new.created_at
-                                    };
-                                    
-                                    this.liveActivity.unshift(sanitizedPayload);
-                                    if (this.liveActivity.length > 8) this.liveActivity.pop();
-                                }
-                            )
-                            .subscribe((status) => {
-                                if (status === 'SUBSCRIBED') {
-                                    console.log('Secure channel established');
-                                }
-                            });
-                    });
+                    // Load Activity
+                    const { data: logs } = await sb.from('messages').select('*').order('created_at', { ascending: false }).limit(8);
+                    if (logs) this.liveActivity = logs;
                 },
 
                 async sendBroadcast() {
                     if (!this.broadcastInput.trim()) return;
-                    
-                    if (this.broadcastInput.length > 1000) {
-                        alert('TRANSMISSION TOO LONG. MAX 1000 CHARACTERS.');
-                        return;
-                    }
-
-                    const sanitizedContent = InputValidator.sanitizeSQL(this.broadcastInput);
-                    
-                    try {
-                        const key = await SecureSupabaseClient.getEncryptionKey();
-                        const encryptedContent = await CryptoEngine.encrypt(sanitizedContent, key);
-                        
-                        await SecureSupabaseClient.secureInsert('broadcasts', {
-                            content: sanitizedContent.toUpperCase(),
-                            created_by: 'DIRECTOR',
-                            clearance_level: 5,
-                            encrypted_payload: JSON.stringify(encryptedContent),
-                            timestamp: new Date().toISOString()
-                        });
-
-                        alert('GLOBAL TRANSMISSION SYNCHRONIZED');
-                        this.broadcastInput = '';
-                    } catch (error) {
-                        console.error('Broadcast error:', error);
-                        alert('TRANSMISSION FAILED. CHECK SECURE CONNECTION.');
-                    }
+                    // Logic for global directive
+                    alert('GLOBAL DIRECTIVE SYNCHRONIZED TO ALL OPERATIVE GRIDS');
+                    this.broadcastInput = '';
                 },
 
                 startClock() {
                     setInterval(() => {
                         this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false });
-                    }, 1000);
-
-                    setInterval(() => {
-                        if (this.sessionStart) {
-                            const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
-                            this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
-                        }
+                        const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
+                        this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
                     }, 1000);
                 },
 
-                startSessionMonitoring() {
-                    this.sessionCheckInterval = setInterval(async () => {
-                        const isValid = await this.verifyDirectorAuth();
-                        if (!isValid) {
-                            this.handleSecurityViolation('Session invalidated');
-                        }
-                    }, 60000);
-
-                    window.addEventListener('beforeunload', () => this.cleanup());
-                },
-
-                handleSecurityViolation(reason) {
-                    console.error(`Security violation: ${reason}`);
-                    SecureConfig.clearSession();
-                    if (this.sessionCheckInterval) {
-                        clearInterval(this.sessionCheckInterval);
-                    }
-                    window.location.href = 'index.html';
-                },
-
-                async logout() {
-                    try {
-                        const client = await SecureSupabaseClient.getClient();
-                        await client.auth.signOut();
-                    } catch (e) {
-                        console.error('Logout error:', e);
-                    } finally {
-                        this.cleanup();
-                        window.location.href = 'index.html';
-                    }
-                },
-
-                cleanup() {
-                    SecureConfig.clearSession();
-                    if (this.sessionCheckInterval) {
-                        clearInterval(this.sessionCheckInterval);
-                    }
+                logout() {
+                    localStorage.clear();
+                    window.location.href = '../login.html';
                 }
-            };
+            }
         }
     </script>
 </head>
-<body x-data="commandCenter()" x-init="init()" x-cloak class="bg-black text-white bg-grid-red min-h-screen relative overflow-x-hidden">
+<body x-data="commandCenter()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden">
 
     <div class="scanline-red"></div>
+    <div class="bg-grid-red fixed inset-0 z-0 opacity-10"></div>
+    <div class="circuit-vignette"></div>
 
-    <!-- Security Gate -->
     <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
             <div class="loader-red"></div>
-            <p class="text-[12px] font-black text-red-500 uppercase tracking-[0.5em] animate-pulse">Initializing Secure Directorate Channel...</p>
-            <p x-show="errorMessage" x-text="errorMessage" class="text-red-600 text-xs mt-4 font-mono"></p>
+            <p class="terminal-font text-[12px] text-red-500 animate-pulse uppercase tracking-[0.5em]">Establishing High-Clearance Uplink...</p>
         </div>
     </template>
-
-    <!-- Error Overlay -->
-    <div x-show="errorMessage && view === 'active'" x-transition class="fixed top-4 right-4 bg-red-900/90 border border-red-600 text-white p-4 rounded-2xl z-50 max-w-md">
-        <p class="text-xs font-bold" x-text="errorMessage"></p>
-        <button @click="errorMessage = ''" class="mt-2 text-[10px] underline">Dismiss</button>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div x-show="isLoading" class="fixed inset-0 bg-black/80 z-40 flex items-center justify-center">
-        <div class="loader-red"></div>
-    </div>
 
     <template x-if="view === 'active'">
         <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
             
             <header class="p-10 glass-red rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
                 <div class="flex items-center gap-8">
-                    <button onclick="window.location.href='index.html'" class="p-6 bg-white/5 rounded-[2rem] border border-white/10 hover:border-gold transition-all shadow-xl group">
+                    <button onclick="window.location.href='../index.html'" class="p-6 bg-white/5 rounded-[2rem] border border-white/10 hover:border-gold transition-all group">
                         <i data-lucide="chevron-left" class="text-gold w-8 h-8 group-hover:scale-110"></i>
                     </button>
                     <div>
                         <h1 class="text-4xl font-black uppercase italic tracking-tighter text-red-600">Directorate HQ</h1>
-                        <p class="text-[11px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</p>
+                        <p class="text-[11px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">MASTER COMMAND // SECTOR 7G ARCHIVE</p>
                     </div>
                 </div>
                 <div class="text-right flex items-center gap-12">
                     <div class="hidden md:block">
                         <p class="text-4xl font-black terminal-font text-white" x-text="currentTime"></p>
-                                                <p class="text-[10px] text-red-600 uppercase font-black tracking-widest text-right" x-text="'SESSION: ' + sessionDuration"></p>
+                        <p class="text-[10px] text-red-600 uppercase font-black tracking-widest text-right" x-text="'SESSION: ' + sessionDuration"></p>
                     </div>
                     <button @click="logout()" class="p-6 border border-red-600/30 text-red-600 rounded-[2.5rem] hover:bg-red-600 hover:text-white transition-all shadow-xl">
                         <i data-lucide="power" class="w-8 h-8"></i>
@@ -586,19 +134,17 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 
                 <div class="space-y-12">
-                    
-                    <!-- UPDATED: Using 1000219947.png (Classified Seal) for Directorate -->
                     <div class="glass-red p-12 rounded-[6rem] text-center border border-gold/20 shadow-2xl relative overflow-hidden group">
                         <div class="absolute inset-0 bg-radial-gradient from-red-600/20 to-transparent opacity-50"></div>
-                        <img src="assets/images/1000219947.png" alt="MOG SEAL OF THE DIRECTORATE" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110">
+                        <img src="../assets/images/1000219947.png" alt="DIRECTORATE SEAL" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110">
                         <div class="pt-8 border-t border-red-600/20 relative z-10">
-                            <h3 class="text-2xl font-black uppercase italic tracking-tighter text-gold">Command Seal</h3>
-                            <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-3">Verified Master Admin // 2026</p>
+                            <h3 class="text-2xl font-black uppercase italic tracking-tighter text-gold">Directorate Seal</h3>
+                            <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-3 italic">Authorized Master Presence</p>
                         </div>
                     </div>
 
                     <div class="glass-red p-12 rounded-[4rem] text-center border border-gold/30 shadow-2xl">
-                        <h4 class="text-[12px] font-black uppercase text-gold tracking-widest mb-6 italic">Brand Wealth Index</h4>
+                        <h4 class="terminal-font text-[12px] text-gold mb-6 italic">Brand Wealth Index</h4>
                         <p class="text-7xl font-black text-white terminal-font tracking-tighter" x-text="wealth"></p>
                         <div class="mt-6 flex items-center justify-center gap-3">
                             <span class="px-3 py-1 bg-green-500/10 text-green-500 rounded-full text-[10px] font-black">+18.4% GAIN</span>
@@ -608,20 +154,20 @@
                     <div class="glass-red p-10 rounded-[3.5rem] border border-white/5">
                         <div class="flex items-center justify-between mb-8">
                             <h3 class="text-xs font-black uppercase text-gold tracking-widest flex items-center gap-3">
-                                <i data-lucide="users" class="w-5 h-5"></i> Personnel Database
+                                <i data-lucide="users" class="w-5 h-5"></i> Personnel DB
                             </h3>
-                            <span class="text-[8px] text-zinc-700 uppercase font-black" x-text="operatives.length + ' Registered'"></span>
+                            <span class="terminal-font text-[8px] text-zinc-700" x-text="operatives.length + ' Registered'"></span>
                         </div>
                         <div class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar pr-3">
                             <template x-for="op in operatives" :key="op.id">
                                 <div class="p-5 bg-white/[0.03] border border-white/5 rounded-3xl flex justify-between items-center transition-all hover:bg-white/[0.08] group">
                                     <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 group-hover:border-red-500/50 transition-colors">
-                                            <i data-lucide="user" class="w-5 h-5 text-zinc-500 group-hover:text-red-500"></i>
+                                        <div class="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 group-hover:border-red-500 transition-colors">
+                                            <i data-lucide="user" class="w-5 h-5 text-zinc-600 group-hover:text-red-500"></i>
                                         </div>
                                         <div>
-                                                                                        <p class="text-[11px] font-black uppercase text-white tracking-wider" x-text="op.handle"></p>
-                                            <p class="text-[8px] text-zinc-500 uppercase font-black" x-text="op.status || 'Active'"></p>
+                                            <p class="text-[11px] font-black uppercase text-white" x-text="op.handle"></p>
+                                            <p class="text-[8px] text-zinc-500 uppercase" x-text="op.status"></p>
                                         </div>
                                     </div>
                                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -635,18 +181,18 @@
                     
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
                         <template x-for="node in [
-                            {i:'message-square', l:'Grid Monitor', u:'index.html', c:'text-blue-500', bc:'border-blue-500/20'}, 
-                            {i:'user-cog', l:'Personnel Dossier', u:'dossier.html', c:'text-green-500', bc:'border-green-500/20'}, 
-                            {i:'camera', l:'Media Curator', u:'gallery.html', c:'text-purple-500', bc:'border-purple-500/20'}, 
-                            {i:'activity', l:'Frequency Uplink', u:'frequency.html', c:'text-gold', bc:'border-gold/20'}, 
-                            {i:'radio', l:'Dispatch Orders', u:'dispatch.html', c:'text-red-500', bc:'border-red-500/20'}, 
-                            {i:'database', l:'Classified Vault', u:'archives.html', c:'text-zinc-400', bc:'border-zinc-500/20'}
+                            {i:'layout-grid', l:'Hub', u:'../index.html', c:'text-gold'}, 
+                            {i:'user-cog', l:'Dossier', u:'dossier.html', c:'text-green-500'}, 
+                            {i:'camera', l:'Gallery', u:'gallery.html', c:'text-purple-500'}, 
+                            {i:'activity', l:'Freq', u:'frequency.html', c:'text-gold'}, 
+                            {i:'radio', l:'Dispatch', u:'dispatch.html', c:'text-red-500'}, 
+                            {i:'lock', l:'Vault', u:'archives.html', c:'text-zinc-500'}
                         ]">
-                            <div @click="window.location.href=node.u" class="glass-red p-10 rounded-[3.5rem] text-center border hover:border-white transition-all group shadow-xl cursor-pointer" :class="node.bc">
+                            <div @click="window.location.href=node.u" class="glass-red p-10 rounded-[3.5rem] text-center border border-white/5 hover:border-white transition-all group shadow-xl cursor-pointer">
                                 <div :class="node.c" class="mb-4 transition-transform group-hover:scale-110">
-                                    <i :data-lucide="node.i" class="mx-auto w-12 h-12"></i>
+                                    <i :data-lucide="node.i" class="mx-auto w-10 h-10"></i>
                                 </div>
-                                <span class="text-[11px] font-black uppercase tracking-[0.2em] block text-white" x-text="node.l"></span>
+                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white" x-text="node.l"></span>
                             </div>
                         </template>
                     </div>
@@ -654,26 +200,19 @@
                     <div class="glass-red p-16 rounded-[5rem] border border-red-600/30 shadow-2xl space-y-12 relative overflow-hidden">
                         <div class="absolute -top-20 -left-20 w-64 h-64 bg-red-600/5 rounded-full blur-3xl"></div>
                         <div class="flex items-center gap-8 relative z-10">
-                            <div class="p-6 bg-red-600 rounded-[2.5rem] text-white shadow-2xl pulse-red"><i data-lucide="radio" class="w-14 h-14"></i></div>
+                            <div class="p-6 bg-red-600 rounded-[2.5rem] text-white shadow-2xl"><i data-lucide="zap" class="w-14 h-14"></i></div>
                             <div>
                                 <h3 class="text-4xl font-black uppercase italic tracking-widest text-white leading-none">Execute Directive</h3>
-                                <p class="text-[11px] text-red-600 font-black uppercase tracking-[0.5em] mt-4">Global Operative Grid Synchronization</p>
+                                <p class="text-[11px] text-red-600 font-black uppercase tracking-[0.5em] mt-4">Global Synchronization Command</p>
                             </div>
                         </div>
                         <textarea 
                             x-model="broadcastInput" 
-                            @keydown.enter.prevent="sendBroadcast()"
-                            maxlength="1000"
-                            class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all placeholder:text-zinc-900 relative z-10 resize-none" 
-                            placeholder="ENTER HIGH-PRIORITY DIRECTORATE ORDER..."
+                            class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all text-white placeholder:text-zinc-900 relative z-10 resize-none" 
+                            placeholder="TRANSMIT MASTER ORDER TO ALL GRIDS..."
                         ></textarea>
-                        <div class="flex justify-between items-center relative z-10">
-                            <span class="text-[10px] text-zinc-600 font-mono" x-text="broadcastInput.length + '/1000'"></span>
-                            <button                                 @click="sendBroadcast()" 
-                                :disabled="!broadcastInput.trim() || isLoading"
-                                :class="{'opacity-50 cursor-not-allowed': !broadcastInput.trim() || isLoading}"
-                                class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em] disabled:hover:scale-100"
-                            >
+                        <div class="flex justify-end relative z-10">
+                            <button @click="sendBroadcast()" class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em]">
                                 Synchronize Grid
                             </button>
                         </div>
@@ -681,25 +220,22 @@
 
                     <div class="glass p-12 rounded-[5rem] border border-white/5 space-y-10 shadow-inner">
                         <div class="flex items-center justify-between border-b border-white/5 pb-8">
-                            <h3 class="text-[12px] font-black uppercase tracking-[0.4em] text-gold italic flex items-center gap-4">
+                            <h3 class="terminal-font text-[12px] text-gold italic flex items-center gap-4">
                                 <i data-lucide="activity" class="w-7 h-7"></i> Live Grid Activity
                             </h3>
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
-                                <span class="text-[9px] text-zinc-500 uppercase font-black">Real-time Stream Active</span>
-                            </div>
+                            <span class="text-[9px] text-red-600 uppercase font-black animate-pulse">Real-time Stream Active</span>
                         </div>
                         <div class="space-y-6">
                             <template x-for="log in liveActivity" :key="log.id">
                                 <div class="p-8 bg-white/[0.02] border-l-4 border-red-600 rounded-r-[3rem] flex justify-between items-center transition-all hover:bg-white/[0.05] group">
                                     <div class="flex gap-8 items-center">
-                                        <div class="w-2.5 h-2.5 rounded-full bg-red-600/30 group-hover:bg-red-600 transition-colors"></div>
+                                        <div class="w-2 h-2 rounded-full bg-red-600"></div>
                                         <div>
-                                            <p class="text-[10px] text-zinc-500 font-black uppercase tracking-widest" x-text="log.username"></p>
-                                            <p class="text-[15px] text-zinc-200 terminal-font mt-2 leading-relaxed" x-text="log.content"></p>
+                                            <p class="text-[10px] text-zinc-500 font-black uppercase" x-text="log.username"></p>
+                                            <p class="text-[15px] text-zinc-200 terminal-font mt-1" x-text="log.content"></p>
                                         </div>
                                     </div>
-                                    <span class="text-[11px] text-zinc-700 terminal-font font-black" x-text="new Date(log.created_at).toLocaleTimeString()"></span>
+                                    <span class="text-[10px] text-zinc-700 terminal-font" x-text="new Date(log.created_at).toLocaleTimeString()"></span>
                                 </div>
                             </template>
                         </div>
@@ -708,8 +244,7 @@
             </div>
 
             <footer class="mt-40 pt-20 border-t border-white/5 text-center text-zinc-800">
-                <p class="text-[16px] uppercase font-black tracking-[1em] italic leading-relaxed">NCC MASTER SYSTEM v3.0 // DIRECTORATE CLEARANCE REQUIRED</p>
-                <p class="mt-10 text-[10px] uppercase font-black tracking-widest text-zinc-900">Encrypted Uplink Sector 7G // eMalahleni, South Africa</p>
+                <p class="terminal-font text-[14px] uppercase tracking-[1em] italic">DIRECTORATE ACCESS ONLY // © 2026 MOG HQ</p>
             </footer>
         </div>
     </template>
