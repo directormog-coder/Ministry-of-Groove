@@ -27,87 +27,304 @@
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .gold-glow { box-shadow: 0 0 50px rgba(212, 175, 55, 0.1); }
+        
+        .liked { color: #ef4444; }
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        // Secure configuration - replace with environment variables or config.js
+        const CONFIG = {
+            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
+            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+        };
+        
         let sb = null;
+        let realtimeChannel = null;
 
         function galleryEngine() {
             return {
                 view: 'gate',
                 isDirector: false,
                 isLoading: false,
+                isUploading: false,
                 items: [],
-                
+                authError: null,
+                userLikes: new Set(), // Track liked items in session
+
                 async init() {
-                    // 1. Security Gate Check
+                    // Security Gate Check
                     const role = localStorage.getItem('userRole');
                     if (!role) {
                         window.location.href = '../login.html';
                         return;
                     }
 
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await sb.auth.getSession();
-                    
-                    if (!session) {
-                        window.location.href = '../index.html';
+                    // Validate configuration
+                    if (!this.isSupabaseConfigured()) {
+                        this.authError = 'GALLERY SYSTEM OFFLINE - CONFIGURATION REQUIRED';
+                        console.error('[GALLERY] Supabase not configured');
+                        setTimeout(() => this.view = 'error', 1000);
                         return;
                     }
 
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    this.loadMedia();
-                    this.subscribeToGallery();
-                    this.$nextTick(() => lucide.createIcons());
+                    try {
+                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                        const { data: { session } } = await sb.auth.getSession();
+                        
+                        if (!session) {
+                            window.location.href = '../index.html';
+                            return;
+                        }
+
+                        this.isDirector = role === 'director';
+                        this.view = 'active';
+                        await this.loadMedia();
+                        this.subscribeToGallery();
+                        
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                        
+                    } catch (error) {
+                        console.error('[GALLERY] Initialization failed:', error);
+                        this.authError = 'SECURE CONNECTION FAILED';
+                        this.view = 'error';
+                    }
+                },
+
+                isSupabaseConfigured() {
+                    return CONFIG.SUPABASE_URL && 
+                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
+                           CONFIG.SUPABASE_ANON_KEY && 
+                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
                 },
 
                 async loadMedia() {
-                    const { data, error } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
-                    if (!error) this.items = data;
+                    try {
+                        this.isLoading = true;
+                        const { data, error } = await sb
+                            .from('gallery')
+                            .select('*')
+                            .order('created_at', { ascending: false });
+
+                        if (error) throw error;
+                        
+                        this.items = data || [];
+                    } catch (error) {
+                        console.error('[GALLERY] Load failed:', error);
+                        this.showNotification('FAILED TO LOAD ARCHIVE', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
                 },
 
                 subscribeToGallery() {
-                    sb.channel('public:gallery').on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, () => {
-                        this.loadMedia();
-                    }).subscribe();
+                    // Clean up existing subscription
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
+
+                    realtimeChannel = sb
+                        .channel('public:gallery')
+                        .on('postgres_changes', 
+                            { event: '*', schema: 'public', table: 'gallery' }, 
+                            (payload) => {
+                                console.log('[GALLERY] Realtime update:', payload);
+                                this.loadMedia();
+                            }
+                        )
+                        .subscribe((status) => {
+                            console.log('[GALLERY] Realtime status:', status);
+                        });
                 },
 
                 async handleUpload(e) {
-                    if (!this.isDirector) return;
+                    if (!this.isDirector) {
+                        this.showNotification('DIRECTOR CLEARANCE REQUIRED', 'error');
+                        return;
+                    }
+
                     const file = e.target.files[0];
                     if (!file) return;
-                    
-                    this.isLoading = true;
-                    const fileName = `MOG-${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-                    
-                    const { data: uploadData, error: uploadError } = await sb.storage.from('media').upload(fileName, file);
 
-                    if (!uploadError) {
-                        const { data: { publicUrl } } = sb.storage.from('media').getPublicUrl(fileName);
-                        await sb.from('gallery').insert({ 
-                            url: publicUrl, 
-                            type: file.type.startsWith('video') ? 'video' : 'image',
-                            name: file.name.toUpperCase()
-                        });
-                        alert('ARCHIVE SYNCHRONIZED: ASSET LIVE');
-                    } else {
-                        alert('UPLINK DENIED: ' + uploadError.message);
+                    // Validate file size (max 100MB)
+                    const maxSize = 100 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        this.showNotification('FILE TOO LARGE: MAX 100MB', 'error');
+                        e.target.value = '';
+                        return;
                     }
-                    this.isLoading = false;
+
+                    this.isUploading = true;
+                    
+                    try {
+                        const timestamp = Date.now();
+                        const fileExt = file.name.split('.').pop();
+                        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 50);
+                        const fileName = `MOG-${timestamp}-${MogCrypto?.generateSecureToken(8) || Math.random().toString(36).substring(2, 10)}-${safeName}.${fileExt}`;
+                        
+                        const { data: uploadData, error: uploadError } = await sb
+                            .storage
+                            .from('media')
+                            .upload(fileName, file, {
+                                cacheControl: '3600',
+                                upsert: false
+                            });
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: { publicUrl } } = sb
+                            .storage
+                            .from('media')
+                            .getPublicUrl(fileName);
+
+                        const { error: dbError } = await sb
+                            .from('gallery')
+                            .insert({ 
+                                url: publicUrl, 
+                                type: file.type.startsWith('video') ? 'video' : 'image',
+                                name: file.name.toUpperCase(),
+                                likes: 0,
+                                uploaded_by: (await sb.auth.getUser()).data.user?.id,
+                                created_at: new Date().toISOString()
+                            });
+
+                        if (dbError) throw dbError;
+
+                        this.showNotification('ARCHIVE SYNCHRONIZED: ASSET LIVE', 'success');
+                        await this.loadMedia();
+                        
+                    } catch (error) {
+                        console.error('[GALLERY] Upload failed:', error);
+                        this.showNotification('UPLINK DENIED: ' + error.message, 'error');
+                    } finally {
+                        this.isUploading = false;
+                        e.target.value = ''; // Reset input
+                    }
                 },
 
                 async likeAsset(id, currentLikes) {
-                    await sb.from('gallery').update({ likes: (currentLikes || 0) + 1 }).eq('id', id);
+                    // Prevent double-liking
+                    if (this.userLikes.has(id)) {
+                        this.showNotification('ALREADY SYNCHRONIZED WITH ASSET', 'warning');
+                        return;
+                    }
+
+                    try {
+                        const { error } = await sb
+                            .from('gallery')
+                            .update({ likes: (currentLikes || 0) + 1 })
+                            .eq('id', id);
+
+                        if (error) throw error;
+
+                        // Track locally
+                        this.userLikes.add(id);
+                        
+                        // Optimistic update
+                        const item = this.items.find(i => i.id === id);
+                        if (item) item.likes = (item.likes || 0) + 1;
+
+                        this.showNotification('SIGNAL AMPLIFIED', 'success');
+                        
+                    } catch (error) {
+                        console.error('[GALLERY] Like failed:', error);
+                        this.showNotification('AMPLIFICATION FAILED', 'error');
+                    }
+                },
+
+                hasLiked(id) {
+                    return this.userLikes.has(id);
                 },
 
                 async redactAsset(id) {
-                    if (!this.isDirector) return;
-                    if (confirm("PERMANENTLY REDACT THIS CULTURAL ASSET?")) {
-                        await sb.from('gallery').delete().eq('id', id);
-                        alert("ASSET PURGED FROM GRID.");
+                    if (!this.isDirector) {
+                        this.showNotification('DIRECTOR CLEARANCE REQUIRED', 'error');
+                        return;
+                    }
+
+                    if (!confirm("PERMANENTLY REDACT THIS CULTURAL ASSET? THIS ACTION IS IRREVERSIBLE.")) {
+                        return;
+                    }
+
+                    try {
+                        // Get file info first
+                        const { data: assetData } = await sb
+                            .from('gallery')
+                            .select('url')
+                            .eq('id', id)
+                            .single();
+
+                        const { error: deleteError } = await sb
+                            .from('gallery')
+                            .delete()
+                            .eq('id', id);
+
+                        if (deleteError) throw deleteError;
+
+                        // Clean up storage if possible
+                        if (assetData?.url) {
+                            const path = assetData.url.split('/').pop();
+                            if (path) {
+                                await sb.storage.from('media').remove([path]);
+                            }
+                        }
+
+                        this.showNotification('ASSET PURGED FROM GRID', 'success');
+                        await this.loadMedia();
+                        
+                    } catch (error) {
+                        console.error('[GALLERY] Redaction failed:', error);
+                        this.showNotification('REDACTION FAILED', 'error');
+                    }
+                },
+
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'border-green-500 text-green-400 bg-green-500/10',
+                        error: 'border-red-500 text-red-400 bg-red-500/10',
+                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
+                        info: 'border-electric text-electric bg-electric/10'
+                    };
+                    
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 z-50 glass-gold-strong px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
+                            <p class="text-xs text-white">${message}</p>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.add('animate-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 4000);
+                },
+
+                async terminateSession() {
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
+                    
+                    try {
+                        await sb?.auth?.signOut();
+                    } catch (e) {
+                        console.error('[GALLERY] Sign out error:', e);
+                    }
+                    
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    sessionStorage.clear();
+                    
+                    window.location.href = '../login.html';
+                },
+
+                destroy() {
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
                     }
                 }
             }
@@ -127,6 +344,16 @@
         </div>
     </template>
 
+    <template x-if="view === 'error'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
+            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
+            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
+            <button @click="terminateSession()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
+                Return to Gate
+            </button>
+        </div>
+    </template>
+
     <template x-if="view === 'active'">
         <div class="max-w-7xl mx-auto p-6 md:p-12 z-20 relative animate-fade-in">
             
@@ -136,7 +363,7 @@
                         <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
                     </button>
                     <div class="flex items-center gap-4">
-                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-12 h-12">
+                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-12 h-12 object-contain" onerror="this.style.display='none'">
                         <div>
                             <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Media Curator</h1>
                             <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Sector 7G Visual Archive</p>
@@ -144,53 +371,71 @@
                     </div>
                 </div>
 
-                <template x-if="isDirector">
-                    <label class="cursor-pointer bg-gold text-black px-12 py-6 rounded-full text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-gold/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-4">
-                        <i data-lucide="upload-cloud" class="w-6 h-6" x-show="!isLoading"></i>
-                        <span x-text="isLoading ? 'Syncing...' : 'Initiate Archive Upload'"></span>
-                        <input type="file" @change="handleUpload" class="hidden" accept="image/*,video/*">
-                    </label>
-                </template>
+                <div class="flex items-center gap-6">
+                    <template x-if="isDirector">
+                        <label class="cursor-pointer bg-gold text-black px-12 py-6 rounded-full text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-gold/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i data-lucide="upload-cloud" class="w-6 h-6" x-show="!isUploading"></i>
+                            <div class="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" x-show="isUploading"></div>
+                            <span x-text="isUploading ? 'Syncing...' : 'Initiate Archive Upload'"></span>
+                            <input type="file" @change="handleUpload" class="hidden" accept="image/*,video/*" :disabled="isUploading">
+                        </label>
+                    </template>
 
-                <div x-show="!isDirector" class="text-right border-l border-white/5 pl-8 hidden md:block">
-                    <p class="text-[10px] text-gold/50 font-black uppercase tracking-widest">Clearance: Operative</p>
-                    <p class="text-[10px] font-black terminal-font mt-1 text-zinc-500 uppercase">Read-Only Access</p>
+                    <div x-show="!isDirector" class="text-right border-l border-white/5 pl-8 hidden md:block">
+                        <p class="text-[10px] text-gold/50 font-black uppercase tracking-widest">Clearance: Operative</p>
+                        <p class="text-[10px] font-black terminal-font mt-1 text-zinc-500 uppercase">Read-Only Access</p>
+                    </div>
+                    
+                    <!-- Session Controls -->
+                    <button @click="terminateSession()" 
+                            class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all"
+                            title="Terminate Session">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </header>
+
+            <div x-show="isLoading" class="py-12 text-center">
+                <div class="loader-gold mx-auto mb-4"></div>
+                <p class="terminal-font text-[10px] text-zinc-500 uppercase">Loading Archive...</p>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
                 <template x-for="item in items" :key="item.id">
                     <div class="media-card relative aspect-square glass-gold-strong rounded-[4rem] overflow-hidden border border-white/5 group shadow-2xl">
                         
                         <template x-if="item.type === 'video'">
-                            <video :src="item.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" muted loop onmouseover="this.play()" onmouseout="this.pause()"></video>
+                            <video :src="item.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>
                         </template>
                         <template x-if="item.type !== 'video'">
-                            <img :src="item.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" loading="lazy">
+                            <img :src="item.url" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" loading="lazy" decoding="async" :alt="item.name">
                         </template>
 
                         <div class="overlay absolute inset-0 p-10 flex flex-col justify-between">
                             <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-[8px] text-zinc-500 uppercase font-black tracking-widest" x-text="'REF: ' + item.id.substring(0,8)"></p>
+                            <div>
+                                    <p class="text-[8px] text-zinc-500 uppercase font-black tracking-widest" x-text="'REF: ' + (item.id ? item.id.substring(0,8) : 'UNKNOWN')"></p>
                                     <p class="text-[12px] text-white font-black uppercase mt-1 truncate max-w-[150px]" x-text="item.name"></p>
                                 </div>
                                 <template x-if="isDirector">
-                                    <button @click="redactAsset(item.id)" class="p-4 bg-red-600/10 text-red-500 rounded-2xl border border-red-600/20 hover:bg-red-600 hover:text-white transition-all shadow-xl">
+                                    <button @click="redactAsset(item.id)" class="p-4 bg-red-600/10 text-red-500 rounded-2xl border border-red-600/20 hover:bg-red-600 hover:text-white transition-all shadow-xl" title="Redact Asset">
                                         <i data-lucide="shield-off" class="w-5 h-5"></i>
                                     </button>
                                 </template>
                             </div>
 
                             <div class="flex justify-center gap-8">
-                                <button @click="likeAsset(item.id, item.likes)" class="flex flex-col items-center gap-3 group/btn">
-                                    <div class="p-6 bg-gold text-black rounded-full shadow-2xl shadow-gold/40 group-hover/btn:scale-110 active:scale-90 transition-all">
-                                        <i data-lucide="heart" class="w-7 h-7"></i>
+                                <button @click="likeAsset(item.id, item.likes)" 
+                                        class="flex flex-col items-center gap-3 group/btn"
+                                        :disabled="hasLiked(item.id)">
+                                    <div class="p-6 rounded-full shadow-2xl transition-all group-hover/btn:scale-110 active:scale-90"
+                                         :class="hasLiked(item.id) ? 'bg-red-500 text-white shadow-red-500/40' : 'bg-gold text-black shadow-gold/40'">
+                                        <i data-lucide="heart" class="w-7 h-7" :class="{ 'fill-current': hasLiked(item.id) }"></i>
                                     </div>
-                                    <span class="text-[11px] font-black text-gold terminal-font" x-text="item.likes || 0"></span>
+                                    <span class="text-[11px] font-black terminal-font" :class="hasLiked(item.id) ? 'text-red-400' : 'text-gold'" x-text="(item.likes || 0).toLocaleString()"></span>
                                 </button>
                                 
-                                <a :href="item.url" download class="flex flex-col items-center gap-3 group/btn">
+                                <a :href="item.url" download class="flex flex-col items-center gap-3 group/btn" title="Download Asset">
                                     <div class="p-6 bg-white/5 text-white rounded-full border border-white/10 group-hover/btn:bg-electric group-hover/btn:text-black group-hover/btn:border-electric transition-all">
                                         <i data-lucide="download" class="w-7 h-7"></i>
                                     </div>
@@ -206,7 +451,7 @@
                 </template>
             </div>
 
-            <div x-show="items.length === 0" class="h-96 flex flex-col items-center justify-center opacity-10">
+            <div x-show="items.length === 0 && !isLoading" class="h-96 flex flex-col items-center justify-center opacity-10">
                 <i data-lucide="camera-off" class="w-24 h-24 mb-8"></i>
                 <p class="terminal-font text-[13px] uppercase tracking-[0.8em]">No Assets Detected</p>
             </div>
