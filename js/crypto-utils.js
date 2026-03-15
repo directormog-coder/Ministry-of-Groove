@@ -38,7 +38,7 @@ function generateSecureToken(length = 32) {
 }
 
 /**
- * Generate a nonce for Apple Sign-In or OAuth
+ * Generate a nonce for OAuth authentication
  * @returns {string} Base64url-encoded nonce
  */
 function generateNonce() {
@@ -517,4 +517,4 @@ if (typeof window !== 'undefined') {
     };
     
     console.log('[MOG CRYPTO] Cryptographic utilities loaded v5.1.0');
-          }
+}
