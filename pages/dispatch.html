@@ -22,17 +22,27 @@
         .beacon::after { content: ''; position: absolute; inset: -5px; border: 2px solid var(--gold); border-radius: 50%; animation: ring 1.5s infinite; }
         @keyframes ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
 
+        .beacon-active { background: #ef4444; }
+        .beacon-active::after { border-color: #ef4444; }
+
         .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .directive-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 4px solid transparent; }
         .directive-card:hover { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.05); transform: scale(1.02); }
+        
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0iugiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        // Secure configuration - replace with environment variables or config.js
+        const CONFIG = {
+            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
+            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+        };
+        
         let sb = null;
+        let realtimeChannel = null;
 
         function dispatchEngine() {
             return {
@@ -40,45 +50,231 @@
                 directives: [],
                 isDirector: false,
                 status: 'MONITORING',
+                authError: null,
+                isLoading: false,
+                newDirectiveCount: 0,
 
                 async init() {
-                    // 1. Security Gate Verification
+                    // Security Gate Verification
                     const role = localStorage.getItem('userRole');
                     if (!role) {
                         window.location.href = '../login.html';
                         return;
                     }
 
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await sb.auth.getSession();
-                    
-                    if (!session) {
-                        window.location.href = '../index.html';
+                    // Validate configuration
+                    if (!this.isSupabaseConfigured()) {
+                        this.authError = 'DISPATCH SYSTEM OFFLINE - CONFIGURATION REQUIRED';
+                        console.error('[DISPATCH] Supabase not configured');
+                        setTimeout(() => this.view = 'error', 1000);
                         return;
                     }
 
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    this.loadDirectives();
-                    this.subscribeToDirectives();
-                    this.$nextTick(() => lucide.createIcons());
+                    try {
+                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                        const { data: { session } } = await sb.auth.getSession();
+                        
+                        if (!session) {
+                            window.location.href = '../index.html';
+                            return;
+                        }
+
+                        this.isDirector = role === 'director';
+                        this.view = 'active';
+                        await this.loadDirectives();
+                        this.subscribeToDirectives();
+                        
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                        
+                    } catch (error) {
+                        console.error('[DISPATCH] Initialization failed:', error);
+                        this.authError = 'SECURE CONNECTION FAILED';
+                        this.view = 'error';
+                    }
+                },
+
+                isSupabaseConfigured() {
+                    return CONFIG.SUPABASE_URL && 
+                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
+                           CONFIG.SUPABASE_ANON_KEY && 
+                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
                 },
 
                 async loadDirectives() {
-                    const { data } = await sb.from('broadcasts').select('*').order('created_at', { ascending: false });
-                    if (data) this.directives = data;
+                    try {
+                        this.isLoading = true;
+                        const { data, error } = await sb
+                            .from('broadcasts')
+                            .select('*')
+                            .order('created_at', { ascending: false })
+                            .limit(50);
+
+                        if (error) throw error;
+                        
+                        this.directives = data || [];
+                    } catch (error) {
+                        console.error('[DISPATCH] Load failed:', error);
+                        this.showNotification('FAILED TO LOAD DIRECTIVES', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
                 },
 
                 subscribeToDirectives() {
-                    sb.channel('public:broadcasts').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'broadcasts' }, () => {
-                        this.loadDirectives();
-                        this.status = 'NEW DIRECTIVE INCOMING';
-                        setTimeout(() => this.status = 'MONITORING', 5000);
-                    }).subscribe();
+                    // Clean up existing subscription
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
+
+                    realtimeChannel = sb
+                        .channel('public:broadcasts')
+                        .on('postgres_changes', 
+                            { 
+                                event: 'INSERT', 
+                                schema: 'public', 
+                                table: 'broadcasts' 
+                            }, 
+                            (payload) => {
+                                this.handleNewDirective(payload.new);
+                            }
+                        )
+                        .on('postgres_changes',
+                            {
+                                event: 'UPDATE',
+                                schema: 'public',
+                                table: 'broadcasts'
+                            },
+                            () => {
+                                this.loadDirectives();
+                            }
+                        )
+                        .subscribe((status) => {
+                            console.log('[DISPATCH] Realtime status:', status);
+                        });
+                },
+
+                handleNewDirective(newDirective) {
+                    // Add to top of list
+                    this.directives.unshift(newDirective);
+                    
+                    // Keep only last 50
+                    if (this.directives.length > 50) {
+                        this.directives = this.directives.slice(0, 50);
+                    }
+
+                    this.newDirectiveCount++;
+                    this.status = 'NEW DIRECTIVE INCOMING';
+                    
+                    // Visual alert
+                    this.showNotification('NEW DIRECTIVE RECEIVED', 'warning');
+                    
+                    // Reset status after delay
+                    setTimeout(() => {
+                        this.status = 'MONITORING';
+                        this.newDirectiveCount = 0;
+                    }, 5000);
+
+                    // Update icons
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
                 },
 
                 async acknowledge(id) {
-                    alert('DIRECTIVE ACKNOWLEDGED. LOGGED TO OPERATIVE PROFILE.');
+                    try {
+                        const { error } = await sb
+                            .from('broadcasts')
+                            .update({ 
+                                acknowledged: true,
+                                acknowledged_by: (await sb.auth.getUser()).data.user?.id,
+                                acknowledged_at: new Date().toISOString()
+                            })
+                            .eq('id', id);
+
+                        if (error) throw error;
+
+                        // Update local state
+                        const directive = this.directives.find(d => d.id === id);
+                        if (directive) {
+                            directive.acknowledged = true;
+                        }
+
+                        this.showNotification('DIRECTIVE ACKNOWLEDGED', 'success');
+                        
+                    } catch (error) {
+                        console.error('[DISPATCH] Acknowledge failed:', error);
+                        this.showNotification('ACKNOWLEDGMENT FAILED', 'error');
+                    }
+                },
+
+                isAcknowledged(item) {
+                    return item.acknowledged === true;
+                },
+
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'border-green-500 text-green-400 bg-green-500/10',
+                        error: 'border-red-500 text-red-400 bg-red-500/10',
+                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
+                        info: 'border-electric text-electric bg-electric/10'
+                    };
+                    
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 z-50 glass-gold-dispatch px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
+                            <p class="text-xs text-white">${message}</p>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.add('animate-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 4000);
+                },
+
+                formatDate(dateString) {
+                    if (!dateString) return 'UNKNOWN';
+                    try {
+                        return new Date(dateString).toLocaleString('en-ZA', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        return dateString;
+                    }
+                },
+
+                terminateSession() {
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
+                    
+                    try {
+                        sb?.auth?.signOut();
+                    } catch (e) {
+                        console.error('[DISPATCH] Sign out error:', e);
+                    }
+                    
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    sessionStorage.clear();
+                    
+                    window.location.href = '../login.html';
+                },
+
+                destroy() {
+                    if (realtimeChannel) {
+                        realtimeChannel.unsubscribe();
+                    }
                 }
             }
         }
@@ -97,6 +293,16 @@
         </div>
     </template>
 
+    <template x-if="view === 'error'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
+            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
+            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
+            <button @click="terminateSession()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
+                Return to Gate
+            </button>
+        </div>
+    </template>
+
     <template x-if="view === 'active'">
         <div class="max-w-5xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
             
@@ -106,7 +312,7 @@
                         <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
                     </button>
                     <div class="flex items-center gap-4">
-                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-10 h-10">
+                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
                         <div>
                             <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Dispatch Log</h1>
                             <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Sector 7G Directives</p>
@@ -114,9 +320,18 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-6 bg-gold/5 px-6 py-3 rounded-full border border-gold/20">
-                    <div class="beacon"></div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-gold" x-text="'System: ' + status"></p>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-6 bg-gold/5 px-6 py-3 rounded-full border border-gold/20" :class="{ 'border-red-500/50 bg-red-500/10': status !== 'MONITORING' }">
+                        <div class="beacon" :class="{ 'beacon-active': status !== 'MONITORING' }"></div>
+                        <p class="text-[10px] font-black uppercase tracking-widest" :class="status !== 'MONITORING' ? 'text-red-400' : 'text-gold'" x-text="'System: ' + status"></p>
+                    </div>
+                    
+                    <!-- Session Controls -->
+                    <button @click="terminateSession()" 
+                            class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all"
+                            title="Terminate Session">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </header>
 
@@ -127,34 +342,47 @@
                         <h3 class="text-xs font-black uppercase text-zinc-500 tracking-[0.3em] italic flex items-center gap-2">
                              <i data-lucide="radio" class="w-4 h-4"></i> Encrypted Transmissions
                         </h3>
-                        <span class="terminal-font text-[9px] text-zinc-700 uppercase" x-text="directives.length + ' Logs Found'"></span>
+                        <div class="flex items-center gap-4">
+                            <span x-show="newDirectiveCount > 0" class="px-3 py-1 bg-red-500 text-white text-[9px] font-black uppercase rounded-full animate-pulse" x-text="newDirectiveCount + ' NEW'"></span>
+                            <span class="terminal-font text-[9px] text-zinc-700 uppercase" x-text="directives.length + ' Logs Found'"></span>
+                        </div>
+                    </div>
+
+                    <div x-show="isLoading" class="py-12 text-center">
+                        <div class="loader-gold mx-auto mb-4"></div>
+                        <p class="terminal-font text-[10px] text-zinc-500 uppercase">Loading Directives...</p>
                     </div>
 
                     <template x-for="item in directives" :key="item.id">
-                        <div class="directive-card glass-gold-dispatch p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                        <div class="directive-card glass-gold-dispatch p-10 rounded-[3rem] shadow-xl relative overflow-hidden group" :class="{ 'opacity-50': isAcknowledged(item) }">
                             <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity">
                                 <i data-lucide="shield-check" class="w-20 h-20 text-gold"></i>
                             </div>
 
                             <div class="flex flex-col md:flex-row justify-between gap-6 relative z-10">
                                 <div class="space-y-4 max-w-2xl">
-                                    <div class="flex items-center gap-4">
-                                        <span class="px-3 py-1 bg-gold text-black text-[8px] font-black uppercase rounded-full">High Priority</span>
-                                        <span class="text-[9px] text-zinc-600 font-black terminal-font uppercase" x-text="new Date(item.created_at).toLocaleString()"></span>
+                                    <div class="flex items-center gap-4 flex-wrap">
+                                        <span class="px-3 py-1 bg-gold text-black text-[8px] font-black uppercase rounded-full" x-show="!isAcknowledged(item)">High Priority</span>
+                                        <span class="px-3 py-1 bg-green-500/20 text-green-400 text-[8px] font-black uppercase rounded-full" x-show="isAcknowledged(item)">Acknowledged</span>
+                                        <span class="text-[9px] text-zinc-600 font-black terminal-font uppercase" x-text="formatDate(item.created_at)"></span>
                                     </div>
                                     <p class="text-lg md:text-xl font-black uppercase italic tracking-tight text-zinc-200 leading-tight" x-text="item.content"></p>
+                                    <p x-show="isAcknowledged(item)" class="text-[9px] text-zinc-500 uppercase">Acknowledged at: <span x-text="formatDate(item.acknowledged_at)"></span></p>
                                 </div>
 
                                 <div class="flex items-end">
-                                    <button @click="acknowledge(item.id)" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-black hover:border-gold transition-all">
-                                        Acknowledge
+                                    <button @click="acknowledge(item.id)" 
+                                            :disabled="isAcknowledged(item)"
+                                            class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-black hover:border-gold transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 disabled:hover:text-white">
+                                        <span x-show="!isAcknowledged(item)">Acknowledge</span>
+                                        <span x-show="isAcknowledged(item)">Confirmed</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </template>
 
-                    <div x-show="directives.length === 0" class="py-24 text-center opacity-10 bg-white/5 rounded-[4rem] border border-dashed border-gold/20">
+                    <div x-show="directives.length === 0 && !isLoading" class="py-24 text-center opacity-10 bg-white/5 rounded-[4rem] border border-dashed border-gold/20">
                         <i data-lucide="radio-off" class="mx-auto mb-6 w-16 h-16 text-zinc-700"></i>
                         <p class="terminal-font text-xs uppercase tracking-[0.5em]">No Data in Current Buffer</p>
                     </div>
