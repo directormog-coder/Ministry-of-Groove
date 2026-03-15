@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry-of-Groove | Access Gate</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #00ff41; /* Matrix/Command-line green */
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            border: 2px solid #00ff41;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0 15px #00ff41;
+            background: #111;
+            width: 300px;
+        }
+        h2 { margin-bottom: 1.5rem; letter-spacing: 2px; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #222;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #00ff41;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background: #008f11; }
+        .footer-note { font-size: 0.7rem; margin-top: 20px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>CENTRAL ACCESS</h2>
+        
+        <input type="text" id="username" placeholder="IDENTIFICATION">
+        <input type="password" id="passcode" placeholder="PASSCODE">
+        
+        <button onclick="attemptLogin()">AUTHORIZE ACCESS</button>
+        
+        <p class="footer-note">Unauthorized access is monitored.</p>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        function attemptLogin() {
+            const user = document.getElementById('username').value.toLowerCase();
+            const pass = document.getElementById('passcode').value;
+            
+            // This calls the function we wrote in auth.js
+            handleLogin(user, pass);
+        }
+    </script>
+</body>
+</html>
+
