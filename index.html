@@ -5,1048 +5,243 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <meta name="description" content="Ministry of Groove - NCC Master Control Interface">
     <meta name="theme-color" content="#D4AF37">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co https://api.github.com; img-src 'self' data: https: blob:; frame-src 'self';">
+    <link rel="manifest" href="manifest.json">
     
-    <title>MINISTRY OF GROOVE | NCC MASTER v4.0</title>
+    <title>MINISTRY OF GROOVE | NCC MASTER v5.0</title>
     
-    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://fgkljjgxecjmiiaptiug.supabase.co">
     
-    <!-- Modern font loading -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+    
+    <link rel="stylesheet" href="css/style.css">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         gold: { DEFAULT: '#D4AF37', light: '#F4D03F', dark: '#B8941F' },
-                        ncc: { black: '#0a0a0a', dark: '#111111', panel: '#1a1a1a' }
+                        electric: '#00F2FF',
+                        ncc: { black: '#050508', dark: '#0a0a0a', panel: '#111111' }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif']
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'slide-up': 'slideUp 0.5s ease-out'
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px #D4AF37, 0 0 10px #D4AF37' },
-                            '100%': { boxShadow: '0 0 20px #D4AF37, 0 0 30px #D4AF37' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        }
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 
     <style>
         [x-cloak] { display: none !important; }
         
-        * { 
-            box-sizing: border-box; 
-            -webkit-font-smoothing: antialiased; 
-            -moz-osx-font-smoothing: grayscale;
+        /* Unified Brand Typography from style.css */
+        .brand-title { 
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800; 
+            letter-spacing: 0.2em; 
+            color: var(--gold); 
+            text-transform: uppercase; 
+            text-shadow: 0 0 30px var(--gold-glow);
         }
-        
-        html { scroll-behavior: smooth; }
-        
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #111111 50%, #0a0a0a 100%);
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        /* Circuit Pattern Background */
-        .bg-circuit {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
-                linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-                linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        .vignette {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        /* Glass Morphism */
-        .glass {
-            background: rgba(26, 26, 26, 0.6);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(212, 175, 55, 0.1);
-        }
-        
-        .glass-strong {
-            background: rgba(17, 17, 17, 0.85);
-            backdrop-filter: blur(30px) saturate(200%);
-            -webkit-backdrop-filter: blur(30px) saturate(200%);
+
+        /* Tactical Nav Engine Styles */
+        .glass-gold {
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(20px);
             border-bottom: 1px solid rgba(212, 175, 55, 0.2);
         }
-        
-        /* Typography */
-        .brand-title { 
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: clamp(1.5rem, 4vw, 2rem); 
-            font-weight: 900; 
-            letter-spacing: 0.2em; 
-            color: #D4AF37; 
-            text-transform: uppercase; 
-            font-style: italic;
-            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
-        }
-        
-        .brand-slogan { 
-            font-size: clamp(0.65rem, 2vw, 0.875rem); 
-            font-weight: 700; 
-            letter-spacing: 0.4em; 
-            color: rgba(212, 175, 55, 0.6); 
-            text-transform: uppercase; 
-        }
-        
-        /* Social Colors */
-        .social-instagram { color: #E4405F; }
-        .social-whatsapp { color: #25D366; }
-        .social-youtube { color: #FF0000; }
-        .social-tiktok { color: #00f2ea; }
-        .social-facebook { color: #1877F2; }
-        .social-x { color: #ffffff; }
-        
-        /* Tactical Tiles */
+
         .tactical-tile {
-            background: rgba(26, 26, 26, 0.4);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 2rem;
+            background: rgba(17, 17, 17, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 1.5rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
         }
-        
-        .tactical-tile::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent 0%, rgba(212, 175, 55, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-        
+
         .tactical-tile:hover {
-            border-color: #D4AF37;
-            background: rgba(212, 175, 55, 0.1);
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(212, 175, 55, 0.15), 0 0 30px rgba(212, 175, 55, 0.1);
-        }
-        
-        .tactical-tile:hover::before {
-            opacity: 1;
-        }
-        
-        /* Form Inputs */
-        .ncc-input {
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            color: white;
-            font-size: 0.875rem;
-            width: 100%;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-        
-        .ncc-input:focus {
-            border-color: #D4AF37;
-            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
-        }
-        
-        .ncc-input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-size: 0.75rem;
-        }
-        
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
-            color: #000;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 1.25rem 2rem;
-            border-radius: 1.5rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
-        .btn-secondary {
-            background: white;
-            color: #000;
-            font-weight: 700;
-            padding: 1.25rem 2rem;
-            border-radius: 1.5rem;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-        }
-        
-        .btn-secondary:hover {
-            background: #f0f0f0;
-            transform: translateY(-2px);
-        }
-        
-        /* Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-            height: 4px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(212, 175, 55, 0.1);
-            border-radius: 2px;
-        }
-        
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #D4AF37;
-            border-radius: 2px;
-        }
-        
-        /* Loading States */
-        .skeleton {
-            background: linear-gradient(90deg, rgba(212, 175, 55, 0.1) 25%, rgba(212, 175, 55, 0.2) 50%, rgba(212, 175, 55, 0.1) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        /* Toast Notifications */
-        .toast {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
-            border-radius: 1rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-            z-index: 1000;
-            animation: slideUp 0.3s ease-out;
-            backdrop-filter: blur(10px);
-        }
-        
-        .toast-success { background: rgba(34, 197, 94, 0.9); color: white; }
-        .toast-error { background: rgba(239, 68, 68, 0.9); color: white; }
-        .toast-info { background: rgba(212, 175, 55, 0.9); color: black; }
-        
-        /* Accessibility */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
-        
-        @media (prefers-reduced-motion: reduce) {
-            * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+            border-color: var(--electric);
+            background: rgba(0, 242, 255, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.1);
         }
     </style>
 </head>
-<body x-data="nccMasterEngine()" x-init="init()" x-cloak class="relative">
+<body x-data="nccMasterEngine()" x-init="init()" x-cloak class="bg-ncc-black text-white min-h-screen">
 
-    <!-- Background Elements -->
-    <div class="bg-circuit" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
+    <div class="bg-circuit-pattern" aria-hidden="true"></div>
+    <div class="circuit-vignette" aria-hidden="true"></div>
 
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-8 right-8 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- AUTHENTICATION VIEW -->
     <template x-if="view === 'auth'">
-        <main class="min-h-screen flex flex-col items-center justify-center p-6 z-50 relative" role="main" aria-label="Authentication">
-            <div class="w-full max-w-md animate-slide-up">
-                <!-- Logo Section -->
-                <div class="flex flex-col items-center mb-8">
-                    <div class="relative mb-6">
-                        <div class="absolute inset-0 bg-gold/20 blur-3xl rounded-full"></div>
-                        <img src="assets/images/logo.png" 
-                             alt="Ministry of Groove Logo" 
-                             class="w-24 h-24 object-contain relative z-10 filter drop-shadow-[0_0_30px_rgba(212,175,55,0.5)]"
-                             @error="$event.target.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2296%22 height=%2296%22 viewBox=%220 0 96 96%22%3E%3Crect width=%2296%22 height=%2296%22 fill=%22%23D4AF37%22 rx=%2224%22/%3E%3Ctext x=%2248%22 y=%2264%22 font-family=%22Arial%22 font-size=%2248%22 fill=%22%23000%22 text-anchor=%22middle%22%3EM%3C/text%3E%3C/svg%3E'">
-                    </div>
-                    <h1 class="brand-title text-center mb-2">Ministry of Groove</h1>
-                    <p class="brand-slogan text-center">Decrypting the Culture.<br>Synchronizing the Grid.</p>
+        <main class="min-h-screen flex flex-col items-center justify-center p-6 relative z-50">
+            <div class="w-full max-w-md animate-fade-in">
+                <div class="flex flex-col items-center mb-10">
+                    <img src="assets/images/logo.png" alt="MOG Logo" class="w-32 h-32 mb-6 filter drop-shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+                    <h1 class="brand-title text-2xl text-center">Ministry of Groove</h1>
+                    <p class="terminal-font text-[10px] text-gold/60 mt-2">Central Operations Gate</p>
                 </div>
 
-                <!-- Auth Form -->
-                <div class="glass p-8 md:p-10 rounded-[2.5rem] space-y-6">
-                    <form @submit.prevent="loginManual()" class="space-y-4">
-                        <div>
-                            <label for="email" class="sr-only">Email Address</label>
-                            <input id="email" 
-                                   x-model="form.email" 
-                                   type="email" 
-                                   placeholder="EMAIL" 
-                                   class="ncc-input text-center"
-                                   autocomplete="email"
-                                   :disabled="isLoading"
-                                   aria-required="true"
-                                   @input="validateEmail()">
-                            <p x-show="errors.email" x-text="errors.email" class="text-red-400 text-xs mt-2 text-center" x-transition></p>
-                        </div>
+                <div class="glass-gold p-8 rounded-[2rem] space-y-6">
+                    <div class="space-y-4">
+                        <input x-model="authForm.id" type="text" placeholder="IDENTIFICATION" class="ncc-input text-center">
+                        <input x-model="authForm.pass" type="password" placeholder="PASSCODE" class="ncc-input text-center">
                         
-                        <div>
-                            <label for="password" class="sr-only">Password</label>
-                            <input id="password" 
-                                   x-model="form.password" 
-                                   type="password" 
-                                   placeholder="PASSWORD" 
-                                   class="ncc-input text-center"
-                                   autocomplete="current-password"
-                                   :disabled="isLoading"
-                                   aria-required="true">
-                        </div>
-
-                        <button type="submit" 
-                                class="btn-primary w-full flex items-center justify-center gap-2"
-                                :disabled="isLoading || !isFormValid"
-                                :class="{ 'opacity-50 cursor-not-allowed': !isFormValid }">
-                            <span x-show="!isLoading">Initialize Access</span>
-                            <span x-show="isLoading" class="flex items-center gap-2">
-                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                                Authenticating...
-                            </span>
+                        <button @click="attemptAccess()" class="btn-command w-full py-4 mt-2">
+                            AUTHORIZE ACCESS
                         </button>
-                    </form>
-
-                    <div class="flex items-center gap-4 py-2">
-                        <div class="h-px bg-white/10 flex-grow"></div>
-                        <span class="text-[10px] font-black uppercase text-white/40">Secure Channel</span>
-                        <div class="h-px bg-white/10 flex-grow"></div>
                     </div>
 
-                    <button @click="loginWithGoogle()" 
-                            class="btn-secondary w-full"
-                            :disabled="isLoading"
-                            aria-label="Sign in with Google">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4"/>
-                            <path d="M12.2401 24.0008C15.4766 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.2401 24.0008Z" fill="#34A853"/>
-                            <path d="M5.50253 14.3003C5.00236 12.8099 5.00236 11.1961 5.50253 9.70575V6.61481H1.51649C-0.18551 10.0056 -0.18551 14.0004 1.51649 17.3912L5.50253 14.3003Z" fill="#FBBC05"/>
-                            <path d="M12.2401 4.74966C13.9509 4.7232 15.6044 5.36697 16.8434 6.54867L20.2695 3.12262C18.1001 1.0855 15.2208 -0.034466 12.2401 0.000808666C7.7029 0.000808666 3.55371 2.55822 1.5166 6.61481L5.50264 9.70575C6.45064 6.86173 9.10947 4.74966 12.2401 4.74966Z" fill="#EA4335"/>
-                        </svg>
-                        <span class="text-xs font-bold uppercase tracking-wider">Sign In With Google</span>
+                    <div class="relative py-2 flex items-center">
+                        <div class="flex-grow border-t border-white/5"></div>
+                        <span class="px-4 text-[8px] text-white/20 uppercase tracking-[0.5em]">OR</span>
+                        <div class="flex-grow border-t border-white/5"></div>
+                    </div>
+
+                    <button @click="loginWithGoogle()" class="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" class="w-5 h-5" alt="Google">
+                        <span class="text-xs font-bold uppercase tracking-widest">Biometric Uplink</span>
                     </button>
                 </div>
-
-                <p class="text-center mt-8 text-xs text-white/30 font-medium">
-                    <i data-lucide="shield-check" class="w-4 h-4 inline mr-1"></i>
-                    End-to-end encrypted connection
-                </p>
+                
+                <p class="text-center mt-8 text-[9px] text-white/20 uppercase tracking-[0.4em]">Unauthorized access is recorded.</p>
             </div>
         </main>
     </template>
 
-    <!-- MAIN GRID VIEW -->
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col z-20 relative">
-            <!-- Header -->
-            <header class="glass-strong sticky top-0 z-50 px-6 py-4 md:px-8 md:py-6">
+        <div class="min-h-screen flex flex-col relative z-10">
+            
+            <header class="glass-gold sticky top-0 z-50 px-6 py-4">
                 <div class="max-w-7xl mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-4 md:gap-6">
-                        <img src="assets/images/logo.png" 
-                             alt="MOG Logo" 
-                             class="w-12 h-12 md:w-16 md:h-16 object-contain"
-                             @error="$event.target.style.display='none'">
-                        <div class="flex flex-col">
-                            <h2 class="text-lg md:text-xl font-black uppercase italic tracking-widest text-white font-display">Ministry of Groove</h2>
-                            <div class="flex items-center gap-2 mt-1">
-                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <span class="text-[10px] text-gold font-black uppercase tracking-[0.3em]" x-text="'CLEARANCE: ' + username"></span>
+                    <div class="flex items-center gap-4">
+                        <img src="assets/images/logo.png" alt="MOG Logo" class="w-12 h-12">
+                        <div>
+                            <h2 class="brand-title text-sm tracking-widest">MOG MASTER</h2>
+                            <div class="flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 bg-electric rounded-full animate-pulse"></span>
+                                <span class="text-[9px] text-gold/80 uppercase tracking-widest" x-text="'Role: ' + userRole"></span>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="flex items-center gap-3">
-                        <button @click="showSettings = true" 
-                                class="p-3 border border-white/10 rounded-xl hover:bg-white/5 transition-colors"
-                                aria-label="Settings">
-                            <i data-lucide="settings" class="w-5 h-5 text-white/70"></i>
-                        </button>
-                        <button @click="logout()" 
-                                class="p-3 border border-red-500/50 text-red-400 rounded-xl hover:bg-red-500 hover:text-white transition-all"
-                                aria-label="Logout">
-                            <i data-lucide="power" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                    <button @click="terminateSession()" class="btn-command btn-danger py-2 px-4 text-[10px]">
+                        TERMINATE_SESSION
+                    </button>
                 </div>
             </header>
 
-            <!-- Main Content -->
-            <main class="flex-grow px-6 py-8 md:px-10 md:py-12 max-w-7xl mx-auto w-full">
-                <!-- Hero Text -->
-                <div class="text-center mb-12 md:mb-16">
-                    <p class="brand-slogan leading-relaxed md:leading-loose text-sm md:text-base">
-                        Decrypting the Culture.<br>
-                        <span class="text-gold/80">Synchronizing the Grid.</span>
-                    </p>
+            <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
+                <div class="text-center mb-16">
+                    <h1 class="text-4xl font-black italic uppercase tracking-tighter text-white">Grid Dashboard</h1>
+                    <p class="terminal-font text-xs text-zinc-500 mt-2">Synchronizing sector archives...</p>
                 </div>
 
-                <!-- Navigation Grid -->
-                <nav class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12" aria-label="Main Navigation">
-                    <a href="dossier.html" 
-                       class="tactical-tile p-8 md:p-12 flex flex-col items-center justify-center gap-4 group"
-                       @click.prevent="navigateTo('dossier')"
-                       role="button"
-                       tabindex="0">
-                        <div class="p-4 rounded-2xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
-                            <i data-lucide="user-cog" class="w-10 h-10 md:w-12 md:h-12 text-green-400"></i>
+                <nav class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <a href="pages/dossier.html" class="tactical-tile p-10 flex flex-col items-center text-center group">
+                        <div class="p-5 bg-gold/5 rounded-2xl mb-4 group-hover:bg-gold/10 transition-colors">
+                            <i data-lucide="shield-check" class="w-10 h-10 text-gold"></i>
                         </div>
-                        <span class="text-sm md:text-base font-black uppercase tracking-widest text-white/90">Dossier</span>
-                        <span class="text-[10px] text-white/40 uppercase tracking-wider">Personnel Files</span>
+                        <h3 class="terminal-font text-white">Personnel Dossier</h3>
+                        <p class="text-[10px] text-zinc-500 mt-2 uppercase">Classified Files</p>
                     </a>
 
-                    <a href="gallery.html" 
-                       class="tactical-tile p-8 md:p-12 flex flex-col items-center justify-center gap-4 group"
-                       @click.prevent="navigateTo('gallery')"
-                       role="button"
-                       tabindex="0">
-                        <div class="p-4 rounded-2xl bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                            <i data-lucide="camera" class="w-10 h-10 md:w-12 md:h-12 text-purple-400"></i>
+                    <a href="pages/gallery.html" class="tactical-tile p-10 flex flex-col items-center text-center group">
+                        <div class="p-5 bg-electric/5 rounded-2xl mb-4 group-hover:bg-electric/10 transition-colors">
+                            <i data-lucide="camera" class="w-10 h-10 text-electric"></i>
                         </div>
-                        <span class="text-sm md:text-base font-black uppercase tracking-widest text-white/90">Gallery</span>
-                        <span class="text-[10px] text-white/40 uppercase tracking-wider">Visual Archive</span>
+                        <h3 class="terminal-font text-white">Media Archives</h3>
+                        <p class="text-[10px] text-zinc-500 mt-2 uppercase">Visual Surveillance</p>
                     </a>
 
-                    <a href="frequency.html" 
-                       class="tactical-tile p-8 md:p-12 flex flex-col items-center justify-center gap-4 group"
-                       @click.prevent="navigateTo('frequency')"
-                       role="button"
-                       tabindex="0">
-                        <div class="p-4 rounded-2xl bg-gold/10 group-hover:bg-gold/20 transition-colors">
-                            <i data-lucide="activity" class="w-10 h-10 md:w-12 md:h-12 text-gold"></i>
+                    <a href="pages/frequency.html" class="tactical-tile p-10 flex flex-col items-center text-center group">
+                        <div class="p-5 bg-white/5 rounded-2xl mb-4 group-hover:bg-white/10 transition-colors">
+                            <i data-lucide="activity" class="w-10 h-10 text-white/60"></i>
                         </div>
-                        <span class="text-sm md:text-base font-black uppercase tracking-widest text-white/90">Frequency</span>
-                        <span class="text-[10px] text-white/40 uppercase tracking-wider">Signal Monitor</span>
+                        <h3 class="terminal-font text-white">Frequency Monitor</h3>
+                        <p class="text-[10px] text-zinc-500 mt-2 uppercase">Signal Intelligence</p>
                     </a>
                 </nav>
 
-                <!-- Personnel Activity -->
-                <section class="glass rounded-[2.5rem] p-6 md:p-10 border border-gold/10" aria-label="Personnel Activity">
-                    <div class="flex items-center justify-between mb-6 md:mb-8">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <h3 class="text-xs md:text-sm font-black uppercase text-gold tracking-widest italic">Live Personnel Activity</h3>
-                        </div>
-                        <button @click="refreshOperatives()" 
-                                class="text-[10px] text-white/40 hover:text-gold transition-colors uppercase tracking-wider flex items-center gap-1"
-                                :disabled="loadingOperatives">
-                            <i data-lucide="refresh-cw" class="w-3 h-3" :class="{ 'animate-spin': loadingOperatives }"></i>
-                            Refresh
-                        </button>
-                    </div>
-                    <!-- Loading State -->
-                    <div x-show="loadingOperatives" class="flex gap-6 overflow-hidden">
-                        <template x-for="i in 6">
-                            <div class="flex-shrink-0 text-center space-y-3">
-                                <div class="w-16 h-16 md:w-20 md:h-20 rounded-full skeleton"></div>
-                                <div class="h-3 w-16 skeleton rounded mx-auto"></div>
-                            </div>
-                        </template>
-                    </div>
-
-                    <!-- Operatives List -->
-                    <div x-show="!loadingOperatives" 
-                         class="flex gap-6 md:gap-8 overflow-x-auto pb-4 custom-scrollbar snap-x"
-                         role="list"
-                         aria-label="Active operatives">
-                        <template x-for="op in operatives" :key="op.id">
-                            <div class="flex-shrink-0 text-center snap-start group cursor-pointer"
-                                 role="listitem"
-                                 @click="viewOperative(op)">
-                                <div class="relative mb-3">
-                                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-gold/20 group-hover:border-gold/50 transition-all overflow-hidden bg-white/5 flex items-center justify-center">
-                                        <img x-show="op.avatar_url" 
-                                             :src="op.avatar_url" 
-                                             :alt="op.handle"
-                                             class="w-full h-full object-cover"
-                                             @error="$event.target.style.display='none'">
-                                        <i x-show="!op.avatar_url" data-lucide="user" class="w-8 h-8 text-white/20"></i>
-                                    </div>
-                                    <div x-show="op.status === 'online'" 
-                                         class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-black rounded-full"></div>
-                                </div>
-                                <span class="text-[10px] md:text-xs font-black uppercase text-white/80 group-hover:text-gold transition-colors" x-text="op.handle || 'Unknown'"></span>
-                                <span x-show="op.role" class="block text-[9px] text-white/40 uppercase tracking-wider" x-text="op.role"></span>
-                            </div>
-                        </template>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div x-show="!loadingOperatives && operatives.length === 0" class="text-center py-8 text-white/40">
-                        <i data-lucide="users" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
-                        <p class="text-sm uppercase tracking-wider">No active operatives</p>
+                <section class="mt-20 p-10 glass-gold rounded-[2.5rem] text-center border-dashed border-white/5">
+                    <p class="terminal-font text-[11px] text-zinc-400 mb-8 tracking-[0.5em]">External Uplink Hub</p>
+                    <div class="flex justify-center gap-10 flex-wrap">
+                        <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="hover:scale-125 transition-all text-zinc-500 hover:text-[#E4405F]"><i data-lucide="instagram" class="w-8 h-8"></i></a>
+                        <a href="https://wa.me/message/EASM3GTNOVSQE1" target="_blank" class="hover:scale-125 transition-all text-zinc-500 hover:text-[#25D366]"><i data-lucide="message-circle" class="w-8 h-8"></i></a>
+                        <a href="https://youtube.com/@MinistryofGroove-m1q" target="_blank" class="hover:scale-125 transition-all text-zinc-500 hover:text-[#FF0000]"><i data-lucide="youtube" class="w-8 h-8"></i></a>
                     </div>
                 </section>
             </main>
-            
-            <!-- Footer -->
-            <footer class="border-t border-gold/10 px-6 py-12 md:p-20 bg-black/50 text-center relative overflow-hidden">
-                <div class="flex flex-wrap justify-center gap-8 md:gap-12 mb-8 md:mb-12">
-                    <a href="https://instagram.com/ministryofgroove_hq" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="Instagram">
-                        <i data-lucide="instagram" class="w-8 h-8 md:w-10 md:h-10 social-instagram"></i>
-                    </a>
-                    <a href="https://wa.me/message/EASM3GTNOVSQE1" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="WhatsApp">
-                        <i data-lucide="message-circle" class="w-8 h-8 md:w-10 md:h-10 social-whatsapp"></i>
-                    </a>
-                    <a href="https://youtube.com/@MinistryofGroove-m1q" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="YouTube">
-                        <i data-lucide="youtube" class="w-8 h-8 md:w-10 md:h-10 social-youtube"></i>
-                    </a>
-                    <a href="https://tiktok.com/@ministryofgroove" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="TikTok">
-                        <i data-lucide="music-2" class="w-8 h-8 md:w-10 md:h-10 social-tiktok"></i>
-                    </a>
-                    <a href="https://facebook.com/ministryofgroove" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="Facebook">
-                        <i data-lucide="facebook" class="w-8 h-8 md:w-10 md:h-10 social-facebook"></i>
-                    </a>
-                    <a href="https://x.com/ministryofgroove" 
-                       target="_blank" 
-                       rel="noopener noreferrer"
-                       class="hover:scale-125 transition-transform duration-300"
-                       aria-label="X (Twitter)">
-                        <i data-lucide="twitter" class="w-8 h-8 md:w-10 md:h-10 social-x"></i>
-                    </a>
-                </div>
-                
-                <div class="space-y-2">
-                    <p class="text-[10px] md:text-xs text-zinc-500 font-black uppercase tracking-[0.3em] md:tracking-[1em] italic">
-                        © 2026 MINISTRY OF GROOVE // NCC MASTER v4.0
-                    </p>
-                    <p class="text-[9px] text-white/20 uppercase tracking-wider">
-                        Secure Connection • <span x-text="connectionStatus"></span>
-                    </p>
-                </div>
+
+            <footer class="py-12 text-center">
+                <p class="terminal-font text-[10px] text-zinc-700 tracking-[1em]">© 2026 MINISTRY OF GROOVE // NCC MASTER</p>
             </footer>
         </div>
     </template>
 
-    <!-- Settings Modal -->
-    <div x-show="showSettings" 
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-         @keydown.escape.window="showSettings = false"
-         role="dialog"
-         aria-modal="true"
-         aria-label="Settings">
-        
-        <div class="glass w-full max-w-md rounded-[2rem] p-8 border border-gold/20"
-             @click.away="showSettings = false">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-black uppercase tracking-widest text-gold">System Settings</h3>
-                <button @click="showSettings = false" class="text-white/40 hover:text-white">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                    <span class="text-sm font-medium">High Contrast Mode</span>
-                    <button @click="toggleHighContrast()" 
-                            :class="settings.highContrast ? 'bg-gold' : 'bg-white/10'"
-                            class="w-12 h-6 rounded-full relative transition-colors">
-                        <span :class="settings.highContrast ? 'translate-x-6' : 'translate-x-1'"
-                              class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
-                    </button>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl">
-                    <span class="text-sm font-medium">Notifications</span>
-                    <button @click="settings.notifications = !settings.notifications"
-                            :class="settings.notifications ? 'bg-gold' : 'bg-white/10'"
-                            class="w-12 h-6 rounded-full relative transition-colors">
-                        <span :class="settings.notifications ? 'translate-x-6' : 'translate-x-1'"
-                              class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform"></span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <script src="js/auth.js"></script>
     <script>
-        // ==========================================
-        // NCC MASTER ENGINE v4.0 - Modern Standards
-        // ==========================================
-        
-        // Secure Configuration - In production, use environment variables
-        const CONFIG = {
-            SUPABASE_URL: 'https://fgkljjgxecjmiiaptiug.supabase.co',
-            // Note: In production, implement a proxy server or use Supabase Auth PKCE flow
-                                    // This anon key should be restricted by RLS policies in Supabase
-            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE',
-            ENCRYPTION_KEY: null // Generated per-session
-        };
-
-        // Web Crypto API Utilities
-        const CryptoUtils = {
-            async generateKey() {
-                return await crypto.subtle.generateKey(
-                    { name: 'AES-GCM', length: 256 },
-                    true,
-                    ['encrypt', 'decrypt']
-                );
-            },
-            
-            async encrypt(data, key) {
-                const encoder = new TextEncoder();
-                const iv = crypto.getRandomValues(new Uint8Array(12));
-                const encrypted = await crypto.subtle.encrypt(
-                    { name: 'AES-GCM', iv },
-                    key,
-                    encoder.encode(JSON.stringify(data))
-                );
-                return { iv: Array.from(iv), data: Array.from(new Uint8Array(encrypted)) };
-            },
-            
-            async decrypt(encryptedObj, key) {
-                const decoder = new TextDecoder();
-                const decrypted = await crypto.subtle.decrypt(
-                    { name: 'AES-GCM', iv: new Uint8Array(encryptedObj.iv) },
-                    key,
-                    new Uint8Array(encryptedObj.data)
-                );
-                return JSON.parse(decoder.decode(decrypted));
-            }
-        };
-
-        // Toast Notification System
-        const ToastSystem = {
-            container: null,
-            
-            init() {
-                this.container = document.getElementById('toast-container');
-            },
-            
-            show(message, type = 'info', duration = 3000) {
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type} pointer-events-auto`;
-                toast.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i>
-                        <span>${message}</span>
-                    </div>
-                `;
-                
-                this.container.appendChild(toast);
-                lucide.createIcons({ nodes: [toast] });
-                
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transform = 'translateY(10px)';
-                    setTimeout(() => toast.remove(), 300);
-                }, duration);
-            }
-        };
-        // Main Application Engine
         function nccMasterEngine() {
             return {
-                // State
-                view: 'gate',
-                isLoading: false,
-                loadingOperatives: false,
-                showSettings: false,
-                connectionStatus: 'Establishing...',
+                view: 'auth', // Start at the gate
+                userRole: '',
+                authForm: { id: '', pass: '' },
                 
-                // Form Data
-                form: {
-                    email: '',
-                    password: ''
-                },
-                errors: {
-                    email: ''
-                },
-                
-                // User Data
-                username: '',
-                operatives: [],
-                
-                // Settings
-                settings: {
-                    highContrast: false,
-                    notifications: true
-                },
-                
-                // Supabase Client
-                sb: null,
-                cryptoKey: null,
-                
-                // Computed
-                get isFormValid() {
-                    return this.form.email.length > 0 && 
-                           this.form.password.length > 0 &&
-                           !this.errors.email;
-                },
-                
-                // Lifecycle
                 async init() {
-                    try {
-                        ToastSystem.init();
-                        
-                        // Initialize Supabase
-                        this.sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
-                            auth: {
-                                autoRefreshToken: true,
-                                persistSession: true,
-                                detectSessionInUrl: true
-                            }
-                        });
-                        
-                        // Generate session encryption key
-                        this.cryptoKey = await CryptoUtils.generateKey();
-                        
-                        // Check existing session
-                        await this.checkSession();
-                        
-                        // Setup realtime subscription
-                        this.setupRealtime();
-                        
-                        // Watch view changes for icon updates
-                        this.$watch('view', () => {
-                            this.$nextTick(() => {
-                                if (typeof lucide !== 'undefined') {
-                                    lucide.createIcons();
-                                }
-                            });
-                        });
+                    // Check if already authenticated
+                    const savedRole = localStorage.getItem('userRole');
+                    if (savedRole) {
+                        this.userRole = savedRole;
+                        this.view = 'grid';
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
 
-                    // Watch settings
-                        this.$watch('settings.highContrast', (value) => {
-                            document.body.classList.toggle('high-contrast', value);
-                        });
-                        
-                    } catch (error) {
-                        console.error('Initialization error:', error);
-                        ToastSystem.show('System initialization failed', 'error');
-                        this.view = 'auth';
-                    }
-                },
-                
-                // Auth Methods
-                async checkSession() {
-                    try {
-                        const { data: { session }, error } = await this.sb.auth.getSession();
-                        
-                        if (error) throw error;
-                        
-                        if (session) {
-                            await this.setupUser(session.user);
-                        } else {
-                            // Handle OAuth callback
-                            if (window.location.hash.includes('access_token')) {
-                                this.view = 'gate';
-                                // Wait for Supabase to process the hash
-                                setTimeout(async () => {
-                                    const { data: { session: newSession } } = await this.sb.auth.getSession();
-                                    if (newSession) {
-                                        await this.setupUser(newSession.user);
-                                    } else {
-                                        this.view = 'auth';
-                                        ToastSystem.show('Authentication failed', 'error');
-                                    }
-                                }, 1000);
-                            } else {
-                                this.view = 'auth';
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Session check error:', error);
-                        this.view = 'auth';
-                    }
-                },
-                
-                async setupUser(user) {
-                    try {
-                        // Extract username from metadata or email
-                        this.username = user.user_metadata?.handle || 
-                                       user.user_metadata?.full_name || 
-                                       user.email?.split('@')[0] || 
-                                       'Operative';
-                        
-                        // Encrypt sensitive user data
-                        const encryptedUser = await CryptoUtils.encrypt({
-                            id: user.id,
-                            email: user.email,
-                            timestamp: Date.now()
-                        }, this.cryptoKey);
-                        
-                        // Store encrypted session (optional, for additional security)
-                        sessionStorage.setItem('ncc_session', JSON.stringify(encryptedUser));
-
-                    this.view = 'grid';
-                        this.connectionStatus = 'Secure';
-                        
-                        // Load data
-                        await this.loadOperatives();
-                        
-                        ToastSystem.show(`Welcome back, ${this.username}`, 'success');
-                        
-                    } catch (error) {
-                        console.error('User setup error:', error);
-                        ToastSystem.show('Failed to initialize user session', 'error');
-                    }
-                },
-                
-                async loginWithGoogle() {
-                    try {
-                        this.isLoading = true;
-                        
-                        const { error } = await this.sb.auth.signInWithOAuth({
-                            provider: 'google',
-                            options: {
-                                redirectTo: window.location.origin,
-                                queryParams: {
-                                    access_type: 'offline',
-                                    prompt: 'consent'
-                                }
-                            }
-                        });
-                        
-                        if (error) throw error;
-                        
-                    } catch (error) {
-                        console.error('Google login error:', error);
-                        ToastSystem.show('Google authentication failed', 'error');
-                        this.isLoading = false;
-                    }
-                },
-                
-                async loginManual() {
-                    try {
-                        if (!this.isFormValid) return;
-                        
-                        this.isLoading = true;
-                        this.errors.email = '';
-                        
-                        const { data, error } = await this.sb.auth.signInWithPassword({
-                            email: this.form.email.trim(),
-                            password: this.form.password
-                        });
-                        
-                        if (error) {
-                            if (error.message.includes('email')) {
-                                this.errors.email = 'Invalid email format';
-                            }
-                            throw error;
-                        }
-                        
-                        // Clear password from memory
-                        this.form.password = '';
-                        
-                        await this.setupUser(data.user);
-                        
-                    } catch (error) {
-                        console.error('Login error:', error);
-                        ToastSystem.show(error.message || 'Access denied', 'error');
-                        this.isLoading = false;
-                    }
-                },
-                validateEmail() {
-                    const email = this.form.email.trim();
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                attemptAccess() {
+                    // Logic from our auth.js
+                    const role = this.authForm.id.toLowerCase();
+                    const pass = this.authForm.pass;
                     
-                    if (email && !emailRegex.test(email)) {
-                        this.errors.email = 'Invalid email format';
+                    if (role === 'director' && pass === 'COMMAND-01') {
+                        this.loginSuccess('director');
+                    } else if (role === 'operative' && pass === 'GROOVE-99') {
+                        this.loginSuccess('operative');
                     } else {
-                        this.errors.email = '';
+                        alert("ACCESS DENIED: Credentials Invalid");
                     }
-                },
-                
-                async logout() {
-                    try {
-                        const { error } = await this.sb.auth.signOut();
-                        if (error) throw error;
-                        
-                        // Clear session storage
-                        sessionStorage.removeItem('ncc_session');
-                        
-                        // Reset state
-                        this.username = '';
-                        this.operatives = [];
-                        this.view = 'auth';
-                        
-                        ToastSystem.show('Session terminated', 'info');
-                        
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                        ToastSystem.show('Error during logout', 'error');
-                    }
-                },
-                
-                // Data Methods
-                async loadOperatives() {
-                    try {
-                        this.loadingOperatives = true;
-                        
-                        const { data, error } = await this.sb
-                            .from('profiles')
-                            .select('id, handle, avatar_url, role, status, last_seen')
-                            .limit(12)
-                            .order('last_seen', { ascending: false });
-                        
-                        if (error) throw error;
-                        
-                        // Decrypt any sensitive data if needed
-                        this.operatives = data || [];
-                        
-                    } catch (error) {
-                        console.error('Load operatives error:', error);
-                        ToastSystem.show('Failed to load personnel data', 'error');
-                    } finally {
-                        this.loadingOperatives = false;
-                    }
-                },
-                
-                async refreshOperatives() {
-                    await this.loadOperatives();
-                    ToastSystem.show('Personnel data refreshed', 'success');
-                },
-                
-                setupRealtime() {
-                    // Subscribe to realtime changes
-                    this.sb
-                        .channel('personnel_updates')
-                        .on('postgres_changes', 
-                            { event: '*', schema: 'public', table: 'profiles' },
-                            (payload) => {
-                                console.log('Realtime update:', payload);
-                                this.loadOperatives();
-                            }
-                        )
-                        .subscribe();
                 },
 
-                // Navigation
-                navigateTo(page) {
-                    // In a full SPA, this would use a router
-                    // For now, we validate the navigation
-                    const validPages = ['dossier', 'gallery', 'frequency'];
-                    if (validPages.includes(page)) {
-                        window.location.href = `${page}.html`;
-                    } else {
-                        ToastSystem.show('Navigation error', 'error');
-                    }
+                loginSuccess(role) {
+                    localStorage.setItem('userRole', role);
+                    localStorage.setItem('isAuth', 'true');
+                    this.userRole = role;
+                    this.view = 'grid';
+                    this.$nextTick(() => lucide.createIcons());
                 },
-                
-                viewOperative(operative) {
-                    ToastSystem.show(`Viewing ${operative.handle}`, 'info');
-                    // Implement modal or navigation to profile view
+
+                terminateSession() {
+                    localStorage.clear();
+                    this.view = 'auth';
+                    this.$nextTick(() => lucide.createIcons());
                 },
-                
-                // Settings
-                toggleHighContrast() {
-                    this.settings.highContrast = !this.settings.highContrast;
+
+                loginWithGoogle() {
+                    // Placeholder for your Supabase Google Auth
+                    alert("Initializing Biometric Uplink...");
                 }
-            };
-        }
-        
-        // Service Worker Registration (for PWA capabilities)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(`
-                self.addEventListener('install', e => self.skipWaiting());
-                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-            `)).catch(() => console.log('SW registration skipped'));
-        }
-        
-        // Global error handling
-        window.addEventListener('error', (e) => {
-            console.error('Global error:', e.error);
-            if (typeof ToastSystem !== 'undefined') {
-                ToastSystem.show('An error occurred', 'error');
             }
-        });
-        
-        window.addEventListener('unhandledrejection', (e) => {
-            console.error('Unhandled rejection:', e.reason);
-        });
+        }
+
+        // Register Service Worker from root
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./service-worker.js')
+                .then(() => console.log("MOG Protocol Active"))
+                .catch(err => console.log("Uplink Failed", err));
+        }
     </script>
 </body>
 </html>
