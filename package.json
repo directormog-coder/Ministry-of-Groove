@@ -1,12 +1,22 @@
 {
-  "name": "ministry-of-groove-auth",
-  "version": "1.0.0",
-  "description": "Apple Sign-In Secret Generator",
+  "name": "ministry-of-groove",
+  "version": "5.1.0",
+  "description": "Central Operations Gate & Classified Cultural Archive",
   "scripts": {
-    "generate-apple-secret": "node scripts/generate-apple-secret.js"
+    "build": "node scripts/inject-env.js",
+    "vercel-build": "npm run build"
   },
-  "dependencies": {
-    "jsonwebtoken": "^9.0.2",
-    "dotenv": "^16.4.5"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/directormog-coder/Ministry-of-Groove.git"
+  },
+  "keywords": [
+    "supabase",
+    "pwa",
+    "secure",
+    "classified"
+  ],
+  "author": "directormog-coder",
+  "license": "UNLICENSED",
+  "private": true
 }
