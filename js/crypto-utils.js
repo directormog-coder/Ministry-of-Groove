@@ -5,7 +5,7 @@
  * SECURITY NOTICE: This file contains client-side crypto utilities.
  * For server-side operations, use Supabase Edge Functions.
  * 
- * @version 5.1.0
+ * @version 5.2.0
  * @author Ministry of Groove
  */
 
@@ -432,6 +432,45 @@ function secureCompare(a, b) {
     return result === 0;
 }
 
+/**
+ * Convert ArrayBuffer to Base64 string
+ * @param {ArrayBuffer} buffer - Buffer to convert
+ * @returns {string} Base64 string
+ */
+function arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+/**
+ * Convert Base64 string to ArrayBuffer
+ * @param {string} base64 - Base64 string
+ * @returns {ArrayBuffer} Decoded buffer
+ */
+function base64ToArrayBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+/**
+ * Securely wipe sensitive data from memory
+ * @param {Uint8Array} buffer - Buffer to wipe
+ */
+function secureWipe(buffer) {
+    if (buffer && buffer.fill) {
+        crypto.getRandomValues(buffer);
+        buffer.fill(0);
+    }
+}
+
 // ==========================================
 // SUPABASE INTEGRATION HELPERS
 // ==========================================
@@ -447,8 +486,8 @@ async function encryptForStorage(data, userPassword) {
     const encrypted = await encryptData(jsonString, userPassword);
     
     return {
-        version: '1.0',
-        algorithm: 'AES-GCM',
+        version: '5.2.0',
+        algorithm: 'AES-GCM-256',
         encrypted: encrypted,
         timestamp: Date.now()
     };
@@ -491,6 +530,9 @@ if (typeof module !== 'undefined' && module.exports) {
         secureCompare,
         encryptForStorage,
         decryptFromStorage,
+        arrayBufferToBase64,
+        base64ToArrayBuffer,
+        secureWipe,
         CRYPTO_CONFIG
     };
 }
@@ -513,8 +555,11 @@ if (typeof window !== 'undefined') {
         secureCompare,
         encryptForStorage,
         decryptFromStorage,
+        arrayBufferToBase64,
+        base64ToArrayBuffer,
+        secureWipe,
         CRYPTO_CONFIG
     };
     
-    console.log('[MOG CRYPTO] Cryptographic utilities loaded v5.1.0');
-}
+    console.log('[MOG CRYPTO] Cryptographic utilities loaded v5.2.0');
+        }
