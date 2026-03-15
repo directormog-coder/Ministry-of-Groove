@@ -4,36 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>MOG | DISPATCH ARCHIVE</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="CSS/style.css">
+    
+    <link rel="stylesheet" href="../css/style.css">
     
     <style>
         [x-cloak] { display: none !important; }
-        .bg-grid-red { background-image: radial-gradient(circle, #ef4444 1.2px, transparent 1.2px); background-size: 35px 35px; }
-        .glass-red-dispatch { background: rgba(15, 5, 5, 0.98); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(239, 68, 68, 0.2); }
-        .terminal-font { font-family: 'Courier New', Courier, monospace; }
+        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 35px 35px; }
+        .glass-gold-dispatch { background: rgba(10, 10, 15, 0.98); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.2); }
         
-        /* ALERT ANIMATIONS */
-        .beacon { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; position: relative; }
-        .beacon::after { content: ''; position: absolute; inset: -5px; border: 2px solid #ef4444; border-radius: 50%; animation: ring 1.5s infinite; }
+        /* ALERT BEACON */
+        .beacon { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; position: relative; }
+        .beacon::after { content: ''; position: absolute; inset: -5px; border: 2px solid var(--gold); border-radius: 50%; animation: ring 1.5s infinite; }
         @keyframes ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
 
-        .loader-red { width: 35px; height: 35px; border: 4px solid #ef4444; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
+        .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .directive-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 4px solid transparent; }
-        .directive-card:hover { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05); transform: scale(1.02); }
-        
-        .scanline-red { width: 100%; height: 100px; background: linear-gradient(0deg, transparent 0%, rgba(239, 68, 68, 0.08) 50%, transparent 100%); position: fixed; top: -100px; left: 0; pointer-events: none; animation: moveScanline 5s linear infinite; z-index: 100; }
-        @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
+        .directive-card:hover { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.05); transform: scale(1.02); }
     </style>
 
     <script>
         const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0iugiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
         let sb = null;
 
         function dispatchEngine() {
@@ -44,15 +42,22 @@
                 status: 'MONITORING',
 
                 async init() {
+                    // 1. Security Gate Verification
+                    const role = localStorage.getItem('userRole');
+                    if (!role) {
+                        window.location.href = '../login.html';
+                        return;
+                    }
+
                     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     const { data: { session } } = await sb.auth.getSession();
                     
                     if (!session) {
-                        window.location.href = 'index.html';
+                        window.location.href = '../index.html';
                         return;
                     }
 
-                    this.isDirector = session.user.email === 'director.mog@gmail.com';
+                    this.isDirector = role === 'director';
                     this.view = 'active';
                     this.loadDirectives();
                     this.subscribeToDirectives();
@@ -79,34 +84,39 @@
         }
     </script>
 </head>
-<body x-data="dispatchEngine()" x-init="init()" x-cloak class="bg-black text-white bg-grid-red min-h-screen relative overflow-x-hidden selection:bg-red-600/30">
+<body x-data="dispatchEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
 
-    <div class="scanline-red"></div>
+    <div class="bg-circuit-pattern"></div>
+    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
+    <div class="circuit-vignette"></div>
 
     <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6">
-            <div class="loader-red"></div>
-            <p class="text-[11px] font-black text-red-600 uppercase tracking-[0.5em] animate-pulse">Decrypting Tactical Feed...</p>
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
+            <div class="loader-gold"></div>
+            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Decrypting Tactical Feed...</p>
         </div>
     </template>
 
     <template x-if="view === 'active'">
         <div class="max-w-5xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
             
-            <header class="p-8 glass-red-dispatch rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
+            <header class="p-8 glass-gold-dispatch rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
                 <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-red-600 transition-all group">
-                        <i data-lucide="chevron-left" class="text-red-600 group-hover:scale-110"></i>
+                    <button onclick="window.location.href='../index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
+                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
                     </button>
-                    <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-red-600">Dispatch Log</h1>
-                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-1">Tactical Orders // NCC-3.0</p>
+                    <div class="flex items-center gap-4">
+                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-10 h-10">
+                        <div>
+                            <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Dispatch Log</h1>
+                            <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Sector 7G Directives</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-6 bg-red-600/5 px-6 py-3 rounded-full border border-red-600/20">
+                <div class="flex items-center gap-6 bg-gold/5 px-6 py-3 rounded-full border border-gold/20">
                     <div class="beacon"></div>
-                    <p class="text-[10px] font-black uppercase tracking-widest text-red-500" x-text="'System: ' + status"></p>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-gold" x-text="'System: ' + status"></p>
                 </div>
             </header>
 
@@ -114,27 +124,29 @@
                 
                 <div class="space-y-6">
                     <div class="flex items-center justify-between mb-4 px-4">
-                        <h3 class="text-xs font-black uppercase text-zinc-500 tracking-[0.3em] italic">Encrypted Transmission Log</h3>
-                        <span class="text-[9px] text-zinc-700 font-black uppercase" x-text="directives.length + ' Directives Found'"></span>
+                        <h3 class="text-xs font-black uppercase text-zinc-500 tracking-[0.3em] italic flex items-center gap-2">
+                             <i data-lucide="radio" class="w-4 h-4"></i> Encrypted Transmissions
+                        </h3>
+                        <span class="terminal-font text-[9px] text-zinc-700 uppercase" x-text="directives.length + ' Logs Found'"></span>
                     </div>
 
                     <template x-for="item in directives" :key="item.id">
-                        <div class="directive-card glass-red-dispatch p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                        <div class="directive-card glass-gold-dispatch p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
                             <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity">
-                                <i data-lucide="shield-check" class="w-20 h-20 text-red-600"></i>
+                                <i data-lucide="shield-check" class="w-20 h-20 text-gold"></i>
                             </div>
 
                             <div class="flex flex-col md:flex-row justify-between gap-6 relative z-10">
                                 <div class="space-y-4 max-w-2xl">
                                     <div class="flex items-center gap-4">
-                                        <span class="px-3 py-1 bg-red-600 text-white text-[8px] font-black uppercase rounded-full">High Priority</span>
+                                        <span class="px-3 py-1 bg-gold text-black text-[8px] font-black uppercase rounded-full">High Priority</span>
                                         <span class="text-[9px] text-zinc-600 font-black terminal-font uppercase" x-text="new Date(item.created_at).toLocaleString()"></span>
                                     </div>
                                     <p class="text-lg md:text-xl font-black uppercase italic tracking-tight text-zinc-200 leading-tight" x-text="item.content"></p>
                                 </div>
 
                                 <div class="flex items-end">
-                                    <button @click="acknowledge(item.id)" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white hover:border-red-600 transition-all">
+                                    <button @click="acknowledge(item.id)" class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-black hover:border-gold transition-all">
                                         Acknowledge
                                     </button>
                                 </div>
@@ -142,34 +154,34 @@
                         </div>
                     </template>
 
-                    <div x-show="directives.length === 0" class="py-24 text-center opacity-20 bg-white/5 rounded-[4rem] border border-dashed border-zinc-800">
-                        <i data-lucide="radio-off" class="mx-auto mb-6 w-16 h-16"></i>
-                        <p class="text-xs font-black uppercase tracking-[0.5em]">No Directives in Current Buffer</p>
+                    <div x-show="directives.length === 0" class="py-24 text-center opacity-10 bg-white/5 rounded-[4rem] border border-dashed border-gold/20">
+                        <i data-lucide="radio-off" class="mx-auto mb-6 w-16 h-16 text-zinc-700"></i>
+                        <p class="terminal-font text-xs uppercase tracking-[0.5em]">No Data in Current Buffer</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-                    <button onclick="window.location.href='dossier.html'" class="p-6 glass rounded-3xl border border-white/5 hover:border-green-500 transition-all text-center">
-                        <i data-lucide="user-cog" class="mx-auto mb-2 text-green-500"></i>
+                    <button onclick="window.location.href='dossier.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
+                        <i data-lucide="user-cog" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
                         <span class="text-[8px] font-black uppercase">Dossier</span>
                     </button>
-                    <button onclick="window.location.href='frequency.html'" class="p-6 glass rounded-3xl border border-white/5 hover:border-gold transition-all text-center">
-                        <i data-lucide="activity" class="mx-auto mb-2 text-gold"></i>
+                    <button onclick="window.location.href='frequency.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
+                        <i data-lucide="activity" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
                         <span class="text-[8px] font-black uppercase">Frequency</span>
                     </button>
-                    <button onclick="window.location.href='gallery.html'" class="p-6 glass rounded-3xl border border-white/5 hover:border-purple-500 transition-all text-center">
-                        <i data-lucide="camera" class="mx-auto mb-2 text-purple-500"></i>
+                    <button onclick="window.location.href='gallery.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
+                        <i data-lucide="camera" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
                         <span class="text-[8px] font-black uppercase">Gallery</span>
                     </button>
-                    <button onclick="window.location.href='archives.html'" class="p-6 glass rounded-3xl border border-white/5 hover:border-zinc-500 transition-all text-center">
-                        <i data-lucide="database" class="mx-auto mb-2 text-zinc-500"></i>
+                    <button onclick="window.location.href='archives.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
+                        <i data-lucide="database" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
                         <span class="text-[8px] font-black uppercase">Vault</span>
                     </button>
                 </div>
             </div>
 
             <footer class="mt-24 pt-10 border-t border-white/5 text-center text-zinc-800">
-                <p class="text-[10px] uppercase font-black tracking-[0.6em] italic leading-relaxed">
+                <p class="terminal-font text-[12px] uppercase tracking-[0.8em] italic">
                     DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
                 </p>
             </footer>
