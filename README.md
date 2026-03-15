@@ -1,29 +1,29 @@
-# 🕴️ Ministry-of-Groove
+# 📀 MINISTRY OF GROOVE | NCC MASTER v5.0
+**Central Operations Gate & Classified Cultural Archive**
 
-**Ministry-of-Groove** is a secure, Progressive Web App (PWA) designed for centralized operation management and media distribution. 
+![MOG Logo](assets/images/logo.png)
+
+## 🌐 Project Overview
+The **NCC MASTER** is a high-security Progressive Web App (PWA) designed for the management of cultural assets, personnel dossiers, and frequency surveillance within Sector 7G. Built with a "Ministry Terminal" aesthetic, it utilizes a modular architecture and real-time synchronization.
+
+## 🛠 Tactical Stack
+- **Frontend:** HTML5, CSS3 (Modular Master Engine), Tailwind CSS
+- **Logic:** JavaScript (ES6+), Alpine.js
+- **Backend:** Supabase (Auth, PostgreSQL, Storage)
+- **Deployment:** GitHub Pages / Vercel
+- **PWA:** Service Worker integration with Offline Caching
 
 ## 📂 Repository Structure
-The project is organized to separate core logic, public assets, and restricted command pages:
-
-* **/assets** - Contains all UI images and encrypted media (.mp4, .m4a).
-* **/css** - Core styling and visual themes.
-* **/js** - Logic, Service Workers, and Authentication scripts.
-* **/pages** - Restricted HTML modules including the Directorate and Dispatch archives.
-* **index.html** - The Operative Dashboard.
-* **login.html** - The Central Access Gate.
+- `/` : Core entry points (`index.html`, `login.html`, `manifest.json`)
+- `/css` : Master Style Engine (`style.css`)
+- `/js` : Authentication and Global Logic (`auth.js`)
+- `/assets` : Remastered logos, media, and mission assets
+- `/pages` : Classified sectors (`gallery`, `dossier`, `frequency`, `archives`, `directorate`, `privacy`, `tos`)
 
 ## 🔐 Security Protocol
-The application implements a dual-layered access gate:
-
-1.  **Direct Entrance:** All users must pass through `login.html`.
-2.  **Role-Based Access Control (RBAC):**
-    * **Director:** Full access to the Directorate and command modules.
-    * **Operative:** Standard access to the main dashboard.
-3.  **Session Management:** Sessions are handled via `auth.js` and can be terminated using the "Terminate Session" command, which clears local authorization data.
-
-## 🚀 Deployment
-This app is optimized for static hosting (GitHub Pages/Vercel) and includes PWA support for offline access via the `service-worker.js`.
+Access is restricted via Role-Based Access Control (RBAC). 
+- **Director:** Full administrative rights, media redaction, and global broadcasting.
+- **Operative:** Read-only archive access and personal dossier synchronization.
 
 ---
-*Property of the Ministry. Unauthorized access is strictly monitored.*
-
+*DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026 MINISTRY OF GROOVE*
