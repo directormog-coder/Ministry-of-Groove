@@ -6,6 +6,7 @@
  * Secure Supabase Client Module
  * Handles encrypted connection initialization and secure storage operations
  * Version: 5.2.0
+ * Dependencies: MogCrypto (crypto-utils.js)
  */
 
 (function() {
@@ -15,7 +16,6 @@
     const CONFIG = {
         SUPABASE_URL: window.__ENV__?.SUPABASE_URL || '',
         SUPABASE_ANON_KEY: window.__ENV__?.SUPABASE_ANON_KEY || '',
-        ENCRYPTION_KEY: window.__ENV__?.ENCRYPTION_KEY || '',
         API_VERSION: 'v1',
         MAX_RETRIES: 3,
         TIMEOUT: 10000
@@ -28,7 +28,6 @@
             return false;
         }
         
-        // URL validation
         try {
             new URL(CONFIG.SUPABASE_URL);
         } catch {
@@ -55,8 +54,12 @@
             throw new Error('Supabase library not loaded. Include @supabase/supabase-js before this module.');
         }
 
+        // Check for MogCrypto dependency
+        if (typeof MogCrypto === 'undefined') {
+            console.warn('[MOG-SECURITY] MogCrypto not loaded. Some encryption features may be unavailable.');
+        }
+
         try {
-            // Create client with security options
             supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
                 auth: {
                     autoRefreshToken: true,
@@ -71,7 +74,6 @@
                         'X-Security-Level': 'CONFIDENTIAL'
                     },
                     fetch: (url, options = {}) => {
-                        // Add request timeout
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), CONFIG.TIMEOUT);
                         
@@ -102,16 +104,10 @@
         }
     }
 
-    /**
-     * Generate unique request ID for tracing
-     */
     function generateRequestId() {
         return `mog-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    /**
-     * Get initialized client (singleton pattern)
-     */
     function getClient() {
         if (!supabaseClient) {
             initializeClient();
@@ -123,18 +119,17 @@
      * Secure Storage Operations with Encryption Layer
      */
     const SecureStorage = {
-        /**
-         * Upload file with client-side metadata encryption
-         */
         async uploadFile(bucket, path, file, options = {}) {
             const client = getClient();
             
             try {
-                // Generate encrypted metadata if encryption key available
                 const metadata = options.metadata || {};
-                if (CONFIG.ENCRYPTION_KEY && metadata.sensitive) {
-                    metadata.encrypted = true;
-                    metadata.checksum = await generateChecksum(file);
+                
+                // Generate checksum if MogCrypto available
+                if (typeof MogCrypto !== 'undefined' && file) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    metadata.checksum = await MogCrypto.sha256(arrayBuffer);
+                    metadata.encrypted = options.encrypt || false;
                 }
 
                 const { data, error } = await client.storage
@@ -157,9 +152,6 @@
             }
         },
 
-        /**
-         * Get signed URL for secure file access
-         */
         async getSignedUrl(bucket, path, expiresIn = 3600) {
             const client = getClient();
             
@@ -181,9 +173,6 @@
             }
         },
 
-        /**
-         * Download with integrity verification
-         */
         async downloadFile(bucket, path) {
             const client = getClient();
             
@@ -201,9 +190,6 @@
             }
         },
 
-        /**
-         * List files with security filtering
-         */
         async listFiles(bucket, path = '', options = {}) {
             const client = getClient();
             
@@ -219,7 +205,6 @@
 
                 if (error) throw error;
                 
-                // Filter sensitive metadata from response
                 const sanitized = data.map(item => ({
                     name: item.name,
                     id: item.id,
@@ -236,9 +221,6 @@
             }
         },
 
-        /**
-         * Secure deletion with audit trail
-         */
         async deleteFile(bucket, paths) {
             const client = getClient();
             const pathArray = Array.isArray(paths) ? paths : [paths];
@@ -260,16 +242,6 @@
     };
 
     /**
-     * Generate SHA-256 checksum for file integrity
-     */
-    async function generateChecksum(file) {
-        const buffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    /**
      * Auth Operations with Security Enhancements
      */
     const SecureAuth = {
@@ -277,14 +249,26 @@
             const client = getClient();
             
             try {
+                // Sanitize input if MogCrypto available
+                const cleanEmail = typeof MogCrypto !== 'undefined' 
+                    ? MogCrypto.sanitizeInput(email) 
+                    : email;
+
                 const { data, error } = await client.auth.signInWithPassword({
-                    email,
+                    email: cleanEmail,
                     password
                 });
 
                 if (error) throw error;
                 
                 connectionStatus = 'authenticated';
+                
+                // Create session token if MogCrypto available
+                if (typeof MogCrypto !== 'undefined' && MogCrypto.SessionSecurity) {
+                    const sessionToken = await MogCrypto.SessionSecurity.createSessionToken();
+                    sessionStorage.setItem('mog_session_token', sessionToken);
+                }
+                
                 console.info('[MOG-AUTH] Session established');
                 return { user: data.user, session: data.session, success: true };
             } catch (error) {
@@ -301,6 +285,8 @@
                 if (error) throw error;
                 
                 connectionStatus = 'disconnected';
+                sessionStorage.removeItem('mog_session_token');
+                
                 console.info('[MOG-AUTH] Session terminated');
                 return { success: true };
             } catch (error) {
@@ -312,6 +298,20 @@
         async getSession() {
             const client = getClient();
             const { data: { session } } = await client.auth.getSession();
+            
+            // Verify session token if available
+            if (session && typeof MogCrypto !== 'undefined' && MogCrypto.SessionSecurity) {
+                const token = sessionStorage.getItem('mog_session_token');
+                if (token) {
+                    const valid = await MogCrypto.SessionSecurity.verifySessionToken(token);
+                    if (!valid) {
+                        console.warn('[MOG-AUTH] Session token invalid, signing out');
+                        await this.signOut();
+                        return null;
+                    }
+                }
+            }
+            
             return session;
         },
 
@@ -340,14 +340,26 @@
             return error ? { error, success: false } : { data, success: true };
         },
 
-        async insert(table, data) {
+        async insert(table, data, options = {}) {
             const client = getClient();
+            
+            // Encrypt sensitive data if specified
+            if (options.encrypt && options.password && typeof MogCrypto !== 'undefined') {
+                data = await MogCrypto.encryptForStorage(data, options.password);
+            }
+            
             const { data: result, error } = await client.from(table).insert(data).select();
             return error ? { error, success: false } : { data: result, success: true };
         },
 
-        async update(table, match, data) {
+        async update(table, match, data, options = {}) {
             const client = getClient();
+            
+            // Encrypt sensitive data if specified
+            if (options.encrypt && options.password && typeof MogCrypto !== 'undefined') {
+                data = await MogCrypto.encryptForStorage(data, options.password);
+            }
+            
             const { data: result, error } = await client.from(table).update(data).eq(match.column, match.value).select();
             return error ? { error, success: false } : { data: result, success: true };
         },
@@ -398,7 +410,7 @@
             const { error } = await client.from('health_check').select('count').limit(1);
             const latency = Date.now() - start;
             
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = table not found (expected if no health_check table)
+            if (error && error.code !== 'PGRST116') throw error;
             
             connectionStatus = 'connected';
             return { status: 'healthy', latency, success: true };
@@ -412,23 +424,18 @@
      * Export secure API
      */
     window.MOGSupabase = {
-        // Initialization
         init: initializeClient,
         getClient: getClient,
         checkConnection: checkConnection,
-        
-        // Namespaced operations
         auth: SecureAuth,
         storage: SecureStorage,
         db: SecureDatabase,
         realtime: SecureRealtime,
-        
-        // Utilities
         getStatus: () => connectionStatus,
         getConfig: () => ({
-            url: CONFIG.SUPABASE_URL.replace(/\/+$/, ''), // Sanitize URL
+            url: CONFIG.SUPABASE_URL.replace(/\/+$/, ''),
             version: CONFIG.API_VERSION,
-            encrypted: !!CONFIG.ENCRYPTION_KEY
+            cryptoAvailable: typeof MogCrypto !== 'undefined'
         })
     };
 
