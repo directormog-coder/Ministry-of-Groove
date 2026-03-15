@@ -35,6 +35,7 @@ The **NCC MASTER** is a high-security Progressive Web App (PWA) designed for the
 - **Algorithm**: AES-GCM-256 for symmetric encryption
 - **Key Derivation**: PBKDF2 with 100,000 iterations
 - **Hashing**: SHA-256 for integrity verification
+- **HMAC**: For data authenticity verification
 - **Scope**: All classified dossiers and frequency data encrypted before transmission
 
 ### Secure Storage Implementation
@@ -42,8 +43,14 @@ The **NCC MASTER** is a high-security Progressive Web App (PWA) designed for the
 - Environment-based configuration via `inject-env.js`
 - Signed URL generation for asset access
 - Row Level Security (RLS) policies enforced
+- Secure local storage wrapper with transparent encryption
 
-### Data Protection
-```javascript
-// Encryption Workflow
-1. User Input → 2. Web Crypto API Encryption → 3. Ciphertext to Supabase → 4. Decryption on Authorized Retrieval
+### Session Security
+- Browser fingerprinting for session hijacking detection
+- CSRF token protection
+- Constant-time comparison for sensitive operations
+- Automatic session timeout after 1 hour
+
+---
+
+## 📂 Repository Structure
