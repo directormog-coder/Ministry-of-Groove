@@ -1,15 +1,13 @@
 /* ==========================================================================
-   MINISTRY OF GROOVE | MASTER STYLE ENGINE v4.0
+   MINISTRY OF GROOVE | MASTER STYLE ENGINE v5.0
    Design Language: Tactical Electric Blue / Unified Gold
-   Font Standard: JetBrains Mono (Tech/Dev Optimized)
+   Updated for Modular Repository Structure
    ========================================================================== */
 
-/* 1. TYPOGRAPHY SHIELD (Poster Format Scaling)
-   ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 :root {
-    /* MOG BRAND PALETTE (From logo.png) */
+    /* MOG BRAND PALETTE */
     --gold: #D4AF37;
     --gold-glow: rgba(212, 175, 55, 0.4);
     --gold-dim: rgba(212, 175, 55, 0.1);
@@ -21,13 +19,17 @@
     /* Surfaces */
     --bg-black: #050508;
     --glass-border: rgba(255, 255, 255, 0.05);
+    --critical-red: #ff4b2b;
 }
+
+/* 1. GLOBAL RESET & TYPOGRAPHY */
+* { box-sizing: border-box; }
 
 body {
     background-color: var(--bg-black);
     color: #ffffff;
-    font-family: 'JetBrains Mono', monospace; /* LATEST STANDARD */
-    font-size: 16px; /* 2px GLOBAL INCREASE */
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
     line-height: 1.6;
     overflow-x: hidden;
     margin: 0;
@@ -35,101 +37,91 @@ body {
 
 [x-cloak] { display: none !important; }
 
-/* Poster Format Scaling for internal elements */
-p, span, a, li, button, input, textarea { font-size: 15px; }
-.text-xs, .text-\[10px\], .text-\[8px\] { font-size: 13px !important; }
-.text-sm, .text-\[12px\] { font-size: 15px !important; }
-.terminal-font { font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.05em; }
+/* Poster Format Scaling */
+p, span, a, li, button, input { font-size: 15px; }
+.terminal-font { font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
 
-/* ==========================================================================
-   2. UPGRADED: TACTICAL BACKGROUNDS (Vibrant)
-   ========================================================================== */
-
-/* Electric Blue Circuit Pattern (Mimicking logo.png Interior) */
+/* 2. BACKGROUND ARCHITECTURE */
 .bg-circuit-pattern {
     position: fixed;
-    inset: -50%;
+    inset: 0;
     z-index: -1;
     background-color: #000;
-    overflow: hidden;
     background-image: 
-        /* Vertical Electric Lines */
-        linear-gradient(90deg, transparent 40px, var(--electric-blue-glow) 40px, var(--electric-blue-glow) 42px, transparent 42px),
-        /* Horizontal Electric Lines */
-        linear-gradient(0deg, transparent 40px, var(--electric-blue-glow) 40px, var(--electric-blue-glow) 42px, transparent 42px),
-        /* Gold Base Traces */
-        repeating-linear-gradient(45deg, transparent, transparent 80px, rgba(212, 175, 55, 0.02) 80px, rgba(212, 175, 55, 0.02) 82px);
-    background-size: 80px 80px, 80px 80px, cover;
-    background-position: center;
-    animation: circuitFlow 30s linear infinite;
-    opacity: 0.7; /* INCREASED VIBRANCY */
+        linear-gradient(90deg, transparent 79px, var(--electric-blue-glow) 79px, var(--electric-blue-glow) 81px, transparent 81px),
+        linear-gradient(0deg, transparent 79px, var(--electric-blue-glow) 79px, var(--electric-blue-glow) 81px, transparent 81px);
+    background-size: 80px 80px;
+    opacity: 0.4;
+    animation: gridPulse 10s ease-in-out infinite;
 }
 
-/* Pulsing Circuit Nodes */
-.bg-circuit-pattern::after {
-    content: '';
-    position: absolute;
+@keyframes gridPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.5; }
+}
+
+.circuit-vignette {
+    position: fixed;
     inset: 0;
-    background-image: 
-        radial-gradient(circle at 20% 30%, var(--electric-blue) 1px, transparent 3px),
-        radial-gradient(circle at 60% 20%, var(--electric-blue) 1.5px, transparent 4px),
-        radial-gradient(circle at 40% 60%, var(--electric-blue) 1px, transparent 3px),
-        radial-gradient(circle at 80% 50%, var(--electric-blue) 2px, transparent 5px);
-    background-size: 240px 240px;
-    animation: nodePulse 5s ease-in-out infinite alternate;
+    z-index: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+    pointer-events: none;
 }
 
-/* Base Operative Grid (Gold) */
-.bg-grid {
-    background-image: radial-gradient(circle, rgba(212, 175, 55, 0.15) 1px, transparent 1px);
-    background-size: 30px 30px;
+/* 3. TACTICAL COMPONENTS (GLASSMORPISM) */
+.glass {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
 }
 
-@keyframes circuitFlow { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-80px, -80px) rotate(360deg); } }
-@keyframes nodePulse { 0% { opacity: 0.3; transform: scale(1); } 100% { opacity: 0.9; transform: scale(1.1); } }
+.glass-gold {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid var(--gold-dim);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.05);
+}
 
-/* Scanlines & Vignette */
-.scanline { width: 100%; height: 100px; z-index: 100; background: linear-gradient(0deg, transparent 0%, rgba(0, 242, 255, 0.02) 50%, transparent 100%); position: fixed; top: -100px; animation: moveScanline 8s linear infinite; pointer-events: none; }
-@keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
-.circuit-vignette { position: fixed; inset: 0; z-index: 10; background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.9) 100%); pointer-events: none; }
+/* 4. BUTTONS & INTERACTION */
+.btn-command {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-/* ==========================================================================
-   3. COLOUR RESTORATION & UNIFICATION
-   ========================================================================== */
+.btn-command:hover {
+    background: var(--gold);
+    color: black;
+    box-shadow: 0 0 20px var(--gold-glow);
+    transform: translateY(-2px);
+}
 
-/* 100% Logo-Drivien Colors (No external hues) */
-.glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); }
-.glass-strong { background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.1); }
+/* Logout / Redact Style */
+.btn-danger {
+    border: 1px solid var(--critical-red);
+    color: var(--critical-red);
+}
 
-/* Unified Hover States (Gold Glow) */
-a, button, [onclick] { transition: all 0.3s ease; }
-[onclick]:hover { border-color: var(--gold) !important; box-shadow: 0 0 20px var(--gold-glow) !important; transform: scale(1.02); }
+.btn-danger:hover {
+    background: var(--critical-red);
+    color: white;
+    box-shadow: 0 0 20px rgba(255, 75, 43, 0.4);
+}
 
-/* Social Icons - Colourful Restoration (No Grayscale) */
-.socials-colourful a:nth-child(1):hover { color: #E4405F !important; border-color: #E4405F !important; background: rgba(228, 64, 95, 0.1) !important; } /* Instagram */
-.socials-colourful a:nth-child(2):hover { color: #25D366 !important; border-color: #25D366 !important; background: rgba(37, 211, 102, 0.1) !important; } /* WhatsApp */
-.socials-colourful a:nth-child(3):hover { color: #FF0000 !important; border-color: #FF0000 !important; background: rgba(255, 0, 0, 0.1) !important; } /* YouTube */
+/* 5. MEDIA HANDLING */
+video, img {
+    border-radius: 0.5rem;
+    border: 1px solid var(--glass-border);
+    transition: filter 0.5s ease;
+}
 
-/* ============================================
-   4.NCC TACTICAL COMPONENTS
-   ============================================ */
-
-/* Tactical Loading Spinner */
-.loader { width: 32px; height: 32px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-@keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-/* Chat Custom Scrollbar (Gold) */
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-
-/* Social Audio Bar */
-.audio-bar { width: 3px; background: var(--gold); animation: audio-bounce 1s infinite ease-in-out; }
-@keyframes audio-bounce { 0%, 100% { height: 20%; } 50% { height: 100%; } }
-
-/* Tile Animations */
-.tile-animate { animation: tilePop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
-@keyframes tilePop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-/* Max Width for Vercel/PWA Scale */
-.max-w-7xl { max-width: 80rem; margin-left: auto; margin-right: auto; }
-
+.media-hover:hover {
+    filter: brightness(1.1) contrast(1.1);
+    border-color: var(--electric-blue);
+}
