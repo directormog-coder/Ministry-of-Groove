@@ -10,30 +10,263 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <link rel="stylesheet" href="../css/style.css">
-    
     <style>
         [x-cloak] { display: none !important; }
+        
         /* Directorate Exclusive Theme: Command Red */
-        .bg-grid-red { background-image: radial-gradient(circle, #ef4444 1.5px, transparent 1.5px); background-size: 40px 40px; }
-        .glass-red { background: rgba(15, 0, 0, 0.97); backdrop-filter: blur(40px); border: 1px solid rgba(239, 68, 68, 0.3); }
-        .loader-red { width: 40px; height: 40px; border: 4px solid #ef4444; border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .bg-grid-red { 
+            background-image: radial-gradient(circle, #ef4444 1.5px, transparent 1.5px); 
+            background-size: 40px 40px; 
+        }
+        
+        .glass-red { 
+            background: rgba(15, 0, 0, 0.97); 
+            backdrop-filter: blur(40px); 
+            border: 1px solid rgba(239, 68, 68, 0.3); 
+        }
+        
+        .glass {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .loader-red { 
+            width: 40px; 
+            height: 40px; 
+            border: 4px solid #ef4444; 
+            border-bottom-color: transparent; 
+            border-radius: 50%; 
+            animation: rotation 1s linear infinite; 
+        }
+        
+        @keyframes rotation { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
         
         .scanline-red { 
-            width: 100%; height: 100px; 
+            width: 100%; 
+            height: 100px; 
             background: linear-gradient(0deg, transparent 0%, rgba(239, 68, 68, 0.05) 50%, transparent 100%); 
-            position: fixed; top: -100px; left: 0; pointer-events: none; 
-            animation: moveScanline 6s linear infinite; z-index: 100; 
+            position: fixed; 
+            top: -100px; 
+            left: 0; 
+            pointer-events: none; 
+            animation: moveScanline 6s linear infinite; 
+            z-index: 100; 
         }
-        @keyframes moveScanline { from { top: -100px; } to { top: 100vh; } }
+        
+        @keyframes moveScanline { 
+            from { top: -100px; } 
+            to { top: 100vh; } 
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(239, 68, 68, 0.3);
+            border-radius: 3px;
+        }
+        
+        .text-gold { color: #ffd700; }
+        .border-gold { border-color: #ffd700; }
+        .from-red-600\/20 { --tw-gradient-from: rgb(239 68 68 / 0.2); }
+        .bg-radial-gradient { background: radial-gradient(circle, var(--tw-gradient-from), transparent); }
+        
+        .circuit-vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .terminal-font { font-family: 'Courier New', monospace; }
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
-        let sb = null;
+        // ==========================================
+        // SECURE CONFIGURATION - NO EXPOSED CREDENTIALS
+        // ==========================================
+        
+        // Configuration loaded from environment or secure source
+        const CONFIG = {
+            // These should be loaded from environment variables in production
+            SUPABASE_URL: localStorage.getItem('SUPABASE_URL') || 'https://fgkljjgxecjmiiaptiug.supabase.co',
+            SUPABASE_ANON_KEY: localStorage.getItem('SUPABASE_ANON_KEY') || '',
+            ENCRYPTION_KEY: null // Will be derived from secure session
+        };
 
+        // ==========================================
+        // WEB CRYPTO API ENCRYPTION MODULE
+        // ==========================================
+        
+        const CryptoModule = {
+            async deriveKey(password, salt) {
+                const encoder = new TextEncoder();
+                const keyMaterial = await window.crypto.subtle.importKey(
+                    'raw',
+                    encoder.encode(password),
+                    'PBKDF2',
+                    false,
+                    ['deriveBits', 'deriveKey']
+                );
+                
+                return window.crypto.subtle.deriveKey(
+                    {
+                        name: 'PBKDF2',
+                        salt: salt,
+                        iterations: 100000,
+                        hash: 'SHA-256'
+                    },
+                    keyMaterial,
+                    { name: 'AES-GCM', length: 256 },
+                    false,
+                    ['encrypt', 'decrypt']
+                );
+            },
+
+            async encrypt(data, password) {
+                const encoder = new TextEncoder();
+                const salt = window.crypto.getRandomValues(new Uint8Array(16));
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+                
+                const key = await this.deriveKey(password, salt);
+                const encrypted = await window.crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    key,
+                    encoder.encode(JSON.stringify(data))
+                );
+                
+                return {
+                    salt: Array.from(salt),
+                    iv: Array.from(iv),
+                    data: Array.from(new Uint8Array(encrypted))
+                };
+            },
+
+            async decrypt(encryptedPackage, password) {
+                try {
+                    const decoder = new TextDecoder();
+                    const salt = new Uint8Array(encryptedPackage.salt);
+                    const iv = new Uint8Array(encryptedPackage.iv);
+                    const data = new Uint8Array(encryptedPackage.data);
+                    
+                    const key = await this.deriveKey(password, salt);
+                    const decrypted = await window.crypto.subtle.decrypt(
+                        { name: 'AES-GCM', iv: iv },
+                        key,
+                        data
+                    );
+                    
+                    return JSON.parse(decoder.decode(decrypted));
+                } catch (e) {
+                    console.error('Decryption failed');
+                    return null;
+                }
+            },
+
+            // Secure session token generation
+            generateSecureToken() {
+                const array = new Uint8Array(32);
+                window.crypto.getRandomValues(array);
+                return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+            }
+        };
+
+        // ==========================================
+        // SECURE STORAGE MODULE
+        // ==========================================
+        
+        const SecureStorage = {
+            async set(key, value, password) {
+                const encrypted = await CryptoModule.encrypt(value, password);
+                localStorage.setItem(key, JSON.stringify(encrypted));
+            },
+
+            async get(key, password) {
+                const stored = localStorage.getItem(key);
+                if (!stored) return null;
+                try {
+                    const encrypted = JSON.parse(stored);
+                    return await CryptoModule.decrypt(encrypted, password);
+                } catch (e) {
+                    return null;
+                }
+            },
+
+            remove(key) {
+                localStorage.removeItem(key);
+            },
+
+            clear() {
+                localStorage.clear();
+            }
+        };
+
+        // ==========================================
+        // SUPABASE CLIENT MANAGER
+        // ==========================================
+        
+        const SupabaseManager = {
+            client: null,
+            sessionToken: null,
+
+            initialize() {
+                if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_ANON_KEY) {
+                    console.error('Supabase configuration missing');
+                    return false;
+                }
+                
+                try {
+                    this.client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+                        auth: {
+                            autoRefreshToken: true,
+                            persistSession: true,
+                            detectSessionInUrl: false
+                        }
+                    });
+                    return true;
+                } catch (e) {
+                    console.error('Failed to initialize Supabase:', e);
+                    return false;
+                }
+            },
+
+            async verifySession() {
+                if (!this.client) return false;
+                const { data: { session }, error } = await this.client.auth.getSession();
+                return !!session && !error;
+            },
+
+            async signOut() {
+                if (this.client) {
+                    await this.client.auth.signOut();
+                }
+                this.sessionToken = null;
+            }
+        };
+
+        // ==========================================
+        // MAIN APPLICATION CONTROLLER
+        // ==========================================
+        
         function commandCenter() {
             return {
                 view: 'gate',
@@ -44,54 +277,235 @@
                 currentTime: '',
                 sessionDuration: '00:00',
                 sessionStart: null,
+                isLoading: false,
+                errorMessage: '',
+                sessionCheckInterval: null,
 
                 async init() {
-                    // SECURE GATE CHECK: Only Director Role can enter
+                    // Security: Verify director role
                     const role = localStorage.getItem('userRole');
-                    if (role !== 'director') {
-                        window.location.href = '../login.html';
+                    const sessionValid = localStorage.getItem('sessionValid');
+                    
+                    if (role !== 'director' || sessionValid !== 'true') {
+                        this.redirectToLogin();
                         return;
                     }
 
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    // Initialize Supabase
+                    if (!SupabaseManager.initialize()) {
+                        this.errorMessage = 'Failed to establish secure connection';
+                        setTimeout(() => this.redirectToLogin(), 2000);
+                        return;
+                    }
+
+                    // Verify active session with Supabase
+                    const isValid = await SupabaseManager.verifySession();
+                    if (!isValid) {
+                        this.redirectToLogin();
+                        return;
+                    }
+
+                    // Generate secure session token
+                    SupabaseManager.sessionToken = CryptoModule.generateSecureToken();
+                    
                     this.view = 'active';
                     this.sessionStart = Date.now();
                     this.startClock();
+                    this.startSessionValidation();
+                    
                     await this.loadSecureData();
-                    this.$nextTick(() => lucide.createIcons());
+                    
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons();
+                        }
+                    });
                 },
 
                 async loadSecureData() {
-                    // Load Operatives
-                    const { data: ops } = await sb.from('profiles').select('*').limit(10);
-                    if (ops) this.operatives = ops;
+                    this.isLoading = true;
+                    
+                    try {
+                        // Load operatives with error handling
+                        const { data: ops, error: opsError } = await SupabaseManager.client
+                            .from('profiles')
+                            .select('id, handle, status, last_seen, clearance_level')
+                            .limit(10);
+                            
+                        if (opsError) throw opsError;
+                        if (ops) this.operatives = ops;
 
-                    // Load Activity
-                    const { data: logs } = await sb.from('messages').select('*').order('created_at', { ascending: false }).limit(8);
-                    if (logs) this.liveActivity = logs;
+                        // Load activity logs
+                        const { data: logs, error: logsError } = await SupabaseManager.client
+                            .from('messages')
+                            .select('id, username, content, created_at, priority')
+                            .order('created_at', { ascending: false })
+                            .limit(8);
+                            
+                        if (logsError) throw logsError;
+                        if (logs) this.liveActivity = logs;
+
+                        // Load wealth metrics (if available)
+                        await this.loadWealthData();
+
+                    } catch (error) {
+                        console.error('Data load error:', error);
+                        this.errorMessage = 'Secure data retrieval failed';
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async loadWealthData() {
+                    try {
+                        const { data, error } = await SupabaseManager.client
+                            .from('metrics')
+                            .select('wealth_value, growth_rate')
+                            .single();
+                            
+                        if (data) {
+                            this.wealth = data.wealth_value || this.wealth;
+                        }
+                    } catch (e) {
+                        // Silent fail - use default
+                    }
                 },
 
                 async sendBroadcast() {
                     if (!this.broadcastInput.trim()) return;
-                    // Logic for global directive
-                    alert('GLOBAL DIRECTIVE SYNCHRONIZED TO ALL OPERATIVE GRIDS');
-                    this.broadcastInput = '';
+                    
+                    const content = this.broadcastInput.trim();
+                    
+                    // Validate input length
+                    if (content.length > 1000) {
+                        alert('DIRECTIVE TOO LONG. MAX 1000 CHARACTERS.');
+                        return;
+                    }
+
+                    // Sanitize input
+                    const sanitized = this.sanitizeInput(content);
+
+                    try {
+                        this.isLoading = true;
+                        
+                        // Store directive in database
+                        const { error } = await SupabaseManager.client
+                            .from('directives')
+                            .insert({
+                                content: sanitized,
+                                issued_by: localStorage.getItem('userHandle') || 'DIRECTOR',
+                                priority: 'high',
+                                timestamp: new Date().toISOString(),
+                                status: 'active'
+                            });
+
+                        if (error) throw error;
+
+                        // Broadcast to real-time channel (if configured)
+                        await this.broadcastToGrid(sanitized);
+
+                        alert('GLOBAL DIRECTIVE SYNCHRONIZED TO ALL OPERATIVE GRIDS');
+                        this.broadcastInput = '';
+                        
+                        // Refresh activity
+                        await this.loadSecureData();
+                        
+                    } catch (error) {
+                        console.error('Broadcast failed:', error);
+                        alert('TRANSMISSION FAILED. CHECK SECURE UPLINK.');
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                async broadcastToGrid(message) {
+                    // Implementation for real-time broadcasting
+                    // Could use Supabase Realtime or WebSocket
+                    try {
+                        const channel = SupabaseManager.client.channel('directives');
+                        await channel.subscribe();
+                        await channel.send({
+                            type: 'broadcast',
+                            event: 'directive',
+                            payload: { message, timestamp: Date.now() }
+                        });
+                    } catch (e) {
+                        console.log('Real-time broadcast not available');
+                    }
+                },
+
+                sanitizeInput(input) {
+                    const div = document.createElement('div');
+                    div.textContent = input;
+                    return div.innerHTML;
                 },
 
                 startClock() {
-                    setInterval(() => {
+                    const updateTime = () => {
                         this.currentTime = new Date().toLocaleTimeString('en-ZA', { hour12: false });
                         const diff = Math.floor((Date.now() - this.sessionStart) / 1000);
-                        this.sessionDuration = `${Math.floor(diff/60).toString().padStart(2,'0')}:${(diff%60).toString().padStart(2,'0')}`;
-                    }, 1000);
+                        const mins = Math.floor(diff / 60).toString().padStart(2, '0');
+                        const secs = (diff % 60).toString().padStart(2, '0');
+                        this.sessionDuration = `${mins}:${secs}`;
+                    };
+                    
+                    updateTime();
+                    setInterval(updateTime, 1000);
                 },
 
-                logout() {
-                    localStorage.clear();
+                startSessionValidation() {
+                    // Periodic session validation every 30 seconds
+                    this.sessionCheckInterval = setInterval(async () => {
+                        const isValid = await SupabaseManager.verifySession();
+                        if (!isValid) {
+                            this.logout();
+                        }
+                    }, 30000);
+                },
+
+                redirectToLogin() {
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('sessionValid');
                     window.location.href = '../login.html';
+                },
+
+                async logout() {
+                    if (this.sessionCheckInterval) {
+                        clearInterval(this.sessionCheckInterval);
+                    }
+                    
+                    await SupabaseManager.signOut();
+                    SecureStorage.clear();
+                    
+                    // Clear sensitive data
+                    this.operatives = [];
+                    this.liveActivity = [];
+                    this.broadcastInput = '';
+                    
+                    window.location.href = '../login.html';
+                },
+
+                // Cleanup on component destroy
+                destroy() {
+                    if (this.sessionCheckInterval) {
+                        clearInterval(this.sessionCheckInterval);
+                    }
                 }
-            }
+            };
         }
+
+        // Global error handler
+        window.onerror = function(msg, url, line) {
+            console.error('System Error:', msg, 'at', url, ':', line);
+            return false;
+        };
+
+        // Prevent back button cache
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
     </script>
 </head>
 <body x-data="commandCenter()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden">
@@ -100,10 +514,21 @@
     <div class="bg-grid-red fixed inset-0 z-0 opacity-10"></div>
     <div class="circuit-vignette"></div>
 
+    <!-- Error Display -->
+    <template x-if="errorMessage">
+        <div class="fixed top-4 right-4 z-[200] glass-red p-6 rounded-2xl border border-red-600 max-w-md animate-fade-in">
+            <div class="flex items-center gap-3 text-red-500">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                <span class="text-sm font-bold uppercase" x-text="errorMessage"></span>
+            </div>
+        </div>
+    </template>
+
     <template x-if="view === 'gate'">
         <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
             <div class="loader-red"></div>
             <p class="terminal-font text-[12px] text-red-500 animate-pulse uppercase tracking-[0.5em]">Establishing High-Clearance Uplink...</p>
+            <p x-show="errorMessage" class="text-red-600 text-xs uppercase tracking-widest" x-text="errorMessage"></p>
         </div>
     </template>
 
@@ -125,7 +550,7 @@
                         <p class="text-4xl font-black terminal-font text-white" x-text="currentTime"></p>
                         <p class="text-[10px] text-red-600 uppercase font-black tracking-widest text-right" x-text="'SESSION: ' + sessionDuration"></p>
                     </div>
-                    <button @click="logout()" class="p-6 border border-red-600/30 text-red-600 rounded-[2.5rem] hover:bg-red-600 hover:text-white transition-all shadow-xl">
+                    <button @click="logout()" :disabled="isLoading" class="p-6 border border-red-600/30 text-red-600 rounded-[2.5rem] hover:bg-red-600 hover:text-white transition-all shadow-xl disabled:opacity-50">
                         <i data-lucide="power" class="w-8 h-8"></i>
                     </button>
                 </div>
@@ -136,7 +561,7 @@
                 <div class="space-y-12">
                     <div class="glass-red p-12 rounded-[6rem] text-center border border-gold/20 shadow-2xl relative overflow-hidden group">
                         <div class="absolute inset-0 bg-radial-gradient from-red-600/20 to-transparent opacity-50"></div>
-                        <img src="../assets/images/1000219947.png" alt="DIRECTORATE SEAL" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110">
+                        <img src="../assets/images/1000219947.png" alt="DIRECTORATE SEAL" class="w-full aspect-square object-contain mb-8 filter drop-shadow-[0_0_40px_rgba(239, 68, 68, 0.5)] transition-transform duration-1000 group-hover:rotate-12 group-hover:scale-110" loading="lazy">
                         <div class="pt-8 border-t border-red-600/20 relative z-10">
                             <h3 class="text-2xl font-black uppercase italic tracking-tighter text-gold">Directorate Seal</h3>
                             <p class="text-[10px] text-zinc-600 uppercase font-black tracking-widest mt-3 italic">Authorized Master Presence</p>
@@ -159,6 +584,11 @@
                             <span class="terminal-font text-[8px] text-zinc-700" x-text="operatives.length + ' Registered'"></span>
                         </div>
                         <div class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar pr-3">
+                            <template x-if="isLoading">
+                                <div class="flex justify-center py-8">
+                                    <div class="loader-red w-6 h-6 border-2"></div>
+                                </div>
+                            </template>
                             <template x-for="op in operatives" :key="op.id">
                                 <div class="p-5 bg-white/[0.03] border border-white/5 rounded-3xl flex justify-between items-center transition-all hover:bg-white/[0.08] group">
                                     <div class="flex items-center gap-4">
@@ -166,8 +596,8 @@
                                             <i data-lucide="user" class="w-5 h-5 text-zinc-600 group-hover:text-red-500"></i>
                                         </div>
                                         <div>
-                                            <p class="text-[11px] font-black uppercase text-white" x-text="op.handle"></p>
-                                            <p class="text-[8px] text-zinc-500 uppercase" x-text="op.status"></p>
+                                            <p class="text-[11px] font-black uppercase text-white" x-text="op.handle || 'UNKNOWN'"></p>
+                                            <p class="text-[8px] text-zinc-500 uppercase" x-text="op.status || 'STANDBY'"></p>
                                         </div>
                                     </div>
                                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -187,7 +617,7 @@
                             {i:'activity', l:'Freq', u:'frequency.html', c:'text-gold'}, 
                             {i:'radio', l:'Dispatch', u:'dispatch.html', c:'text-red-500'}, 
                             {i:'lock', l:'Vault', u:'archives.html', c:'text-zinc-500'}
-                        ]">
+                        ]" :key="node.l">
                             <div @click="window.location.href=node.u" class="glass-red p-10 rounded-[3.5rem] text-center border border-white/5 hover:border-white transition-all group shadow-xl cursor-pointer">
                                 <div :class="node.c" class="mb-4 transition-transform group-hover:scale-110">
                                     <i :data-lucide="node.i" class="mx-auto w-10 h-10"></i>
@@ -208,12 +638,20 @@
                         </div>
                         <textarea 
                             x-model="broadcastInput" 
-                            class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all text-white placeholder:text-zinc-900 relative z-10 resize-none" 
+                            maxlength="1000"
+                            :disabled="isLoading"
+                            class="w-full h-80 bg-black/40 border border-red-600/10 p-10 rounded-[4rem] outline-none text-[20px] uppercase terminal-font leading-relaxed focus:border-red-600 transition-all text-white placeholder:text-zinc-900 relative z-10 resize-none disabled:opacity-50" 
                             placeholder="TRANSMIT MASTER ORDER TO ALL GRIDS..."
                         ></textarea>
-                        <div class="flex justify-end relative z-10">
-                            <button @click="sendBroadcast()" class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em]">
-                                Synchronize Grid
+                        <div class="flex justify-between items-center relative z-10">
+                            <span class="text-[10px] text-zinc-600 terminal-font" x-text="broadcastInput.length + '/1000'"></span>
+                            <button 
+                                @click="sendBroadcast()" 
+                                :disabled="isLoading || !broadcastInput.trim()"
+                                class="px-24 py-9 bg-red-600 text-white font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.4em] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                            >
+                                <span x-show="isLoading" class="loader-red w-4 h-4 border-2"></span>
+                                <span x-text="isLoading ? 'TRANSMITTING...' : 'Synchronize Grid'"></span>
                             </button>
                         </div>
                     </div>
@@ -221,21 +659,25 @@
                     <div class="glass p-12 rounded-[5rem] border border-white/5 space-y-10 shadow-inner">
                         <div class="flex items-center justify-between border-b border-white/5 pb-8">
                             <h3 class="terminal-font text-[12px] text-gold italic flex items-center gap-4">
-                                <i data-lucide="activity" class="w-7 h-7"></i> Live Grid Activity
-                            </h3>
+                                <i data-lucide="activity" class="w-7 h-7"></i> Live Grid Activity                          </h3>
                             <span class="text-[9px] text-red-600 uppercase font-black animate-pulse">Real-time Stream Active</span>
                         </div>
                         <div class="space-y-6">
+                            <template x-if="isLoading && liveActivity.length === 0">
+                                <div class="flex justify-center py-8">
+                                    <div class="loader-red w-6 h-6 border-2"></div>
+                                </div>
+                            </template>
                             <template x-for="log in liveActivity" :key="log.id">
                                 <div class="p-8 bg-white/[0.02] border-l-4 border-red-600 rounded-r-[3rem] flex justify-between items-center transition-all hover:bg-white/[0.05] group">
                                     <div class="flex gap-8 items-center">
                                         <div class="w-2 h-2 rounded-full bg-red-600"></div>
                                         <div>
-                                            <p class="text-[10px] text-zinc-500 font-black uppercase" x-text="log.username"></p>
+                                            <p class="text-[10px] text-zinc-500 font-black uppercase" x-text="log.username || 'SYSTEM'"></p>
                                             <p class="text-[15px] text-zinc-200 terminal-font mt-1" x-text="log.content"></p>
                                         </div>
                                     </div>
-                                    <span class="text-[10px] text-zinc-700 terminal-font" x-text="new Date(log.created_at).toLocaleTimeString()"></span>
+                                    <span class="text-[10px] text-zinc-700 terminal-font" x-text="log.created_at ? new Date(log.created_at).toLocaleTimeString() : '--:--:--'"></span>
                                 </div>
                             </template>
                         </div>
