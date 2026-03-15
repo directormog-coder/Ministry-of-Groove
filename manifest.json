@@ -2,54 +2,41 @@
   "name": "Ministry of Groove | NCC MASTER",
   "short_name": "MOG Grid",
   "description": "Secure Operative Communication Grid and Classified Archive Access.",
-  "start_url": "/index.html",
+  "start_url": "/login.html",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "minimal-ui"],
-  "background_color": "#000000",
+  "background_color": "#050508",
   "theme_color": "#D4AF37",
   "orientation": "portrait",
   "scope": "/",
   "categories": ["entertainment", "productivity", "social"],
   "icons": [
     {
-      "src": "https://via.placeholder.com/192x192/D4AF37/000000?text=MOG",
+      "src": "assets/images/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://via.placeholder.com/192x192/000000/D4AF37?text=MOG",
+      "src": "assets/images/icon-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://via.placeholder.com/512x512/D4AF37/000000?text=MOG",
+      "src": "assets/images/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "https://via.placeholder.com/512x512/000000/D4AF37?text=MOG",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "https://via.placeholder.com/1080x1920/000000/D4AF37?text=Mobile+Grid+View",
+      "src": "assets/images/screenshot-mobile.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Secure Communication Grid"
-    },
-    {
-      "src": "https://via.placeholder.com/1920x1080/000000/D4AF37?text=Desktop+Vault+View",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Classified Archives"
     }
   ]
 }
