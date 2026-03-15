@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MOG | SIGNAL LOST</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-black text-white h-screen flex flex-col items-center justify-center text-center px-6">
+    <div class="bg-circuit-pattern"></div>
+    <div class="relative z-10 space-y-6">
+        <div class="p-8 glass inline-block rounded-full border border-red-600/30 animate-pulse">
+            <i data-lucide="unplug" class="w-16 h-16 text-red-600"></i>
+        </div>
+        <h1 class="text-4xl font-black uppercase italic tracking-tighter text-white">404: Signal Lost</h1>
+        <p class="terminal-font text-xs text-zinc-500 uppercase tracking-widest">The sector you are trying to reach does not exist or has been redacted.</p>
+        <button onclick="window.location.href='index.html'" class="btn-command px-12 py-4">
+            RETURN TO GRID
+        </button>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>
+
