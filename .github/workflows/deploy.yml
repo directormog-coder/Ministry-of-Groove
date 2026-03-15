@@ -1,40 +1,299 @@
-name: Deploy Ministry of Groove to Vercel
+name: MOG Deployment Pipeline
 
 on:
   push:
     branches: [main, master]
+    paths-ignore:
+      - '**.md'
+      - '.gitignore'
+      - 'docs/**'
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
 
 jobs:
-  deploy:
+  # ==========================================
+  # SECURITY & QUALITY GATES
+  # ==========================================
+  security-scan:
+    name: 🔒 Security Audit
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Secret detection
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  lint:
+    name: 🧹 Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run ESLint
+        run: pnpm lint
+        
+      - name: Run Prettier check
+        run: pnpm format:check
+
+  # ==========================================
+  # BUILD & TEST
+  # ==========================================
+  build:
+    name: 🏗️ Build & Test
+    runs-on: ubuntu-latest
+    needs: [security-scan, lint]
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "v5.1.0-${GITHUB_SHA::7}")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test -- --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Build application
+        run: pnpm build
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VITE_APP_VERSION: ${{ steps.version.outputs.version }}
+          VITE_BUILD_SHA: ${{ steps.version.outputs.short_sha }}
+          VITE_BUILD_DATE: ${{ github.event.head_commit.timestamp }}
 
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: |
+            dist/
+            !dist/**/*.map
+          retention-days: 5
 
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+  # ==========================================
+  # STAGING DEPLOYMENT
+  # ==========================================
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: staging
+      url: https://staging.ministryofgroove.io
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+
+      - name: Deploy to Staging (Vercel)
+        uses: vercel/action-deploy@v1
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID_STAGING }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: true
+
+      - name: Run smoke tests
+        run: |
+          sleep 10
+          curl -sf https://staging.ministryofgroove.io/health || exit 1
+          echo "✅ Staging health check passed"
+
+  # ==========================================
+  # PRODUCTION DEPLOYMENT
+  # ==========================================
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    environment:
+      name: production
+      url: https://ministryofgroove.io
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: dist
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Deploy to S3 + CloudFront
+        run: |
+          # Sync files with cache control
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "*.html" \
+            --exclude "sw.js"
+          
+          # HTML files with no-cache
+          aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} \
+            --cache-control "public,max-age=0,must-revalidate" \
+            --include "*.html" \
+            --include "sw.js"
+          
+          # Invalidate CloudFront cache
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Verify deployment
+        run: |
+          sleep 15
+          curl -sf https://ministryofgroove.io/health || exit 1
+          echo "✅ Production health check passed"
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
         env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ministry-of-groove
+          SENTRY_PROJECT: ncc-master
+        with:
+          version: ${{ needs.build.outputs.version }}
+          environment: production
+          set_commits: auto
+
+  # ==========================================
+  # SUPABASE MIGRATIONS
+  # ==========================================
+  migrate-database:
+    name: 🗄️ Database Migrations
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+  # ==========================================
+  # NOTIFICATIONS & CLEANUP
+  # ==========================================
+  notify:
+    name: 📢 Notify Team
+    runs-on: ubuntu-latest
+    needs: [deploy-production, migrate-database]
+    if: always()
+    
+    steps:
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          text: |
+            🎛️ *Ministry of Groove* deployment ${{ job.status == 'success' && '✅ SUCCEEDED' || '❌ FAILED' }}
+            
+            Version: `${{ needs.build.outputs.version }}`
+            Commit: `${{ github.sha }}`
+            Author: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Cleanup old artifacts
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: dist-*
+          failOnError: false
