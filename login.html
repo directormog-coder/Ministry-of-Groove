@@ -89,19 +89,31 @@
         // ==========================================
         // SUPABASE CONFIGURATION
         // ==========================================
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co';
-        // SECURITY: Store anon key in environment variable, never hardcode in production
-        // For now, this will be injected at build time or use Netlify/Vercel env vars
-        const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+        // Vercel automatically injects these at build time
+        const SUPABASE_URL = process.env.SUPABASE_URL || 'https://fgkljjgxecjmiiaptiug.supabase.co';
+        const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
         
         // Initialize Supabase client
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-            auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true
+        let supabase;
+        
+        try {
+            if (!SUPABASE_ANON_KEY) {
+                throw new Error('Supabase Anon Key is not configured. Please set SUPABASE_ANON_KEY environment variable.');
             }
-        });
+            
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                auth: {
+                    autoRefreshToken: true,
+                    persistSession: true,
+                    detectSessionInUrl: true
+                }
+            });
+        } catch (error) {
+            console.error('[MOG AUTH] Supabase initialization failed:', error);
+            showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
+            document.querySelector('.btn-command').disabled = true;
+            document.getElementById('apple-signin-btn').disabled = true;
+        }
 
         // ==========================================
         // APPLE SIGN-IN CONFIGURATION
@@ -145,6 +157,11 @@
         // APPLE SIGN-IN HANDLER
         // ==========================================
         document.getElementById('apple-signin-btn').addEventListener('click', async () => {
+            if (!supabase) {
+                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
+                return;
+            }
+            
             try {
                 showSessionStatus('INITIATING_APPLE_AUTH...');
                 
@@ -199,6 +216,11 @@
         async function handleEmailLogin(e) {
             e.preventDefault();
             
+            if (!supabase) {
+                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
+                return;
+            }
+            
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
@@ -226,6 +248,11 @@
         // ==========================================
         // Use this if you prefer redirect flow over popup
         async function signInWithAppleOAuth() {
+            if (!supabase) {
+                showAlert('AUTHENTICATION_SERVICE_UNAVAILABLE');
+                return;
+            }
+            
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'apple',
                 options: {
@@ -255,10 +282,11 @@
         async function abortSession() {
             showSessionStatus('TERMINATING_SESSION...');
             
-            const { error } = await supabase.auth.signOut();
-            
-            if (error) {
-                console.error('[MOG AUTH] Logout error:', error);
+            if (supabase) {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    console.error('[MOG AUTH] Logout error:', error);
+                }
             }
             
             // Clear any local storage
@@ -301,23 +329,27 @@
             initAppleAuth();
             
             // Check for existing session
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                console.log('[MOG AUTH] Existing session found');
-                showSessionStatus('EXISTING_SESSION_DETECTED');
-                // Optionally auto-redirect: window.location.href = '/dashboard.html';
+            if (supabase) {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    console.log('[MOG AUTH] Existing session found');
+                    showSessionStatus('EXISTING_SESSION_DETECTED');
+                    // Optionally auto-redirect: window.location.href = '/dashboard.html';
+                }
             }
         });
 
         // Listen for auth state changes
-        supabase.auth.onAuthStateChange((event, session) => {
-            console.log('[MOG AUTH] State change:', event);
-            if (event === 'SIGNED_IN') {
-                showSessionStatus('SIGNED_IN');
-            } else if (event === 'SIGNED_OUT') {
-                showSessionStatus('SIGNED_OUT');
-            }
-        });
+        if (supabase) {
+            supabase.auth.onAuthStateChange((event, session) => {
+                console.log('[MOG AUTH] State change:', event);
+                if (event === 'SIGNED_IN') {
+                    showSessionStatus('SIGNED_IN');
+                } else if (event === 'SIGNED_OUT') {
+                    showSessionStatus('SIGNED_OUT');
+                }
+            });
+        }
     </script>
 </body>
 </html>
