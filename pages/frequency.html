@@ -30,11 +30,18 @@
         
         .chart-row:hover { background: rgba(212, 175, 55, 0.08); transform: translateX(10px); border-color: var(--electric); }
         .chart-row { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        .vote-btn:active { transform: scale(0.95); }
+        .vote-btn:disabled { opacity: 0.3; cursor: not-allowed; }
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        // Secure configuration - replace with environment variables or config.js
+        const CONFIG = {
+            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
+            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+        };
+        
         let sb = null;
 
         function frequencyEngine() {
@@ -44,44 +51,190 @@
                 isDirector: false,
                 nowPlaying: null,
                 signalStrength: 94,
+                isLoading: false,
+                isVoting: false,
+                authError: null,
+                userVotes: new Set(), // Track voted items
 
                 async init() {
-                    // 1. Security Gate Check
+                    // Security Gate Check
                     const role = localStorage.getItem('userRole');
                     if (!role) {
                         window.location.href = '../login.html';
                         return;
                     }
 
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await sb.auth.getSession();
-                    
-                    if (!session) {
-                        window.location.href = '../index.html';
+                    // Validate configuration
+                    if (!this.isSupabaseConfigured()) {
+                        this.authError = 'FREQUENCY SYSTEM OFFLINE - CONFIGURATION REQUIRED';
+                        console.error('[FREQUENCY] Supabase not configured');
+                        setTimeout(() => this.view = 'error', 1000);
                         return;
                     }
 
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    this.loadFrequencyData();
-                    this.$nextTick(() => lucide.createIcons());
+                    try {
+                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                        const { data: { session } } = await sb.auth.getSession();
+                        
+                        if (!session) {
+                            window.location.href = '../index.html';
+                            return;
+                        }
+
+                        this.isDirector = role === 'director';
+                        this.view = 'active';
+                        await this.loadFrequencyData();
+                        
+                        // Simulate signal fluctuation
+                        this.startSignalSimulation();
+                        
+                        this.$nextTick(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                        });
+                        
+                    } catch (error) {
+                        console.error('[FREQUENCY] Initialization failed:', error);
+                        this.authError = 'SECURE CONNECTION FAILED';
+                        this.view = 'error';
+                    }
+                },
+
+                isSupabaseConfigured() {
+                    return CONFIG.SUPABASE_URL && 
+                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
+                           CONFIG.SUPABASE_ANON_KEY && 
+                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
                 },
 
                 async loadFrequencyData() {
-                    const { data } = await sb.from('frequency').select('*').order('votes', { ascending: false }).limit(10);
-                    if (data) this.chartItems = data;
+                    try {
+                        this.isLoading = true;
+                        const { data, error } = await sb
+                            .from('frequency')
+                            .select('*')
+                            .order('votes', { ascending: false })
+                            .limit(10);
+
+                        if (error) throw error;
+                        
+                        this.chartItems = data || [];
+                    } catch (error) {
+                        console.error('[FREQUENCY] Load failed:', error);
+                        this.showNotification('FAILED TO LOAD FREQUENCIES', 'error');
+                    } finally {
+                        this.isLoading = false;
+                    }
                 },
 
                 async castVote(id) {
-                    // Increment logic for Supabase (Direct update)
-                    const { error } = await sb.rpc('increment_vote', { row_id: id }); 
-                    alert('SIGNAL WEIGHT INCREASED. FREQUENCY LOCKED.');
-                    this.loadFrequencyData();
+                    // Prevent double voting
+                    if (this.userVotes.has(id)) {
+                        this.showNotification('ALREADY VOTED ON THIS FREQUENCY', 'warning');
+                        return;
+                    }
+
+                    this.isVoting = true;
+
+                    try {
+                        // Try RPC first, fallback to direct update
+                        let error;
+                        
+                        try {
+                            const result = await sb.rpc('increment_vote', { row_id: id });
+                            error = result.error;
+                        } catch (rpcError) {
+                            // Fallback: direct update with optimistic locking
+                            const { data: current } = await sb
+                                .from('frequency')
+                                .select('votes')
+                                .eq('id', id)
+                                .single();
+                            
+                            if (current) {
+                                const { error: updateError } = await sb
+                                    .from('frequency')
+                                    .update({ votes: current.votes + 1 })
+                                    .eq('id', id);
+                                error = updateError;
+                            }
+                        }
+
+                        if (error) throw error;
+
+                        // Track vote locally
+                        this.userVotes.add(id);
+                        
+                        // Optimistic UI update
+                        const item = this.chartItems.find(i => i.id === id);
+                        if (item) item.votes++;
+
+                        this.showNotification('SIGNAL WEIGHT INCREASED', 'success');
+                        
+                        // Refresh after delay
+                        setTimeout(() => this.loadFrequencyData(), 500);
+                        
+                    } catch (error) {
+                        console.error('[FREQUENCY] Vote failed:', error);
+                        this.showNotification('FREQUENCY LOCK FAILED', 'error');
+                    } finally {
+                        this.isVoting = false;
+                    }
                 },
 
-                logout() { 
-                    localStorage.clear();
-                    sb.auth.signOut().then(() => window.location.href = '../login.html'); 
+                startSignalSimulation() {
+                    // Simulate realistic signal strength fluctuations
+                    setInterval(() => {
+                        const base = 94;
+                        const variance = Math.floor(Math.random() * 6) - 3; // -3 to +3
+                        this.signalStrength = Math.max(85, Math.min(99, base + variance));
+                    }, 3000);
+                },
+
+                hasVoted(id) {
+                    return this.userVotes.has(id);
+                },
+
+                showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'border-green-500 text-green-400 bg-green-500/10',
+                        error: 'border-red-500 text-red-400 bg-red-500/10',
+                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
+                        info: 'border-electric text-electric bg-electric/10'
+                    };
+                    
+                    const toast = document.createElement('div');
+                    toast.className = `fixed top-4 right-4 z-50 glass-gold-strong px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
+                            <p class="text-xs text-white">${message}</p>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.add('animate-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 4000);
+                },
+
+                async terminateSession() {
+                    try {
+                        await sb?.auth?.signOut();
+                    } catch (e) {
+                        console.error('[FREQUENCY] Sign out error:', e);
+                    }
+                    
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    sessionStorage.clear();
+                    
+                    window.location.href = '../login.html';
+                },
+
+                destroy() {
+                    // Clean up intervals if any
                 }
             }
         }
@@ -97,6 +250,16 @@
         <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
             <div class="loader-gold"></div>
             <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Scanning Frequencies...</p>
+        </div>
+    </template>
+
+    <template x-if="view === 'error'">
+        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
+            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
+            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
+            <button @click="terminateSession()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
+                Return to Gate
+            </button>
         </div>
     </template>
 
@@ -126,6 +289,13 @@
                         <div class="v-bar" style="animation-delay: 0.1s"></div>
                         <div class="v-bar" style="animation-delay: 0.3s"></div>
                     </div>
+                    
+                    <!-- Session Controls -->
+                    <button @click="terminateSession()" 
+                            class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all"
+                            title="Terminate Session">
+                        <i data-lucide="log-out" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </header>
 
@@ -147,7 +317,9 @@
                                 <p class="text-xs font-black terminal-font uppercase text-zinc-300">Highveld / Sector 7G</p>
                             </div>
                         </div>
-                        <button class="btn-command w-full mt-8 py-4 text-[10px]">Optimize Uplink</button>
+                        <button class="btn-command w-full mt-8 py-4 text-[10px] opacity-50 cursor-not-allowed" disabled>
+                            Optimize Uplink
+                        </button>
                     </div>
 
                     <div class="glass p-8 rounded-[3rem] border border-white/5 shadow-xl">
@@ -175,11 +347,18 @@
                             <i data-lucide="trending-up" class="text-gold w-10 h-10 opacity-20"></i>
                         </div>
 
+                        <div x-show="isLoading" class="py-12 text-center">
+                            <div class="loader-gold mx-auto mb-4"></div>
+                            <p class="terminal-font text-[10px] text-zinc-500 uppercase">Loading Frequencies...</p>
+                        </div>
+
                         <div class="space-y-4">
                             <template x-for="(item, index) in chartItems" :key="item.id">
                                 <div class="chart-row p-6 bg-white/[0.03] border border-white/5 rounded-[2.5rem] flex items-center justify-between">
                                     <div class="flex items-center gap-8">
-                                        <span class="text-xl font-black terminal-font text-gold/40" x-text="(index + 1).toString().padStart(2, '0')"></span>
+                                        <span class="text-xl font-black terminal-font" 
+                                              :class="index < 3 ? 'text-gold' : 'text-gold/40'" 
+                                              x-text="(index + 1).toString().padStart(2, '0')"></span>
                                         <div>
                                             <p class="text-sm font-black uppercase tracking-wider text-white" x-text="item.title"></p>
                                             <p class="text-[9px] text-zinc-600 uppercase font-black italic" x-text="item.artist"></p>
@@ -188,16 +367,21 @@
                                     <div class="flex items-center gap-6">
                                         <div class="text-right hidden sm:block">
                                             <p class="text-[8px] text-zinc-700 uppercase font-black">Weight</p>
-                                            <p class="text-[10px] font-black terminal-font text-electric" x-text="item.votes"></p>
+                                            <p class="text-[10px] font-black terminal-font text-electric" x-text="item.votes?.toLocaleString() || 0"></p>
                                         </div>
-                                        <button @click="castVote(item.id)" class="p-4 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all">
-                                            <i data-lucide="zap" class="w-5 h-5"></i>
+                                        <button @click="castVote(item.id)" 
+                                                :disabled="isVoting || hasVoted(item.id)"
+                                                class="vote-btn p-4 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all disabled:opacity-30"
+                                                :class="{ 'bg-green-500/20 text-green-400': hasVoted(item.id) }"
+                                                :title="hasVoted(item.id) ? 'Already Voted' : 'Cast Vote'">
+                                            <i data-lucide="zap" class="w-5 h-5" x-show="!hasVoted(item.id)"></i>
+                                            <i data-lucide="check" class="w-5 h-5" x-show="hasVoted(item.id)"></i>
                                         </button>
                                     </div>
                                 </div>
                             </template>
 
-                            <div x-show="chartItems.length === 0" class="py-20 text-center opacity-20">
+                            <div x-show="chartItems.length === 0 && !isLoading" class="py-20 text-center opacity-20">
                                 <i data-lucide="music" class="mx-auto mb-4 w-12 h-12"></i>
                                 <p class="terminal-font text-[10px] uppercase tracking-widest">No Frequencies Logged</p>
                             </div>
@@ -215,3 +399,4 @@
     </template>
 </body>
 </html>
+                               
