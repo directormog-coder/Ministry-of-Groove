@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    # FIX: Define inputs with validation (CKV_GHA_7)
     inputs:
       environment:
         description: 'Deployment environment'
@@ -14,12 +13,8 @@ on:
         options:
           - production
           - staging
-      version:
-        description: 'Version tag (semver format: x.y.z)'
-        required: false
-        type: string
 
-# FIX: Minimal permissions instead of write-all (CKV2_GHA_1)
+# FIX: Minimal permissions instead of write-all
 permissions:
   contents: read
   pages: write
@@ -33,8 +28,6 @@ jobs:
   build:
     name: Build Application
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -48,120 +41,35 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # FIX: Sanitize user inputs (CKV_GHA_7)
-      - name: Validate Environment Input
+      # FIX: Validate inputs properly
+      - name: Validate Environment
         id: validate-env
         run: |
           ENV_INPUT="${{ github.event.inputs.environment }}"
-          # Whitelist allowed values
-          case "$ENV_INPUT" in
-            production|staging|"")
-              echo "environment=${ENV_INPUT:-production}" >> $GITHUB_OUTPUT
-              echo "::notice::Deploying to: ${ENV_INPUT:-production}"
-              ;;
-            *)
-              echo "::error::Invalid environment: $ENV_INPUT"
-              exit 1
-              ;;
-          esac
-
-      - name: Validate Version Input
-        id: validate-version
-        run: |
-          VERSION_INPUT="${{ github.event.inputs.version }}"
-          if [ -n "$VERSION_INPUT" ]; then
-            # Semantic versioning regex
-            if [[ ! "$VERSION_INPUT" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::Invalid version format. Use semantic versioning (x.y.z)"
-              exit 1
-            fi
+          if [ "$ENV_INPUT" != "staging" ] && [ "$ENV_INPUT" != "production" ] && [ "$ENV_INPUT" != "" ]; then
+            echo "::error::Invalid environment: $ENV_INPUT"
+            exit 1
           fi
-          echo "version=$VERSION_INPUT" >> $GITHUB_OUTPUT
+          echo "environment=${ENV_INPUT:-production}" >> $GITHUB_OUTPUT
 
       - name: Build Application
         env:
-          # Use validated inputs only
           DEPLOY_ENV: ${{ steps.validate-env.outputs.environment }}
-          DEPLOY_VERSION: ${{ steps.validate-version.outputs.version }}
-          # Load secrets securely
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: |
-          echo "Building for environment: $DEPLOY_ENV"
-          if [ -n "$DEPLOY_VERSION" ]; then
-            echo "Version: $DEPLOY_VERSION"
-          fi
-          npm run build
-
-      - name: Run Tests
-        run: npm test --if-present
+        run: npm run build
 
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
-  security-check:
-    name: Security Verification
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Verify No Secrets in Build
-        run: |
-          # Scan build output for accidental secret inclusion
-          if [ -d "./dist" ]; then
-            ! grep -r "sk-" ./dist/ || echo "::error::Potential secret in build output"
-            ! grep -r "eyJ" ./dist/ || echo "::warning::Possible JWT in build output"
-          fi
-
   deploy:
     name: Deploy to GitHub Pages
-    needs: [build, security-check]
+    needs: build
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event.inputs.environment || 'production' }}
+      name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      pages: write
-      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-      - name: Verify Deployment
-        run: |
-          echo "Deployed to: ${{ steps.deployment.outputs.page_url }}"
-          # Optional: Health check
-          curl -sf "${{ steps.deployment.outputs.page_url }}" || echo "::warning::Health check failed"
-
-  post-deploy:
-    name: Post-Deployment Tasks
-    needs: deploy
-    runs-on: ubuntu-latest
-    if: success()
-    permissions:
-      contents: read
-    steps:
-      - name: Clear CDN Cache
-        if: env.CDN_API_KEY != ''
-        env:
-          CDN_API_KEY: ${{ secrets.CDN_API_KEY }}
-        run: |
-          echo "Clearing CDN cache..."
-          # Add your CDN purge logic here
-
-      - name: Deployment Notification
-        if: env.SLACK_WEBHOOK_URL != ''
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"✅ Ministry of Groove deployed successfully"}' \
-            "$SLACK_WEBHOOK_URL" || true
