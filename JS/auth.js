@@ -1,63 +1,52 @@
 /**
- * 📀 MINISTRY OF GROOVE | AUTH ENGINE v5.0
- * Secure Gatekeeping & Grid Synchronization
+ * 📀 MINISTRY OF GROOVE | AUTH ENGINE v5.1
+ * Restoration of Database-First Authentication
  */
 
 const SecureAuth = {
-    // 1. SESSION PING: Verifies database handshake
-    async verifyGrid() {
+    // 1. DATABASE LOGIN: Checks your actual uploaded Supabase users
+    async attemptManualLogin(email, password) {
         try {
-            const { data, error } = await sb.from('profiles').select('status').limit(1).single();
+            const { data, error } = await sb.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
             if (error) throw error;
-            return { status: 'SECURE', data };
+
+            // Success: Fetch the profile to see if they are a Director
+            const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+            
+            const role = profile?.role || 'operative';
+            localStorage.setItem('userRole', role);
+            
+            window.location.href = role === 'director' ? 'pages/directorate.html' : 'index.html';
         } catch (err) {
-            console.error("📡 SIGNAL LOST:", err.message);
-            return { status: 'OFFLINE' };
+            alert("ACCESS DENIED: " + err.message);
         }
     },
 
-    // 2. ROLE GATE: Determines Operative vs Director
-    handleLogin(email) {
-        // Define your Director clearance here
-        const directorEmail = 'director.mog@gmail.com'; 
-        
-        if (email === directorEmail) {
-            localStorage.setItem('userRole', 'director');
-            return 'director';
-        } else {
-            localStorage.setItem('userRole', 'operative');
-            return 'operative';
-        }
-    },
-
-    // 3. TERMINATE: Securely wipes session
-    terminate() {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = '../login.html'; // Adjust path if in /pages
+    // 2. BIOMETRIC UPLINK (Google Auth)
+    async initiateGoogleUplink() {
+        const { error } = await sb.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin
+            }
+        });
+        if (error) alert("UPLINK FAILED: " + error.message);
     }
 };
 
-// Integration with your Alpine.js Engine
+// Update your Alpine.js nccMasterEngine to use these functions
 function nccMasterEngine() {
     return {
-        view: 'gate',
-        connection: 'CONNECTING...',
-        
-        async init() {
-            const role = localStorage.getItem('userRole');
-            const { status } = await SecureAuth.verifyGrid();
-            
-            this.connection = status;
-            
-            if (role && status === 'SECURE') {
-                this.view = 'grid';
-            } else {
-                this.view = 'auth';
-            }
-            
-            // Re-render Lucide icons
-            if (window.lucide) lucide.createIcons();
+        authForm: { id: '', pass: '' },
+        async loginManual() {
+            await SecureAuth.attemptManualLogin(this.authForm.id, this.authForm.pass);
+        },
+        async loginWithGoogle() {
+            await SecureAuth.initiateGoogleUplink();
         }
     }
 }
