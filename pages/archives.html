@@ -27,8 +27,12 @@
     </style>
 
     <script>
-        const SUPABASE_URL = 'https://fgkljjgxecjmiiaptiug.supabase.co'; 
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'; 
+        // Configuration loaded from environment or config file
+        const CONFIG = {
+            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
+            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
+        };
+        
         let sb = null;
 
         function vaultEngine() {
@@ -38,67 +42,208 @@
                 isDirector: false,
                 isLoading: false,
                 vaultStatus: 'ENCRYPTED',
+                authError: null,
 
                 async init() {
-                    // 1. Security Gate Check
+                    // Security Gate Check
                     const role = localStorage.getItem('userRole');
                     if (!role) {
                         window.location.href = '../login.html';
                         return;
                     }
 
-                    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    const { data: { session } } = await sb.auth.getSession();
-                    
-                    if (!session) {
-                        window.location.href = '../index.html';
+                    // Validate Supabase configuration
+                    if (!this.isSupabaseConfigured()) {
+                        this.authError = 'Vault systems offline - configuration required';
+                        console.error('[VAULT] Supabase not configured');
                         return;
                     }
 
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    this.loadVaultData();
-                    this.vaultStatus = 'DECRYPTED';
-                    this.$nextTick(() => lucide.createIcons());
+                    sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+                    
+                    try {
+                        const { data: { session } } = await sb.auth.getSession();
+                        
+                        if (!session) {
+                            window.location.href = '../index.html';
+                            return;
+                        }
+
+                        this.isDirector = role === 'director';
+                        this.view = 'active';
+                        await this.loadVaultData();
+                        this.vaultStatus = 'DECRYPTED';
+                        this.$nextTick(() => lucide.createIcons());
+                    } catch (error) {
+                        console.error('[VAULT] Initialization error:', error);
+                        this.authError = 'Vault access denied';
+                    }
+                },
+
+                isSupabaseConfigured() {
+                    return CONFIG.SUPABASE_URL && 
+                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
+                           CONFIG.SUPABASE_ANON_KEY && 
+                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
                 },
 
                 async loadVaultData() {
-                    const { data } = await sb.from('archives').select('*').order('created_at', { ascending: false });
-                    if (data) this.files = data;
+                    try {
+                        const { data, error } = await sb
+                            .from('archives')
+                            .select('*')
+                            .order('created_at', { ascending: false });
+                        
+                        if (error) throw error;
+                        if (data) this.files = data;
+                    } catch (error) {
+                        console.error('[VAULT] Load failed:', error);
+                        this.authError = 'Failed to decrypt vault contents';
+                    }
                 },
 
                 async handleUpload(e) {
-                    if (!this.isDirector) return;
+                    if (!this.isDirector) {
+                        alert('ACCESS DENIED: Director clearance required');
+                        return;
+                    }
+                    
                     const file = e.target.files[0];
                     if (!file) return;
 
-                    this.isLoading = true;
-                    const fileName = `CLASSIFIED-${Date.now()}-${file.name}`;
-                    const { data, error } = await sb.storage.from('vault').upload(fileName, file);
-
-                    if (!error) {
-                        const { data: { publicUrl } } = sb.storage.from('vault').getPublicUrl(fileName);
-                        await sb.from('archives').insert({ 
-                            name: file.name.toUpperCase(),
-                            url: publicUrl,
-                            size: (file.size / 1024).toFixed(1) + 'KB',
-                            classification: 'CONFIDENTIAL'
-                        });
-                        this.loadVaultData();
-                        alert('VAULT UPDATED: DOCUMENT ARCHIVED.');
+                    // Validate file size (max 50MB)
+                    if (file.size > 50 * 1024 * 1024) {
+                        alert('FILE TOO LARGE: Maximum 50MB allowed');
+                        return;
                     }
-                    this.isLoading = false;
+
+                    this.isLoading = true;
+                    
+                    try {
+                        const timestamp = Date.now();
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `CLASSIFIED-${timestamp}-${MogCrypto?.generateSecureToken(8) || Math.random().toString(36).substring(2, 10)}.${fileExt}`;
+                        
+                        const { data: uploadData, error: uploadError } = await sb
+                            .storage
+                            .from('vault')
+                            .upload(fileName, file, {
+                                cacheControl: '3600',
+                                upsert: false
+                            });
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: { publicUrl } } = sb
+                            .storage
+                            .from('vault')
+                            .getPublicUrl(fileName);
+
+                        const { error: dbError } = await sb
+                            .from('archives')
+                            .insert({ 
+                                name: file.name.toUpperCase(),
+                                url: publicUrl,
+                                size: this.formatFileSize(file.size),
+                                classification: 'CONFIDENTIAL',
+                                uploaded_by: (await sb.auth.getUser()).data.user?.id,
+                                created_at: new Date().toISOString()
+                            });
+
+                        if (dbError) throw dbError;
+
+                        await this.loadVaultData();
+                        this.showNotification('VAULT UPDATED: DOCUMENT ARCHIVED', 'success');
+                        
+                    } catch (error) {
+                        console.error('[VAULT] Upload failed:', error);
+                        this.showNotification('ARCHIVE FAILED: ' + error.message, 'error');
+                    } finally {
+                        this.isLoading = false;
+                        e.target.value = ''; // Reset input
+                    }
                 },
 
                 async redactFile(id) {
-                    if (!this.isDirector) return;
-                    if (confirm("REDACT THIS DOCUMENT? THIS ACTION IS IRREVERSIBLE.")) {
-                        const { error } = await sb.from('archives').delete().eq('id', id);
-                        if (!error) {
-                            this.loadVaultData();
-                            alert("DOCUMENT REDACTED.");
-                        }
+                    if (!this.isDirector) {
+                        alert('ACCESS DENIED: Director clearance required');
+                        return;
                     }
+
+                    if (!confirm("REDACT THIS DOCUMENT? THIS ACTION IS IRREVERSIBLE.")) {
+                        return;
+                    }
+
+                    try {
+                        // Get file info first to delete from storage
+                        const { data: fileData } = await sb
+                            .from('archives')
+                            .select('url')
+                            .eq('id', id)
+                            .single();
+
+                        const { error: deleteError } = await sb
+                            .from('archives')
+                            .delete()
+                            .eq('id', id);
+
+                        if (deleteError) throw deleteError;
+
+                        // Attempt to delete from storage if URL exists
+                        if (fileData?.url) {
+                            const path = fileData.url.split('/').pop();
+                            if (path) {
+                                await sb.storage.from('vault').remove([path]);
+                            }
+                        }
+
+                        await this.loadVaultData();
+                        this.showNotification('DOCUMENT REDACTED PERMANENTLY', 'success');
+                        
+                    } catch (error) {
+                        console.error('[VAULT] Redaction failed:', error);
+                        this.showNotification('REDACTION FAILED', 'error');
+                    }
+                },
+
+                formatFileSize(bytes) {
+                    if (bytes === 0) return '0 Bytes';
+                    const k = 1024;
+                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                    const i = Math.floor(Math.log(bytes) / Math.log(k));
+                    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i];
+                },
+
+                showNotification(message, type = 'info') {
+                    // Create toast notification
+                    const toast = document.createElement('div');
+                    const colors = {
+                        success: 'border-green-500 text-green-400',
+                        error: 'border-red-500 text-red-400',
+                        info: 'border-electric text-electric'
+                    };
+                    
+                    toast.className = `fixed top-4 right-4 z-50 glass-vault px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in`;
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
+                            <p class="text-xs text-white">${message}</p>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.classList.add('animate-fade-out');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 5000);
+                },
+
+                terminateSession() {
+                    sb?.auth?.signOut();
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('userData');
+                    window.location.href = '../index.html';
                 }
             }
         }
@@ -110,10 +255,16 @@
     <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
     <div class="circuit-vignette"></div>
 
+    <!-- Error Display -->
+    <div x-show="authError" x-cloak class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500/10 border border-red-500/30 px-6 py-3 rounded-lg">
+        <p class="text-xs text-red-400 uppercase tracking-wider" x-text="authError"></p>
+    </div>
+
     <template x-if="view === 'gate'">
         <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
             <div class="loader-gold"></div>
             <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Bypassing Vault Encryption...</p>
+            <p x-show="authError" class="text-[10px] text-red-500 uppercase tracking-wider" x-text="authError"></p>
         </div>
     </template>
 
@@ -136,11 +287,17 @@
                         <p class="text-[9px] text-zinc-700 font-black uppercase tracking-widest">Vault Status</p>
                         <p class="text-xs font-black terminal-font text-electric" x-text="vaultStatus"></p>
                     </div>
+                    
+                    <!-- Session Controls -->
+                    <button @click="terminateSession()" class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all" title="Terminate Session">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </button>
+
                     <template x-if="isDirector">
                         <label class="cursor-pointer bg-gold text-black px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3">
                             <i data-lucide="file-plus" class="w-4 h-4"></i>
                             <span x-text="isLoading ? 'Archiving...' : 'Archive Data'"></span>
-                            <input type="file" @change="handleUpload" class="hidden">
+                            <input type="file" @change="handleUpload" class="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.mov">
                         </label>
                     </template>
                 </div>
@@ -165,17 +322,17 @@
                                     <p class="text-[11px] font-black uppercase text-white tracking-widest" x-text="file.name"></p>
                                     <div class="flex gap-4 mt-1">
                                         <span class="text-[8px] text-zinc-600 font-black uppercase" x-text="file.size"></span>
-                                        <span class="text-[8px] text-electric font-black uppercase tracking-tighter">Level: Confidential</span>
+                                        <span class="text-[8px] text-electric font-black uppercase tracking-tighter" x-text="'Level: ' + (file.classification || 'CONFIDENTIAL')"></span>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex items-center gap-4">
-                                <a :href="file.url" download class="p-4 bg-white/5 text-zinc-400 rounded-xl border border-white/5 hover:text-white hover:bg-white/10 transition-all">
+                                <a :href="file.url" download class="p-4 bg-white/5 text-zinc-400 rounded-xl border border-white/5 hover:text-white hover:bg-white/10 transition-all" title="Download">
                                     <i data-lucide="download" class="w-5 h-5"></i>
                                 </a>
                                 <template x-if="isDirector">
-                                    <button @click="redactFile(file.id)" class="redact-btn p-4 bg-white/5 text-red-500 border border-red-900/20 rounded-xl transition-all">
+                                    <button @click="redactFile(file.id)" class="redact-btn p-4 bg-white/5 text-red-500 border border-red-900/20 rounded-xl transition-all" title="Redact Document">
                                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                                     </button>
                                 </template>
