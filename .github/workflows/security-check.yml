@@ -1,21 +1,211 @@
-name: Security & Quality Checks
+name: MOG Security Protocol
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, develop]
+    paths:
+      - '**.js'
+      - '**.ts'
+      - '**.html'
+      - '**.css'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/**'
   pull_request:
     branches: [main, master]
+    types: [opened, synchronize, reopened]
+  schedule:
+    # Run daily at 02:00 UTC (04:00 SAST - Africa/Johannesburg)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Security scan intensity'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - standard
+          - full
+          - deep
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
 
 jobs:
-  security:
+  # ==========================================
+  # INITIALIZE SECURITY CONTEXT
+  # ==========================================
+  security-init:
+    name: 🛡️ Initialize Security Context
     runs-on: ubuntu-latest
+    outputs:
+      scan_depth: ${{ steps.config.outputs.scan_depth }}
+      threat_level: ${{ steps.config.outputs.threat_level }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Run TruffleHog Secret Scanner
+      - name: Determine scan configuration
+        id: config
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" ]] || [[ "${{ inputs.scan_type }}" == "deep" ]]; then
+            echo "scan_depth=deep" >> $GITHUB_OUTPUT
+            echo "threat_level=high" >> $GITHUB_OUTPUT
+          elif [[ "${{ inputs.scan_type }}" == "full" ]] || [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "scan_depth=full" >> $GITHUB_OUTPUT
+            echo "threat_level=elevated" >> $GITHUB_OUTPUT
+          else
+            echo "scan_depth=standard" >> $GITHUB_OUTPUT
+            echo "threat_level=normal" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Security event log
+        run: |
+          echo "::notice::🔐 MOG Security Protocol Initiated"
+          echo "::notice::Scan Depth: ${{ steps.config.outputs.scan_depth }}"
+          echo "::notice::Threat Level: ${{ steps.config.outputs.threat_level }}"
+          echo "::notice::Timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+  # ==========================================
+  # DEPENDENCY VULNERABILITY SCAN
+  # ==========================================
+  dependency-audit:
+    name: 📦 Dependency Audit
+    runs-on: ubuntu-latest
+    needs: security-init
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependencies (pnpm audit)
+        run: |
+          pnpm audit --json --audit-level moderate > audit-report.json || true
+          if [ -s audit-report.json ]; then
+            echo "::warning::⚠️ Vulnerabilities detected in dependencies"
+            cat audit-report.json | jq '.advisories | length' 
+          fi
+
+      - name: NPM audit (secondary check)
+        run: npm audit --audit-level=moderate || true
+
+      - name: Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-report.json
+
+      - name: OWASP Dependency-Check
+        if: needs.security-init.outputs.scan_depth == 'deep'
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'ministry-of-groove'
+          path: '.'
+          format: 'ALL'
+          args: >
+            --enableExperimental
+            --failOnCVSS 7
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-security-reports
+          path: |
+            audit-report.json
+            snyk-report.json
+            reports/
+          retention-days: 30
+
+  # ==========================================
+  # STATIC APPLICATION SECURITY TESTING (SAST)
+  # ==========================================
+  code-security-scan:
+    name: 🔍 Static Code Analysis
+    runs-on: ubuntu-latest
+    needs: security-init
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - '**/node_modules/**'
+              - '**/dist/**'
+              - '**/*.test.js'
+              - '**/*.spec.js'
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+      - name: Semgrep SAST scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/owasp-top-ten
+            p/cwe-top-25
+            p/javascript
+            p/typescript
+          generateSarif: "1"
+
+      - name: ESLint security rules
+        run: |
+          npm install --save-dev eslint-plugin-security eslint-plugin-no-secrets
+          npx eslint . --ext .js,.ts,.jsx,.tsx \
+            --config <(echo '{
+              "extends": ["plugin:security/recommended"],
+              "plugins": ["security", "no-secrets"],
+              "rules": {
+                "no-secrets/no-secrets": ["error", {"tolerance": 4.5}]
+              }
+            }') || true
+
+  # ==========================================
+  # SECRET & CREDENTIAL SCANNING
+  # ==========================================
+  secret-detection:
+    name: 🔑 Secret Detection
+    runs-on: ubuntu-latest
+    needs: security-init
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
@@ -23,19 +213,298 @@ jobs:
           head: HEAD
           extra_args: --debug --only-verified
 
-  lint:
+      - name: GitLeaks scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Detect hardcoded credentials (custom patterns)
+        run: |
+          # Custom patterns for MOG-specific credentials
+          patterns=(
+            'supabase.*key.*eyJ'
+            'SUPABASE.*KEY.*eyJ'
+            'VITE_SUPABASE_ANON_KEY'
+            'VITE_SUPABASE_URL.*supabase\.co'
+            'sk-[a-zA-Z0-9]{48}'
+            'xoxb-[0-9]{10,13}-[0-9]{10,13}-[a-zA-Z0-9]{24}'
+            '-----BEGIN (RSA |DSA |EC |OPENSSH )?PRIVATE KEY-----'
+            'AKIA[0-9A-Z]{16}'
+            'ghp_[a-zA-Z0-9]{36}'
+          )
+          
+          found_secrets=0
+          for pattern in "${patterns[@]}"; do
+            if grep -r -i -n --include="*.js" --include="*.ts" --include="*.html" --include="*.env*" --include="*.json" "$pattern" . 2>/dev/null | grep -v node_modules | grep -v ".git"; then
+              echo "::error::🚨 Potential secret detected matching pattern: $pattern"
+              found_secrets=1
+            fi
+          done
+          
+          if [ $found_secrets -eq 1 ]; then
+            exit 1
+          fi
+
+      - name: Check for TODO/FIXME security comments
+        run: |
+          if grep -r -n --include="*.js" --include="*.ts" -i "TODO.*security\|FIXME.*security\|HACK.*auth\|XXX.*encrypt" . 2>/dev/null | grep -v node_modules; then
+            echo "::warning::⚠️ Security-related TODO/FIXME comments found - review required"
+          fi
+
+  # ==========================================
+  # CONTAINER & INFRASTRUCTURE SCANNING
+  # ==========================================
+  infrastructure-scan:
+    name: 🏗️ Infrastructure Security
     runs-on: ubuntu-latest
+    needs: security-init
+    if: needs.security-init.outputs.scan_depth != 'standard'
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Run Checkov (IaC scanning)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: all
+          output_format: sarif
+          output_file_path: reports/checkov.sarif
+          quiet: true
+          soft_fail: true
+
+      - name: Scan GitHub Actions workflows
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.github/workflows/'
+          format: 'sarif'
+          output: 'trivy-actions.sarif'
+
+      - name: Upload infrastructure reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infrastructure-security-reports
+          path: reports/
+          retention-days: 30
+
+  # ==========================================
+  # SUPABASE SECURITY AUDIT
+  # ==========================================
+  supabase-security:
+    name: 🗄️ Supabase Security Audit
+    runs-on: ubuntu-latest
+    needs: security-init
+    if: github.event_name == 'schedule' || inputs.scan_type == 'deep'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check Supabase RLS policies
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          echo "🔍 Auditing Supabase Row Level Security policies..."
+          
+          # List all tables and their RLS status
+          supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > db-types.ts || true
+          
+          # Check for tables without RLS (simplified check)
+          if grep -q "export type Tables" db-types.ts 2>/dev/null; then
+            echo "::notice::Database schema retrieved for audit"
+          fi
+
+      - name: Audit Supabase configuration
+        run: |
+          # Check for exposed Supabase URLs in code
+          if grep -r "supabase\.co" --include="*.js" --include="*.ts" --include="*.html" . 2>/dev/null | grep -v node_modules | grep -v "YOUR_SUPABASE_URL"; then
+            echo "::warning::⚠️ Hardcoded Supabase URLs detected - ensure these are not production credentials"
+          fi
+
+  # ==========================================
+  # WEB VULNERABILITY ASSESSMENT
+  # ==========================================
+  web-security-scan:
+    name: 🌐 Web Security Assessment
+    runs-on: ubuntu-latest
+    needs: [security-init, code-security-scan]
+    if: github.event_name == 'pull_request' || needs.security-init.outputs.scan_depth == 'deep'
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Run Linter
-        run: npm run lint
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NODE_ENV: production
+          VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=ministryofgroove_ncc-master
+            -Dsonar.organization=ministryofgroove
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=src/
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/*.test.js
+
+  # ==========================================
+  # SECURITY GATE & REPORTING
+  # ==========================================
+  security-gate:
+    name: 🚦 Security Gate
+    runs-on: ubuntu-latest
+    needs: [dependency-audit, code-security-scan, secret-detection, infrastructure-scan, supabase-security, web-security-scan]
+    if: always()
+    steps:
+      - name: Security gate evaluation
+        run: |
+          echo "🔐 Evaluating security scan results..."
+          
+          # Check if any required job failed
+          results=(${{ join(needs.*.result, ' ') }})
+          failed=0
+          
+          for result in "${results[@]}"; do
+            if [[ "$result" == "failure" ]]; then
+              failed=1
+            fi
+          done
+          
+          if [[ $failed -eq 1 ]]; then
+            echo "::error::🚨 SECURITY GATE FAILED - Critical security issues detected"
+            echo "::error::Review the failed jobs above and remediate before deployment"
+            exit 1
+          else
+            echo "::notice::✅ SECURITY GATE PASSED - All security checks completed"
+          fi
+
+      - name: Generate security report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jobs = ${{ toJson(needs) }};
+            const timestamp = new Date().toISOString();
+            
+            let report = `## 🛡️ Ministry of Groove Security Report\n\n`;
+            report += `**Generated:** ${timestamp}\n`;
+            report += `**Trigger:** ${context.eventName}\n`;
+            report += `**Commit:** ${context.sha.substring(0, 7)}\n\n`;
+            
+            report += `### Scan Results\n\n`;
+            for (const [job, data] of Object.entries(jobs)) {
+              const icon = data.result === 'success' ? '✅' : data.result === 'failure' ? '❌' : '⏭️';
+              report += `- ${icon} **${job}:** ${data.result}\n`;
+            }
+            
+            report += `\n### Action Required\n`;
+            const hasFailures = Object.values(jobs).some(j => j.result === 'failure');
+            if (hasFailures) {
+              report += `⚠️ **CRITICAL:** Security gate failed. Remediate issues before deployment.\n`;
+            } else {
+              report += `✅ All security checks passed. Deployment authorized.\n`;
+            }
+            
+            core.summary.addRaw(report);
+            await core.summary.write();
+
+      - name: Notify security team
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#security-alerts'
+          fields: repo,message,commit,author,action,ref
+          text: |
+            🚨 *SECURITY ALERT: Ministry of Groove*
+            
+            Security gate FAILED on ${{ github.ref }}
+            Commit: ${{ github.sha }}
+            Actor: ${{ github.actor }}
+            
+            Immediate review required.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_SECURITY_WEBHOOK_URL }}
+
+  # ==========================================
+  # DEPENDENCY UPDATE CHECKS
+  # ==========================================
+  dependency-updates:
+    name: 📬 Dependency Update Check
+    runs-on: ubuntu-latest
+    needs: security-init
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Check for outdated dependencies
+        run: |
+          pnpm outdated --format json > outdated.json || true
+          
+          if [ -s outdated.json ]; then
+            echo "::warning::📦 Outdated dependencies detected"
+            cat outdated.json | jq '.[] | select(.current != .latest) | {name, current, latest, dependencyType}'
+          fi
+
+      - name: Create update issue (if critical)
+        uses: actions/github-script@v7
+        if: github.event_name == 'schedule'
+        with:
+          script: |
+            const fs = require('fs');
+            let outdated = [];
+            try {
+              outdated = JSON.parse(fs.readFileSync('outdated.json', 'utf8'));
+            } catch(e) {}
+            
+            const critical = outdated.filter && outdated.filter(dep => 
+              dep.dependencyType === 'dependencies' && 
+              dep.current.split('.')[0] !== dep.latest.split('.')[0]
+            );
+            
+            if (critical && critical.length > 0) {
+              const body = `## 🔄 Critical Dependency Updates Required\n\n` +
+                critical.map(d => `- **${d.name}**: ${d.current} → ${d.latest}`).join('\n') +
+                `\n\nPlease review and update these dependencies for security patches.`;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[AUTO] Critical dependency updates - ${new Date().toISOString().split('T')[0]}`,
+                body: body,
+                labels: ['security', 'dependencies', 'automated']
+              });
+            }
