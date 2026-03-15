@@ -18,14 +18,14 @@ The **NCC MASTER** is a high-security Progressive Web App (PWA) designed for the
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Frontend** | HTML5, CSS3, Tailwind CSS | Tactical UI/UX |
-| **State** | Alpine.js 3.x | Reactive components |
+| **Frontend** | HTML5, CSS3, Vanilla JS | Tactical UI/UX |
+| **State** | Vanilla JS + Custom Events | Component communication |
 | **Backend** | Supabase (Auth, PostgreSQL, Storage) | Secure data & real-time |
 | **Crypto** | Web Crypto API (AES-GCM, SHA-256, PBKDF2) | Client-side encryption |
 | **Storage** | Supabase Storage + Signed URLs | Secure asset management |
-| **CI/CD** | GitHub Actions | Automated deployment |
-| **Hosting** | Vercel + AWS S3/CloudFront | Edge distribution |
-| **PWA** | Service Worker | Offline capability |
+| **CI/CD** | GitHub Actions | Automated deployment & security checks |
+| **Hosting** | Vercel + GitHub Pages | Edge distribution |
+| **PWA** | Service Worker + Manifest | Offline capability |
 
 ---
 
@@ -39,7 +39,7 @@ The **NCC MASTER** is a high-security Progressive Web App (PWA) designed for the
 
 ### Secure Storage Implementation
 - Direct credential exposure eliminated
-- Environment-based configuration management
+- Environment-based configuration via `inject-env.js`
 - Signed URL generation for asset access
 - Row Level Security (RLS) policies enforced
 
