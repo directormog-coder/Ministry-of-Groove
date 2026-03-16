@@ -3,254 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
     <meta name="robots" content="noindex, nofollow">
     <title>Ministry of Groove | Secure Access Terminal</title>
     
-    <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <!-- Tactical Background -->
+<body class="bg-black text-white">
     <div class="bg-circuit-pattern"></div>
     <div class="circuit-vignette"></div>
 
-    <!-- Main Auth Container -->
-    <main class="auth-container glass" style="margin-top: 10vh; position: relative; z-index: 10;">
+    <main class="auth-container glass" style="margin-top: 10vh; position: relative; z-index: 10; max-width: 400px; margin-left: auto; margin-right: auto; padding: 2rem; border-radius: 2rem; border: 1px solid rgba(212, 175, 55, 0.2);">
         
-        <!-- Header -->
         <div style="text-align: center; margin-bottom: 2rem;">
-            <div class="terminal-font text-gold glow-gold" style="font-size: 24px; margin: 0; letter-spacing: 0.2em;">
+            <div class="terminal-font" style="font-size: 24px; color: #D4AF37; letter-spacing: 0.2em; font-weight: bold;">
                 MINISTRY OF GROOVE
             </div>
-            <div class="text-muted terminal-font" style="font-size: 12px; margin-top: 0.5rem; letter-spacing: 0.1em;">
-                // SECURE ACCESS TERMINAL v{{APP_VERSION}}
-            </div>
-            <div class="terminal-font" style="font-size: 10px; color: var(--electric-blue); margin-top: 0.25rem;">
-                [SUPABASE_SECURE_CONNECTION_ESTABLISHED]
+            <div style="font-size: 10px; color: #00F2FF; margin-top: 0.5rem;" class="terminal-font">
+                [GRID_UPLINK_SECURE_v5.2.3]
             </div>
         </div>
 
-        <!-- Auth Error Display -->
-        <div id="auth-alert" class="terminal-font" style="color: var(--critical-red); font-size: 12px; text-align: center; margin-bottom: 1rem; padding: 8px; border: 1px solid var(--critical-red); background: rgba(255, 75, 43, 0.1); border-radius: 4px; display: none;">
+        <div id="auth-alert" style="color: #ff4b2b; font-size: 11px; text-align: center; margin-bottom: 1rem; padding: 10px; border: 1px solid #ff4b2b; background: rgba(255, 75, 43, 0.1); border-radius: 8px; display: none;" class="terminal-font">
         </div>
 
-        <!-- Email/Password Form -->
-        <form class="form-tactical" id="login-form" onsubmit="handleEmailLogin(event)">
-            <input 
-                type="email" 
-                id="email" 
-                class="input-tactical" 
-                placeholder="OPERATIVE_ID@DOMAIN" 
-                required
-                autocomplete="email"
-                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-            >
-            <input 
-                type="password" 
-                id="password" 
-                class="input-tactical" 
-                placeholder="ACCESS_CODE" 
-                required
-                autocomplete="current-password"
-                minlength="8"
-            >
-            <button type="submit" class="btn-command" style="width: 100%;">
+        <form id="login-form" onsubmit="handleEmailLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+            <input type="email" id="email" class="ncc-input" placeholder="OPERATIVE_ID" required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white; text-align: center;">
+            <input type="password" id="password" class="ncc-input" placeholder="ACCESS_CODE" required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white; text-align: center;">
+            <button type="submit" class="btn-command" style="width: 100%; padding: 14px; background: #D4AF37; color: black; font-weight: bold; border-radius: 8px; cursor: pointer; border: none;">
                 AUTHENTICATE
             </button>
         </form>
 
-        <!-- Magic Link Option -->
-        <div style="text-align: center; margin-top: 1rem;">
-            <button onclick="toggleMagicLink()" class="terminal-font text-gold" style="background: none; border: none; cursor: pointer; font-size: 11px; text-decoration: underline;">
-                USE MAGIC LINK INSTEAD
-            </button>
+        <div class="auth-divider" style="display: flex; align-items: center; gap: 10px; margin: 1.5rem 0; opacity: 0.3;">
+            <div style="flex: 1; height: 1px; background: white;"></div>
+            <span style="font-size: 9px;">OR</span>
+            <div style="flex: 1; height: 1px; background: white;"></div>
         </div>
 
-        <!-- Magic Link Form (Hidden by default) -->
-        <form class="form-tactical" id="magic-link-form" onsubmit="handleMagicLink(event)" style="display: none; margin-top: 1rem;">
-            <input 
-                type="email" 
-                id="magic-email" 
-                class="input-tactical" 
-                placeholder="OPERATIVE_ID@DOMAIN" 
-                required
-                autocomplete="email"
-            >
-            <button type="submit" class="btn-command" style="width: 100%;">
-                SEND SECURE LINK
-            </button>
-        </form>
-
-        <!-- Session Status -->
-        <div id="session-status" class="terminal-font" style="font-size: 11px; text-align: center; margin-top: 1rem; color: var(--electric-blue); display: none;">
-        </div>
-
-        <!-- Abort/Logout -->
-        <button class="btn-command btn-danger" style="width: 100%; margin-top: 1rem;" onclick="abortSession()" id="abort-btn">
-            ABORT SESSION
+        <button onclick="loginWithGoogle()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;" class="terminal-font">
+            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" style="width: 16px;">
+            BIOMETRIC UPLINK
         </button>
 
+        <p style="font-size: 8px; color: rgba(255,255,255,0.2); text-align: center; margin-top: 2rem; letter-spacing: 0.3em;" class="terminal-font">
+            UNAUTHORIZED ACCESS RECORDED
+        </p>
     </main>
 
     <script>
-        // ==========================================
-        // SECURE CONFIGURATION (INJECTED AT BUILD)
-        // ==========================================
-        const SUPABASE_URL = '{{SUPABASE_URL}}';
-        const SUPABASE_ANON_KEY = '{{SUPABASE_ANON_KEY}}';
-        
-        // Security: Validate injection worked
-        if (SUPABASE_ANON_KEY === '{{SUPABASE_ANON_KEY}}') {
-            console.error('[MOG SECURITY] Build injection failed - check environment variables');
-        }
-        
-        // Initialize Supabase
-        let supabase = null;
-        
-        try {
-            if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('{{')) {
-                throw new Error('Invalid Supabase configuration');
-            }
-            
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                auth: {
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true
-                }
-            });
-            
-            console.log('[MOG AUTH] Secure connection established');
-        } catch (error) {
-            console.error('[MOG AUTH] Initialization failed:', error);
-            document.body.innerHTML = '<div style="color:red;text-align:center;padding:50px;">AUTHENTICATION SERVICE UNAVAILABLE</div>';
-            throw error;
-        }
+        const CONFIG = {
+            URL: 'https://fgkljjgxecjmiiaptiug.supabase.co',
+            KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0iugiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'
+        };
 
-        // ==========================================
-        // AUTH HANDLERS
-        // ==========================================
-        
+        const supabase = window.supabase.createClient(CONFIG.URL, CONFIG.KEY);
+
         async function handleEmailLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim().toLowerCase();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            
-            // Basic validation
-            if (!email || !password) {
-                showAlert('ACCESS_DENIED: Credentials required');
-                return;
-            }
-            
-            if (password.length < 8) {
-                showAlert('ACCESS_DENIED: Invalid access code format');
-                return;
-            }
-            
+
             try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email, 
-                    password
-                });
-                
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                
-                // Security: Clear sensitive fields
-                document.getElementById('password').value = '';
-                
-                // Redirect based on role
-                const role = data.user?.user_metadata?.role || 'operative';
-                const redirectMap = {
-                    'director': '/pages/directorate.html',
-                    'operative': '/hub.html',
-                    'admin': '/pages/admin.html'
-                };
-                
-                window.location.href = redirectMap[role] || '/hub.html';
-                
+                syncAndRedirect(data.user);
             } catch (error) {
                 showAlert(`ACCESS_DENIED: ${error.message}`);
-                document.getElementById('password').value = '';
             }
         }
 
-        async function handleMagicLink(e) {
-            e.preventDefault();
-            const email = document.getElementById('magic-email').value.trim().toLowerCase();
+        async function loginWithGoogle() {
+            await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin }
+            });
+        }
+
+        async function syncAndRedirect(user) {
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+            const role = profile?.role || (user.email === 'director.mog@gmail.com' ? 'director' : 'operative');
             
-            if (!email) {
-                showAlert('ACCESS_DENIED: Email required');
-                return;
-            }
+            localStorage.setItem('userRole', role);
             
-            try {
-                const { error } = await supabase.auth.signInWithOtp({
-                    email,
-                    options: {
-                        emailRedirectTo: window.location.origin + '/hub.html'
-                    }
-                });
-                
-                if (error) throw error;
-                
-                showAlert('SUCCESS: Secure link dispatched to your terminal');
-                document.getElementById('magic-email').value = '';
-                
-            } catch (error) {
-                showAlert(`TRANSMISSION_FAILED: ${error.message}`);
-            }
+            // ABSOLUTE REDIRECTS to stop the 404s
+            const dest = (role === 'director') ? '/directorate' : '/index.html';
+            window.location.assign(window.location.origin + dest);
         }
 
-        function toggleMagicLink() {
-            const form = document.getElementById('magic-link-form');
-            const isVisible = form.style.display !== 'none';
-            form.style.display = isVisible ? 'none' : 'block';
-        }
-
-        async function abortSession() {
-            try {
-                await supabase.auth.signOut();
-            } catch (e) {
-                console.error('Logout error:', e);
-            }
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = '/';
-        }
-
-        function showAlert(message) {
+        function showAlert(msg) {
             const alert = document.getElementById('auth-alert');
-            alert.textContent = message;
+            alert.textContent = msg;
             alert.style.display = 'block';
             setTimeout(() => alert.style.display = 'none', 5000);
         }
 
-        // ==========================================
-        // SECURITY: Prevent credential caching
-        // ==========================================
-        window.addEventListener('beforeunload', () => {
-            document.getElementById('password').value = '';
-        });
-
-        // ==========================================
-        // INIT
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check existing session
-            supabase.auth.getSession().then(({ data: { session } }) => {
-                if (session) {
-                    const role = session.user?.user_metadata?.role || 'operative';
-                    const redirectMap = {
-                        'director': '/pages/directorate.html',
-                        'operative': '/hub.html',
-                        'admin': '/pages/admin.html'
-                    };
-                    window.location.href = redirectMap[role] || '/hub.html';
-                }
-            });
+        // Auto-check session on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) syncAndRedirect(session.user);
         });
     </script>
 </body>
