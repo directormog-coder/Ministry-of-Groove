@@ -1,31 +1,34 @@
 {
+  "version": 2,
   "name": "ministry-of-groove",
-  "version": "5.1.0",
-  "description": "Central Operations Gate & Classified Cultural Archive - Secure PWA",
-  "private": true,
-  "scripts": {
-    "build": "node scripts/inject-env.js",
-    "vercel-build": "npm run build",
-    "local-build": "node -e \"require('dotenv').config(); require('./scripts/inject-env.js')\"",
-    "lint": "echo 'No linting configured' && exit 0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/directormog-coder/Ministry-of-Groove.git"
-  },
-  "keywords": [
-    "supabase",
-    "pwa",
-    "secure",
-    "classified",
-    "apple-signin"
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  
+  "rewrites": [
+    {
+      "source": "/auth/callback",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/directorate",
+      "destination": "/pages/directorate.html"
+    }
   ],
-  "author": "directormog-coder",
-  "license": "UNLICENSED",
-  "devDependencies": {
-    "dotenv": "^16.3.1"
-  },
-  "engines": {
-    "node": ">=22.x"
-  }
+  
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
+        }
+      ]
+    }
+  ]
 }
