@@ -11,8 +11,8 @@
     <title>MINISTRY OF GROOVE | NCC MASTER v5.2.3</title>
     
     <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://qqlcwqkpdnxzrhrnkbjg.supabase.co">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://qqlcwqkpdnxzrhrnkbjg.supabase.co">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
     
-    <!-- Environment Config (Load First) -->
+    <!-- Environment Config -->
     <script src="config/env.js"></script>
     
     <!-- Tailwind Config -->
@@ -66,6 +66,7 @@
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'scan': 'scan 4s linear infinite',
                         'glow': 'glow 2s ease-in-out infinite alternate',
+                        'float': 'float 6s ease-in-out infinite',
                     },
                     keyframes: {
                         scan: {
@@ -75,6 +76,10 @@
                         glow: {
                             '0%': { boxShadow: '0 0 5px rgba(212, 175, 55, 0.2)' },
                             '100%': { boxShadow: '0 0 20px rgba(212, 175, 55, 0.6), 0 0 40px rgba(212, 175, 55, 0.3)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
                         }
                     }
                 }
@@ -83,18 +88,10 @@
     </script>
     
     <style>
-        /* Base Reset */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         [x-cloak] { display: none !important; }
         
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
         
         body {
             font-family: 'JetBrains Mono', monospace;
@@ -105,26 +102,46 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        /* MOG Logo Background */
+        .mog-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('assets/images/logo.png');
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 70vmin;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+            animation: slowPulse 10s ease-in-out infinite;
         }
         
-        ::-webkit-scrollbar-track {
-            background: #0a0a0f;
+        @keyframes slowPulse {
+            0%, 100% { opacity: 0.04; transform: scale(1); }
+            50% { opacity: 0.08; transform: scale(1.02); }
         }
         
-        ::-webkit-scrollbar-thumb {
-            background: #D4AF37;
-            border-radius: 4px;
+        /* Circuit Pattern Overlay */
+        .circuit-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 242, 255, 0.03) 0%, transparent 50%),
+                linear-gradient(rgba(0, 242, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 242, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
+            pointer-events: none;
+            z-index: 1;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
-            background: #E5C158;
-        }
-        
-        /* Glass Morphism */
+        /* Glass Gold */
         .glass-gold { 
             background: rgba(10, 10, 15, 0.95); 
             backdrop-filter: blur(20px); 
@@ -171,6 +188,35 @@
             box-shadow: 0 20px 40px -15px rgba(0, 242, 255, 0.2);
         }
         
+        /* Directorate Tile - Special styling */
+        .directorate-tile {
+            background: rgba(17, 17, 17, 0.9);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            position: relative;
+        }
+        
+        .directorate-tile::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/images/logo.png');
+            background-position: center;
+            background-size: 150%;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+        
+        .directorate-tile:hover::after {
+            opacity: 0.1;
+        }
+        
+        .directorate-tile:hover {
+            border-color: #D4AF37;
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 20px 40px -15px rgba(212, 175, 55, 0.4);
+        }
+        
         /* Branding */
         .brand-title { 
             font-family: 'JetBrains Mono', monospace; 
@@ -181,23 +227,9 @@
         }
         
         .text-electric { color: #00F2FF; }
-        
-        /* Circuit Pattern Background */
-        .bg-circuit-pattern {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(0, 242, 255, 0.03) 0%, transparent 50%),
-                linear-gradient(rgba(0, 242, 255, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 242, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 100% 100%, 50px 50px, 50px 50px;
-            pointer-events: none;
-            z-index: -1;
-        }
+        .text-gold { color: #D4AF37; }
+        .bg-gold { background-color: #D4AF37; }
+        .bg-gold:hover { background-color: #E5C158; }
         
         /* Form Inputs */
         .ncc-input {
@@ -219,11 +251,6 @@
             letter-spacing: 0.2em;
         }
         
-        /* Utility Classes */
-        .bg-gold { background-color: #D4AF37; }
-        .bg-gold:hover { background-color: #E5C158; }
-        .text-gold { color: #D4AF37; }
-        
         /* Animations */
         .loading-pulse {
             animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -241,10 +268,6 @@
         }
         
         /* Scanline Effect */
-        .scanlines {
-            position: relative;
-        }
-        
         .scanlines::after {
             content: "";
             position: absolute;
@@ -339,11 +362,27 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+        
+        /* Logo styling */
+        .logo-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo-glow {
+            position: absolute;
+            inset: -20%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%);
+            animation: pulse-slow 3s ease-in-out infinite;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body x-data="nccMasterEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen overflow-x-hidden font-mono antialiased selection:bg-gold selection:text-black">
 
-    <div class="bg-circuit-pattern" aria-hidden="true"></div>
+    <!-- MOG Logo Background -->
+    <div class="mog-bg" aria-hidden="true"></div>
+    <div class="circuit-overlay" aria-hidden="true"></div>
 
     <!-- Toast Container -->
     <div class="toast-container">
@@ -366,11 +405,10 @@
          class="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center backdrop-blur-sm"
          x-transition.opacity.duration.300ms>
         <div class="text-center">
-            <div class="relative w-20 h-20 mb-6">
+            <div class="relative w-24 h-24 mb-6 mx-auto">
                 <div class="absolute inset-0 border-2 border-gold/20 rounded-full"></div>
                 <div class="absolute inset-0 border-2 border-gold border-t-transparent rounded-full animate-spin"></div>
-                <div class="absolute inset-2 border-2 border-electric/20 rounded-full"></div>
-                <div class="absolute inset-2 border-2 border-electric border-b-transparent rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                <img src="assets/images/logo.png" alt="MOG" class="absolute inset-2 w-20 h-20 rounded-full opacity-60 animate-pulse-slow">
             </div>
             <p class="text-gold text-xs tracking-[0.3em] uppercase loading-pulse" x-text="loadingText"></p>
             <p class="text-[10px] text-zinc-600 mt-2" x-text="loadingSubtext"></p>
@@ -383,13 +421,12 @@
             <div class="w-full max-w-[420px] space-y-8 relative z-10">
                 <!-- Logo Section -->
                 <div class="flex flex-col items-center text-center">
-                    <div class="relative mb-8 group">
-                        <div class="absolute inset-0 bg-gold/30 blur-3xl rounded-full group-hover:bg-gold/40 transition-all duration-500"></div>
+                    <div class="logo-container mb-8">
+                        <div class="logo-glow"></div>
                         <img src="assets/images/logo.png" 
-                             alt="MOG" 
-                             class="w-36 h-36 relative z-10 drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] transition-transform duration-500 group-hover:scale-105"
-                             @error="handleImageError($event, 'logo')">
-                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
+                             alt="Ministry of Groove" 
+                             class="w-36 h-36 relative z-10 drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] animate-float rounded-full border-2 border-gold/30">
+                        <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-gold to-transparent"></div>
                     </div>
                     <h1 class="brand-title text-2xl font-bold mb-2 tracking-[0.2em]">Ministry of Groove</h1>
                     <p class="text-[10px] text-zinc-500 uppercase tracking-[0.4em] mb-1">Central Operations Gate</p>
@@ -397,6 +434,7 @@
                         <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         <span>System Secure</span>
                     </div>
+                    <p class="text-[8px] text-zinc-600 mt-2" x-text="'v' + version"></p>
                 </div>
 
                 <!-- Auth Form -->
@@ -452,7 +490,7 @@
                         </div>
                         
                         <button type="submit" 
-                                class="w-full py-4 bg-gold text-black font-black uppercase rounded-xl hover:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group shadow-lg shadow-gold/20"
+                        class="w-full py-4 bg-gold text-black font-black uppercase rounded-xl hover:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group shadow-lg shadow-gold/20"
                                 :disabled="loading || !authForm.id || !authForm.pass">
                             <span class="relative z-10 flex items-center justify-center gap-2" x-text="loading ? 'Authorizing...' : 'Authorize Access'">
                                 <i x-show="loading" data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
@@ -493,15 +531,17 @@
 
     <!-- Grid Dashboard View -->
     <template x-if="view === 'grid'">
-        <div class="min-h-screen flex flex-col">
+        <div class="min-h-screen flex flex-col relative z-10">
             <!-- Header -->
             <header class="glass-gold sticky top-0 z-50 px-6 py-4 border-b border-white/5">
                 <div class="max-w-7xl mx-auto flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <img src="assets/images/logo.png" 
-                             alt="MOG" 
-                             class="w-12 h-12 drop-shadow-[0_0_15px_rgba(212,175,55,0.4)]"
-                             @error="handleImageError($event, 'logo-small')">
+                        <div class="logo-container">
+                            <div class="logo-glow"></div>
+                            <img src="assets/images/logo.png" 
+                                 alt="MOG" 
+                                 class="w-12 h-12 rounded-full drop-shadow-[0_0_15px_rgba(212,175,55,0.4)] border border-gold/30">
+                        </div>
                         <div>
                             <h2 class="brand-title text-sm tracking-[0.2em]">MOG MASTER</h2>
                             <div class="flex items-center gap-2 mt-1">
@@ -513,7 +553,7 @@
                     
                     <div class="flex items-center gap-4">
                         <div class="hidden md:flex items-center gap-3 text-[10px] text-zinc-400 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                            <i data-lucide="user" class="w-3 h-3"></i>
+                            <img src="assets/images/logo.png" class="w-4 h-4 rounded-full opacity-50">
                             <span x-text="userEmail"></span>
                         </div>
                         <button @click="logout()" 
@@ -528,11 +568,14 @@
             <!-- Main Content -->
             <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
                 <!-- Welcome Section -->
-                <div class="mb-12">
+                <div class="mb-12 text-center">
+                    <div class="inline-block mb-4">
+                        <img src="assets/images/logo.png" class="w-16 h-16 rounded-full opacity-30 mx-auto mb-2">
+                    </div>
                     <h1 class="text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-2 gradient-text">
                         Grid Dashboard
                     </h1>
-                    <p class="text-[11px] text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <p class="text-[11px] text-zinc-500 uppercase tracking-widest flex items-center justify-center gap-2">
                         <span class="inline-block w-2 h-2 bg-electric rounded-full animate-pulse"></span>
                         <span x-text="'Welcome back, ' + (user?.user_metadata?.full_name || userEmail?.split('@')[0] || 'Agent')"></span>
                         <span class="text-zinc-700">•</span>
@@ -570,7 +613,7 @@
                         </div>
                     </a>
 
-                  <!-- Frequency Monitor -->
+                    <!-- Frequency Monitor -->
                     <a href="pages/frequency.html" 
                        class="tactical-tile p-8 flex flex-col items-center text-center group no-underline">
                         <div class="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center mb-5 group-hover:bg-white/10 transition-all duration-300 group-hover:scale-110">
@@ -584,7 +627,6 @@
                         </div>
                     </a>
                 </nav>
-
                 <!-- Directorate Access (Director Only) -->
                 <div x-show="userRole === 'director'" 
                      x-transition:enter="transition ease-out duration-500"
@@ -592,23 +634,30 @@
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="mb-12">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
-                        <span class="text-[10px] text-red-500 uppercase tracking-[0.3em] font-bold">Restricted Access</span>
-                        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-red-500/50 to-transparent"></div>
+                        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+                        <div class="flex items-center gap-2">
+                            <img src="assets/images/logo.png" class="w-5 h-5 rounded-full opacity-50">
+                            <span class="text-[10px] text-gold uppercase tracking-[0.3em] font-bold">Directorate Access</span>
+                        </div>
+                        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
                     </div>
                     
                     <a href="directorate.html" 
-                       class="tactical-tile p-8 border-red-500/30 bg-gradient-to-r from-red-500/5 to-transparent flex items-center justify-between group no-underline hover:bg-red-500/10 hover:border-red-500/50">
+                       class="directorate-tile p-8 flex items-center justify-between group no-underline">
                         <div class="flex items-center gap-6">
-                            <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center animate-pulse group-hover:animate-none group-hover:bg-red-500/30 transition-all">
-                                <i data-lucide="zap" class="w-8 h-8 text-red-500"></i>
+                            <div class="w-16 h-16 rounded-full bg-gold/20 flex items-center justify-center animate-pulse group-hover:animate-none group-hover:bg-gold/30 transition-all border-2 border-gold/50">
+                                <img src="assets/images/logo.png" class="w-12 h-12 rounded-full opacity-80">
                             </div>
                             <div>
-                                <span class="text-lg font-black text-red-500 uppercase tracking-[0.2em] block">Command Center</span>
-                                <span class="text-[10px] text-red-400/60 uppercase tracking-widest">Directorate Level Access • Full System Control</span>
+                                <span class="text-lg font-black text-gold uppercase tracking-[0.2em] block">Enter Directorate</span>
+                                <span class="text-[10px] text-gold/60 uppercase tracking-widest">Command Center • Level 5 Clearance Required</span>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="text-[9px] px-2 py-1 bg-gold/20 text-gold rounded border border-gold/30">Full System Control</span>
+                                    <span class="text-[9px] px-2 py-1 bg-red-500/20 text-red-500 rounded border border-red-500/30">Emergency Powers</span>
+                                </div>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-8 h-8 text-red-500/50 group-hover:text-red-500 group-hover:translate-x-2 transition-all"></i>
+                        <i data-lucide="chevron-right" class="w-8 h-8 text-gold/50 group-hover:text-gold group-hover:translate-x-2 transition-all"></i>
                     </a>
                 </div>
 
@@ -621,7 +670,7 @@
                     <div class="glass-gold rounded-xl p-5 text-center group hover:border-electric/30 transition-colors">
                         <div class="text-2xl font-bold text-electric mb-1 group-hover:scale-110 transition-transform" x-text="systemStatus.users"></div>
                         <div class="text-[9px] text-zinc-500 uppercase tracking-widest">Active Sessions</div>
-                        </div>
+                    </div>
                     <div class="glass-gold rounded-xl p-5 text-center group hover:border-green-500/30 transition-colors">
                         <div class="text-2xl font-bold text-green-500 mb-1 group-hover:scale-110 transition-transform" x-text="systemStatus.security"></div>
                         <div class="text-[9px] text-zinc-500 uppercase tracking-widest">Security Level</div>
@@ -635,17 +684,17 @@
 
             <!-- Footer -->
             <footer class="py-8 text-center border-t border-white/5 mt-auto">
-                <p class="text-[10px] text-zinc-600 tracking-[0.3em] uppercase mb-1">
-                    © 2026 Ministry of Groove // NCC Master
-                </p>
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <img src="assets/images/logo.png" class="w-5 h-5 rounded-full opacity-40">
+                    <span class="text-[10px] text-zinc-600 tracking-[0.3em] uppercase">Ministry of Groove</span>
+                </div>
                 <p class="text-[8px] text-zinc-700 tracking-widest">
-                    Classified System • Authorized Personnel Only • <span x-text="'Session ID: ' + sessionId"></span>
+                    © 2026 NCC Master // Authorized Personnel Only // <span x-text="'Session: ' + sessionId"></span>
                 </p>
             </footer>
         </div>
     </template>
 
-    <!-- JavaScript -->
     <script>
         // Initialize Lucide icons
         document.addEventListener('alpine:init', () => {
@@ -688,23 +737,20 @@
                     latency: 0,
                     version: 'v5.2.3'
                 },
-
-              // Supabase Client
+                
+                // Supabase Client
                 supabase: null,
                 
                 // Rate Limiting
                 loginAttempts: 0,
                 lastAttemptTime: 0,
 
-                /**
-                 * Initialize Application
-                 */
                 async init() {
                     try {
                         this.loadingText = 'Initializing Secure Uplink';
                         this.loadingSubtext = 'Loading configuration...';
-                        
-                        // Validate environment
+
+                    // Validate environment
                         if (!window.ENV || !window.ENV.SUPABASE_URL) {
                             throw new Error('Environment configuration not loaded. Check config/env.js');
                         }
@@ -737,9 +783,6 @@
                     }
                 },
 
-                /**
-                 * Initialize Supabase with Security Config
-                 */
                 initializeSupabase() {
                     const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV;
                     
@@ -761,24 +804,20 @@
                         realtime: {
                             params: {
                                 eventsPerSecond: 10
-                              }
+                            }
                         }
                     });
                     
                     return client;
                 },
 
-                /**
-                 * Setup Realtime Subscriptions
-                 */
                 setupRealtimeSubscriptions() {
                     if (!this.supabase) return;
                     
-                    // Subscribe to auth changes
                     this.supabase.auth.onAuthStateChange(async (event, session) => {
                         console.log('Auth event:', event);
-                        
-                        switch(event) {
+
+                                                         switch(event) {
                             case 'SIGNED_IN':
                                 if (session) {
                                     await this.loadUserData(session.user);
@@ -803,9 +842,6 @@
                     });
                 },
 
-                /**
-                 * Check Existing Session
-                 */
                 async checkSession() {
                     const { data: { session }, error } = await this.supabase.auth.getSession();
                     
@@ -829,9 +865,6 @@
                     }
                 },
 
-                /**
-                  * Load User Data & Determine Role
-                 */
                 async loadUserData(user) {
                     this.user = user;
                     this.userEmail = user.email || 'Unknown';
@@ -850,8 +883,8 @@
                     } else {
                         this.userRole = metadata.role || 'agent';
                     }
-                    
-                    // Store minimal session info
+
+                // Store minimal session info
                     localStorage.setItem('mog-session', JSON.stringify({
                         id: user.id,
                         email: this.userEmail,
@@ -861,7 +894,7 @@
                     
                     this.view = 'grid';
                     
-                    // Refresh icons after view change
+                    // Re-initialize icons after view change
                     this.$nextTick(() => {
                         lucide.createIcons();
                     });
@@ -870,9 +903,6 @@
                     await this.fetchUserProfile(user.id);
                 },
 
-                /**
-                 * Fetch Extended User Profile
-                 */
                 async fetchUserProfile(userId) {
                     try {
                         const { data, error } = await this.supabase
@@ -895,12 +925,10 @@
                     }
                 },
 
-                /**
-                 * Manual Login with Rate Limiting
-                 */
                 async loginManual() {
                     this.authError = '';
-                  // Rate limiting check
+                    
+                    // Rate limiting check
                     const now = Date.now();
                     const windowStart = now - (window.ENV.RATE_LIMIT_WINDOW || 900000);
                     
@@ -926,8 +954,8 @@
                     this.loading = true;
                     this.loadingText = 'Authenticating';
                     this.loadingSubtext = 'Verifying credentials...';
-                    
-                    try {
+
+                try {
                         const { data, error } = await this.supabase.auth.signInWithPassword({
                             email: this.authForm.id,
                             password: this.authForm.pass
@@ -957,14 +985,12 @@
                     }
                 },
 
-                /**
-                 * Google OAuth Login
-                 */
                 async loginWithGoogle() {
                     this.loading = true;
                     this.loadingText = 'Initiating Biometric Uplink';
                     this.loadingSubtext = 'Connecting to Google identity provider...';
-                  try {
+                    
+                    try {
                         const { data, error } = await this.supabase.auth.signInWithOAuth({
                             provider: 'google',
                             options: {
@@ -978,8 +1004,6 @@
                         
                         if (error) throw error;
                         
-                        // OAuth redirect happens here
-                        
                     } catch (error) {
                         console.error('Google login error:', error);
                         this.authError = 'Biometric uplink failed. Try manual authorization.';
@@ -988,9 +1012,6 @@
                     }
                 },
 
-                /**
-                 * Secure Logout
-                 */
                 async logout() {
                     this.loading = true;
                     this.loadingText = 'Terminating Session';
@@ -999,8 +1020,8 @@
                     try {
                         // Log audit before logout
                         this.logAudit('LOGOUT', { sessionId: this.sessionId });
-                        
-                        // Clear local session data first
+
+                    // Clear local session data first
                         localStorage.removeItem('mog-session');
                         localStorage.removeItem('mog-auth-token');
                         
@@ -1021,9 +1042,6 @@
                     }
                 },
 
-                /**
-                 * Clear All User Data
-                 */
                 clearUserData() {
                     this.user = null;
                     this.userRole = '';
@@ -1034,9 +1052,6 @@
                     this.loginAttempts = 0;
                 },
 
-                /**
-                  * Toggle Password Visibility
-                 */
                 togglePasswordVisibility() {
                     this.showPassword = !this.showPassword;
                     const input = document.querySelector('input[type="password"], input[type="text"]');
@@ -1046,16 +1061,10 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
 
-                /**
-                 * Show Forgot Password Modal
-                 */
                 showForgotPassword() {
                     this.showToast('Contact system administrator for passcode reset', 'info');
                 },
 
-                /**
-                 * Toast Notification System
-                 */
                 showToast(message, type = 'info', duration = 4000) {
                     const id = Date.now();
                     const toast = { id, message, type, visible: true };
@@ -1072,22 +1081,18 @@
                     }, duration);
                 },
 
-                /**
-                 * Audit Logging
-                 */
                 async logAudit(action, details = {}) {
                     const logEntry = {
                         timestamp: new Date().toISOString(),
                         action,
                         user_id: this.user?.id || 'anonymous',
                         session_id: this.sessionId,
-                        ip_address: 'client-side', // Server will capture real IP
+                        ip_address: 'client-side',
                         user_agent: navigator.userAgent,
                         details
                     };
-                    
-                    // Send to audit endpoint if configured
-                    if (window.ENV.AUDIT_ENDPOINT) {
+
+              if (window.ENV.AUDIT_ENDPOINT) {
                         try {
                             await fetch(window.ENV.AUDIT_ENDPOINT, {
                                 method: 'POST',
@@ -1099,27 +1104,17 @@
                         }
                     }
                     
-                    // Always log to console in development
                     console.log('[AUDIT]', logEntry);
                 },
 
-                /**
-                  * Update System Status
-                 */
                 async updateSystemStatus() {
-                    // Simulate real metrics (replace with actual API calls)
                     this.systemStatus.latency = Math.floor(Math.random() * 50) + 20;
                     
-                    // Get active users count (in real app, query Supabase or your API)
                     if (this.supabase) {
-                        // Example: const { count } = await this.supabase.from('active_sessions').select('*', { count: 'exact' });
                         this.systemStatus.users = Math.floor(Math.random() * 50) + 10 + '';
                     }
                 },
 
-                /**
-                 * Update Current Time
-                 */
                 updateTime() {
                     const now = new Date();
                     this.currentTime = now.toLocaleTimeString('en-US', { 
@@ -1130,22 +1125,8 @@
                     }) + ' UTC';
                 },
 
-                /**
-                 * Generate Session ID
-                 */
                 generateSessionId() {
                     return 'MOG-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                },
-
-                /**
-                 * Handle Image Load Errors
-                 */
-                handleImageError(event, type) {
-                    const svg = type === 'logo' 
-                        ? `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='144' height='144' viewBox='0 0 144 144'%3E%3Ccircle cx='72' cy='72' r='68' fill='none' stroke='%23D4AF37' stroke-width='3'/%3E%3Ccircle cx='72' cy='72' r='60' fill='none' stroke='%23D4AF37' stroke-width='1' opacity='0.5'/%3E%3Ctext x='72' y='82' text-anchor='middle' fill='%23D4AF37' font-family='monospace' font-size='36' font-weight='bold'%3EMOG%3C/text%3E%3C/svg%3E`
-                        : `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='22' fill='none' stroke='%23D4AF37' stroke-width='2'/%3E%3Ctext x='24' y='28' text-anchor='middle' fill='%23D4AF37' font-family='monospace' font-size='12' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E`;
-                    
-                    event.target.src = svg;
                 }
             }
         }
