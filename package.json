@@ -9,7 +9,7 @@
     "validate": "npx html-validate index.html || true",
     "audit": "npm audit || true",
     "lint": "npx eslint js/ || true",
-    "postinstall": "npm shrinkwrap"
+    "postinstall": "npm shrinkwrap || true"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,6 @@
     "serve": "^14.2.1"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   }
 }
