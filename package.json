@@ -2,19 +2,13 @@
   "name": "ministry-of-groove",
   "version": "5.2.3",
   "description": "NCC Master - Central Operations Gate",
-  "main": "index.html",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
   "scripts": {
     "dev": "npx serve .",
     "audit": "npm audit || true",
     "lint": "eslint js/ || true"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/directormog-coder/Ministry-of-Groove.git"
-  },
-  "author": "Ministry of Groove",
-  "license": "SEE LICENSE IN LICENSE",
-  "private": true,
   "devDependencies": {
     "eslint": "^9.0.0",
     "serve": "^14.2.1"
