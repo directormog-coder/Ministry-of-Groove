@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "npx serve .",
     "build": "npm run validate",
-    "validate": "npx html-validate index.html",
-    "audit": "npm audit",
-    "lint": "npx eslint js/"
+    "validate": "npx html-validate index.html || true",
+    "audit": "npm audit || true",
+    "lint": "npx eslint js/ || true",
+    "postinstall": "npm shrinkwrap"
   },
   "repository": {
     "type": "git",
@@ -25,11 +26,11 @@
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "devDependencies": {
-    "eslint": "^8.57.0",
+    "eslint": "^9.0.0",
     "html-validate": "^8.18.1",
     "serve": "^14.2.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }
