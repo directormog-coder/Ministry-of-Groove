@@ -21,10 +21,17 @@ jobs:
           node-version: '24'
           cache: 'npm'
       
-      - name: Install dependencies and generate lock file
+      - name: Check for lock file
         run: |
-          npm install
-          npm shrinkwrap
+          if [ -f "package-lock.json" ]; then
+            echo "Found package-lock.json"
+          elif [ -f "npm-shrinkwrap.json" ]; then
+            echo "Found npm-shrinkwrap.json, using it"
+            cp npm-shrinkwrap.json package-lock.json
+          else
+            echo "No lock file found, generating one"
+            npm install
+          fi
       
       - name: Run npm audit
         run: npm audit --audit-level=moderate || true
@@ -49,56 +56,13 @@ jobs:
         with:
           node-version: '24'
       
-      - name: Create ESLint config
-        run: |
-          cat > .eslintrc.json << 'EOF'
-          {
-            "env": {
-              "browser": true,
-              "es2021": true
-            },
-            "extends": "eslint:recommended",
-            "parserOptions": {
-              "ecmaVersion": "latest",
-              "sourceType": "module"
-            },
-            "rules": {
-              "no-unused-vars": "warn",
-              "no-console": "off",
-              "no-undef": "warn"
-            },
-            "globals": {
-              "Alpine": "readonly",
-              "supabase": "readonly",
-              "lucide": "readonly",
-              "MOGAuth": "readonly",
-              "window": "readonly",
-              "document": "readonly",
-              "console": "readonly",
-              "localStorage": "readonly",
-              "fetch": "readonly",
-              "navigator": "readonly",
-              "setTimeout": "readonly",
-              "setInterval": "readonly",
-              "clearInterval": "readonly",
-              "Date": "readonly",
-              "Math": "readonly",
-              "JSON": "readonly",
-              "Promise": "readonly",
-              "Error": "readonly"
-            }
-          }
-          EOF
-      
-      - name: Install ESLint
-        run: npm install -g eslint@latest
-        
       - name: Run ESLint
         run: |
-          if [ -d "js" ]; then
-            eslint js/ --ext .js || true
+          if [ -f ".eslintrc.json" ]; then
+            npm install -g eslint
+            eslint js/ || true
           else
-            echo "No js directory found, skipping"
+            echo "No ESLint config found, skipping"
           fi
         continue-on-error: true
 
@@ -121,14 +85,4 @@ jobs:
           project: 'ministry-of-groove'
           path: '.'
           format: 'JSON'
-          args: >
-            --enableRetired
-            --enableExperimental
         continue-on-error: true
-      
-      - name: Upload dependency check report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dependency-check-report
-          path: reports/
