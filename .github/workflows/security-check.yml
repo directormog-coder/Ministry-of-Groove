@@ -19,23 +19,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
-          cache: 'npm'
       
-      - name: Check for lock file
+      - name: Generate lock file and audit
         run: |
-          if [ -f "package-lock.json" ]; then
-            echo "Found package-lock.json"
-          elif [ -f "npm-shrinkwrap.json" ]; then
-            echo "Found npm-shrinkwrap.json, using it"
-            cp npm-shrinkwrap.json package-lock.json
-          else
-            echo "No lock file found, generating one"
-            npm install
-          fi
-      
-      - name: Run npm audit
-        run: npm audit --audit-level=moderate || true
-        continue-on-error: true
+          npm install
+          npm audit --audit-level=moderate || true
       
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
@@ -58,12 +46,8 @@ jobs:
       
       - name: Run ESLint
         run: |
-          if [ -f ".eslintrc.json" ]; then
-            npm install -g eslint
-            eslint js/ || true
-          else
-            echo "No ESLint config found, skipping"
-          fi
+          npm install -g eslint
+          eslint js/ --ext .js || true
         continue-on-error: true
 
   dependency-check:
