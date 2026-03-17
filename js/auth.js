@@ -1,6 +1,6 @@
 /**
  * Ministry of Groove - Authentication Module
- * Shared authentication logic for all pages
+ * NCC Master v5.2.3
  */
 
 class MOGAuth {
@@ -20,20 +20,23 @@ class MOGAuth {
         
         const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV;
         
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            throw new Error('Supabase configuration missing');
+        }
+        
         this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 autoRefreshToken: true,
                 persistSession: true,
-                storageKey: 'mog-auth-token'
+                storageKey: 'mog-auth-token',
+                flowType: 'pkce'
             }
         });
         
-        // Check session
         const { data: { session } } = await this.supabase.auth.getSession();
         this.session = session;
         
         if (!session) {
-            // Redirect to login
             window.location.href = '/index.html';
             return;
         }
