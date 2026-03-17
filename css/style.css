@@ -1,476 +1,110 @@
-/* ==========================================================================
-   MINISTRY OF GROOVE | MASTER STYLE ENGINE v5.2
-   Design Language: Tactical Electric Blue / Unified Gold
-   Updated: 2026-03-15 | Added Responsive Layout Fixes & Apple Sign-In Compliance
-   ========================================================================== */
+/**
+ * Ministry of Groove - Global Styles
+ * NCC Master v5.2.3
+ */
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
-
+/* CSS Variables */
 :root {
-    /* MOG BRAND PALETTE */
-    --gold: #D4AF37;
-    --gold-glow: rgba(212, 175, 55, 0.4);
-    --gold-dim: rgba(212, 175, 55, 0.1);
-    
-    /* NCC TACTICAL PALETTE */
-    --electric-blue: #00F2FF; 
-    --electric-blue-glow: rgba(0, 242, 255, 0.2);
-    
-    /* Surfaces */
-    --bg-black: #050508;
-    --glass-border: rgba(255, 255, 255, 0.05);
-    --critical-red: #ff4b2b;
-    
-    /* Apple Sign-In Compliance Colors */
-    --apple-black: #000000;
-    --apple-white: #FFFFFF;
-    --apple-border: rgba(255, 255, 255, 0.2);
+    --color-gold: #D4AF37;
+    --color-gold-light: #E5C158;
+    --color-gold-dark: #B8960C;
+    --color-electric: #00F2FF;
+    --color-black: #000000;
+    --color-dark: #0a0a0f;
+    --color-panel: #111111;
+    --font-mono: 'JetBrains Mono', Consolas, monospace;
 }
 
-/* 1. GLOBAL RESET & TYPOGRAPHY */
-* { box-sizing: border-box; }
+/* Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
+/* Base */
 html {
-    /* Prevent font scaling on iOS */
-    -webkit-text-size-adjust: 100%;
-    -moz-text-size-adjust: 100%;
-    text-size-adjust: 100%;
+    scroll-behavior: smooth;
 }
 
 body {
-    background-color: var(--bg-black);
-    color: #ffffff;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
+    font-family: var(--font-mono);
+    background: var(--color-black);
+    color: #fff;
     line-height: 1.6;
-    overflow-x: hidden;
-    margin: 0;
-    /* Improve touch response on mobile */
-    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-[x-cloak] { display: none !important; }
-
-/* Poster Format Scaling */
-p, span, a, li, button, input { font-size: 15px; }
-.terminal-font { 
-    font-family: 'JetBrains Mono', monospace; 
-    font-size: 14px; 
-    letter-spacing: 0.1em; 
-    text-transform: uppercase; 
+/* Selection */
+::selection {
+    background: var(--color-gold);
+    color: var(--color-black);
 }
 
-/* 2. BACKGROUND ARCHITECTURE */
-.bg-circuit-pattern {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-color: #000;
-    background-image: 
-        linear-gradient(90deg, transparent 79px, var(--electric-blue-glow) 79px, var(--electric-blue-glow) 81px, transparent 81px),
-        linear-gradient(0deg, transparent 79px, var(--electric-blue-glow) 79px, var(--electric-blue-glow) 81px, transparent 81px);
-    background-size: 80px 80px;
-    opacity: 0.4;
-    animation: gridPulse 10s ease-in-out infinite;
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
 
-@keyframes gridPulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.5; }
+::-webkit-scrollbar-track {
+    background: var(--color-dark);
 }
 
-.circuit-vignette {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
-    pointer-events: none;
+::-webkit-scrollbar-thumb {
+    background: var(--color-gold);
+    border-radius: 4px;
 }
 
-/* 3. TACTICAL COMPONENTS (GLASSMORPHISM) */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-gold-light);
+}
+
+/* Utility Classes */
+.text-gold { color: var(--color-gold); }
+.bg-gold { background-color: var(--color-gold); }
+.border-gold { border-color: var(--color-gold); }
+
+.text-electric { color: var(--color-electric); }
+.bg-electric { background-color: var(--color-electric); }
+
+.font-mono { font-family: var(--font-mono); }
+
+/* Glass Effect */
 .glass {
-    background: rgba(10, 10, 15, 0.8);
+    background: rgba(10, 10, 15, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 1rem;
+    border: 1px solid rgba(212, 175, 55, 0.15);
 }
 
-.glass-gold {
-    background: rgba(10, 10, 15, 0.9);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--gold-dim);
-    box-shadow: 
-        0 0 30px rgba(212, 175, 55, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+/* Animations */
+@keyframes pulse-gold {
+    0%, 100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
 }
 
-/* 4. BUTTONS & INTERACTION */
-.btn-command {
-    background: transparent;
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    padding: 10px 20px;
-    text-transform: uppercase;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    /* Ensure minimum touch target */
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+@keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
 }
 
-.btn-command:hover {
-    background: var(--gold);
-    color: black;
-    box-shadow: 0 0 20px var(--gold-glow);
-    transform: translateY(-2px);
+.animate-pulse-gold {
+    animation: pulse-gold 2s ease-in-out infinite;
 }
 
-.btn-command:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* Logout / Redact Style */
-.btn-danger {
-    border: 1px solid var(--critical-red);
-    color: var(--critical-red);
-}
-
-.btn-danger:hover {
-    background: var(--critical-red);
-    color: white;
-    box-shadow: 0 0 20px rgba(255, 75, 43, 0.4);
-}
-
-/* 5. APPLE SIGN-IN BUTTON COMPLIANCE */
-/* Apple Guidelines: Minimum 140pt width, 30pt height, black/white only */
-
-.auth-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 100%;
-    max-width: 380px;
-    margin: 0 auto;
-    padding: 1.5rem;
-}
-
-/* Apple Sign-In Button Wrapper - Ensures compliance with Apple's HIG */
-.apple-signin-wrapper {
-    width: 100%;
-    min-width: 140px;
-    height: 44px; /* Apple's recommended minimum for touch */
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.apple-signin-wrapper:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
-}
-
-/* Custom Apple Button for Tactical Theme (Black variant for dark backgrounds) */
-.btn-apple-custom {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: var(--apple-black);
-    border: 1px solid var(--apple-border);
-    border-radius: 8px;
-    color: var(--apple-white);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 17px; /* 43% of button height per Apple guidelines */
-    font-weight: 400;
-    letter-spacing: -0.022em;
-    cursor: pointer;
-    padding: 0 16px;
-    gap: 8px;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.btn-apple-custom::before {
-    content: '';
-    width: 18px;
-    height: 18px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23FFFFFF' d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.22 7.13-.57 1.5-1.31 2.99-2.27 4.08zm-5.85-15.1c.07-2.04 1.76-3.79 3.74-3.94.29 2.32-1.97 4.5-3.74 3.94z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    flex-shrink: 0;
-}
-
-.btn-apple-custom:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Alternative: White button for light backgrounds */
-.btn-apple-white {
-    background: var(--apple-white);
-    color: var(--apple-black);
-    border: 1px solid rgba(0, 0, 0, 0.2);
-}
-
-.btn-apple-white::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000000' d='M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.22 7.13-.57 1.5-1.31 2.99-2.27 4.08zm-5.85-15.1c.07-2.04 1.76-3.79 3.74-3.94.29 2.32-1.97 4.5-3.74 3.94z'/%3E%3C/svg%3E");
-}
-
-/* GOOGLE SIGN-IN BUTTON - Tactical Style */
-.btn-google-custom {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 44px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    color: white;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    padding: 0 16px;
-    gap: 10px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-}
-
-.btn-google-custom:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--electric-blue);
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
-}
-
-.btn-google-custom svg {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-/* Divider for auth options */
-.auth-divider {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: rgba(255, 255, 255, 0.4);
+/* Security watermark */
+.security-watermark::after {
+    content: 'CLASSIFIED';
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
     font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin: 1.5rem 0;
+    color: rgba(212, 175, 55, 0.1);
+    pointer-events: none;
+    z-index: 9999;
+    letter-spacing: 0.5em;
+    transform: rotate(-90deg);
+    transform-origin: right bottom;
 }
-
-.auth-divider::before,
-.auth-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
-}
-
-/* 6. FORM ELEMENTS - TACTICAL STYLING */
-.form-tactical {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.input-tactical {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    color: white;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    text-align: center;
-    letter-spacing: 0.1em;
-    transition: all 0.3s ease;
-    outline: none;
-    width: 100%;
-}
-
-.input-tactical:focus {
-    border-color: var(--electric-blue);
-    box-shadow: 0 0 0 3px var(--electric-blue-glow);
-}
-
-.input-tactical::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 12px;
-}
-
-/* 7. LOGO & MEDIA HANDLING - RESPONSIVE FIXES */
-.logo-seal {
-    width: clamp(80px, 25vw, 140px);
-    height: auto;
-    max-height: 25vh;
-    object-fit: contain;
-    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
-    transition: transform 0.3s ease;
-}
-
-.logo-seal:hover {
-    transform: scale(1.05);
-}
-
-/* Prevent layout shift */
-img, video {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.5rem;
-    border: 1px solid var(--glass-border);
-    transition: filter 0.5s ease;
-}
-
-.media-hover:hover {
-    filter: brightness(1.1) contrast(1.1);
-    border-color: var(--electric-blue);
-}
-
-/* 8. BRAND TYPOGRAPHY */
-.brand-title { 
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800; 
-    letter-spacing: 0.15em; 
-    color: var(--gold); 
-    text-transform: uppercase; 
-    text-shadow: 0 0 30px var(--gold-glow);
-    font-size: clamp(1.25rem, 4vw, 1.75rem);
-    line-height: 1.2;
-}
-
-.brand-subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: clamp(0.6rem, 2vw, 0.75rem);
-    letter-spacing: 0.3em;
-    color: rgba(212, 175, 55, 0.6);
-    text-transform: uppercase;
-}
-
-/* 9. UTILITY CLASSES */
-.text-gold { color: var(--gold); }
-.text-electric { color: var(--electric-blue); }
-.text-muted { color: rgba(255, 255, 255, 0.6); }
-
-.glow-gold { text-shadow: 0 0 20px var(--gold-glow); }
-.glow-electric { text-shadow: 0 0 20px var(--electric-blue-glow); }
-
-/* Loading animation */
-.loading-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .5; }
-}
-
-/* 10. RESPONSIVE ADJUSTMENTS */
-@media (max-width: 480px) {
-    .auth-container {
-        padding: 1rem;
-        max-width: 100%;
-    }
-    
-    .apple-signin-wrapper,
-    .btn-google-custom,
-    .btn-command {
-        height: 44px; /* Maintain minimum touch target */
-    }
-    
-    .btn-apple-custom {
-        font-size: 16px;
-    }
-    
-    .input-tactical {
-        font-size: 16px; /* Prevent iOS zoom on focus */
-    }
-    
-    .glass-gold {
-        padding: 1.5rem;
-        border-radius: 1.5rem;
-    }
-    
-    .brand-title {
-        letter-spacing: 0.1em;
-    }
-}
-
-/* Tablet adjustments */
-@media (min-width: 481px) and (max-width: 768px) {
-    .auth-container {
-        max-width: 400px;
-    }
-    
-    .logo-seal {
-        width: 120px;
-    }
-}
-
-/* Dynamic viewport height for mobile browsers */
-@supports (height: 100dvh) {
-    .min-h-screen { min-height: 100dvh; }
-}
-
-/* Safe area insets for notched devices */
-@supports (padding: max(0px)) {
-    .auth-container {
-        padding-left: max(1rem, env(safe-area-inset-left));
-        padding-right: max(1rem, env(safe-area-inset-right));
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
-    }
-}
-
-/* 11. ACCESSIBILITY ENHANCEMENTS */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Focus visible for keyboard navigation */
-button:focus-visible,
-input:focus-visible,
-a:focus-visible {
-    outline: 2px solid var(--electric-blue);
-    outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .glass-gold {
-        border-color: var(--gold);
-    }
-    
-    .btn-command {
-        border-width: 2px;
-    }
-}
-
-/* Print styles */
-@media print {
-    .bg-circuit-pattern,
-    .circuit-vignette {
-        display: none;
-    }
-    
-    body {
-        background: white;
-        color: black;
-    }
-                     }
