@@ -1,34 +1,41 @@
-// scripts/inject-env.js
-// Ministry of Groove - Environment Variable Injection
-// Injects secure environment variables into window.__ENV__
-// Version: 5.2.0
+/**
+ * Ministry of Groove - Environment Injector
+ * NCC Master v5.2.3
+ * 
+ * This script injects environment variables for deployment
+ * Uses GitHub Secrets or Vercel Environment Variables in production
+ */
 
 (function() {
     'use strict';
     
-    // Environment configuration injected at build time
-    // DO NOT COMMIT ACTUAL VALUES - Use CI/CD environment variables
-    window.__ENV__ = {
-        // Supabase Configuration
-        SUPABASE_URL: '${process.env.SUPABASE_URL || ""}',
-        SUPABASE_ANON_KEY: '${process.env.SUPABASE_ANON_KEY || ""}',
-        
-        // Application Metadata
-        APP_VERSION: '5.2.0',
-        APP_NAME: 'Ministry of Groove | NCC Master',
-        CLASSIFICATION_LEVEL: 'CONFIDENTIAL',
-        BUILD_TIMESTAMP: '${new Date().toISOString()}',
-        
-        // Security Settings
-        SESSION_TIMEOUT: 3600000, // 1 hour in milliseconds
-        MAX_LOGIN_ATTEMPTS: 5,
-        REQUIRE_SECURE_CONTEXT: true
-    };
+    // Detect environment
+    const isProduction = window.location.hostname !== 'localhost' && 
+                         !window.location.hostname.includes('127.0.0.1');
     
-    // Security check: Ensure we're in secure context if required
-    if (window.__ENV__.REQUIRE_SECURE_CONTEXT && !window.isSecureContext) {
-        console.warn('[MOG-SECURITY] Insecure context detected. Some features may be disabled.');
+    // Try to load from injected config (set by CI/CD or server)
+    if (window.__ENV_INJECTED__) {
+        window.ENV = window.__ENV_INJECTED__;
+        console.log('[MOG] Environment loaded from injection');
+        return;
     }
     
-    console.info('[MOG-ENV] Environment variables injected v5.2.0');
+    // Fallback: Check for local config file (development only)
+    if (!isProduction) {
+        console.warn('[MOG] Development mode: Expecting config/env.js');
+        // In development, env.js should be present locally
+        // Do not commit env.js to GitHub
+        return;
+    }
+    
+    // Production: Environment should be injected by server/build process
+    console.error('[MOG] Production environment not injected. Check deployment configuration.');
+    
+    // Graceful degradation - show error to user
+    document.addEventListener('DOMContentLoaded', function() {
+        const errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:white;padding:1rem;text-align:center;z-index:99999;font-family:monospace;';
+        errorDiv.innerHTML = '⚠️ MOG SYSTEM ERROR: Environment configuration missing. Contact administrator.';
+        document.body.appendChild(errorDiv);
+    });
 })();
