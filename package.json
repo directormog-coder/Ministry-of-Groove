@@ -1,33 +1,22 @@
 {
   "name": "ministry-of-groove",
   "version": "5.2.3",
-  "description": "NCC Master - Central Operations Gate & Classified Cultural Archive",
+  "description": "NCC Master - Central Operations Gate",
   "main": "index.html",
   "scripts": {
     "dev": "npx serve .",
-    "build": "npm run validate",
-    "validate": "npx html-validate index.html || true",
     "audit": "npm audit || true",
-    "lint": "npx eslint js/ || true",
-    "postinstall": "npm shrinkwrap || true"
+    "lint": "eslint js/ || true"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/directormog-coder/Ministry-of-Groove.git"
   },
-  "keywords": [
-    "ministry-of-groove",
-    "ncc-master",
-    "classified",
-    "secure",
-    "operations"
-  ],
   "author": "Ministry of Groove",
   "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "devDependencies": {
     "eslint": "^9.0.0",
-    "html-validate": "^8.18.1",
     "serve": "^14.2.1"
   },
   "engines": {
