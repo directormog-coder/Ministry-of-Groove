@@ -1,34 +1,35 @@
 {
-  "version": 2,
   "name": "ministry-of-groove",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": ".",
-  
-  "rewrites": [
-    {
-      "source": "/auth/callback",
-      "destination": "/login.html"
-    },
-    {
-      "source": "/directorate",
-      "destination": "/pages/directorate.html"
-    }
+  "version": "5.2.3",
+  "description": "NCC Master - Central Operations Gate & Classified Cultural Archive",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "npm run validate",
+    "validate": "npx html-validate index.html",
+    "audit": "npm audit",
+    "lint": "npx eslint js/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/directormog-coder/Ministry-of-Groove.git"
+  },
+  "keywords": [
+    "ministry-of-groove",
+    "ncc-master",
+    "classified",
+    "secure",
+    "operations"
   ],
-  
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co;"
-        }
-      ]
-    }
-  ]
+  "author": "Ministry of Groove",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "html-validate": "^8.18.1",
+    "serve": "^14.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
