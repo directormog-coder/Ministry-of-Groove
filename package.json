@@ -22,7 +22,7 @@
     "operations"
   ],
   "author": "Ministry of Groove",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "devDependencies": {
     "eslint": "^8.57.0",
