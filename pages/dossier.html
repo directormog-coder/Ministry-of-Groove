@@ -2,388 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MOG | OPERATIVE DOSSIER</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personnel Dossier | MOG NCC Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+    <script src="../config/env.js"></script>
+    <script src="../js/auth.js"></script>
     <link rel="stylesheet" href="../css/style.css">
-    
-    <style>
-        [x-cloak] { display: none !important; }
-        /* Tactical Palette Overrides for Dossier */
-        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 30px 30px; }
-        .glass-tactical { background: rgba(5, 5, 10, 0.95); backdrop-filter: blur(35px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        .profile-glow { box-shadow: 0 0 60px rgba(212, 175, 55, 0.1); }
-        
-        .scanline-gold { 
-            width: 100%; 
-            height: 100px; 
-            background: linear-gradient(0deg, transparent 0%, rgba(212, 175, 55, 0.07) 50%, transparent 100%); 
-            position: absolute; top: -100px; left: 0; pointer-events: none; 
-            animation: moveScanline 4s linear infinite; 
-        }
-        @keyframes moveScanline { from { top: -100px; } to { top: 100%; } }
-        
-        .loader-gold { width: 30px; height: 30px; border: 3px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-
-    <script>
-        // Secure configuration - replace with environment variables or config.js
-        const CONFIG = {
-            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
-            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
-        };
-        
-        let sb = null;
-
-        function dossierEngine() {
-            return {
-                view: 'gate',
-                isUpdating: false,
-                statusInput: '',
-                authError: null,
-                
-                user: {
-                    id: '',
-                    handle: 'PENDING...',
-                    email: '',
-                    status: 'INITIALIZING...',
-                    clearance: 'LEVEL 1',
-                    joined: ''
-                },
-
-                async init() {
-                    // Security Gate Check
-                    const role = localStorage.getItem('userRole');
-                    if (!role) {
-                        window.location.href = '../login.html';
-                        return;
-                    }
-
-                    // Validate configuration
-                    if (!this.isSupabaseConfigured()) {
-                        this.authError = 'DOSSIER SYSTEM OFFLINE - CONFIGURATION REQUIRED';
-                        console.error('[DOSSIER] Supabase not configured');
-                        setTimeout(() => this.view = 'error', 1000);
-                        return;
-                    }
-
-                    try {
-                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                        const { data: { session } } = await sb.auth.getSession();
-                        
-                        if (!session) {
-                            window.location.href = '../index.html';
-                            return;
-                        }
-
-                        const { data: profile, error: profileError } = await sb
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', session.user.id)
-                            .single();
-
-                        if (profileError && profileError.code !== 'PGRST116') {
-                            console.warn('[DOSSIER] Profile fetch error:', profileError);
-                        }
-                        
-                        this.user.id = session.user.id;
-                        this.user.email = session.user.email || 'CLASSIFIED';
-                        this.user.handle = profile?.handle || session.user.user_metadata?.handle || 'OPERATIVE-' + session.user.id.substring(0, 8).toUpperCase();
-                        this.user.status = profile?.status || 'ACTIVE MONITORING';
-                        this.user.clearance = role === 'director' ? 'LEVEL 5 (DIRECTOR)' : 'LEVEL 1 (OPERATIVE)';
-                        this.user.joined = new Date(session.user.created_at).toLocaleDateString('en-ZA', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                        });
-                        
-                        this.view = 'active';
-                        this.$nextTick(() => {
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                        });
-                        
-                    } catch (error) {
-                        console.error('[DOSSIER] Initialization failed:', error);
-                        this.authError = 'SECURE CONNECTION FAILED';
-                        this.view = 'error';
-                    }
-                },
-
-                isSupabaseConfigured() {
-                    return CONFIG.SUPABASE_URL && 
-                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
-                           CONFIG.SUPABASE_ANON_KEY && 
-                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
-                },
-
-                async updateDossier() {
-                    if (!this.statusInput.trim()) {
-                        this.showNotification('ENTER STATUS MESSAGE', 'warning');
-                        return;
-                    }
-
-                    // Validate input length
-                    if (this.statusInput.length > 140) {
-                        this.showNotification('STATUS TOO LONG: MAX 140 CHARACTERS', 'error');
-                        return;
-                    }
-
-                    this.isUpdating = true;
-                    
-                    try {
-                        const { error } = await sb
-                            .from('profiles')
-                            .upsert({ 
-                                id: this.user.id,
-                                handle: this.user.handle,
-                                status: this.statusInput.toUpperCase(),
-                                updated_at: new Date().toISOString()
-                            }, { onConflict: 'id' });
-
-                        if (error) throw error;
-
-                        this.user.status = this.statusInput.toUpperCase();
-                        this.statusInput = '';
-                        this.showNotification('PERSONNEL RECORD SYNCHRONIZED', 'success');
-                        
-                    } catch (error) {
-                        console.error('[DOSSIER] Update failed:', error);
-                        this.showNotification('UPLINK FAILED: DATABASE ERROR', 'error');
-                    } finally {
-                        this.isUpdating = false;
-                    }
-                },
-
-                showNotification(message, type = 'info') {
-                    const colors = {
-                        success: 'border-green-500 text-green-400 bg-green-500/10',
-                        error: 'border-red-500 text-red-400 bg-red-500/10',
-                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
-                        info: 'border-electric text-electric bg-electric/10'
-                    };
-                    
-                    const toast = document.createElement('div');
-                    toast.className = `fixed top-4 right-4 z-50 glass-tactical px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
-                    toast.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
-                            <p class="text-xs text-white">${message}</p>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(toast);
-                    
-                    setTimeout(() => {
-                        toast.classList.add('animate-fade-out');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 4000);
-                },
-
-                async logout() { 
-                    try {
-                        if (sb) await sb.auth.signOut();
-                    } catch (e) {
-                        console.error('[DOSSIER] Logout error:', e);
-                    }
-                    
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userData');
-                    sessionStorage.clear();
-                    
-                    window.location.href = '../login.html';
-                },
-
-                terminateSession() {
-                    this.logout();
-                }
-            }
-        }
-    </script>
 </head>
-<body x-data="dossierEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
-
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
-    <div class="circuit-vignette"></div>
-
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <div class="loader-gold"></div>
-            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.3em]">Accessing Secure Personnel Vault...</p>
-        </div>
-    </template>
-
-    <template x-if="view === 'error'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
-            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
-            <button @click="logout()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
-                Return to Gate
-            </button>
-        </div>
-    </template>
-
-    <template x-if="view === 'active'">
-        <div class="max-w-6xl mx-auto p-6 md:p-12 z-20 relative animate-fade-in">
-            
-            <header class="p-8 glass-tactical rounded-[3rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
-                <div class="flex items-center gap-8">
-                    <button onclick="window.location.href='../index.html'" class="p-5 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
-                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
-                    </button>
-                    <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Operative Dossier</h1>
-                        <p class="text-[11px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-3 italic">Sector Personnel Record // NCC-5.0</p>
-                    </div>
+<body class="bg-black text-white font-mono" x-data="dossierPage()" x-init="init()">
+    
+    <div class="min-h-screen flex flex-col">
+        <header class="glass-gold sticky top-0 z-50 px-6 py-4 border-b border-white/5">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="../index.html" class="text-gold hover:text-white transition-colors">
+                        <i data-lucide="arrow-left" class="w-6 h-6"></i>
+                    </a>
+                    <h1 class="brand-title text-lg">Personnel Dossier</h1>
                 </div>
-                
-                <div class="flex items-center gap-6">
-                    <div class="text-right border-l border-white/5 pl-8 hidden md:block">
-                        <p class="text-[10px] text-gold font-black uppercase tracking-widest">Clearance Verified</p>
-                        <p class="text-xs font-black terminal-font mt-1 text-zinc-400" x-text="'UID: ' + (user.id ? user.id.substring(0,13) : 'PENDING')"></p>
-                    </div>
+                <button @click="logout()" class="text-red-500 hover:text-red-400 text-sm uppercase tracking-wider">
+                    Terminate
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-grow p-8" x-show="!loading">
+            <div class="max-w-4xl mx-auto">
+                <div class="glass-gold rounded-2xl p-8">
+                    <h2 class="text-2xl font-bold text-gold mb-6 uppercase tracking-wider">Agent Profile</h2>
                     
-                    <!-- Session Controls -->
-                    <button @click="terminateSession()" 
-                            class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all group"
-                            title="Terminate Session">
-                        <i data-lucide="log-out" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
-                    </button>
-                </div>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                
-                <div class="space-y-12">
-                    <div class="glass-tactical p-12 rounded-[5rem] text-center relative overflow-hidden profile-glow group shadow-2xl">
-                        <div class="scanline-gold"></div>
-                        
-                        <div class="w-44 h-44 bg-gold/5 rounded-full mx-auto mb-10 flex items-center justify-center border-2 border-gold/20 relative">
-                            <i data-lucide="shield" class="w-24 h-24 text-gold/30 group-hover:text-gold transition-colors"></i>
-                            <div class="absolute bottom-3 right-3 w-8 h-8 bg-gold rounded-full border-4 border-black animate-pulse shadow-[0_0_20px_#D4AF37]"></div>
-                        </div>
-
-                        <h2 class="text-3xl font-black uppercase italic tracking-tight text-white" x-text="user.handle"></h2>
-                        <div class="mt-6 inline-block px-6 py-2 bg-gold/10 rounded-full border border-gold/30">
-                            <p class="text-[11px] text-gold font-black uppercase tracking-[0.2em]" x-text="user.status"></p>
-                        </div>
-
-                        <div class="mt-12 pt-12 border-t border-gold/10 grid grid-cols-2 gap-8 text-left">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
                             <div>
-                                <p class="text-[9px] text-zinc-600 uppercase font-black tracking-widest">Clearance</p>
-                                <p class="text-sm font-black text-white mt-1" x-text="user.clearance"></p>
+                                <label class="text-xs text-zinc-500 uppercase tracking-wider">Codename</label>
+                                <p class="text-lg" x-text="profile?.codename || 'Unknown'"></p>
                             </div>
                             <div>
-                                <p class="text-[9px] text-zinc-600 uppercase font-black tracking-widest">Enlisted</p>
-                                <p class="text-sm font-black text-white mt-1" x-text="user.joined"></p>
+                                <label class="text-xs text-zinc-500 uppercase tracking-wider">Clearance Level</label>
+                                <p class="text-lg text-electric" x-text="profile?.clearance || 'CLASSIFIED'"></p>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="glass p-10 rounded-[3.5rem] border border-white/5 space-y-6 shadow-2xl">
-                        <h4 class="terminal-font text-[10px] text-zinc-500 italic mb-4">Tactical Nodes</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button onclick="window.location.href='../index.html'" class="p-6 bg-white/5 rounded-3xl text-center hover:bg-white/10 transition-all border border-gold/10">
-                                <i data-lucide="layout-grid" class="mx-auto mb-2 w-6 h-6 text-gold"></i>
-                                <span class="text-[9px] font-black uppercase">Hub</span>
-                            </button>
-                            <button onclick="window.location.href='gallery.html'" class="p-6 bg-white/5 rounded-3xl text-center hover:bg-white/10 transition-all border border-electric/10">
-                                <i data-lucide="camera" class="mx-auto mb-2 w-6 h-6 text-electric"></i>
-                                <span class="text-[9px] font-black uppercase">Gallery</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 space-y-12">
-                    
-                    <div class="glass-tactical p-16 rounded-[4.5rem] shadow-2xl border-t-4 border-gold/40 relative overflow-hidden">
-                        <div class="absolute -top-24 -right-24 w-64 h-64 bg-gold/5 rounded-full blur-3xl"></div>
-                        
-                        <div class="flex items-center gap-8 mb-12 relative z-10">
-                            <div class="p-6 bg-gold rounded-[2.5rem] text-black shadow-xl">
-                                <i data-lucide="radio" class="w-10 h-10"></i>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs text-zinc-500 uppercase tracking-wider">Status</label>
+                                <p class="text-lg text-green-500">ACTIVE</p>
                             </div>
                             <div>
-                                <h3 class="text-3xl font-black uppercase italic tracking-widest text-white">Broadcast Status</h3>
-                                <p class="text-[11px] text-gold font-black uppercase tracking-[0.4em] mt-3">Sync mission state to the Ministry grid</p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-8 relative z-10">
-                            <div class="relative">
-                                <textarea x-model="statusInput" 
-                                    class="w-full bg-black/50 border border-gold/20 p-8 rounded-[3rem] outline-none text-md uppercase terminal-font leading-relaxed focus:border-gold transition-all text-white placeholder:text-zinc-800 resize-none"
-                                    placeholder="E.G. SCANNING FOR FREQUENCY ANOMALIES..."
-                                    rows="3"
-                                    maxlength="140"></textarea>
-                                <div class="absolute bottom-4 right-6 text-[10px] text-zinc-600 font-mono">
-                                    <span x-text="statusInput.length"></span>/140
-                                </div>
-                            </div>
-                            
-                            <div class="flex justify-end">
-                                <button @click="updateDossier()" 
-                                    :disabled="isUpdating || !statusInput.trim()"
-                                    class="px-20 py-8 bg-gold text-black font-black uppercase rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all text-sm tracking-[0.3em] disabled:opacity-50 disabled:cursor-not-allowed">
-                                    <span x-show="!isUpdating">Synchronize Identity</span>
-                                    <span x-show="isUpdating" class="flex gap-4 items-center">
-                                        <div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                                        Syncing...
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="glass p-12 rounded-[4rem] border border-white/5 shadow-2xl">
-                            <p class="text-[10px] text-zinc-600 uppercase font-black mb-6 tracking-[0.3em]">Uplink Integrity</p>
-                            <div class="flex items-end gap-5">
-                                <p class="text-6xl font-black terminal-font text-white">98%</p>
-                                <div class="mb-2">
-                                    <p class="text-[11px] text-electric font-black uppercase">Secure</p>
-                                    <p class="text-[8px] text-zinc-700 font-black uppercase">AES-256</p>
-                                </div>
-                            </div>
-                            <div class="mt-8 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-full bg-electric w-[98%] shadow-[0_0_15px_#00F2FF]"></div>
-                            </div>
-                        </div>
-
-                        <div class="glass p-12 rounded-[4rem] border border-white/5 shadow-2xl">
-                            <p class="text-[10px] text-zinc-600 uppercase font-black mb-6 tracking-[0.3em]">Grid Weight</p>
-                            <div class="flex items-end gap-5">
-                                <p class="text-6xl font-black terminal-font text-white">V.4</p>
-                                <div class="mb-2">
-                                    <p class="text-[11px] text-gold font-black uppercase italic">Elite</p>
-                                    <p class="text-[8px] text-zinc-700 font-black uppercase">Structure</p>
-                                </div>
-                            </div>
-                            <div class="mt-8 flex gap-1.5 h-3 items-end">
-                                <div class="flex-grow h-1.5 bg-gold rounded-full opacity-50"></div>
-                                <div class="flex-grow h-3 bg-gold rounded-full"></div>
-                                <div class="flex-grow h-2.5 bg-gold rounded-full"></div>
-                                <div class="flex-grow h-1.5 bg-white/10 rounded-full"></div>
+                                <label class="text-xs text-zinc-500 uppercase tracking-wider">Last Login</label>
+                                <p class="text-lg" x-text="lastLogin"></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </main>
+    </div>
 
-            <footer class="mt-40 pt-16 border-t border-white/5 text-center text-zinc-800">
-                <p class="terminal-font text-[12px] uppercase tracking-[1em]">
-                    MINISTRY OF GROOVE // PERSONNEL ARCHIVE v5.0
-                </p>
-            </footer>
-        </div>
-    </template>
+    <script>
+        function dossierPage() {
+            return {
+                loading: true,
+                profile: null,
+                lastLogin: '',
+                auth: null,
+
+                async init() {
+                    this.auth = new MOGAuth();
+                    const session = await this.auth.init();
+                    
+                    if (session) {
+                        this.profile = {
+                            codename: session.user.email?.split('@')[0],
+                            clearance: session.user.user_metadata?.role || 'AGENT'
+                        };
+                        this.lastLogin = new Date(session.user.last_sign_in_at).toLocaleString();
+                    }
+                    
+                    this.loading = false;
+                    lucide.createIcons();
+                },
+
+                async logout() {
+                    await this.auth.logout();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
-                    
