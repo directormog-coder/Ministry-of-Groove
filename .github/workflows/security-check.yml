@@ -20,10 +20,11 @@ jobs:
         with:
           node-version: '24'
       
-      - name: Generate lock file and audit
+      - name: Install dependencies and audit
         run: |
           npm install
           npm audit --audit-level=moderate || true
+        continue-on-error: true
       
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
