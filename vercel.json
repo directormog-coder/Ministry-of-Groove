@@ -9,7 +9,7 @@
   ],
   "routes": [
     {
-      "src": "/(js|css|assets|config|pages)/(.*)",
+      "src": "/(js|css|assets|config|pages|scripts)/(.*)",
       "dest": "/$1/$2"
     },
     {
