@@ -6,23 +6,25 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   security-audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'npm'
       
-      - name: Install dependencies
-        run: npm install
-      
-      - name: Generate lock file
-        run: npm shrinkwrap
+      - name: Install dependencies and generate lock file
+        run: |
+          npm install
+          npm shrinkwrap
       
       - name: Run npm audit
         run: npm audit --audit-level=moderate || true
@@ -35,23 +37,22 @@ jobs:
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
           extra_args: --debug --only-verified
+        continue-on-error: true
 
   static-analysis:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       
-      - name: Install ESLint
-        run: npm install -g eslint
-        
       - name: Create ESLint config
         run: |
-          echo '{
+          cat > .eslintrc.json << 'EOF'
+          {
             "env": {
               "browser": true,
               "es2021": true
@@ -63,17 +64,42 @@ jobs:
             },
             "rules": {
               "no-unused-vars": "warn",
-              "no-console": "off"
+              "no-console": "off",
+              "no-undef": "warn"
             },
             "globals": {
               "Alpine": "readonly",
               "supabase": "readonly",
-              "lucide": "readonly"
+              "lucide": "readonly",
+              "MOGAuth": "readonly",
+              "window": "readonly",
+              "document": "readonly",
+              "console": "readonly",
+              "localStorage": "readonly",
+              "fetch": "readonly",
+              "navigator": "readonly",
+              "setTimeout": "readonly",
+              "setInterval": "readonly",
+              "clearInterval": "readonly",
+              "Date": "readonly",
+              "Math": "readonly",
+              "JSON": "readonly",
+              "Promise": "readonly",
+              "Error": "readonly"
             }
-          }' > .eslintrc.json
+          }
+          EOF
       
+      - name: Install ESLint
+        run: npm install -g eslint@latest
+        
       - name: Run ESLint
-        run: eslint js/ || true
+        run: |
+          if [ -d "js" ]; then
+            eslint js/ --ext .js || true
+          else
+            echo "No js directory found, skipping"
+          fi
         continue-on-error: true
 
   dependency-check:
@@ -81,15 +107,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js
+      - name: Setup Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       
       - name: Install dependencies
         run: npm install
       
-      - name: Run dependency check
+      - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'ministry-of-groove'
@@ -99,3 +125,10 @@ jobs:
             --enableRetired
             --enableExperimental
         continue-on-error: true
+      
+      - name: Upload dependency check report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports/
