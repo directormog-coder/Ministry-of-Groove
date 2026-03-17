@@ -1,0 +1,21 @@
+{
+  "name": "ministry-of-groove",
+  "version": "5.2.3",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "name": "ministry-of-groove",
+      "version": "5.2.3",
+      "license": "SEE LICENSE IN LICENSE",
+      "devDependencies": {
+        "eslint": "^9.0.0",
+        "html-validate": "^8.18.1",
+        "serve": "^14.2.1"
+      },
+      "engines": {
+        "node": ">=24.0.0"
+      }
+    }
+  }
+}
