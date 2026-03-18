@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "ministry-of-groove",
   "builds": [
     {
       "src": "api/**/*.js",
@@ -8,12 +9,52 @@
     {
       "src": "*.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "assets/**/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/**/*.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**/*.js",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/$1",
+      "headers": {
+        "Cache-Control": "no-store, max-age=0"
+      }
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/css/(.*)",
+      "dest": "/css/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=86400"
+      }
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "/js/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=86400"
+      }
+    },
+    {
+      "src": "/pages/(.*)",
+      "dest": "/pages/$1"
     },
     {
       "src": "/(.*)",
@@ -39,8 +80,24 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
         }
       ]
     }
-  ]
+  ],
+  "github": {
+    "silent": true
+  }
 }
