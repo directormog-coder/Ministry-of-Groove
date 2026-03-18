@@ -7,7 +7,8 @@ on:
     branches: [ main ]
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # This tells GitHub to use the newer runner engine
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   security-audit:
@@ -15,14 +16,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js 24
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-      
-      - name: Install dependencies and audit
+          node-version: '20' # Using 20 for stability; it will run on Node 24 runner via the ENV flag above
+
+      - name: Ensure Lockfile and Audit
         run: |
-          npm install
+          if [ ! -f package-lock.json ]; then
+            echo "Lockfile missing, generating one..."
+            npm install --package-lock-only
+          fi
           npm audit --audit-level=moderate || true
         continue-on-error: true
       
@@ -40,15 +44,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js 24
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
       
       - name: Run ESLint
         run: |
-          npm install -g eslint
-          eslint js/ --ext .js || true
+          npm install
+          npx eslint js/ --ext .js || true
         continue-on-error: true
 
   dependency-check:
@@ -56,18 +60,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Node.js 24
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '20'
       
       - name: Install dependencies
-        run: npm install
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only
+          fi
+          npm install
       
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'ministry-of-groove'
           path: '.'
+          out: 'reports' # Added output directory
           format: 'JSON'
         continue-on-error: true
+        
