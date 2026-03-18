@@ -1,50 +1,39 @@
-/**
- * Ministry of Groove - Supabase Client
- * NCC Master v5.2.3
- */
+// Securely fetch config from Vercel serverless function
+let supabase = null;
+let appConfig = null;
 
-(function() {
-    'use strict';
+async function initializeSupabase() {
+  try {
+    // Fetch config from secure endpoint
+    const response = await fetch('/api/config');
+    if (!response.ok) throw new Error('Failed to load config');
     
-    window.MOGSupabase = {
-        client: null,
-        
-        init: function() {
-            if (!window.ENV) {
-                console.error('ENV not loaded');
-                return null;
-            }
-            
-            const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV;
-            
-            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-                console.error('Supabase credentials missing');
-                return null;
-            }
-            
-            this.client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                auth: {
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true,
-                    storage: localStorage,
-                    storageKey: 'mog-auth-token'
-                },
-                realtime: {
-                    params: {
-                        eventsPerSecond: 10
-                    }
-                }
-            });
-            
-            return this.client;
-        },
-        
-        getClient: function() {
-            if (!this.client) {
-                return this.init();
-            }
-            return this.client;
-        }
-    };
-})();
+    appConfig = await response.json();
+    
+    // Initialize Supabase with server-provided credentials
+    supabase = window.supabase.createClient(appConfig.url, appConfig.key, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    });
+    
+    return supabase;
+  } catch (error) {
+    console.error('Failed to initialize:', error);
+    throw error;
+  }
+}
+
+// Contact info getter (no hardcoded secrets)
+function getContacts() {
+  return appConfig?.contacts || {};
+}
+
+// Export for use in other scripts
+window.mogSupabase = {
+  init: initializeSupabase,
+  get client() { return supabase; },
+  get contacts() { return getContacts(); }
+};
