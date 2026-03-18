@@ -1,12 +1,32 @@
 {
   "name": "ministry-of-groove",
-  "version": "1.0.0",
+  "version": "5.2.3",
+  "description": "Secure Operative Network & Directorate Command System",
   "private": true,
   "scripts": {
     "dev": "vercel dev",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "deploy:staging": "vercel"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
-  }
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/directormog-coder/Ministry-of-Groove.git"
+  },
+  "keywords": [
+    "ministry-of-groove",
+    "supabase",
+    "vercel",
+    "secure-auth"
+  ],
+  "author": "Ministry of Groove Directorate",
+  "license": "MIT"
 }
