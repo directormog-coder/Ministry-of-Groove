@@ -1,19 +1,12 @@
 {
   "name": "ministry-of-groove",
-  "version": "5.2.3",
-  "description": "NCC Master - Central Operations Gate",
-  "license": "SEE LICENSE IN LICENSE",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "npx serve .",
-    "audit": "npm audit || true",
-    "lint": "eslint js/ || true"
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
   },
-  "devDependencies": {
-    "eslint": "^9.0.0",
-    "serve": "^14.2.1"
-  },
-  "engines": {
-    "node": ">=24.0.0"
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
   }
 }
