@@ -1,71 +1,36 @@
-# Security - Never commit credentials
-config/env.js
+# Environment Variables
 .env
 .env.local
-.env.production
-.env.development
-*.key
-*.pem
+.env.*.local
 
-# Lock files (generated during CI/CD)
-package-lock.json
-npm-shrinkwrap.json
-yarn.lock
-pnpm-lock.yaml
-
-# Dependencies
-node_modules/
-package-lock.json
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-dist/
-build/
+# Vercel
 .vercel
-.netlify
-.output
+.vercelignore
 
-# IDE and editors
+# Dependencies
+node_modules/
+
+# Local development server (if using custom server.js for dev)
+server.js
+dev-server.js
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-logs/
-log/
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Testing
-coverage/
-.nyc_output/
 
 # Temporary files
-tmp/
-temp/
 *.tmp
+*.temp
 .cache/
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-desktop.ini
-
-# GitHub Actions (local testing)
-.act/
