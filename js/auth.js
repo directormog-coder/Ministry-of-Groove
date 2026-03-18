@@ -1,17 +1,5 @@
-/**
- * Ministry of Groove - Authentication Module
- * NCC Master v5.2.3
- */
-
-class MOGAuth {
-    constructor() {
-        this.supabase = null;
-        this.session = null;
-        this.initialized = false;
-    }
-
     async init() {
-        if (this.initialized) return;
+        if (this.initialized) return this.session;
         
         // Wait for ENV to be available
         if (!window.ENV) {
@@ -21,9 +9,11 @@ class MOGAuth {
         const { SUPABASE_URL, SUPABASE_ANON_KEY } = window.ENV;
         
         if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            throw new Error('Supabase configuration missing');
+            console.error('MOG: Supabase configuration missing');
+            return null;
         }
         
+        // Initialize the client
         this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 autoRefreshToken: true,
@@ -33,51 +23,27 @@ class MOGAuth {
             }
         });
         
-        const { data: { session } } = await this.supabase.auth.getSession();
-        this.session = session;
+        // Get session safely
+        const { data: { session }, error } = await this.supabase.auth.getSession();
         
-        if (!session) {
+        if (error) {
+            console.error('MOG: Auth error', error);
+        }
+
+        this.session = session;
+        this.initialized = true; // Mark as initialized even if no session exists
+
+        // Only redirect if we are NOT on the login/index page
+        const isLoginPage = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+        
+        if (!session && !isLoginPage) {
             window.location.href = '/index.html';
-            return;
         }
         
-        this.initialized = true;
         return session;
-    }
-
-    waitForEnv() {
-        return new Promise((resolve) => {
-            const check = () => {
-                if (window.ENV) {
-                    resolve();
-                } else {
-                    setTimeout(check, 100);
-                }
-            };
-            check();
-        });
     }
 
     async getUser() {
-        if (!this.initialized) await this.init();
-        return this.session?.user;
+        await this.init(); // This will now resolve correctly
+        return this.session?.user || null;
     }
-
-    async logout() {
-        if (this.supabase) {
-            await this.supabase.auth.signOut();
-        }
-        window.location.href = '/index.html';
-    }
-
-    async requireAuth() {
-        const session = await this.init();
-        if (!session) {
-            throw new Error('Authentication required');
-        }
-        return session;
-    }
-}
-
-// Export for use in other scripts
-window.MOGAuth = MOGAuth;
