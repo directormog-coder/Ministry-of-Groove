@@ -1,0 +1,9 @@
+# Files Vercel should ignore during deployment
+README.md
+SECURITY.md
+LICENSE
+.env.example
+.gitignore
+.github/
+docs/
+*.md
