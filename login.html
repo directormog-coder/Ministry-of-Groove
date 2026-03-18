@@ -3,106 +3,723 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://fgkljjgxecjmiiaptiug.supabase.co https://*.supabase.co wss://*.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co;">
     <meta name="robots" content="noindex, nofollow">
-    <title>Ministry of Groove | Secure Access Terminal</title>
+    <title>MINISTRY OF GROOVE | Secure Access Terminal</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="bg-black text-white">
-    <div class="bg-circuit-pattern"></div>
-    <div class="circuit-vignette"></div>
-
-    <main class="auth-container glass" style="margin-top: 10vh; position: relative; z-index: 10; max-width: 400px; margin-left: auto; margin-right: auto; padding: 2rem; border-radius: 2rem; border: 1px solid rgba(212, 175, 55, 0.2);">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #d4af37;
+            --teal: #00d4aa;
+            --red: #dc2626;
+            --dark-bg: #0a0f0f;
+        }
         
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div class="terminal-font" style="font-size: 24px; color: #D4AF37; letter-spacing: 0.2em; font-weight: bold;">
-                MINISTRY OF GROOVE
-            </div>
-            <div style="font-size: 10px; color: #00F2FF; margin-top: 0.5rem;" class="terminal-font">
-                [GRID_UPLINK_SECURE_v5.2.3]
-            </div>
-        </div>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: var(--dark-bg);
+            color: white;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .terminal-font { font-family: 'Share Tech Mono', monospace; }
+        
+        /* Background Effects */
+        .circuit-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,212,170,0.02) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        /* Main Container */
+        .auth-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .glass-panel {
+            background: rgba(10, 20, 20, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 2rem;
+            padding: 3rem;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 0 60px rgba(0, 212, 170, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--teal), transparent);
+            animation: flow 3s linear infinite;
+        }
+        
+        @keyframes flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Header */
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .logo-container {
+            width: 80px; height: 80px;
+            margin: 0 auto 1.5rem;
+            position: relative;
+        }
+        
+        .logo-ring {
+            position: absolute;
+            inset: 0;
+            border: 2px solid var(--teal);
+            border-radius: 50%;
+            animation: rotate 20s linear infinite;
+        }
+        
+        .logo-ring:nth-child(2) {
+            inset: 8px;
+            border-color: var(--gold);
+            animation-direction: reverse;
+            animation-duration: 15s;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .logo-inner {
+            position: absolute;
+            inset: 16px;
+            background: radial-gradient(circle, rgba(0,212,170,0.2), transparent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--teal);
+            text-shadow: 0 0 20px var(--teal);
+        }
+        
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            background: linear-gradient(135deg, var(--gold), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .brand-subtitle {
+            font-size: 0.7rem;
+            color: var(--teal);
+            letter-spacing: 0.3em;
+        }
+        
+        /* Security Bar */
+        .security-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: rgba(0,0,0,0.4);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0,212,170,0.1);
+        }
+        
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+        }
+        
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 10px var(--teal);
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Alert Box */
+        .alert-box {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .alert-box.error {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #ef4444;
+        }
+        
+        .alert-box.success {
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            color: var(--teal);
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+        
+        .input-field {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: 0.75rem;
+            padding: 1rem 1rem 1rem 3rem;
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        
+        .input-field:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.2);
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.3);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--teal);
+            opacity: 0.6;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--gold), #b8860b);
+            border: none;
+            border-radius: 0.75rem;
+            color: black;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .bio-btn {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0,212,170,0.1);
+            border: 1px solid rgba(0,212,170,0.3);
+            border-radius: 0.75rem;
+            color: var(--teal);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .bio-btn:hover {
+            border-color: var(--teal);
+            box-shadow: 0 0 30px rgba(0,212,170,0.3);
+        }
+        
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            opacity: 0.3;
+        }
+        
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, white, transparent);
+        }
+        
+        /* Contact Section */
+        .contact-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0,212,170,0.1);
+        }
+        
+        .contact-title {
+            font-size: 0.7rem;
+            color: var(--gold);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .contact-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,212,170,0.2);
+            border-radius: 0.75rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.65rem;
+            transition: all 0.3s ease;
+        }
+        
+        .contact-btn:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,212,170,0.2);
+        }
+        
+        .contact-btn i {
+            font-size: 1.25rem;
+        }
+        
+        .contact-btn.whatsapp:hover {
+            border-color: #25d366;
+            color: #25d366;
+        }
+        
+        .contact-btn.email:hover {
+            border-color: #ea4335;
+            color: #ea4335;
+        }
+        
+        /* Footer */
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .security-note {
+            font-size: 0.6rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 0.2em;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .spinner {
+            width: 60px; height: 60px;
+            border: 3px solid transparent;
+            border-top-color: var(--teal);
+            border-right-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--teal);
+            animation: blink 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="circuit-bg"></div>
+    <div class="scanline"></div>
+    <div class="vignette"></div>
 
-        <div id="auth-alert" style="color: #ff4b2b; font-size: 11px; text-align: center; margin-bottom: 1rem; padding: 10px; border: 1px solid #ff4b2b; background: rgba(255, 75, 43, 0.1); border-radius: 8px; display: none;" class="terminal-font">
-        </div>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text terminal-font">AUTHENTICATING...</div>
+    </div>
 
-        <form id="login-form" onsubmit="handleEmailLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;">
-            <input type="email" id="email" class="ncc-input" placeholder="OPERATIVE_ID" required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white; text-align: center;">
-            <input type="password" id="password" class="ncc-input" placeholder="ACCESS_CODE" required style="width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white; text-align: center;">
-            <button type="submit" class="btn-command" style="width: 100%; padding: 14px; background: #D4AF37; color: black; font-weight: bold; border-radius: 8px; cursor: pointer; border: none;">
-                AUTHENTICATE
+    <!-- Main Auth Container -->
+    <main class="auth-container">
+        <div class="glass-panel">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="logo-container">
+                    <div class="logo-ring"></div>
+                    <div class="logo-ring"></div>
+                    <div class="logo-inner">M</div>
+                </div>
+                <h1 class="brand-title">MINISTRY OF GROOVE</h1>
+                <p class="brand-subtitle terminal-font">SECURE ACCESS TERMINAL v7.2</p>
+            </div>
+
+            <!-- Security Status -->
+            <div class="security-bar">
+                <div class="security-indicator">
+                    <span class="status-dot"></span>
+                    <span class="terminal-font">SYSTEM SECURE</span>
+                </div>
+                <div class="terminal-font" style="font-size: 0.6rem; color: var(--gold);">AES-256-GCM</div>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="alertBox" class="alert-box terminal-font">
+                <span id="alertIcon">⚠</span>
+                <span id="alertMessage"></span>
+            </div>
+
+            <!-- Biometric Login -->
+            <button onclick="initiateBiometricAuth()" class="bio-btn" id="bioBtn">
+                <span>◉</span>
+                <span>BIOMETRIC AUTHENTICATION</span>
             </button>
-        </form>
 
-        <div class="auth-divider" style="display: flex; align-items: center; gap: 10px; margin: 1.5rem 0; opacity: 0.3;">
-            <div style="flex: 1; height: 1px; background: white;"></div>
-            <span style="font-size: 9px;">OR</span>
-            <div style="flex: 1; height: 1px; background: white;"></div>
+            <div class="divider">
+                <div class="divider-line"></div>
+                <span class="divider-text">Or</span>
+                <div class="divider-line"></div>
+            </div>
+
+            <!-- Email/Password Form -->
+            <form id="loginForm" onsubmit="handleEmailLogin(event)">
+                <div class="form-group">
+                    <span class="input-icon">◉</span>
+                    <input type="email" id="email" class="input-field" placeholder="OPERATIVE_ID@DOMAIN" required autocomplete="email">
+                </div>
+                
+                <div class="form-group">
+                    <span class="input-icon">⚷</span>
+                    <input type="password" id="password" class="input-field" placeholder="ACCESS_CODE" required autocomplete="current-password" minlength="8">
+                    <button type="button" class="password-toggle" onclick="togglePassword()">◉</button>
+                </div>
+
+                <button type="submit" class="btn-primary" id="loginBtn">AUTHENTICATE</button>
+            </form>
+
+            <!-- Contact Section -->
+            <div class="contact-section">
+                <p class="contact-title"> Directorate Contact</p>
+                <div class="contact-grid">
+                    <a href="mailto:director.mog@gmail.com" class="contact-btn email" title="Email Directorate">
+                        <span>✉</span>
+                        <span>EMAIL</span>
+                    </a>
+                    <a href="https://wa.me/27813874921" target="_blank" class="contact-btn whatsapp" title="WhatsApp Directorate">
+                        <span>📱</span>
+                        <span>WHATSAPP</span>
+                    </a>
+                    <a href="#" onclick="showSocial('tiktok')" class="contact-btn" title="TikTok">
+                        <span>♪</span>
+                        <span>TIKTOK</span>
+                    </a>
+                    <a href="#" onclick="showSocial('instagram')" class="contact-btn" title="Instagram">
+                        <span>📷</span>
+                        <span>INSTA</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="auth-footer">
+                <p class="security-note">Unauthorized access is a federal offense</p>
+            </div>
         </div>
-
-        <button onclick="loginWithGoogle()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;" class="terminal-font">
-            <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" style="width: 16px;">
-            BIOMETRIC UPLINK
-        </button>
-
-        <p style="font-size: 8px; color: rgba(255,255,255,0.2); text-align: center; margin-top: 2rem; letter-spacing: 0.3em;" class="terminal-font">
-            UNAUTHORIZED ACCESS RECORDED
-        </p>
     </main>
 
-    <script>
-        const CONFIG = {
-            URL: 'https://fgkljjgxecjmiiaptiug.supabase.co',
-            KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0iugiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE'
-        };
+    <!-- Social Links Modal -->
+    <div id="socialModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: rgba(10,20,20,0.95); border: 1px solid var(--teal); border-radius: 1rem; padding: 2rem; max-width: 400px; width: 90%;">
+            <h3 style="color: var(--teal); margin-bottom: 1rem; text-align: center;">MINISTRY OF GROOVE</h3>
+            <div id="socialLinks" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- Populated by JS -->
+            </div>
+            <button onclick="closeSocialModal()" style="width: 100%; margin-top: 1rem; padding: 0.75rem; background: transparent; border: 1px solid var(--teal); color: var(--teal); border-radius: 0.5rem; cursor: pointer;">CLOSE</button>
+        </div>
+    </div>
 
-        const supabase = window.supabase.createClient(CONFIG.URL, CONFIG.KEY);
+    <script src="/js/supabase-client.js"></script>
+    <script>
+        let supabase = null;
+        let contacts = {};
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await window.mogSupabase.init();
+                supabase = window.mogSupabase.client;
+                contacts = window.mogSupabase.contacts;
+                
+                // Check existing session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) await validateAndRedirect(session);
+                
+            } catch (error) {
+                showAlert('Security module initialization failed', 'error');
+            }
+        });
 
         async function handleEmailLogin(e) {
             e.preventDefault();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-
+            
+            if (!email || !password) {
+                showAlert('Enter both OPERATIVE_ID and ACCESS_CODE', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
             try {
+                await new Promise(r => setTimeout(r, 800)); // Anti-brute force
+                
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                syncAndRedirect(data.user);
+                
+                await validateAndRedirect(data.session);
             } catch (error) {
-                showAlert(`ACCESS_DENIED: ${error.message}`);
+                handleAuthError(error);
+                showLoading(false);
             }
         }
 
-        async function loginWithGoogle() {
-            await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin }
-            });
-        }
-
-        async function syncAndRedirect(user) {
-            const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-            const role = profile?.role || (user.email === 'director.mog@gmail.com' ? 'director' : 'operative');
+     async function initiateBiometricAuth() {
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showAlert('Enter OPERATIVE_ID first', 'warning');
+                return;
+            }
             
-            localStorage.setItem('userRole', role);
+            showLoading(true);
+            try {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email,
+                    options: { shouldCreateUser: false }
+                });
+                
+                if (error) throw error;
+                showAlert('Biometric link sent to secure channel', 'success');
+            } catch (error) {
+                showAlert('Biometric authentication failed', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function validateAndRedirect(session) {
+            try {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role, rank')
+                    .eq('id', session.user.id)
+                    .single();
+                
+                const role = profile?.role || (session.user.email === 'director.mog@gmail.com' ? 'director' : 'operative');
+                
+                localStorage.setItem('userRole', role);
+                localStorage.setItem('clearanceLevel', role === 'director' ? 'ALPHA' : 'STANDARD');
+                
+                // Log access
+                await supabase.from('access_logs').insert({
+                    user_id: session.user.id,
+                    action: 'LOGIN',
+                    timestamp: new Date().toISOString()
+                }).catch(() => {});
+                
+                const dest = role === 'director' ? '/pages/directorate.html' : '/index.html';
+                window.location.href = dest;
+                
+            } catch (error) {
+                showAlert('Session validation failed', 'error');
+                showLoading(false);
+            }
+        }
+
+        function handleAuthError(error) {
+            const messages = {
+                'Invalid login credentials': 'Invalid OPERATIVE_ID or ACCESS_CODE',
+                'Email not confirmed': 'OPERATIVE_ID not verified',
+                'User not found': 'OPERATIVE_ID not recognized',
+                'Rate limit exceeded': 'Too many attempts. Try again later.'
+            };
+            showAlert(messages[error.message] || `Authentication failed: ${error.message}`, 'error');
+            document.getElementById('password').value = '';
+        }
+
+        function showAlert(message, type = 'error') {
+            const box = document.getElementById('alertBox');
+            const icon = document.getElementById('alertIcon');
+            const msg = document.getElementById('alertMessage');
+
+        box.className = `alert-box ${type} terminal-font`;
+            icon.textContent = type === 'success' ? '✓' : '⚠';
+            msg.textContent = message;
+            box.style.display = 'flex';
             
-            // ABSOLUTE REDIRECTS to stop the 404s
-            const dest = (role === 'director') ? '/directorate' : '/index.html';
-            window.location.assign(window.location.origin + dest);
+            setTimeout(() => box.style.display = 'none', 5000);
         }
 
-        function showAlert(msg) {
-            const alert = document.getElementById('auth-alert');
-            alert.textContent = msg;
-            alert.style.display = 'block';
-            setTimeout(() => alert.style.display = 'none', 5000);
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+            document.getElementById('loginBtn').disabled = show;
         }
 
-        // Auto-check session on load
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) syncAndRedirect(session.user);
+        function togglePassword() {
+            const input = document.getElementById('password');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function showSocial(platform) {
+            const modal = document.getElementById('socialModal');
+            const links = document.getElementById('socialLinks');
+            
+            const socialLinks = {
+                tiktok: { url: contacts.social?.tiktok || 'https://tiktok.com/@ministryofgroove', icon: '♪', name: 'TikTok' },
+                instagram: { url: contacts.social?.instagram || 'https://www.instagram.com/ministryofgroove_hq', icon: '📷', name: 'Instagram' },
+                facebook: { url: contacts.social?.facebook || 'https://www.facebook.com/share/1ELj9aECsQ/', icon: 'f', name: 'Facebook' },
+                youtube: { url: contacts.social?.youtube || 'https://www.youtube.com/@MinistryofGroove-m1q', icon: '▶', name: 'YouTube' }
+            };
+            
+            links.innerHTML = Object.entries(socialLinks).map(([key, data]) => `
+                <a href="${data.url}" target="_blank" style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3); border-radius: 0.5rem; color: white; text-decoration: none; transition: all 0.3s;">
+                    <span style="font-size: 1.5rem;">${data.icon}</span>
+                    <span style="font-weight: bold;">${data.name}</span>
+                </a>
+            `).join('');
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeSocialModal() {
+            document.getElementById('socialModal').style.display = 'none';
+        }
+
+        // Close modal on outside click
+        document.getElementById('socialModal').addEventListener('click', (e) => {
+            if (e.target.id === 'socialModal') closeSocialModal();
         });
     </script>
 </body>
