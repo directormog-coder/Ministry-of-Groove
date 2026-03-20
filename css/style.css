@@ -1,18 +1,33 @@
 /**
  * Ministry of Groove - Global Styles
- * NCC Master v5.2.3
+ * NCC Master v6.0.0 — Ultimate Edition
+ * =====================================
+ * UPGRADED: Added Cyber-Glow, Advanced Glassmorphism, 
+ * and Directorate Utility Classes.
  */
 
 /* CSS Variables */
 :root {
+    /* M.O.G. Official Palette */
     --color-gold: #D4AF37;
-    --color-gold-light: #E5C158;
-    --color-gold-dark: #B8960C;
+    --color-gold-bright: #F0C040;
+    --color-gold-dark: #8B6914;
+    --color-gold-glow: rgba(212, 175, 55, 0.4);
+
+    --color-teal: #00D4AA;
+    --color-teal-bright: #4AECD4;
+    --color-teal-dim: #006E59;
+    --color-teal-glow: rgba(0, 212, 170, 0.35);
+
     --color-electric: #00F2FF;
     --color-black: #000000;
-    --color-dark: #0a0a0f;
+    --color-dark: #0A0A0F;
     --color-panel: #111111;
-    --font-mono: 'JetBrains Mono', Consolas, monospace;
+    
+    /* Typography */
+    --font-mono: 'Share Tech Mono', 'JetBrains Mono', Consolas, monospace;
+    --font-cyber: 'Orbitron', sans-serif;
+    --font-main: 'Rajdhani', sans-serif;
 }
 
 /* Reset */
@@ -22,16 +37,19 @@
     padding: 0;
 }
 
-/* Base */
+/* Base Configuration */
 html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
 }
 
 body {
-    font-family: var(--font-mono);
+    font-family: var(--font-main);
     background: var(--color-black);
-    color: #fff;
+    color: #E8F0EE;
     line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -42,69 +60,156 @@ body {
     color: var(--color-black);
 }
 
-/* Scrollbar */
+/* Scrollbar Customization */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--color-dark);
+    background: var(--color-black);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--color-gold);
-    border-radius: 4px;
+    background: linear-gradient(180deg, var(--color-gold-dark), var(--color-teal-dim));
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-gold-light);
+    background: var(--color-gold-bright);
 }
 
-/* Utility Classes */
+/* ── Cyber Utility Classes ── */
 .text-gold { color: var(--color-gold); }
-.bg-gold { background-color: var(--color-gold); }
-.border-gold { border-color: var(--color-gold); }
-
+.text-gold-bright { color: var(--color-gold-bright); }
+.text-teal { color: var(--color-teal); }
 .text-electric { color: var(--color-electric); }
-.bg-electric { background-color: var(--color-electric); }
+
+.bg-gold { background-color: var(--color-gold); }
+.bg-teal { background-color: var(--color-teal); }
 
 .font-mono { font-family: var(--font-mono); }
+.font-orbit { font-family: var(--font-cyber); }
 
-/* Glass Effect */
+/* ── Advanced Glassmorphism ── */
 .glass {
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(212, 175, 55, 0.15);
+    background: rgba(6, 10, 8, 0.93);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(0, 212, 170, 0.16);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
-/* Animations */
+.glass-gold {
+    background: rgba(10, 10, 15, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
+}
+
+/* ── Cyber Borders & Glows ── */
+.glow-gold {
+    filter: drop-shadow(0 0 8px var(--color-gold-glow));
+}
+
+.glow-teal {
+    filter: drop-shadow(0 0 8px var(--color-teal-glow));
+}
+
+.border-glow-teal {
+    border: 1px solid var(--color-teal-dim);
+    box-shadow: 0 0 15px rgba(0, 212, 170, 0.1);
+}
+
+/* ── Animations ── */
 @keyframes pulse-gold {
     0%, 100% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.2); }
-    50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+    50% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.5); }
 }
 
-@keyframes scan {
+@keyframes scanline {
     0% { transform: translateY(-100%); }
-    100% { transform: translateY(100%); }
+    100% { transform: translateY(100vh); }
+}
+
+@keyframes text-flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+    92% { opacity: 1; }
+    93% { opacity: 0.5; }
+    94% { opacity: 1; }
 }
 
 .animate-pulse-gold {
-    animation: pulse-gold 2s ease-in-out infinite;
+    animation: pulse-gold 3s ease-in-out infinite;
 }
 
-/* Security watermark */
-.security-watermark::after {
-    content: 'CLASSIFIED';
+.animate-flicker {
+    animation: text-flicker 5s linear infinite;
+}
+
+/* ── Layout Components ── */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Background Elements ── */
+.circuit-grid {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    font-size: 10px;
-    color: rgba(212, 175, 55, 0.1);
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background-image: 
+        linear-gradient(rgba(0, 212, 170, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 170, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+}
+
+/* Security Watermark */
+.security-watermark::after {
+    content: 'M.O.G. CLASSIFIED // LEVEL 4 CLEARANCE';
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: rgba(212, 175, 55, 0.15);
     pointer-events: none;
     z-index: 9999;
-    letter-spacing: 0.5em;
+    letter-spacing: 0.4em;
     transform: rotate(-90deg);
     transform-origin: right bottom;
+    text-transform: uppercase;
+}
+
+/* ── Button Upgrades ── */
+.btn-mog {
+    padding: 12px 24px;
+    font-family: var(--font-cyber);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.btn-mog-gold {
+    background: var(--color-gold);
+    color: var(--color-black);
+    font-weight: bold;
+}
+
+.btn-mog-gold:hover {
+    background: var(--color-gold-bright);
+    box-shadow: 0 0 20px var(--color-gold-glow);
+    transform: translateY(-2px);
 }

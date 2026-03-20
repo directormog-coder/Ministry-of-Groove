@@ -7,77 +7,105 @@ on:
     branches: [ main ]
 
 env:
-  # This tells GitHub to use the newer runner engine
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
   security-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Using 20 for stability; it will run on Node 24 runner via the ENV flag above
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Ensure Lockfile and Audit
+      - name: Validate package.json is valid JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+
+      - name: Generate lockfile if missing
         run: |
           if [ ! -f package-lock.json ]; then
-            echo "Lockfile missing, generating one..."
-            npm install --package-lock-only
+            echo "No lockfile found — generating..."
+            npm install --package-lock-only --ignore-scripts
           fi
-          npm audit --audit-level=moderate || true
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate || true
         continue-on-error: true
-      
-      - name: Check for secrets
+
+      - name: Scan for leaked secrets
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
-          extra_args: --debug --only-verified
+          extra_args: --only-verified
         continue-on-error: true
 
   static-analysis:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Run ESLint
-        run: |
-          npm install
-          npx eslint js/ --ext .js || true
+
+      - name: Validate package.json before install
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
+
+      - name: Install ESLint only
+        run: npm install --save-dev eslint --ignore-scripts
+
+      - name: Run ESLint on js/ folder
+        run: npx eslint js/ --ext .js || true
         continue-on-error: true
 
   dependency-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Install dependencies
+          cache: 'npm'
+
+      - name: Validate package.json is valid JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
+
+      - name: Generate lockfile if missing
         run: |
           if [ ! -f package-lock.json ]; then
-            npm install --package-lock-only
+            echo "No lockfile — generating..."
+            npm install --package-lock-only --ignore-scripts
+          else
+            echo "Lockfile exists — skipping"
           fi
-          npm install
-      
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'ministry-of-groove'
           path: '.'
-          out: 'reports' # Added output directory
+          out: 'reports'
           format: 'JSON'
         continue-on-error: true
-        
+
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-check-report
+          path: reports/
+          retention-days: 7

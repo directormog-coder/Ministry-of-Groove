@@ -1,54 +1,66 @@
 {
-  "name": "Ministry of Groove | NCC MASTER",
-  "short_name": "MOG NCC",
-  "description": "Central Operations Gate & Classified Cultural Archive",
-  "start_url": "/",
+  "name": "Ministry of Groove — M.O.G.",
+  "short_name": "M.O.G.",
+  "description": "Secure Operative Network & Directorate Command System — Ministry of Groove, Emalahleni Uplink II",
+  "start_url": "/login.html",
+  "id": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "background_color": "#000000",
-  "theme_color": "#FFD700",
+  "theme_color": "#d4af37",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
+  "lang": "en-ZA",
+  "dir": "ltr",
+
   "icons": [
     {
       "src": "assets/images/icon-72.png",
       "sizes": "72x72",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-96.png",
       "sizes": "96x96",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-128.png",
       "sizes": "128x128",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-144.png",
       "sizes": "144x144",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-152.png",
       "sizes": "152x152",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-384.png",
       "sizes": "384x384",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/images/icon-maskable-192.png",
@@ -63,7 +75,55 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["music", "entertainment", "lifestyle"],
-  "screenshots": [],
-  "shortcuts": []
+
+  "categories": ["music", "entertainment", "lifestyle", "social"],
+
+  "shortcuts": [
+    {
+      "name": "Operative Hub",
+      "short_name": "Hub",
+      "description": "Go to M.O.G. Operative Network",
+      "url": "/index.html",
+      "icons": [{ "src": "assets/images/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Secure Login",
+      "short_name": "Login",
+      "description": "Access Terminal",
+      "url": "/login.html",
+      "icons": [{ "src": "assets/images/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "assets/images/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "M.O.G. Operative Hub on mobile"
+    },
+    {
+      "src": "assets/images/screenshot-desktop.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "M.O.G. Operative Hub on desktop"
+    }
+  ],
+
+  "related_applications": [],
+  "prefer_related_applications": false,
+
+  "protocol_handlers": [],
+
+  "share_target": {
+    "action": "/index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }
