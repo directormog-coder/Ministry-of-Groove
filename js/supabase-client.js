@@ -1,21 +1,25 @@
 /**
  * M.O.G. NETWORK — Supabase Client
  * =================================
- * Fetches credentials from /api/config.js then initializes the Supabase
- * client. Exposes it globally as both:
- *   window.sb             → used by index.html, directorate.html
- *   window.supabaseClient → legacy alias kept for backwards compatibility
+ * Works on BOTH environments automatically:
  *
- * Load order in every HTML page must be:
+ *   localhost:3000  →  fetches from Express /api/config (reads .env.local)
+ *   Vercel          →  fetches from /api/config serverless function
+ *
+ * Exports:
+ *   window.sb             → used by index.html, directorate.html
+ *   window.supabaseClient → legacy alias (login.html, other pages)
+ *
+ * Script load order in EVERY HTML page:
  *   1. <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  *   2. <script src="/js/supabase-client.js"></script>
- *   3. Your Alpine / page scripts
+ *   3. Alpine / page scripts (defer)
  */
 
 (async () => {
 
-    // ── Helper: show a visible error banner on screen ─────────────
-    const showFatalBanner = (message) => {
+    // ── Visible error banner ──────────────────────────────────────
+    const showBanner = (msg) => {
         const mount = () => {
             if (document.getElementById('mog-fatal')) return;
             const el = document.createElement('div');
@@ -23,92 +27,104 @@
             el.style.cssText = [
                 'position:fixed', 'top:20px', 'left:50%',
                 'transform:translateX(-50%)', 'z-index:99999',
-                'background:#7f1d1d', 'border:1px solid rgba(239,68,68,0.5)',
+                'background:#7f1d1d', 'border:1px solid rgba(239,68,68,0.4)',
                 'color:#fff', 'padding:14px 24px', 'border-radius:12px',
                 'font-family:Share Tech Mono,monospace', 'font-size:0.78rem',
                 'letter-spacing:0.08em', 'text-transform:uppercase',
-                'box-shadow:0 8px 32px rgba(0,0,0,0.6)',
-                'max-width:90vw', 'text-align:center', 'line-height:1.6'
+                'box-shadow:0 8px 32px rgba(0,0,0,0.7)',
+                'max-width:90vw', 'text-align:center', 'line-height:1.8'
             ].join(';');
-            el.textContent = message;
+            el.textContent = msg;
             document.body.appendChild(el);
         };
         document.body ? mount() : document.addEventListener('DOMContentLoaded', mount);
     };
 
-    // ── Step 1: Fetch config from Vercel serverless function ──────
-    let config;
+    // ── Detect environment ────────────────────────────────────────
+    const isLocal = ['localhost', '127.0.0.1', '0.0.0.0']
+        .includes(window.location.hostname);
+
+    // On localhost the server IS on :3000 so the URL is the same origin
+    // On Vercel it's a relative path
+    const configUrl = '/api/config';
+
+    // ── Fetch config ──────────────────────────────────────────────
+    let SUPABASE_URL, SUPABASE_ANON_KEY;
+
     try {
-        const res = await fetch('/api/config', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            cache: 'no-store'  // Never use a cached version of credentials
-        });
+        const res = await fetch(configUrl, { cache: 'no-store' });
 
         if (!res.ok) {
-            throw new Error(`Config API responded with HTTP ${res.status}`);
+            throw new Error(`Config API returned HTTP ${res.status}`);
         }
 
-        config = await res.json();
+        const cfg = await res.json();
+        SUPABASE_URL      = cfg.SUPABASE_URL;
+        SUPABASE_ANON_KEY = cfg.SUPABASE_ANON_KEY;
 
-        // Validate the response has what we need
-        if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
-            throw new Error('Config response missing SUPABASE_URL or SUPABASE_ANON_KEY');
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+            throw new Error('Response is missing SUPABASE_URL or SUPABASE_ANON_KEY');
         }
 
     } catch (err) {
         console.error('[M.O.G.] Config fetch failed:', err.message);
-        showFatalBanner('⚠ Config load failed — check /api/config is deployed');
+
+        if (isLocal) {
+            showBanner(
+                '⚠ Local server not running\n' +
+                'Open a terminal and run:\n' +
+                'node scripts/server.js'
+            );
+        } else {
+            showBanner(
+                '⚠ Config API failed\n' +
+                'Check SUPABASE_URL + SUPABASE_ANON_KEY\n' +
+                'in Vercel Dashboard → Settings → Env Vars'
+            );
+        }
+
         window.sb = null;
         window.supabaseClient = null;
         return;
     }
 
-    // ── Step 2: Store on window.CONFIG for other scripts ─────────
-    window.CONFIG = {
-        SUPABASE_URL:      config.SUPABASE_URL,
-        SUPABASE_ANON_KEY: config.SUPABASE_ANON_KEY,
-        contacts:          config.contacts  || {},
-        network:           config.network   || 'M.O.G.',
-        version:           config.version   || '2.0.0'
-    };
-
-    // ── Step 3: Guard — Supabase CDN must be loaded first ─────────
+    // ── Guard: Supabase CDN must be loaded first ──────────────────
     if (typeof supabase === 'undefined') {
-        const msg = 'Supabase CDN not loaded. Ensure the CDN <script> tag comes BEFORE supabase-client.js';
-        console.error('[M.O.G.]', msg);
-        showFatalBanner('⚠ Supabase CDN missing — check script order');
+        console.error('[M.O.G.] Supabase CDN not loaded — wrong script order in <head>');
+        showBanner('⚠ Supabase CDN missing — check <head> script tag order');
         window.sb = null;
         window.supabaseClient = null;
         return;
     }
 
-    // ── Step 4: Create the client ─────────────────────────────────
+    // ── Create client ─────────────────────────────────────────────
     try {
-        const client = supabase.createClient(
-            config.SUPABASE_URL,
-            config.SUPABASE_ANON_KEY,
-            {
-                auth: {
-                    autoRefreshToken:   true,   // Keeps session alive automatically
-                    persistSession:     true,   // Survives page refresh
-                    detectSessionInUrl: true    // Handles OAuth redirects
-                }
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                autoRefreshToken:   true,
+                persistSession:     true,
+                detectSessionInUrl: true
             }
-        );
+        });
 
-        // Export under both names
-        window.sb             = client;
-        window.supabaseClient = client;
+        window.sb             = client;  // index.html, directorate.html
+        window.supabaseClient = client;  // login.html, legacy pages
+
+        // Store full config for other scripts that need it
+        window.CONFIG = {
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY,
+            environment: isLocal ? 'local' : 'production'
+        };
 
         console.log(
-            '%c[M.O.G.] Supabase connected ✓',
-            'color:#00d4aa;font-weight:bold;font-family:monospace;'
+            `%c[M.O.G.] Supabase connected ✓  (${isLocal ? 'LOCAL' : 'PRODUCTION'})`,
+            'color:#00d4aa;font-weight:bold;font-family:monospace;font-size:1rem'
         );
 
     } catch (err) {
         console.error('[M.O.G.] createClient failed:', err.message);
-        showFatalBanner('⚠ Supabase client init failed — see console');
+        showBanner('⚠ Supabase init failed — see browser console');
         window.sb = null;
         window.supabaseClient = null;
     }
