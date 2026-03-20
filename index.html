@@ -9,6 +9,17 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- ============================================================
+         SUPABASE CLIENT INITIALIZATION
+         Replace the values below with your actual project credentials
+         from: https://app.supabase.com → Project Settings → API
+    ============================================================ -->
+    <script>
+        const SUPABASE_URL = 'https://your-project-ref.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key-here';
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    </script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
@@ -26,6 +37,8 @@
             --circuit: #001a16;
         }
         
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Rajdhani', sans-serif;
             background: var(--dark-bg);
@@ -35,7 +48,7 @@
             font-family: 'Share Tech Mono', monospace; 
         }
         
-        /* M.O.G. Seal Background - Uses logo.png */
+        /* M.O.G. Seal Background */
         .mog-bg {
             position: fixed;
             top: 50%;
@@ -67,29 +80,43 @@
             pointer-events: none;
             z-index: 1;
         }
+
+        /* Noise texture overlay for depth */
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            opacity: 0.025;
+            pointer-events: none;
+            z-index: 2;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-size: 150px 150px;
+        }
         
-        /* Glass Effects - Teal Theme */
+        /* Glass Effects */
         .glass-teal { 
             background: rgba(0, 26, 22, 0.85); 
             backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 212, 170, 0.2); 
             box-shadow: 
-                0 0 40px rgba(0, 212, 170, 0.1),
+                0 0 40px rgba(0, 212, 170, 0.08),
                 inset 0 1px 0 rgba(255,255,255,0.05);
         }
         
         .glass-gold { 
             background: rgba(26, 22, 0, 0.85); 
             backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(212, 175, 55, 0.3); 
             box-shadow: 
-                0 0 40px rgba(212, 175, 55, 0.15),
+                0 0 40px rgba(212, 175, 55, 0.1),
                 inset 0 1px 0 rgba(255,255,255,0.05);
         }
         
         .glass-dark { 
             background: rgba(10, 15, 15, 0.95); 
             backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 212, 170, 0.1); 
         }
         
@@ -106,8 +133,8 @@
         
         /* Button Styles */
         .btn-teal {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15) 0%, rgba(0, 168, 132, 0.25) 100%);
-            border: 1px solid rgba(0, 212, 170, 0.4);
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.12) 0%, rgba(0, 168, 132, 0.2) 100%);
+            border: 1px solid rgba(0, 212, 170, 0.35);
             color: var(--teal);
             transition: all 0.3s ease;
             position: relative;
@@ -121,44 +148,43 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.15), transparent);
             transition: left 0.5s;
         }
         
-        .btn-teal:hover::before {
-            left: 100%;
-        }
+        .btn-teal:hover::before { left: 100%; }
         
         .btn-teal:hover {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.3) 0%, rgba(0, 168, 132, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.25) 0%, rgba(0, 168, 132, 0.35) 100%);
             border-color: var(--teal);
-            box-shadow: 0 0 30px var(--teal-glow);
+            box-shadow: 0 0 25px var(--teal-glow);
             transform: translateY(-2px);
         }
         
         .btn-gold {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(184, 134, 11, 0.25) 100%);
-            border: 1px solid rgba(212, 175, 55, 0.4);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(184, 134, 11, 0.2) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.35);
             color: var(--gold);
             transition: all 0.3s ease;
         }
         
         .btn-gold:hover {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(184, 134, 11, 0.4) 100%);
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(184, 134, 11, 0.35) 100%);
             border-color: var(--gold);
-            box-shadow: 0 0 30px var(--gold-glow);
+            box-shadow: 0 0 25px var(--gold-glow);
         }
         
         /* Profile Avatar with Circuit Border */
         .avatar-circuit {
             position: relative;
             border-radius: 50%;
-            padding: 4px;
+            padding: 3px;
             background: conic-gradient(from 0deg, var(--teal), var(--gold), var(--teal));
             animation: rotate 20s linear infinite;
         }
         
-        .avatar-circuit img {
+        .avatar-circuit img,
+        .avatar-circuit > div {
             border-radius: 50%;
             border: 3px solid var(--dark-bg);
         }
@@ -168,77 +194,112 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Stats Bar - Teal Gradient */
+        /* Stats Bar */
         .stat-bar {
             background: rgba(0,0,0,0.6);
             border-radius: 999px;
             overflow: hidden;
-            height: 6px;
-            border: 1px solid rgba(0, 212, 170, 0.2);
+            height: 5px;
+            border: 1px solid rgba(0, 212, 170, 0.15);
         }
         
         .stat-fill {
             height: 100%;
             border-radius: 999px;
-            transition: width 1s ease;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
             background: linear-gradient(90deg, var(--teal-dark), var(--teal));
-            box-shadow: 0 0 10px var(--teal-glow);
+            box-shadow: 0 0 8px var(--teal-glow);
+        }
+
+        .stat-fill-gold {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #b8860b, var(--gold));
+            box-shadow: 0 0 8px var(--gold-glow);
+        }
+
+        .stat-fill-cyan {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(90deg, #0891b2, #22d3ee);
+            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
         }
         
-        /* Scanline - Teal */
+        /* Scanline */
         .scanline-teal {
             width: 100%;
-            height: 120px;
-            background: linear-gradient(0deg, transparent 0%, rgba(0, 212, 170, 0.04) 50%, transparent 100%);
+            height: 100px;
+            background: linear-gradient(0deg, transparent 0%, rgba(0, 212, 170, 0.035) 50%, transparent 100%);
             position: fixed;
-            top: -120px;
+            top: -100px;
             left: 0;
             pointer-events: none;
-            animation: scanline 8s linear infinite;
+            animation: scanline 10s linear infinite;
             z-index: 100;
         }
         
         @keyframes scanline {
-            from { top: -120px; }
+            from { top: -100px; }
             to { top: 100vh; }
         }
         
-        /* Lockdown Overlay - Different from Directorate */
+        /* Lockdown Overlay */
         .lockdown-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 40, 40, 0.95);
+            background: rgba(0, 30, 30, 0.97);
             z-index: 9999;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(15px);
-            border: 2px solid var(--teal);
+            backdrop-filter: blur(20px);
         }
         
         /* M.O.G. Badge */
         .mog-badge {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(212, 175, 55, 0.15));
-            border: 1px solid rgba(0, 212, 170, 0.4);
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(212, 175, 55, 0.1));
+            border: 1px solid rgba(0, 212, 170, 0.35);
             clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
         }
         
         /* Input Styles */
         .input-teal {
-            background: rgba(0, 20, 20, 0.8);
+            background: rgba(0, 15, 15, 0.8);
             border: 1px solid rgba(0, 212, 170, 0.2);
             color: white;
             transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
         }
         
         .input-teal:focus {
             border-color: var(--teal);
-            box-shadow: 0 0 20px rgba(0, 212, 170, 0.15);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.08), 0 0 20px rgba(0, 212, 170, 0.1);
             outline: none;
         }
+
+        .input-teal::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* Select arrow */
+        select.input-teal {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d4aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        select.input-teal option {
+            background: #0a1a18;
+            color: white;
+        }
         
-        /* Vinyl Record Animation */
+        /* Vinyl Spin */
         .vinyl-spin {
             animation: spin 4s linear infinite;
         }
@@ -249,27 +310,110 @@
         }
         
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: rgba(0,20,20,0.5);
-        }
-        
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,20,20,0.4); }
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--teal-dark), var(--gold-dark));
+            background: linear-gradient(180deg, var(--teal-dark), #b8860b);
             border-radius: 3px;
         }
         
-        /* Pulse Animation for Live Status */
+        /* Pulse */
         .pulse-teal {
             animation: pulse-teal 2s infinite;
         }
         
         @keyframes pulse-teal {
-            0%, 100% { box-shadow: 0 0 5px var(--teal); }
-            50% { box-shadow: 0 0 20px var(--teal), 0 0 40px var(--teal-glow); }
+            0%, 100% { box-shadow: 0 0 4px var(--teal); }
+            50% { box-shadow: 0 0 16px var(--teal), 0 0 32px var(--teal-glow); }
+        }
+
+        /* Fade in animation for hub */
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Operative card hover */
+        .operative-card {
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+        .operative-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 212, 170, 0.5) !important;
+            box-shadow: 0 8px 30px rgba(0, 212, 170, 0.1);
+        }
+
+        /* Corner bracket decoration */
+        .bracket-corner {
+            position: relative;
+        }
+        .bracket-corner::before,
+        .bracket-corner::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-color: var(--teal);
+            border-style: solid;
+            opacity: 0.4;
+        }
+        .bracket-corner::before {
+            top: 8px; left: 8px;
+            border-width: 2px 0 0 2px;
+        }
+        .bracket-corner::after {
+            bottom: 8px; right: 8px;
+            border-width: 0 2px 2px 0;
+        }
+
+        /* Loading dots */
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+
+        /* Tab underline indicator */
+        .tab-active {
+            position: relative;
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: var(--teal);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--teal-glow);
+        }
+
+        /* Stat card glow on hover */
+        .stat-card {
+            transition: all 0.25s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 212, 170, 0.15);
+        }
+
+        /* Directive pulse border */
+        @keyframes borderPulse {
+            0%, 100% { border-color: rgba(212, 175, 55, 0.3); }
+            50% { border-color: rgba(212, 175, 55, 0.7); }
+        }
+        .directive-card {
+            animation: borderPulse 3s ease-in-out infinite;
         }
     </style>
 
@@ -309,6 +453,7 @@
                 allOperatives: [],
                 recentActivity: [],
                 directives: [],
+                directorateBanner: '',
                 
                 get rankColor() {
                     const colors = {
@@ -335,27 +480,37 @@
                 async init() {
                     this.checkDirectorateControl();
                     
-                    // Listen for directorate commands
                     window.addEventListener('storage', (e) => {
-                        if (e.key === 'ministrySettings') {
-                            this.checkDirectorateControl();
-                        }
-                        if (e.key === 'lastDirective') {
-                            this.loadDirectives();
-                        }
+                        if (e.key === 'ministrySettings') this.checkDirectorateControl();
+                        if (e.key === 'lastDirective') this.loadDirectives();
                     });
-                    
-                    const { data: { session } } = await sb.auth.getSession();
-                    if (!session) {
-                        window.location.href = '/login.html';
+
+                    // Guard: ensure Supabase is initialized
+                    if (!window.sb) {
+                        console.error('Supabase client not initialized. Check your credentials.');
+                        this.showNotification('Network client error — check config', 'error');
                         return;
                     }
                     
-                    this.currentUser = session.user;
+                    try {
+                        const { data: { session } } = await sb.auth.getSession();
+                        if (!session) {
+                            window.location.href = '/login.html';
+                            return;
+                        }
+                        this.currentUser = session.user;
+                    } catch (err) {
+                        console.error('Auth check failed:', err);
+                        this.showNotification('Authentication error', 'error');
+                        return;
+                    }
+                    
                     await this.loadProfile();
-                    await this.loadOperatives();
-                    await this.loadActivity();
-                    await this.loadDirectives();
+                    await Promise.all([
+                        this.loadOperatives(),
+                        this.loadActivity(),
+                        this.loadDirectives()
+                    ]);
                     
                     this.view = 'hub';
                     this.$nextTick(() => lucide.createIcons());
@@ -368,11 +523,7 @@
                             const parsed = JSON.parse(settings);
                             this.lockdownActive = parsed.isLocked || false;
                             this.directorateMessage = parsed.alertStatus || '';
-                            
-                            // Update banner if directorate changed it
-                            if (parsed.bannerText) {
-                                this.directorateBanner = parsed.bannerText;
-                            }
+                            if (parsed.bannerText) this.directorateBanner = parsed.bannerText;
                         }
                     } catch (e) {
                         console.warn('Directorate link weak');
@@ -388,24 +539,17 @@
                             .single();
                         
                         if (error && error.code === 'PGRST116') {
-                            // Create M.O.G. operative profile
                             const codename = 'MOG-' + Math.random().toString(36).substr(2, 6).toUpperCase();
                             const newProfile = {
                                 id: this.currentUser.id,
                                 email: this.currentUser.email,
                                 username: this.currentUser.email.split('@')[0],
-                                codename: codename,
+                                codename,
                                 rank: 'INITIATE',
                                 department: 'UNASSIGNED',
                                 bio: '',
                                 avatar_url: null,
-                                stats: {
-                                    missions: 0,
-                                    contributions: 0,
-                                    influence: 0,
-                                    loyalty: 100,
-                                    groove: 50
-                                },
+                                stats: { missions: 0, contributions: 0, influence: 0, loyalty: 100, groove: 50 },
                                 skills: [],
                                 achievements: ['ENLISTED'],
                                 joined_at: new Date().toISOString(),
@@ -454,6 +598,7 @@
                         this.allOperatives = data || [];
                     } catch (e) {
                         console.warn('Operative network unreachable:', e);
+                        this.allOperatives = [];
                     }
                 },
                 
@@ -463,7 +608,7 @@
                             .from('activity_log')
                             .select('*')
                             .order('created_at', { ascending: false })
-                            .limit(10);
+                            .limit(20);
                         
                         if (error) throw error;
                         this.recentActivity = data || [];
@@ -506,10 +651,12 @@
                         if (error) throw error;
                         
                         this.isEditing = false;
+                        this.showProfileModal = false;
                         this.showNotification('Dossier updated', 'success');
                         await this.logActivity('PROFILE_UPDATE', 'Updated operative dossier');
                     } catch (e) {
-                        this.showNotification('Update failed', 'error');
+                        console.error('Profile update failed:', e);
+                        this.showNotification('Update failed — ' + (e.message || 'unknown error'), 'error');
                     } finally {
                         this.isLoading = false;
                     }
@@ -519,27 +666,33 @@
                     const file = event.target.files[0];
                     if (!file) return;
                     
+                    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        this.showNotification('Invalid file type — JPG, PNG, WEBP only', 'error');
+                        return;
+                    }
+
                     if (file.size > 2 * 1024 * 1024) {
                         this.showNotification('File exceeds 2MB limit', 'error');
                         return;
                     }
                     
                     this.isLoading = true;
-                    this.uploadProgress = 0;
+                    this.uploadProgress = 10;
                     
                     try {
                         const fileExt = file.name.split('.').pop();
                         const fileName = `mog-${this.currentUser.id}-${Date.now()}.${fileExt}`;
                         const filePath = `mog-avatars/${fileName}`;
                         
-            const { error: uploadError } = await sb.storage
+                        this.uploadProgress = 30;
+
+                        const { error: uploadError } = await sb.storage
                             .from('operative-assets')
-                            .upload(filePath, file, {
-                                cacheControl: '3600',
-                                upsert: true
-                            });
+                            .upload(filePath, file, { cacheControl: '3600', upsert: true });
                         
                         if (uploadError) throw uploadError;
+                        this.uploadProgress = 70;
                         
                         const { data: { publicUrl } } = sb.storage
                             .from('operative-assets')
@@ -553,15 +706,15 @@
                         if (updateError) throw updateError;
                         
                         this.profile.avatar_url = publicUrl;
-                        this.showNotification('Visual ID updated', 'success');
                         this.uploadProgress = 100;
+                        this.showNotification('Visual ID updated', 'success');
                         
                     } catch (e) {
                         console.error('Upload failed:', e);
-                        this.showNotification('Upload failed', 'error');
+                        this.showNotification('Upload failed — ' + (e.message || 'try again'), 'error');
                     } finally {
                         this.isLoading = false;
-                        setTimeout(() => this.uploadProgress = 0, 1000);
+                        setTimeout(() => this.uploadProgress = 0, 1500);
                     }
                 },
                 
@@ -574,7 +727,9 @@
                             network: 'M.O.G.',
                             created_at: new Date().toISOString()
                         });
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Activity log write failed:', e);
+                    }
                 },
                 
                 getRankIcon(rank) {
@@ -589,174 +744,231 @@
                 },
                 
                 getStatusColor(timestamp) {
-                    if (!timestamp) return 'text-gray-600';
-                    const lastActive = new Date(timestamp);
-                    const now = new Date();
-                    const diff = (now - lastActive) / 1000 / 60;
-                    
+                    if (!timestamp) return 'text-gray-700';
+                    const diff = (new Date() - new Date(timestamp)) / 1000 / 60;
                     if (diff < 5) return 'text-teal-400';
                     if (diff < 30) return 'text-amber-400';
-                    return 'text-gray-600';
+                    if (diff < 1440) return 'text-gray-500';
+                    return 'text-gray-700';
+                },
+
+                getStatusLabel(timestamp) {
+                    if (!timestamp) return 'OFFLINE';
+                    const diff = (new Date() - new Date(timestamp)) / 1000 / 60;
+                    if (diff < 5) return 'LIVE';
+                    if (diff < 30) return 'RECENT';
+                    if (diff < 1440) return 'TODAY';
+                    return 'OFFLINE';
+                },
+
+                formatTimeAgo(timestamp) {
+                    if (!timestamp) return '—';
+                    const diff = (new Date() - new Date(timestamp)) / 1000;
+                    if (diff < 60) return Math.floor(diff) + 's ago';
+                    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+                    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+                    return Math.floor(diff / 86400) + 'd ago';
                 },
                 
                 showNotification(message, type = 'info') {
+                    const colors = {
+                        success: 'bg-teal-600 border-teal-400/40',
+                        error: 'bg-red-800 border-red-500/40',
+                        warning: 'bg-amber-700 border-amber-400/40',
+                        info: 'bg-cyan-700 border-cyan-400/40'
+                    };
+                    const icons = { success: 'check-circle', error: 'alert-triangle', warning: 'alert-circle', info: 'info' };
+
                     const notif = document.createElement('div');
-                    notif.className = `fixed top-4 right-4 p-4 rounded-lg z-[99999] font-bold tracking-wider transform transition-all duration-300 translate-x-full ${
-                        type === 'success' ? 'bg-teal-600' : 
-                        type === 'error' ? 'bg-red-600' : 
-                        type === 'warning' ? 'bg-amber-600' : 'bg-cyan-600'
-                    } text-white shadow-2xl border border-white/20`;
+                    notif.className = `fixed top-5 right-5 p-4 rounded-2xl z-[99999] font-bold tracking-wider transform transition-all duration-300 translate-x-[120%] ${colors[type] || colors.info} text-white shadow-2xl border`;
+                    notif.style.fontFamily = "'Rajdhani', sans-serif";
                     notif.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <i data-lucide="${type === 'success' ? 'check' : type === 'error' ? 'alert-triangle' : 'info'}" class="w-5 h-5"></i>
-                            <span>${message}</span>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;"></i>
+                            <span style="font-size:0.85rem;letter-spacing:0.08em;">${message.toUpperCase()}</span>
                         </div>
                     `;
                     document.body.appendChild(notif);
                     lucide.createIcons();
                     
-                    setTimeout(() => notif.classList.remove('translate-x-full'), 100);
+                    requestAnimationFrame(() => {
+                        setTimeout(() => notif.classList.remove('translate-x-[120%]'), 50);
+                    });
                     setTimeout(() => {
-                        notif.classList.add('translate-x-full');
-                        setTimeout(() => notif.remove(), 300);
-                    }, 3000);
+                        notif.classList.add('translate-x-[120%]');
+                        setTimeout(() => notif.remove(), 350);
+                    }, 3500);
                 },
                 
                 async logout() {
-                    await sb.auth.signOut();
+                    try {
+                        await sb.auth.signOut();
+                    } catch(e) {}
                     localStorage.clear();
                     window.location.href = '/login.html';
                 }
-            }
+            };
         }
     </script>
 </head>
 <body x-data="mogNetwork()" x-init="init()" x-cloak class="bg-[#0a0f0f] text-white min-h-screen relative overflow-x-hidden">
 
-    <!-- M.O.G. Background Elements -->
+    <!-- Background Elements -->
     <div class="mog-bg"></div>
     <div class="circuit-grid"></div>
+    <div class="noise-overlay"></div>
     <div class="scanline-teal"></div>
 
-    <!-- Directorate Lockdown Overlay -->
-    <div x-show="lockdownActive" 
-         x-transition 
-         class="lockdown-overlay">
-        <div class="w-24 h-24 rounded-full border-4 border-teal-400 flex items-center justify-center mb-6 pulse-teal">
-            <i data-lucide="lock" class="w-12 h-12 text-teal-400"></i>
+    <!-- Lockdown Overlay -->
+    <div x-show="lockdownActive" x-transition class="lockdown-overlay">
+        <div class="w-24 h-24 rounded-full border-2 border-teal-400/60 flex items-center justify-center mb-8 pulse-teal">
+            <i data-lucide="lock" class="w-10 h-10 text-teal-400"></i>
         </div>
-        <h1 class="text-4xl font-black text-teal-400 uppercase tracking-[0.3em] mb-4" style="text-shadow: 0 0 30px rgba(0,212,170,0.5);">NETWORK LOCKDOWN</h1>
-        <p class="text-lg text-white/70 terminal-font mb-2" x-text="directorateMessage || 'DIRECTORATE PROTOCOL ACTIVE'"></p>
-        <p class="text-sm text-teal-600/60 uppercase tracking-widest">Ministry of Groove // Sector Control</p>
-        <button @click="checkDirectorateControl()" class="mt-8 px-8 py-3 border border-teal-500/50 text-teal-400 rounded-full hover:bg-teal-500/20 transition-all uppercase tracking-widest text-sm font-bold">
+        <p class="text-[10px] text-teal-600 uppercase tracking-[0.5em] terminal-font mb-3">Protocol Active</p>
+        <h1 class="text-4xl font-black text-teal-400 uppercase tracking-[0.25em] mb-4" style="text-shadow: 0 0 40px rgba(0,212,170,0.5);">NETWORK LOCKDOWN</h1>
+        <p class="text-base text-white/60 terminal-font mb-1" x-text="directorateMessage || 'DIRECTORATE PROTOCOL ACTIVE'"></p>
+        <p class="text-xs text-teal-700 uppercase tracking-widest mb-8">Ministry of Groove // Sector Control</p>
+        <button @click="checkDirectorateControl()" 
+                class="px-8 py-3 border border-teal-500/40 text-teal-400 rounded-full hover:bg-teal-500/15 transition-all uppercase tracking-widest text-xs font-bold">
             Refresh Status
         </button>
     </div>
 
     <!-- Loading View -->
     <template x-if="view === 'loading'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <div class="w-20 h-20 rounded-full border-4 border-teal-500 border-t-transparent animate-spin"></div>
-            <p class="terminal-font text-sm text-teal-400 animate-pulse uppercase tracking-[0.5em]">Connecting to M.O.G. Network...</p>
-            <p class="text-xs text-gray-600 uppercase tracking-widest">Ministry of Groove // Est. 2026</p>
+        <div class="h-screen flex flex-col items-center justify-center space-y-8 relative z-50">
+            <div class="relative">
+                <div class="w-20 h-20 rounded-full border-2 border-teal-500/20 border-t-teal-400 animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full bg-teal-400 pulse-teal"></div>
+                </div>
+            </div>
+            <div class="text-center space-y-2">
+                <p class="terminal-font text-sm text-teal-400 uppercase tracking-[0.4em]">
+                    Connecting to M.O.G. Network
+                    <span class="loading-dots">
+                        <span>.</span><span>.</span><span>.</span>
+                    </span>
+                </p>
+                <p class="text-xs text-gray-700 uppercase tracking-widest terminal-font">Ministry of Groove // Est. 2026</p>
+            </div>
         </div>
     </template>
 
     <!-- Main Hub -->
     <template x-if="view === 'hub'">
-        <div class="min-h-screen relative z-10">
+        <div class="min-h-screen relative z-10 fade-in">
             
             <!-- Navigation -->
-            <nav class="glass-teal border-b border-teal-500/20 px-6 py-4 sticky top-0 z-50">
+            <nav class="glass-teal border-b border-teal-500/15 px-6 py-3 sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto flex justify-between items-center">
                     <div class="flex items-center gap-4">
-                        <img src="../assets/images/logo.png" alt="M.O.G." class="w-14 h-14 object-contain opacity-90 vinyl-spin" style="animation-duration: 20s;">
+                        <img src="../assets/images/logo.png" alt="M.O.G." 
+                             class="w-12 h-12 object-contain opacity-90" 
+                             style="animation: spin 25s linear infinite;">
                         <div>
-                            <h1 class="text-2xl font-black uppercase tracking-tighter text-teal-400" style="text-shadow: 0 0 20px rgba(0,212,170,0.4);">M.O.G.</h1>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-[0.3em]">Ministry of Groove Network</p>
+                            <h1 class="text-xl font-black uppercase tracking-tight text-teal-400" 
+                                style="text-shadow: 0 0 20px rgba(0,212,170,0.35);">M.O.G.</h1>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-[0.35em] terminal-font">Ministry of Groove Network</p>
                         </div>
                     </div>
                     
-                    <div class="flex items-center gap-4">
+                    <!-- Directorate Banner -->
+                    <div x-show="directorateBanner" 
+                         class="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-xs terminal-font uppercase tracking-wider truncate max-w-xs">
+                        <i data-lucide="radio" class="w-3 h-3 flex-shrink-0"></i>
+                        <span x-text="directorateBanner" class="truncate"></span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
                         <!-- Directorate Portal -->
                         <a x-show="profile.rank === 'DIRECTOR'" 
                            href="/pages/directorate.html"
-                           class="hidden md:flex items-center gap-2 px-5 py-2.5 bg-red-900/20 border border-red-500/50 rounded-full text-red-400 text-xs uppercase font-bold tracking-wider hover:bg-red-900/40 transition-all group">
-                            <i data-lucide="shield" class="w-4 h-4 group-hover:animate-pulse"></i>
-                            Directorate HQ
+                           class="hidden md:flex items-center gap-2 px-4 py-2 bg-red-900/15 border border-red-500/40 rounded-full text-red-400 text-xs uppercase font-bold tracking-wider hover:bg-red-900/30 transition-all group">
+                            <i data-lucide="shield" class="w-3.5 h-3.5 group-hover:animate-pulse"></i>
+                            <span>Directorate</span>
                         </a>
                         
                         <!-- Profile Trigger -->
                         <button @click="showProfileModal = true" 
-                                class="flex items-center gap-3 p-2 pr-5 rounded-full bg-black/40 border border-teal-500/30 hover:border-teal-400 transition-all group">
-                            <div class="avatar-circuit w-11 h-11">
-                                <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-900/50 to-black flex items-center justify-center overflow-hidden">
-                                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover">
-                                    <i x-show="!profile.avatar_url" data-lucide="user" class="w-5 h-5 text-teal-400"></i>
+                                class="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full bg-black/50 border border-teal-500/25 hover:border-teal-400/60 transition-all group">
+                            <div class="avatar-circuit w-10 h-10">
+                                <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-900/60 to-black flex items-center justify-center overflow-hidden">
+                                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
+                                    <i x-show="!profile.avatar_url" data-lucide="user" class="w-4 h-4 text-teal-400"></i>
                                 </div>
                             </div>
                             <div class="hidden md:block text-left">
-                                <p class="text-xs font-bold text-white uppercase tracking-wider" x-text="profile.codename"></p>
-                                <p class="text-[10px] text-teal-400 uppercase" x-text="profile.rank"></p>
+                                <p class="text-xs font-bold text-white uppercase tracking-wider leading-tight" x-text="profile.codename"></p>
+                                <p class="text-[10px] text-teal-500 uppercase leading-tight" x-text="profile.rank"></p>
                             </div>
                         </button>
                         
-                        <button @click="logout()" class="p-3 text-gray-500 hover:text-teal-400 transition-colors">
-                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        <button @click="logout()" 
+                                class="p-2.5 text-gray-600 hover:text-teal-400 hover:bg-teal-500/10 rounded-full transition-all" 
+                                title="Sign Out">
+                            <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
             </nav>
-
-            <!-- Main Content -->
-            <main class="max-w-7xl mx-auto p-6 space-y-8">
+                                
+                 <!-- Main Content -->
+            <main class="max-w-7xl mx-auto p-6 space-y-6">
                 
-                <!-- Welcome Section -->
-                <div class="glass-teal p-8 rounded-[3rem] relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-teal-900/20 via-transparent to-gold-900/10 pointer-events-none"></div>
-                    <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                        <div class="avatar-circuit w-28 h-28 flex-shrink-0">
-                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/20 to-gold-500/20 flex items-center justify-center overflow-hidden">
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover">
-                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-12 h-12 text-teal-400"></i>
+                <!-- Welcome Banner -->
+                <div class="glass-teal p-7 rounded-[2.5rem] relative overflow-hidden bracket-corner">
+                    <div class="absolute inset-0 bg-gradient-to-br from-teal-900/20 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-teal-500/5 blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row items-center gap-7">
+                        <div class="avatar-circuit w-24 h-24 flex-shrink-0">
+                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/15 to-black flex items-center justify-center overflow-hidden">
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
+                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-10 h-10 text-teal-400"></i>
                             </div>
                         </div>
-                        <div class="text-center md:text-left flex-1">
-                            <p class="text-xs text-teal-400 uppercase tracking-[0.3em] mb-2 terminal-font">Operative Online</p>
-                            <h2 class="text-3xl md:text-5xl font-black uppercase italic tracking-tighter text-white mb-3" x-text="profile.username"></h2>
-                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                                <span class="mog-badge px-5 py-1.5 text-xs font-bold uppercase tracking-wider text-teal-300" x-text="profile.codename"></span>
-                                <span class="px-4 py-1.5 rounded-full border text-xs font-bold uppercase tracking-wider" 
-                                      :class="rankColor === 'text-gold' ? 'border-gold/50 text-gold' : 'border-teal-500/50 text-teal-400'"
+
+                        <div class="text-center md:text-left flex-1 min-w-0">
+                            <p class="text-[10px] text-teal-500 uppercase tracking-[0.4em] mb-1 terminal-font">Operative Online</p>
+                            <h2 class="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white mb-3 truncate" x-text="profile.username"></h2>
+                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                <span class="mog-badge px-4 py-1 text-xs font-bold uppercase tracking-wider text-teal-300 terminal-font" x-text="profile.codename"></span>
+                                <span class="px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider" 
+                                      :class="profile.rank === 'DIRECTOR' ? 'border-yellow-500/50 text-yellow-400' : 'border-teal-500/40 text-teal-400'"
                                       x-text="profile.rank"></span>
-                                <span class="text-xs text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <span class="text-xs text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
                                     <i data-lucide="layers" class="w-3 h-3"></i>
                                     <span x-text="profile.department"></span>
                                 </span>
                             </div>
                         </div>
-                        <div class="text-center md:text-right space-y-2">
-                            <div class="flex items-center gap-2 justify-center md:justify-end">
+
+                        <div class="text-center space-y-2 flex-shrink-0">
+                            <div class="flex items-center gap-2 justify-center">
                                 <span class="w-2 h-2 rounded-full bg-teal-400 pulse-teal"></span>
-                                <span class="text-teal-400 font-bold uppercase text-sm tracking-wider" x-text="networkStatus"></span>
+                                <span class="text-teal-400 font-bold uppercase text-xs tracking-wider" x-text="networkStatus"></span>
                             </div>
-                            <p class="text-xs text-gray-600 uppercase tracking-widest">Clearance L<span x-text="clearanceLevel"></span></p>
+                            <p class="text-[10px] text-gray-600 uppercase tracking-widest terminal-font">Clearance L<span x-text="clearanceLevel"></span></p>
+                            <p class="text-[10px] text-gray-700 uppercase tracking-widest terminal-font" x-show="profile.joined_at">
+                                Enlisted <span x-text="profile.joined_at ? new Date(profile.joined_at).toLocaleDateString() : ''"></span>
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Directorate Directives -->
-                <div x-show="directives.length > 0" class="space-y-3">
+                <!-- Directives -->
+                <div x-show="directives.length > 0" class="space-y-2">
                     <template x-for="directive in directives" :key="directive.id">
-                        <div class="glass-gold p-5 rounded-2xl border border-gold/30 flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="radio" class="w-5 h-5 text-gold"></i>
+                        <div class="glass-gold p-4 rounded-2xl directive-card flex items-center gap-4">
+                            <div class="w-9 h-9 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0 border border-yellow-500/20">
+                                <i data-lucide="radio" class="w-4 h-4 text-yellow-400"></i>
                             </div>
-                            <div class="flex-1">
-                                <p class="text-xs text-gold uppercase tracking-widest font-bold">Directorate Directive</p>
-                                <p class="text-sm text-white" x-text="directive.content"></p>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold mb-0.5">Directorate Directive</p>
+                                <p class="text-sm text-white truncate" x-text="directive.content"></p>
                             </div>
-                            <span class="text-xs text-gray-500 terminal-font" x-text="new Date(directive.timestamp).toLocaleTimeString()"></span>
+                            <span class="text-[10px] text-gray-600 terminal-font flex-shrink-0" x-text="formatTimeAgo(directive.timestamp)"></span>
                         </div>
                     </template>
                 </div>
@@ -769,15 +981,15 @@
 
                         <!-- Stats Panel -->
                         <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-sm text-teal-400 uppercase tracking-widest font-bold mb-6 flex items-center gap-2">
-                                <i data-lucide="activity" class="w-4 h-4"></i>
+                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-5 flex items-center gap-2">
+                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
                                 Performance Metrics
                             </h3>
                             
                             <div class="space-y-5">
                                 <div>
                                     <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
-                                        <span class="text-gray-400">Missions</span>
+                                        <span class="text-gray-500">Missions</span>
                                         <span class="text-teal-400 font-bold terminal-font" x-text="profile.stats.missions"></span>
                                     </div>
                                     <div class="stat-bar">
@@ -787,7 +999,7 @@
                                 
                                 <div>
                                     <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
-                                        <span class="text-gray-400">Network Contributions</span>
+                                        <span class="text-gray-500">Contributions</span>
                                         <span class="text-teal-400 font-bold terminal-font" x-text="profile.stats.contributions"></span>
                                     </div>
                                     <div class="stat-bar">
@@ -797,21 +1009,32 @@
                                 
                                 <div>
                                     <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
-                                        <span class="text-gray-400">Influence</span>
-                                        <span class="text-gold font-bold terminal-font" x-text="profile.stats.influence + '%'"></span>
+                                        <span class="text-gray-500">Influence</span>
+                                        <span class="font-bold terminal-font text-yellow-400" x-text="profile.stats.influence + '%'"></span>
                                     </div>
-                                    <div class="stat-bar">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-gold-dark to-gold transition-all duration-1000" :style="`width: ${profile.stats.influence}%`"></div>
+                                    <div class="stat-bar border-yellow-500/15">
+                                        <div class="stat-fill-gold" :style="`width: ${profile.stats.influence}%`"></div>
                                     </div>
                                 </div>
                                 
                                 <div>
                                     <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
-                                        <span class="text-gray-400">Groove Factor</span>
+                                        <span class="text-gray-500">Groove Factor</span>
                                         <span class="text-cyan-400 font-bold terminal-font" x-text="profile.stats.groove + '%'"></span>
                                     </div>
-                                    <div class="stat-bar bg-cyan-900/20 border-cyan-500/20">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-1000 shadow-[0_0_10px_rgba(0,212,170,0.5)]" :style="`width: ${profile.stats.groove}%`"></div>
+                                    <div class="stat-bar border-cyan-500/15">
+                                        <div class="stat-fill-cyan" :style="`width: ${profile.stats.groove}%`"></div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                        <span class="text-gray-500">Loyalty</span>
+                                        <span class="text-red-400 font-bold terminal-font" x-text="profile.stats.loyalty + '%'"></span>
+                                    </div>
+                                    <div class="stat-bar border-red-500/15">
+                                        <div class="h-full rounded-full bg-gradient-to-r from-red-800 to-red-500 transition-all duration-1000 shadow-[0_0_8px_rgba(239,68,68,0.3)]" 
+                                             :style="`width: ${profile.stats.loyalty}%`"></div>
                                     </div>
                                 </div>
                             </div>
@@ -819,22 +1042,22 @@
 
                         <!-- Quick Actions -->
                         <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-sm text-teal-400 uppercase tracking-widest font-bold mb-4">Quick Actions</h3>
+                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-4">Quick Actions</h3>
                             <div class="grid grid-cols-2 gap-3">
-                                <button @click="showProfileModal = true" class="btn-teal p-4 rounded-xl text-center">
-                                    <i data-lucide="user-cog" class="w-6 h-6 mx-auto mb-2"></i>
+                                <button @click="showProfileModal = true" class="btn-teal p-4 rounded-xl text-center group">
+                                    <i data-lucide="user-cog" class="w-5 h-5 mx-auto mb-2 group-hover:text-teal-300 transition-colors"></i>
                                     <span class="text-xs uppercase tracking-wider">Dossier</span>
                                 </button>
-                                <button @click="activeTab = 'operatives'" class="btn-teal p-4 rounded-xl text-center">
-                                    <i data-lucide="users" class="w-6 h-6 mx-auto mb-2"></i>
+                                <button @click="activeTab = 'operatives'" class="btn-teal p-4 rounded-xl text-center group">
+                                    <i data-lucide="users" class="w-5 h-5 mx-auto mb-2 group-hover:text-teal-300 transition-colors"></i>
                                     <span class="text-xs uppercase tracking-wider">Network</span>
                                 </button>
-                                <button class="btn-gold p-4 rounded-xl text-center opacity-60 cursor-not-allowed">
-                                    <i data-lucide="radio" class="w-6 h-6 mx-auto mb-2"></i>
+                                <button class="btn-gold p-4 rounded-xl text-center opacity-50 cursor-not-allowed" disabled>
+                                    <i data-lucide="radio" class="w-5 h-5 mx-auto mb-2"></i>
                                     <span class="text-xs uppercase tracking-wider">Dispatch</span>
                                 </button>
-                                <button class="btn-gold p-4 rounded-xl text-center opacity-60 cursor-not-allowed">
-                                    <i data-lucide="archive" class="w-6 h-6 mx-auto mb-2"></i>
+                                <button class="btn-gold p-4 rounded-xl text-center opacity-50 cursor-not-allowed" disabled>
+                                    <i data-lucide="archive" class="w-5 h-5 mx-auto mb-2"></i>
                                     <span class="text-xs uppercase tracking-wider">Archives</span>
                                 </button>
                             </div>
@@ -842,89 +1065,101 @@
 
                         <!-- Achievements -->
                         <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-sm text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
-                                <i data-lucide="award" class="w-4 h-4"></i>
+                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
+                                <i data-lucide="award" class="w-3.5 h-3.5"></i>
                                 Achievements
+                                <span class="ml-auto text-gray-600 terminal-font" x-text="profile.achievements.length"></span>
                             </h3>
                             <div class="flex flex-wrap gap-2">
                                 <template x-if="profile.achievements.length === 0">
-                                    <p class="text-xs text-gray-600 italic">No achievements yet</p>
+                                    <p class="text-xs text-gray-700 italic terminal-font">No achievements unlocked</p>
                                 </template>
                                 <template x-for="achievement in profile.achievements" :key="achievement">
-                                    <span class="px-3 py-1.5 bg-teal-500/10 border border-teal-500/30 rounded-full text-xs text-teal-300 uppercase tracking-wider" x-text="achievement"></span>
+                                    <span class="px-3 py-1.5 bg-teal-500/8 border border-teal-500/25 rounded-full text-xs text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i data-lucide="star" class="w-3 h-3"></i>
+                                        <span x-text="achievement"></span>
+                                    </span>
                                 </template>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Main Content Area -->
-                    <div class="lg:col-span-2 space-y-6">
+                                <!-- Main Content Area -->
+                    <div class="lg:col-span-2 space-y-5">
                         
                         <!-- Tab Navigation -->
-                        <div class="flex gap-2 overflow-x-auto pb-2">
+                        <div class="flex gap-1.5 overflow-x-auto pb-1">
                             <button @click="activeTab = 'overview'" 
-                                    :class="activeTab === 'overview' ? 'bg-teal-500/20 border-teal-400 text-teal-300' : 'border-teal-500/20 text-gray-500'"
-                                    class="px-6 py-3 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap">
+                                    :class="activeTab === 'overview' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+                                    class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
                                 Overview
                             </button>
                             <button @click="activeTab = 'operatives'" 
-                                    :class="activeTab === 'operatives' ? 'bg-teal-500/20 border-teal-400 text-teal-300' : 'border-teal-500/20 text-gray-500'"
-                                    class="px-6 py-3 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap">
-                                Operative Network
+                                    :class="activeTab === 'operatives' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+                                    class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
+                                Network
+                                <span class="ml-1.5 text-[9px] text-gray-600 terminal-font" x-text="allOperatives.length"></span>
                             </button>
                             <button @click="activeTab = 'activity'" 
-                                    :class="activeTab === 'activity' ? 'bg-teal-500/20 border-teal-400 text-teal-300' : 'border-teal-500/20 text-gray-500'"
-                                    class="px-6 py-3 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap">
-                                Activity Log
+                                    :class="activeTab === 'activity' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+                                    class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
+                                Activity
+                                <span x-show="recentActivity.length > 0" class="ml-1.5 text-[9px] text-teal-600 terminal-font" x-text="recentActivity.length"></span>
                             </button>
                         </div>
 
                         <!-- Content Panel -->
-                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10 min-h-[450px]">
+                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10 min-h-[460px]">
                             
                             <!-- Overview -->
                             <div x-show="activeTab === 'overview'" class="space-y-6">
-                                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white mb-6">Mission Control</h3>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Mission Control</h3>
+                                    <span class="text-[10px] text-gray-600 terminal-font uppercase tracking-widest">L<span x-text="clearanceLevel"></span> Access</span>
+                                </div>
                                 
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div class="glass-teal p-5 rounded-2xl text-center">
-                                        <i data-lucide="target" class="w-6 h-6 text-teal-400 mx-auto mb-2"></i>
-                                        <p class="text-xl font-black text-white terminal-font" x-text="profile.stats.missions"></p>
-                                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Missions</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card">
+                                        <i data-lucide="target" class="w-5 h-5 text-teal-400 mx-auto mb-2"></i>
+                                        <p class="text-2xl font-black text-white terminal-font" x-text="profile.stats.missions"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Missions</p>
                                     </div>
-                                    <div class="glass-teal p-5 rounded-2xl text-center">
-                                        <i data-lucide="message-circle" class="w-6 h-6 text-teal-400 mx-auto mb-2"></i>
-                                        <p class="text-xl font-black text-white terminal-font" x-text="profile.stats.contributions"></p>
-                                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Posts</p>
+                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card">
+                                        <i data-lucide="message-circle" class="w-5 h-5 text-teal-400 mx-auto mb-2"></i>
+                                        <p class="text-2xl font-black text-white terminal-font" x-text="profile.stats.contributions"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Posts</p>
                                     </div>
-                                    <div class="glass-gold p-5 rounded-2xl text-center">
-                                        <i data-lucide="zap" class="w-6 h-6 text-gold mx-auto mb-2"></i>
-                                        <p class="text-xl font-black text-gold terminal-font" x-text="clearanceLevel"></p>
-                                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Level</p>
+                                    <div class="glass-gold p-4 rounded-2xl text-center stat-card">
+                                        <i data-lucide="zap" class="w-5 h-5 text-yellow-400 mx-auto mb-2"></i>
+                                        <p class="text-2xl font-black text-yellow-400 terminal-font" x-text="clearanceLevel"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Level</p>
                                     </div>
-                                    <div class="glass-teal p-5 rounded-2xl text-center">
-                                        <i data-lucide="music" class="w-6 h-6 text-cyan-400 mx-auto mb-2"></i>
-                                        <p class="text-xl font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
-                                        <p class="text-[10px] text-gray-500 uppercase tracking-widest">Groove</p>
+                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card" style="border-color: rgba(0,212,255,0.15);">
+                                        <i data-lucide="music" class="w-5 h-5 text-cyan-400 mx-auto mb-2"></i>
+                                        <p class="text-2xl font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Groove</p>
                                     </div>
                                 </div>
 
-                                <div class="mt-8 p-6 bg-black/40 rounded-2xl border border-teal-500/20">
-                                    <h4 class="text-sm text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
-                                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                                <div class="p-5 bg-black/40 rounded-2xl border border-teal-500/15">
+                                    <h4 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
                                         Operative Bio
                                     </h4>
-                                    <p class="text-gray-300 leading-relaxed text-sm" x-text="profile.bio || 'No bio data available. Access dossier to add operational notes.'"></p>
+                                    <p class="text-gray-400 leading-relaxed text-sm" 
+                                       x-text="profile.bio || 'No bio data on file. Open your dossier to add operational notes.'"></p>
                                 </div>
 
-                                <div class="mt-6">
-                                    <h4 class="text-sm text-teal-400 uppercase tracking-widest font-bold mb-3">Skill Matrix</h4>
+                                <div>
+                                    <h4 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                                        Skill Matrix
+                                    </h4>
                                     <div class="flex flex-wrap gap-2">
-                                        <template x-if="profile.skills.length === 0">
-                                            <span class="text-xs text-gray-600 italic">No skills recorded in dossier</span>
+                                        <template x-if="!profile.skills || profile.skills.length === 0">
+                                            <span class="text-xs text-gray-700 italic terminal-font">No skills recorded in dossier</span>
                                         </template>
-                                        <template x-for="skill in profile.skills" :key="skill">
-                                            <span class="px-4 py-2 bg-teal-500/10 border border-teal-500/30 rounded-lg text-xs text-teal-300 uppercase tracking-wider flex items-center gap-2">
+                                        <template x-for="skill in (profile.skills || [])" :key="skill">
+                                            <span class="px-3 py-1.5 bg-teal-500/8 border border-teal-500/25 rounded-lg text-xs text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
                                                 <i data-lucide="check-circle" class="w-3 h-3"></i>
                                                 <span x-text="skill"></span>
                                             </span>
@@ -935,58 +1170,70 @@
 
                             <!-- Operatives Network -->
                             <div x-show="activeTab === 'operatives'" class="space-y-4">
-                                <div class="flex justify-between items-center mb-6">
-                                    <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Network Nodes</h3>
-                                    <span class="text-xs text-teal-400 uppercase tracking-widest terminal-font" x-text="allOperatives.length + ' OPERATIVES'"></span>
+                                <div class="flex justify-between items-center">
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Network Nodes</h3>
+                                    <span class="text-[10px] text-teal-500 uppercase tracking-widest terminal-font" x-text="allOperatives.length + ' operatives'"></span>
                                 </div>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <template x-if="allOperatives.length === 0">
+                                        <div class="col-span-2 text-center py-12 text-gray-700">
+                                            <i data-lucide="users" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+                                            <p class="text-xs uppercase tracking-widest terminal-font">No operatives found</p>
+                                        </div>
+                                    </template>
                                     <template x-for="operative in allOperatives" :key="operative.id">
-                                        <div class="glass-teal p-4 rounded-2xl flex items-center gap-4 hover:border-teal-400/50 transition-all cursor-pointer group">
-                                            <div class="relative">
-                                                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-teal-500/20 to-black flex items-center justify-center border border-teal-500/30 overflow-hidden">
-                                                    <img x-show="operative.avatar_url" :src="operative.avatar_url" class="w-full h-full object-cover">
-                                                    <i x-show="!operative.avatar_url" :data-lucide="getRankIcon(operative.rank)" class="w-6 h-6 text-teal-400"></i>
+                                        <div class="glass-teal p-4 rounded-2xl flex items-center gap-3 operative-card border border-teal-500/15">
+                                            <div class="relative flex-shrink-0">
+                                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500/15 to-black flex items-center justify-center border border-teal-500/20 overflow-hidden">
+                                                    <img x-show="operative.avatar_url" :src="operative.avatar_url" class="w-full h-full object-cover" @error="operative.avatar_url = null">
+                                                    <i x-show="!operative.avatar_url" :data-lucide="getRankIcon(operative.rank)" class="w-5 h-5 text-teal-400"></i>
                                                 </div>
-                                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-black flex items-center justify-center" :class="getStatusColor(operative.last_active)">
-                                                    <div class="w-2 h-2 rounded-full bg-current"></div>
-                                                </div>
+                                                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0a0f0f]"
+                                                     :class="getStatusColor(operative.last_active).replace('text-', 'bg-')"></div>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="font-bold text-white truncate group-hover:text-teal-300 transition-colors" x-text="operative.codename || operative.username"></p>
-                                                <p class="text-xs text-gray-500 uppercase tracking-wider" x-text="operative.rank"></p>
+                                                <p class="font-bold text-white text-sm truncate" x-text="operative.codename || operative.username"></p>
+                                                <p class="text-[10px] text-gray-600 uppercase tracking-wider" x-text="operative.rank + ' · ' + getStatusLabel(operative.last_active)"></p>
                                             </div>
-                                            <div class="text-right">
-                                                <p class="text-xs text-gold font-bold terminal-font" x-text="'L' + (operative.stats?.influence || 0)"></p>
-                                                <p class="text-[10px] text-gray-600 uppercase">INF</p>
+                                            <div class="text-right flex-shrink-0">
+                                                <p class="text-xs text-yellow-500 font-bold terminal-font" x-text="operative.stats?.influence || 0"></p>
+                                                <p class="text-[9px] text-gray-700 uppercase">INF</p>
                                             </div>
-                                                                                    </div>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
 
                             <!-- Activity Log -->
-                            <div x-show="activeTab === 'activity'" class="space-y-4">
-                                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white mb-6">Transmission Log</h3>
+                            <div x-show="activeTab === 'activity'" class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Transmission Log</h3>
+                                    <button @click="loadActivity()" 
+                                            class="text-[10px] text-gray-600 hover:text-teal-400 uppercase tracking-widest terminal-font flex items-center gap-1 transition-colors">
+                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+                                    </button>
+                                </div>
                                 
-                                <div class="space-y-3">
+                                <div class="space-y-2">
                                     <template x-if="recentActivity.length === 0">
-                                        <div class="text-center py-12 text-gray-600">
-                                            <i data-lucide="radio" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-                                            <p class="text-sm uppercase tracking-widest">No transmissions recorded</p>
+                                        <div class="text-center py-12 text-gray-700">
+                                            <i data-lucide="radio" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
+                                            <p class="text-xs uppercase tracking-widest terminal-font">No transmissions recorded</p>
                                         </div>
                                     </template>
                                     
                                     <template x-for="activity in recentActivity" :key="activity.id">
-                                        <div class="flex items-start gap-4 p-4 bg-black/30 rounded-xl border border-teal-500/10 hover:border-teal-500/30 transition-all">
-                                            <div class="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center flex-shrink-0 border border-teal-500/20">
-                                                <i data-lucide="activity" class="w-5 h-5 text-teal-400"></i>
+                                        <div class="flex items-start gap-3 p-4 bg-black/30 rounded-xl border border-teal-500/8 hover:border-teal-500/25 transition-all">
+                                            <div class="w-8 h-8 rounded-full bg-teal-500/8 flex items-center justify-center flex-shrink-0 border border-teal-500/15 mt-0.5">
+                                                <i data-lucide="activity" class="w-4 h-4 text-teal-400"></i>
                                             </div>
-                                            <div class="flex-1">
-                                                <p class="text-sm text-white font-medium" x-text="activity.description"></p>
-                                                <p class="text-xs text-gray-600 mt-1 terminal-font" x-text="new Date(activity.created_at).toLocaleString()"></p>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm text-white font-medium truncate" x-text="activity.description"></p>
+                                                <p class="text-[10px] text-gray-600 mt-0.5 terminal-font" x-text="formatTimeAgo(activity.created_at)"></p>
                                             </div>
-                                            <span class="text-xs px-2 py-1 rounded bg-teal-500/10 text-teal-400 uppercase tracking-wider border border-teal-500/20" x-text="activity.type"></span>
+                                            <span class="text-[10px] px-2 py-1 rounded-lg bg-teal-500/8 text-teal-500 uppercase tracking-wider border border-teal-500/15 flex-shrink-0" 
+                                                  x-text="activity.type?.replace('_', ' ')"></span>
                                         </div>
                                     </template>
                                 </div>
@@ -997,99 +1244,109 @@
             </main>
 
             <!-- Footer -->
-            <footer class="mt-12 py-8 text-center border-t border-teal-500/10">
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <img src="../assets/images/logo.png" alt="M.O.G." class="w-8 h-8 opacity-50">
-                    <span class="text-teal-600/50 font-black uppercase tracking-[0.2em]">M.O.G.</span>
+            <footer class="mt-10 py-8 text-center border-t border-teal-500/8">
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <img src="../assets/images/logo.png" alt="M.O.G." class="w-7 h-7 opacity-30">
+                    <span class="text-teal-700/60 font-black uppercase tracking-[0.25em] text-sm">M.O.G.</span>
                 </div>
-                <p class="text-xs text-gray-600 uppercase tracking-[0.3em] terminal-font">
+                <p class="text-[10px] text-gray-700 uppercase tracking-[0.3em] terminal-font">
                     Ministry of Groove // Emalahleni Uplink II // Est. 2026
                 </p>
-                <p class="text-[10px] text-teal-800/50 uppercase tracking-widest mt-2" x-text="'NODE: ' + profile.codename"></p>
+                <p class="text-[9px] text-teal-900/60 uppercase tracking-widest mt-1.5 terminal-font" x-text="'NODE: ' + profile.codename"></p>
             </footer>
         </div>
     </template>
-
-    <!-- Profile Dossier Modal -->
+                                <!-- Profile Dossier Modal -->
     <div x-show="showProfileModal" 
-         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter="transition ease-out duration-250"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/92 backdrop-blur-lg"
          @click.self="showProfileModal = false">
         
-        <div class="glass-teal w-full max-w-2xl rounded-[3rem] border border-teal-500/50 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        <div class="glass-teal w-full max-w-2xl rounded-[2.5rem] border border-teal-500/40 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto"
+             x-transition:enter="transition ease-out duration-250"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
              @click.stop>
             
-            <!-- Header -->
-            <div class="p-8 border-b border-teal-500/20 flex justify-between items-center bg-gradient-to-r from-teal-900/30 to-transparent">
+            <!-- Modal Header -->
+            <div class="p-7 border-b border-teal-500/15 flex justify-between items-center bg-gradient-to-r from-teal-900/25 to-transparent sticky top-0 z-10 backdrop-blur-md">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-400/50">
-                        <i data-lucide="file-text" class="w-6 h-6 text-teal-400"></i>
+                    <div class="w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center border border-teal-400/30">
+                        <i data-lucide="file-text" class="w-5 h-5 text-teal-400"></i>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-black uppercase italic tracking-tighter text-white">Operative Dossier</h2>
-                        <p class="text-xs text-teal-400 uppercase tracking-widest terminal-font">M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span></p>
+                        <h2 class="text-xl font-black uppercase italic tracking-tight text-white">Operative Dossier</h2>
+                        <p class="text-[10px] text-teal-500 uppercase tracking-widest terminal-font">M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span></p>
                     </div>
                 </div>
-                <button @click="showProfileModal = false" class="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <i data-lucide="x" class="w-6 h-6 text-gray-400"></i>
+                <button @click="showProfileModal = false" 
+                        class="p-2 hover:bg-white/8 rounded-full transition-colors text-gray-500 hover:text-gray-300">
+                    <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <!-- Body -->
-            <div class="p-8 space-y-8">
+            <!-- Modal Body -->
+            <div class="p-7 space-y-7">
                 
                 <!-- Avatar Upload -->
                 <div class="flex flex-col items-center gap-4">
                     <div class="relative group">
-                        <div class="avatar-circuit w-36 h-36">
-                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/30 to-gold-500/20 flex items-center justify-center overflow-hidden">
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover">
-                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-16 h-16 text-teal-400"></i>
+                        <div class="avatar-circuit w-32 h-32">
+                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/20 to-black flex items-center justify-center overflow-hidden">
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
+                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-14 h-14 text-teal-400"></i>
                             </div>
                         </div>
-                        <label class="absolute inset-0 flex items-center justify-center bg-black/70 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity border-2 border-teal-400/50">
+                        <label class="absolute inset-0 flex items-center justify-center bg-black/75 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity border-2 border-teal-400/40">
                             <div class="text-center">
-                                <i data-lucide="camera" class="w-8 h-8 text-teal-400 mx-auto mb-1"></i>
-                                <span class="text-xs text-teal-400 uppercase tracking-wider">Update</span>
+                                <i data-lucide="camera" class="w-7 h-7 text-teal-400 mx-auto mb-1"></i>
+                                <span class="text-[10px] text-teal-300 uppercase tracking-widest font-bold">Update</span>
                             </div>
-                            <input type="file" accept="image/*" class="hidden" @change="uploadAvatar($event)">
+                            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
                         </label>
                     </div>
+                    
+                    <!-- Upload Progress -->
                     <div x-show="uploadProgress > 0" class="w-full max-w-xs">
-                        <div class="h-1 bg-gray-800 rounded-full overflow-hidden border border-teal-500/20">
-                            <div class="h-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-300" :style="`width: ${uploadProgress}%`"></div>
+                        <div class="h-1 bg-black/60 rounded-full overflow-hidden border border-teal-500/15">
+                            <div class="h-full bg-gradient-to-r from-teal-600 to-cyan-400 transition-all duration-300 rounded-full" 
+                                 :style="`width: ${uploadProgress}%`"></div>
                         </div>
-                                                <p class="text-xs text-center text-teal-400 mt-1 terminal-font" x-text="uploadProgress + '%'"></p>
+                        <p class="text-[10px] text-center text-teal-500 mt-1 terminal-font" x-text="uploadProgress + '%'"></p>
                     </div>
-                    <p class="text-xs text-gray-600 terminal-font">MAX FILE SIZE: 2MB // JPG PNG WEBP</p>
+                    <p class="text-[10px] text-gray-700 terminal-font">MAX 2MB // JPG PNG WEBP</p>
                 </div>
 
-                <!-- Form Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="text-xs text-teal-400 uppercase tracking-widest font-bold flex items-center gap-2">
+                <!-- Form Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
                             <i data-lucide="user" class="w-3 h-3"></i>
                             Operative Name
                         </label>
-                        <input type="text" x-model="profile.username" class="input-teal w-full px-4 py-3 rounded-xl" placeholder="Enter designation">
+                        <input type="text" x-model="profile.username" 
+                               class="input-teal w-full px-4 py-3 rounded-xl" 
+                               placeholder="Enter designation">
                     </div>
                     
-                    <div class="space-y-2">
-                        <label class="text-xs text-teal-400 uppercase tracking-widest font-bold flex items-center gap-2">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
                             <i data-lucide="hash" class="w-3 h-3"></i>
                             Codename
                         </label>
-                        <input type="text" x-model="profile.codename" class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 text-teal-300 font-bold terminal-font" readonly disabled>
-                        <p class="text-[10px] text-gray-600 terminal-font">AUTO-GENERATED BY M.O.G. SYSTEM</p>
+                        <input type="text" x-model="profile.codename" 
+                               class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 text-teal-300 font-bold terminal-font opacity-60 cursor-not-allowed" 
+                               readonly disabled>
+                        <p class="text-[9px] text-gray-700 terminal-font">AUTO-GENERATED BY SYSTEM</p>
                     </div>
                     
-                    <div class="space-y-2">
-                        <label class="text-xs text-teal-400 uppercase tracking-widest font-bold flex items-center gap-2">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
                             <i data-lucide="building" class="w-3 h-3"></i>
                             Department
                         </label>
@@ -1104,68 +1361,75 @@
                         </select>
                     </div>
                     
-                    <div class="space-y-2">
-                        <label class="text-xs text-teal-400 uppercase tracking-widest font-bold flex items-center gap-2">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
                             <i data-lucide="award" class="w-3 h-3"></i>
                             Rank
                         </label>
-                        <input type="text" :value="profile.rank" class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 font-bold uppercase tracking-wider" 
-                               :class="rankColor === 'text-gold' ? 'text-gold border-gold/30' : 'text-teal-400 border-teal-500/30'" readonly disabled>
-                        <p class="text-[10px] text-gray-600 terminal-font">ASSIGNED BY DIRECTORATE ONLY</p>
+                        <input type="text" :value="profile.rank" 
+                               class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 font-bold uppercase tracking-wider opacity-60 cursor-not-allowed"
+                               :class="profile.rank === 'DIRECTOR' ? 'text-yellow-400' : 'text-teal-400'" 
+                               readonly disabled>
+                        <p class="text-[9px] text-gray-700 terminal-font">ASSIGNED BY DIRECTORATE ONLY</p>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-xs text-teal-400 uppercase tracking-widest font-bold flex items-center gap-2">
+                <div class="space-y-1.5">
+                    <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
                         <i data-lucide="align-left" class="w-3 h-3"></i>
                         Operational Notes / Bio
                     </label>
-                    <textarea x-model="profile.bio" rows="4" class="input-teal w-full px-4 py-3 rounded-xl resize-none" placeholder="Enter operative background and specializations..."></textarea>
+                    <textarea x-model="profile.bio" rows="4" 
+                              class="input-teal w-full px-4 py-3 rounded-xl resize-none" 
+                              placeholder="Enter operative background and specializations..."></textarea>
                 </div>
 
                 <!-- Stats Summary -->
-                <div class="p-6 bg-black/50 rounded-2xl border border-teal-500/20">
-                    <h4 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                <div class="p-5 bg-black/50 rounded-2xl border border-teal-500/15">
+                    <h4 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
                         Performance Summary
                     </h4>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                        <div class="p-3 bg-teal-900/20 rounded-xl border border-teal-500/20">
-                            <p class="text-xl font-black text-teal-400 terminal-font" x-text="profile.stats.missions"></p>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider">Missions</p>
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-3 text-center">
+                        <div class="p-3 bg-teal-900/15 rounded-xl border border-teal-500/15">
+                            <p class="text-lg font-black text-teal-400 terminal-font" x-text="profile.stats.missions"></p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-wider">Missions</p>
                         </div>
-                        <div class="p-3 bg-teal-900/20 rounded-xl border border-teal-500/20">
-                            <p class="text-xl font-black text-teal-400 terminal-font" x-text="profile.stats.contributions"></p>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider">Posts</p>
+                        <div class="p-3 bg-teal-900/15 rounded-xl border border-teal-500/15">
+                            <p class="text-lg font-black text-teal-400 terminal-font" x-text="profile.stats.contributions"></p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-wider">Posts</p>
                         </div>
-                        <div class="p-3 bg-gold-900/20 rounded-xl border border-gold-500/20">
-                            <p class="text-xl font-black text-gold terminal-font" x-text="profile.stats.influence + '%'"></p>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider">Influence</p>
+                        <div class="p-3 bg-yellow-900/10 rounded-xl border border-yellow-500/15">
+                            <p class="text-lg font-black text-yellow-400 terminal-font" x-text="profile.stats.influence + '%'"></p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-wider">Influence</p>
                         </div>
-                        <div class="p-3 bg-cyan-900/20 rounded-xl border border-cyan-500/20">
-                            <p class="text-xl font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider">Groove</p>
+                        <div class="p-3 bg-cyan-900/10 rounded-xl border border-cyan-500/15">
+                            <p class="text-lg font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-wider">Groove</p>
                         </div>
-                        <div class="p-3 bg-red-900/20 rounded-xl border border-red-500/20">
-                            <p class="text-xl font-black text-red-400 terminal-font" x-text="profile.stats.loyalty + '%'"></p>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider">Loyalty</p>
+                        <div class="p-3 bg-red-900/10 rounded-xl border border-red-500/15">
+                            <p class="text-lg font-black text-red-400 terminal-font" x-text="profile.stats.loyalty + '%'"></p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-wider">Loyalty</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="p-8 border-t border-teal-500/20 flex justify-end gap-4 bg-black/40">
-                <button @click="showProfileModal = false" class="px-6 py-3 rounded-full border border-teal-500/30 text-gray-400 hover:text-teal-300 hover:border-teal-400 transition-all text-xs uppercase font-bold tracking-wider">
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-teal-500/15 flex justify-end gap-3 bg-black/50">
+                <button @click="showProfileModal = false" 
+                        class="px-6 py-2.5 rounded-full border border-teal-500/25 text-gray-500 hover:text-teal-300 hover:border-teal-400/50 transition-all text-xs uppercase font-bold tracking-wider">
                     Cancel
                 </button>
-                <button @click="updateProfile()" :disabled="isLoading" class="px-8 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full hover:from-teal-500 hover:to-cyan-500 transition-all text-xs uppercase font-bold tracking-wider disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-teal-500/20">
-                    <i x-show="isLoading" data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                    <span x-text="isLoading ? 'SYNCING...' : 'Save Dossier'"></span>
+                <button @click="updateProfile()" 
+                        :disabled="isLoading"
+                        class="px-7 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full hover:from-teal-500 hover:to-cyan-500 transition-all text-xs uppercase font-bold tracking-wider disabled:opacity-40 flex items-center gap-2 shadow-lg shadow-teal-500/15">
+                    <i x-show="isLoading" data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
+                    <span x-text="isLoading ? 'Syncing...' : 'Save Dossier'"></span>
                 </button>
             </div>
         </div>
     </div>
 
-    </body>
+</body>
 </html>
