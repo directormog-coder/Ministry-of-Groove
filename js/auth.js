@@ -2,16 +2,7 @@
  * M.O.G. AUTH MODULE — js/auth.js
  * =================================
  * Handles session checking and role-based redirects.
- *
- * IMPORTANT: This file does NOT create a Supabase client.
- * It relies on window.sb being set by /js/supabase-client.js
- * which must load BEFORE this file in every HTML page.
- *
- * Correct script load order in every HTML page:
- *   1. <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- *   2. <script src="/js/supabase-client.js"></script>
- *   3. <script src="/js/auth.js"></script>  ← optional, only where needed
- *   4. Alpine / page scripts (defer)
+ * UPGRADED: Added handleLoginRedirect and metadata-to-profile sync.
  */
 
 const MOGAuth = {
@@ -56,13 +47,18 @@ const MOGAuth = {
 
                 this.profile = profile || null;
 
-                // Persist role to localStorage so other pages can read it
+                /** * UPGRADE: Enhanced Role Detection
+                 * Checks: 1. DB Rank, 2. Auth Metadata, 3. Hardcoded Admin Email
+                 */
                 const isDirector =
-                    profile?.rank === 'DIRECTOR' ||
+                    profile?.rank === 'DIRECTOR' || 
+                    session.user.user_metadata?.role === 'director' ||
                     session.user.email === 'director.mog@gmail.com';
 
                 localStorage.setItem('userRole',       isDirector ? 'director' : 'operative');
                 localStorage.setItem('clearanceLevel', isDirector ? 'ALPHA'    : 'STANDARD');
+                
+                console.log(`[M.O.G. Auth] Profile Loaded: ${isDirector ? 'DIRECTOR' : 'OPERATIVE'} Access.`);
             }
 
             this.initialized = true;
@@ -72,6 +68,26 @@ const MOGAuth = {
             console.error('[M.O.G. Auth] init failed:', err.message);
             this.initialized = true;
             return null;
+        }
+    },
+
+    /**
+     * UPGRADE: handleLoginRedirect
+     * Call this specifically in your login.html script after 
+     * a successful supabase.auth.signInWithPassword call.
+     */
+    async handleLoginRedirect() {
+        // Ensure init has run to set localStorage
+        await this.init();
+        
+        const role = localStorage.getItem('userRole');
+        
+        if (role === 'director') {
+            console.log("[M.O.G. Auth] Routing to Directorate...");
+            window.location.href = '/directorate.html';
+        } else {
+            console.log("[M.O.G. Auth] Routing to Operative Hub...");
+            window.location.href = '/index.html';
         }
     },
 
@@ -120,7 +136,7 @@ const MOGAuth = {
         }
     },
 
-    /* ── Get current user ────────────────────────────────────── */
+    /* ── Getters ────────────────────────────────────────────── */
     get user() {
         return this.session?.user || null;
     },
@@ -137,4 +153,3 @@ const MOGAuth = {
 
 /* Export for pages that use it directly */
 window.MOGAuth = MOGAuth;
-
