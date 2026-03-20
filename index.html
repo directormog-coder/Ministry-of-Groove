@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- FIXED: allow pinch zoom, removed user-scalable=0 -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>M.O.G. | OPERATIVE NETWORK</title>
+    <title>M.O.G. | OPERATIVE HUB</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -15,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/js/supabase-client.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
     <style>
         [x-cloak] { display: none !important; }
@@ -31,8 +30,9 @@
             --teal-bright: #4aecd4;
             --teal-dim:    #006e59;
             --teal-glow:   rgba(0,212,170,0.35);
+            --red:         #dc2626;
+            --red-glow:    rgba(220,38,38,0.4);
 
-            /* ── Fluid type scale ── */
             --text-xs:   clamp(0.6rem,  1.5vw, 0.75rem);
             --text-sm:   clamp(0.75rem, 2vw,   0.875rem);
             --text-base: clamp(0.875rem,2.5vw, 1rem);
@@ -50,21 +50,20 @@
             background: var(--black);
             color: #e8f0ee;
             min-height: 100vh;
-            min-height: 100dvh; /* dynamic viewport for mobile browsers */
+            min-height: 100dvh;
             overflow-x: hidden;
-            /* Prevent text selection on UI elements */
             -webkit-tap-highlight-color: transparent;
         }
 
-        .mono { font-family: 'Share Tech Mono', monospace; }
+        .mono  { font-family: 'Share Tech Mono', monospace; }
+        .orbit { font-family: 'Orbitron', sans-serif; }
 
-        /* ── Touch targets: minimum 44x44px ── */
         button, a, [role="button"] {
             min-height: 44px;
-            touch-action: manipulation; /* prevents 300ms delay */
+            touch-action: manipulation;
         }
 
-        /* ── Logo watermark seal ── */
+        /* ── Watermark seal ── */
         .mog-seal {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%,-50%);
@@ -84,10 +83,7 @@
                 linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
             background-size: 52px 52px;
         }
-        /* Hide on low-power / small screens to save battery */
-        @media (max-width:480px) {
-            .circuit-grid { display: none; }
-        }
+        @media (max-width:480px) { .circuit-grid { display: none; } }
 
         .vignette {
             position: fixed; inset: 0; pointer-events: none; z-index: 2;
@@ -100,11 +96,10 @@
             background: linear-gradient(transparent, rgba(212,175,55,0.025) 50%, transparent);
             animation: scanline 14s linear infinite;
         }
-        /* Disable heavy animation on mobile for performance */
         @media (max-width:640px) { .scanline { display: none; } }
         @keyframes scanline { to { top: 100vh; } }
 
-        /* ── Glass — only blur on capable devices ── */
+        /* ── Glass ── */
         .glass {
             background: rgba(8,12,10,0.92);
             border: 1px solid rgba(0,212,170,0.14);
@@ -119,15 +114,19 @@
             background: rgba(4,8,6,0.97);
             border: 1px solid rgba(0,212,170,0.09);
         }
-        /* Blur only on mid/high-end devices */
+        .glass-media {
+            background: rgba(4,8,6,0.95);
+            border: 1px solid rgba(212,175,55,0.12);
+            transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+        }
         @media (min-width:641px) {
-            .glass, .glass-gold, .glass-dark {
+            .glass, .glass-gold, .glass-dark, .glass-media {
                 backdrop-filter: blur(20px);
                 -webkit-backdrop-filter: blur(20px);
             }
         }
 
-        /* ── Text helpers ── */
+        /* ── Text ── */
         .text-teal { color: var(--teal); text-shadow: 0 0 12px var(--teal-glow); }
         .text-gold  { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
         .glow-gold  { text-shadow: 0 0 20px var(--gold-glow), 0 0 40px rgba(212,175,55,0.1); }
@@ -138,21 +137,12 @@
             border: 1px solid rgba(0,212,170,0.32); color: var(--teal);
             position: relative; overflow: hidden; transition: all 0.28s ease;
         }
-        /* Shimmer only on non-touch devices */
         @media (hover:hover) {
-            .btn-teal::after {
-                content: ''; position: absolute; inset: 0;
-                background: linear-gradient(90deg,transparent,rgba(0,212,170,0.1),transparent);
-                transform: translateX(-100%); transition: transform 0.5s ease;
-            }
-            .btn-teal:hover::after { transform: translateX(100%); }
-            .btn-teal:hover {
-                background: linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));
-                border-color: var(--teal); box-shadow: 0 0 22px var(--teal-glow);
-                transform: translateY(-1px);
-            }
+            .btn-teal::after { content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,170,0.1),transparent);transform:translateX(-100%);transition:transform 0.5s ease; }
+            .btn-teal:hover::after { transform:translateX(100%); }
+            .btn-teal:hover { background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));border-color:var(--teal);box-shadow:0 0 22px var(--teal-glow);transform:translateY(-1px); }
         }
-        .btn-teal:active { opacity: 0.8; transform: scale(0.97); }
+        .btn-teal:active { opacity:0.8; transform:scale(0.97); }
 
         .btn-gold {
             background: linear-gradient(135deg,rgba(212,175,55,0.1),rgba(139,105,20,0.18));
@@ -160,20 +150,95 @@
             transition: all 0.28s ease;
         }
         @media (hover:hover) {
-            .btn-gold:hover {
-                background: linear-gradient(135deg,rgba(212,175,55,0.22),rgba(139,105,20,0.32));
-                border-color: var(--gold-bright); box-shadow: 0 0 22px var(--gold-glow);
-                transform: translateY(-1px);
+            .btn-gold:hover { background:linear-gradient(135deg,rgba(212,175,55,0.22),rgba(139,105,20,0.32));border-color:var(--gold-bright);box-shadow:0 0 22px var(--gold-glow);transform:translateY(-1px); }
+        }
+        .btn-gold:active { opacity:0.8; transform:scale(0.97); }
+
+        /* ── Media tile action button ── */
+        .media-action-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
+            padding: 7px 4px; border-radius: 8px; font-family: 'Orbitron', sans-serif;
+            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+            transition: all 0.22s ease; cursor: pointer; border: 1px solid transparent;
+        }
+        .media-action-btn.view   { background:rgba(0,212,170,0.07);  border-color:rgba(0,212,170,0.22);  color:var(--teal); }
+        .media-action-btn.listen { background:rgba(212,175,55,0.07); border-color:rgba(212,175,55,0.22); color:var(--gold); }
+        .media-action-btn.like   { background:rgba(220,38,38,0.06);  border-color:rgba(220,38,38,0.2);   color:#f87171; }
+        .media-action-btn.like.liked { background:rgba(220,38,38,0.18); border-color:rgba(220,38,38,0.5); color:#fca5a5; box-shadow:0 0 10px rgba(220,38,38,0.25); }
+        .media-action-btn.dl     { background:rgba(139,105,20,0.08); border-color:rgba(139,105,20,0.3);  color:var(--gold-dark); }
+        @media (hover:hover) {
+            .media-action-btn.view:hover   { background:rgba(0,212,170,0.18);  box-shadow:0 0 14px var(--teal-glow); }
+            .media-action-btn.listen:hover { background:rgba(212,175,55,0.18); box-shadow:0 0 14px var(--gold-glow); }
+            .media-action-btn.like:hover   { background:rgba(220,38,38,0.22);  box-shadow:0 0 14px var(--red-glow); }
+            .media-action-btn.dl:hover     { background:rgba(139,105,20,0.2);  color:var(--gold); }
+        }
+        .media-action-btn:active { transform:scale(0.95); }
+
+        /* ── Media tile ── */
+        @media (hover:hover) {
+            .glass-media:hover {
+                border-color: rgba(212,175,55,0.38) !important;
+                box-shadow: 0 0 40px rgba(212,175,55,0.1), 0 0 80px rgba(0,212,170,0.04);
+                transform: translateY(-2px);
             }
         }
-        .btn-gold:active { opacity: 0.8; transform: scale(0.97); }
+        .glass-media:active { transform: scale(0.99); }
+
+        .media-thumb {
+            aspect-ratio: 16/9; overflow: hidden; border-radius: 12px 12px 0 0;
+            position: relative;
+        }
+        .media-thumb img, .media-thumb video {
+            width:100%; height:100%; object-fit:cover;
+            transition: transform 0.4s ease;
+        }
+        @media (hover:hover) {
+            .glass-media:hover .media-thumb img,
+            .glass-media:hover .media-thumb video { transform: scale(1.04); }
+        }
+        .media-type-badge {
+            position: absolute; top: 8px; left: 8px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 700;
+            letter-spacing: 0.12em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: 6px;
+        }
+        .media-glow-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);
+        }
+
+        /* ── Global Alert Ticker ── */
+        .ticker-bar {
+            height: 28px; overflow: hidden;
+            background: linear-gradient(90deg, rgba(220,38,38,0.9), rgba(0,0,0,0.95), rgba(220,38,38,0.9));
+            border-bottom: 1px solid rgba(220,38,38,0.35);
+            display: flex; align-items: center;
+        }
+        .ticker-label {
+            width: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: var(--red); height: 100%;
+            font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 900;
+            letter-spacing: 0.2em; color: #fff; text-transform: uppercase;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .ticker-track {
+            display: flex; gap: 0; white-space: nowrap;
+            animation: tickerScroll 30s linear infinite;
+        }
+        @keyframes tickerScroll {
+            0%   { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+        .ticker-text {
+            font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
+            letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase;
+        }
+        .ticker-sep { color: rgba(220,38,38,0.7); margin: 0 20px; }
 
         /* ── Avatar ring ── */
         .avatar-ring {
             position: relative; border-radius: 50%; padding: 2px; flex-shrink: 0;
-            background: conic-gradient(from 0deg,
-                var(--gold-bright), var(--teal), var(--gold-dark),
-                var(--teal-bright), var(--gold-bright));
+            background: conic-gradient(from 0deg, var(--gold-bright), var(--teal), var(--gold-dark), var(--teal-bright), var(--gold-bright));
             animation: ringRotate 16s linear infinite;
         }
         .avatar-ring > div {
@@ -183,17 +248,10 @@
             display: flex; align-items: center; justify-content: center;
         }
         @keyframes ringRotate { to { transform: rotate(360deg); } }
-        /* Slow down ring on mobile for battery */
-        @media (max-width:640px) {
-            .avatar-ring { animation-duration: 30s; }
-        }
+        @media (max-width:640px) { .avatar-ring { animation-duration: 30s; } }
 
         /* ── Stat bars ── */
-        .stat-track {
-            height: 5px; background: rgba(0,0,0,0.8);
-            border-radius: 99px; overflow: hidden;
-            border: 1px solid rgba(0,212,170,0.08);
-        }
+        .stat-track { height:5px;background:rgba(0,0,0,0.8);border-radius:99px;overflow:hidden;border:1px solid rgba(0,212,170,0.08); }
         .bar-gold { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 6px var(--gold-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
         .bar-teal { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dim),var(--teal),var(--teal-bright));box-shadow:0 0 6px var(--teal-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
         .bar-cyan { height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);box-shadow:0 0 6px rgba(34,211,238,0.4);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
@@ -211,206 +269,137 @@
             letter-spacing: 0.1em; text-transform: uppercase;
         }
 
-        /* ── Gold divider ── */
-        .gold-line {
-            height: 1px;
-            background: linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent);
-        }
+        .gold-line { height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent); }
 
-        /* ── Corner brackets ── */
-        .bracket { position: relative; }
-        .bracket::before, .bracket::after {
-            content: ''; position: absolute;
-            width: 14px; height: 14px; border-style: solid;
-        }
+        .bracket { position:relative; }
+        .bracket::before, .bracket::after { content:'';position:absolute;width:14px;height:14px;border-style:solid; }
         .bracket::before { top:8px;left:8px;border-color:rgba(212,175,55,0.4);border-width:2px 0 0 2px; }
         .bracket::after  { bottom:8px;right:8px;border-color:rgba(0,212,170,0.4);border-width:0 2px 2px 0; }
 
         /* ── Inputs ── */
         .input-field {
-            background: rgba(0,6,4,0.9);
-            border: 1px solid rgba(0,212,170,0.18); color: #e8f0ee;
-            font-family: 'Rajdhani',sans-serif;
-            font-size: var(--text-base);
-            transition: border-color 0.25s, box-shadow 0.25s; width: 100%;
-            /* Prevent iOS zoom on focus (font-size >= 16px) */
-            font-size: max(16px, var(--text-base));
+            background:rgba(0,6,4,0.9); border:1px solid rgba(0,212,170,0.18); color:#e8f0ee;
+            font-family:'Rajdhani',sans-serif; font-size:max(16px,var(--text-base));
+            transition:border-color 0.25s,box-shadow 0.25s; width:100%;
         }
-        .input-field:focus {
-            border-color: var(--teal);
-            box-shadow: 0 0 0 3px rgba(0,212,170,0.07), 0 0 18px rgba(0,212,170,0.08);
-            outline: none;
-        }
-        .input-field::placeholder { color: rgba(255,255,255,0.18); }
-        .input-field:disabled { opacity:0.45; cursor:not-allowed; }
+        .input-field:focus { border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,0.07),0 0 18px rgba(0,212,170,0.08);outline:none; }
+        .input-field::placeholder { color:rgba(255,255,255,0.18); }
+        .input-field:disabled { opacity:0.45;cursor:not-allowed; }
         select.input-field {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem;
+            appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
         }
-        select.input-field option { background: #0a0c06; color: #e8f0ee; }
+        select.input-field option { background:#0a0c06;color:#e8f0ee; }
 
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar { width:4px; height:4px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.8); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,var(--gold-dark),var(--teal-dim)); border-radius:4px; }
+        ::-webkit-scrollbar { width:4px;height:4px; }
+        ::-webkit-scrollbar-track { background:rgba(0,0,0,0.8); }
+        ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px; }
 
         /* ── Pulse ── */
-        .pulse-dot { animation: pulseDot 2.2s ease-in-out infinite; }
-        @keyframes pulseDot {
-            0%,100% { box-shadow:0 0 0 0 rgba(0,212,170,0.5); }
-            50%      { box-shadow:0 0 0 5px rgba(0,212,170,0); }
-        }
-        .pulse-gold { animation: pulseGold 2.2s ease-in-out infinite; }
-        @keyframes pulseGold {
-            0%,100% { box-shadow:0 0 0 0 rgba(212,175,55,0.5); }
-            50%      { box-shadow:0 0 0 5px rgba(212,175,55,0); }
-        }
+        .pulse-dot  { animation:pulseDot  2.2s ease-in-out infinite; }
+        .pulse-gold { animation:pulseGold 2.2s ease-in-out infinite; }
+        @keyframes pulseDot  { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.5)}  50%{box-shadow:0 0 0 5px rgba(0,212,170,0)} }
+        @keyframes pulseGold { 0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.5)} 50%{box-shadow:0 0 0 5px rgba(212,175,55,0)} }
 
-        /* ── Page transitions ── */
-        .fade-up { animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+        /* ── Transitions ── */
+        .fade-up { animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
         @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-        .dot-blink span { animation: dotBlink 1.3s infinite; }
+        .dot-blink span { animation:dotBlink 1.3s infinite; }
         .dot-blink span:nth-child(2){animation-delay:.2s}
         .dot-blink span:nth-child(3){animation-delay:.4s}
         @keyframes dotBlink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
 
         @keyframes spin { to{transform:rotate(360deg)} }
-        .spin-slow { animation: spin 22s linear infinite; }
-        @media (max-width:640px) { .spin-slow { animation-duration: 35s; } }
+        .spin-slow { animation:spin 22s linear infinite; }
+        @media (max-width:640px) { .spin-slow { animation-duration:35s; } }
 
         /* ── Tabs ── */
-        .tab-active { position: relative; }
-        .tab-active::after {
-            content: ''; position: absolute; bottom: -1px; left: 20%; width: 60%; height: 2px;
-            background: linear-gradient(90deg,var(--gold-dark),var(--gold-bright),var(--teal));
-            border-radius: 2px; box-shadow: 0 0 8px var(--gold-glow);
-        }
+        .tab-active { position:relative; }
+        .tab-active::after { content:'';position:absolute;bottom:-1px;left:20%;width:60%;height:2px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright),var(--teal));border-radius:2px;box-shadow:0 0 8px var(--gold-glow); }
 
-        /* ── Operative + stat cards ── */
+        /* ── Cards ── */
         .op-card { transition:transform .22s ease,border-color .22s ease; cursor:pointer; }
-        @media (hover:hover) {
-            .op-card:hover { transform:translateY(-2px); border-color:rgba(212,175,55,0.4)!important; }
-        }
+        @media (hover:hover) { .op-card:hover { transform:translateY(-2px);border-color:rgba(212,175,55,0.4)!important; } }
         .op-card:active { transform:scale(0.98); }
         .stat-card { transition:transform .22s ease,box-shadow .22s ease; }
-        @media (hover:hover) {
-            .stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(212,175,55,0.1); }
-        }
+        @media (hover:hover) { .stat-card:hover { transform:translateY(-3px);box-shadow:0 12px 32px rgba(212,175,55,0.1); } }
 
-        /* ── Directive pulse ── */
-        .dir-pulse { animation: dirPulse 3s ease-in-out infinite; }
+        .dir-pulse { animation:dirPulse 3s ease-in-out infinite; }
         @keyframes dirPulse { 0%,100%{border-color:rgba(212,175,55,0.22)} 50%{border-color:rgba(212,175,55,0.6)} }
 
-        /* ── Lockdown ── */
+        /* ── Lockdown overlay ── */
         .lockdown-screen {
             position:fixed;inset:0;z-index:9999;
-            background:rgba(0,0,0,0.98); backdrop-filter:blur(24px);
+            background:rgba(0,0,0,0.98);backdrop-filter:blur(24px);
             display:flex;flex-direction:column;align-items:center;justify-content:center;
             text-align:center;padding:clamp(1rem,5vw,2rem);
-            overflow-y: auto;
+            overflow-y:auto;
         }
+        .lockdown-border { position:absolute;inset:12px;border-radius:24px;border:2px solid var(--red);animation:lockPulse 1.5s ease-in-out infinite;pointer-events:none; }
+        @keyframes lockPulse { 0%,100%{border-color:rgba(220,38,38,0.4)} 50%{border-color:rgba(220,38,38,0.95);box-shadow:0 0 30px rgba(220,38,38,0.2)} }
 
-        /* ── Toast — responsive ── */
+        /* ── Toast ── */
         .toast {
-            font-family:'Rajdhani',sans-serif; font-weight:700;
-            font-size: var(--text-xs);
-            letter-spacing:0.07em; text-transform:uppercase;
-            border-radius:12px; padding:12px 16px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.6);
-            display:flex; align-items:center; gap:10px;
-            border-width:1px; border-style:solid;
-            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
-            /* Constrain width on all screens */
-            max-width: min(90vw, 360px);
+            font-family:'Rajdhani',sans-serif;font-weight:700;font-size:var(--text-xs);
+            letter-spacing:0.07em;text-transform:uppercase;border-radius:12px;padding:12px 16px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.6);display:flex;align-items:center;gap:10px;
+            border-width:1px;border-style:solid;
+            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;
+            max-width:min(90vw,360px);
         }
 
-        /* ── ── ── ── ── ── ── ── ── ── ── ── ── ──
-           RESPONSIVE BREAKPOINTS
-           xs:  < 480px   (small phones)
-           sm:  480–639px (large phones)
-           md:  640–767px (tablets portrait)
-           lg:  768–1023px (tablets landscape)
-           xl:  1024px+   (desktop)
-        ── ── ── ── ── ── ── ── ── ── ── ── ── ── */
-
-        /* ── Mobile bottom nav (phones only) ── */
-        .bottom-nav { display: none; }
-
+        /* ── Mobile bottom nav ── */
+        .bottom-nav { display:none; }
         @media (max-width:767px) {
-            .bottom-nav {
-                display: flex;
-                position: fixed; bottom: 0; left: 0; right: 0; z-index:40;
-                background: rgba(0,0,0,0.97);
-                border-top: 1px solid rgba(212,175,55,0.15);
-                padding-bottom: env(safe-area-inset-bottom, 0);
-            }
-            main { padding-bottom: 80px !important; }
+            .bottom-nav { display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(0,0,0,0.97);border-top:1px solid rgba(212,175,55,0.15);padding-bottom:env(safe-area-inset-bottom,0); }
+            main { padding-bottom:80px !important; }
         }
-
-        /* ── Landscape phone ── */
         @media (max-height:500px) and (orientation:landscape) {
-            .bottom-nav { display: none; }
-            main { padding-bottom: 16px !important; }
-            .hero-avatar { display: none; }
-            .hero-meta   { display: none; }
+            .bottom-nav { display:none; }
+            main { padding-bottom:16px !important; }
         }
 
-        /* ── Desktop sidebar always visible ── */
-        @media (min-width:768px) {
-            .bottom-nav { display: none; }
-        }
+        /* ── Modal ── */
+        .modal-sheet { width:100%;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain; }
+        @media (max-width:767px) { .modal-sheet { border-radius:2rem 2rem 0 0 !important;max-height:92dvh; } }
+        @media (min-width:768px) { .modal-sheet { max-width:640px;border-radius:2rem !important; } }
 
-        /* ── Small phone specific ── */
-        @media (max-width:380px) {
-            .mog-badge { display: none; } /* too cramped */
-            .rank-chip { padding: 2px 8px; font-size: 0.6rem; }
-        }
-
-        /* ── Tablet: 2-col sidebar ── */
-        @media (min-width:640px) and (max-width:1023px) {
-            .tablet-2col { grid-template-columns: 1fr 1fr; }
-        }
-
-        /* ── Modal responsive ── */
-        .modal-sheet {
-            width: 100%;
-            max-height: 94dvh;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-        @media (max-width:767px) {
-            .modal-sheet {
-                border-radius: 2rem 2rem 0 0 !important;
-                max-height: 92dvh;
-            }
-        }
-        @media (min-width:768px) {
-            .modal-sheet {
-                max-width: 640px;
-                border-radius: 2rem !important;
-            }
-        }
-
-        /* ── PWA safe areas ── */
         .safe-top    { padding-top:    env(safe-area-inset-top,    0); }
         .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
 
-        /* ── Reduce motion for accessibility ── */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
+        /* ── Operative ID badge ── */
+        .operative-id {
+            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
+            letter-spacing:0.3em; text-transform:uppercase; color:var(--teal);
+            background:rgba(0,212,170,0.06); border:1px solid rgba(0,212,170,0.2);
+            border-radius:6px; padding:3px 10px;
+        }
+
+        /* ── Agency slogan ── */
+        .slogan-text {
+            font-family:'Orbitron',sans-serif; font-size:clamp(0.5rem,1.2vw,0.62rem);
+            letter-spacing:0.28em; color:var(--teal); text-transform:uppercase;
+            opacity:0.65; text-shadow:0 0 10px var(--teal-glow);
+        }
+
+        /* ── Like counter badge ── */
+        .like-count { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:#f87171; }
+        .like-count.liked-count { color:#fca5a5; }
+
+        @media (prefers-reduced-motion:reduce) {
+            *,*::before,*::after { animation-duration:0.01ms !important;transition-duration:0.01ms !important; }
         }
     </style>
 
     <script>
     function mogNetwork() {
         return {
+            /* ── State ── */
             view: 'loading',
             currentUser: null,
+            operativeId: '',
             profile: {
                 username:'', codename:'', rank:'INITIATE',
                 department:'UNASSIGNED', bio:'', avatar_url:null,
@@ -420,25 +409,46 @@
             isLoading: false,
             uploadProgress: 0,
             networkStatus: 'CONNECTED',
+
+            /* ── Lockdown / Directorate ── */
             lockdownActive: false,
             directorateMessage: '',
             directorateBanner: '',
-            activeTab: 'overview',
+
+            /* ── Ticker ── */
+            tickerMessages: [],
+            tickerActive: false,
+
+            /* ── Navigation ── */
+            activeTab: 'grid',
             showProfileModal: false,
+
+            /* ── Data ── */
             allOperatives: [],
             recentActivity: [],
             directives: [],
 
+            /* ── Media Grid ── */
+            mediaAssets: [],
+            likedAssets: new Set(),
+            likesCounts: {},
+            mediaFilter: 'ALL',
+            mediaTypes: ['ALL','VIDEO','AUDIO','PHOTO'],
+
+            /* ── Computed ── */
             get rankColor() {
-                return {INITIATE:'text-gray-400',AGENT:'text-teal-400',
-                    OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',
-                    DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400';
+                return {INITIATE:'text-gray-400',AGENT:'text-teal-400',OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400';
             },
             get clearanceLevel() {
                 return {INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1;
             },
             get isDirector() { return this.profile.rank==='DIRECTOR'; },
+            get filteredMedia() {
+                if (this.mediaFilter==='ALL') return this.mediaAssets;
+                return this.mediaAssets.filter(a => (a.type||'').toUpperCase()===this.mediaFilter);
+            },
 
+            /* ── Init ── */
             async init() {
                 this.checkDirectorateControl();
                 window.addEventListener('storage', e => {
@@ -447,27 +457,35 @@
                 });
                 this.pollDirectorateSettings();
 
-                let tries = 0;
+                let tries=0;
                 while (typeof sb==='undefined' && tries<20) {
                     await new Promise(r=>setTimeout(r,100)); tries++;
                 }
-                if (typeof sb==='undefined'||!sb) {
-                    console.error('[M.O.G.] sb not found');
-                    return;
-                }
+                if (typeof sb==='undefined'||!sb) { console.error('[M.O.G.] sb not found'); return; }
                 try {
                     const { data:{ session } } = await sb.auth.getSession();
                     if (!session) { window.location.href='/login.html'; return; }
                     this.currentUser = session.user;
+                    // Generate Operative ID from email prefix
+                    const prefix = (this.currentUser.email||'').split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g,'_');
+                    this.operativeId = 'ID: ' + prefix;
                 } catch(err) {
                     this.showNotification('Authentication failed','error'); return;
                 }
                 await this.loadProfile();
-                await Promise.all([this.loadOperatives(), this.loadActivity(), this.loadDirectives()]);
+                await Promise.all([
+                    this.loadOperatives(),
+                    this.loadActivity(),
+                    this.loadDirectives(),
+                    this.loadMediaAssets(),
+                    this.loadLikedAssets(),
+                    this.loadTicker()
+                ]);
                 this.view = 'hub';
                 this.$nextTick(() => lucide.createIcons());
             },
 
+            /* ── Directorate control ── */
             checkDirectorateControl() {
                 try {
                     const s = localStorage.getItem('ministrySettings');
@@ -491,14 +509,57 @@
                         this.directorateMessage = parsed.alertStatus || '';
                         if (parsed.bannerText) this.directorateBanner = parsed.bannerText;
                         localStorage.setItem('ministrySettings', data.value);
+
+                        // Check Protocol Zero
+                        const { data:pz } = await sb.from('system_settings')
+                            .select('value').eq('key','protocolZero').single();
+                        if (pz?.value) {
+                            const pzData = JSON.parse(pz.value);
+                            if (pzData.active) this.lockdownActive = true;
+                        }
+
+                        // Check ticker
+                        const { data:tk } = await sb.from('system_settings')
+                            .select('value').eq('key','tickerBroadcast').single();
+                        if (tk?.value) {
+                            const tkData = JSON.parse(tk.value);
+                            if (tkData.message) {
+                                this.tickerMessages = [{ message: tkData.message }];
+                                this.tickerActive = true;
+                            } else {
+                                this.tickerMessages = [];
+                                this.tickerActive = false;
+                            }
+                        }
                     } catch(_) {}
-                }, 30000);
+                }, 15000); // Poll every 15s (faster than directorate's 30s)
             },
 
+            async loadTicker() {
+                try {
+                    const { data } = await sb.from('system_settings')
+                        .select('value').eq('key','tickerBroadcast').single();
+                    if (data?.value) {
+                        const parsed = JSON.parse(data.value);
+                        if (parsed.message) {
+                            this.tickerMessages = [{ message: parsed.message }];
+                            this.tickerActive = true;
+                        }
+                    }
+                    // Also check ticker_messages table
+                    const { data: tm } = await sb.from('ticker_messages')
+                        .select('*').eq('active', true).order('created_at', { ascending: false }).limit(5);
+                    if (tm && tm.length) {
+                        this.tickerMessages = tm;
+                        this.tickerActive = true;
+                    }
+                } catch(_) {}
+            },
+
+            /* ── Profile ── */
             async loadProfile() {
                 try {
-                    let { data, error } = await sb.from('profiles').select('*')
-                        .eq('id',this.currentUser.id).single();
+                    let { data, error } = await sb.from('profiles').select('*').eq('id',this.currentUser.id).single();
                     if (error?.code==='PGRST116') {
                         const codename = 'MOG-'+Math.random().toString(36).substr(2,6).toUpperCase();
                         const np = {
@@ -507,8 +568,7 @@
                             rank:'INITIATE', department:'UNASSIGNED', bio:'', avatar_url:null,
                             stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},
                             skills:[], achievements:['ENLISTED'],
-                            joined_at:new Date().toISOString(),
-                            last_active:new Date().toISOString(), network:'M.O.G.'
+                            joined_at:new Date().toISOString(), last_active:new Date().toISOString(), network:'M.O.G.'
                         };
                         const { data:c, error:ce } = await sb.from('profiles').insert(np).select().single();
                         if (ce) throw ce;
@@ -520,9 +580,7 @@
                         localStorage.setItem('userRole','director');
                         localStorage.setItem('clearanceLevel','ALPHA');
                     }
-                } catch(e) {
-                    this.showNotification('Profile sync failed','error');
-                }
+                } catch(e) { this.showNotification('Profile sync failed','error'); }
             },
 
             async loadOperatives() {
@@ -553,6 +611,148 @@
                 } catch(_) { this.directives=[]; }
             },
 
+            /* ── Media Assets ── */
+            async loadMediaAssets() {
+                try {
+                    const { data, error } = await sb.from('media_assets')
+                        .select('*').order('created_at',{ascending:false}).limit(24);
+                    if (error) throw error;
+                    this.mediaAssets = data || this.getFallbackMedia();
+                    if (!this.mediaAssets.length) this.mediaAssets = this.getFallbackMedia();
+                    // Load like counts
+                    await this.loadLikeCounts();
+                } catch(_) { this.mediaAssets = this.getFallbackMedia(); }
+            },
+
+            getFallbackMedia() {
+                // Fallback tiles if DB table doesn't exist yet
+                return [
+                    { id:'m1', type:'VIDEO', title:'Groove Drop Vol.1', artist:'M.O.G. Collective', src:'/assets/videos/clip1.mp4', thumb:'/assets/images/gallery1.jpg', duration:'3:42', tag:'NEW' },
+                    { id:'m2', type:'AUDIO', title:'Sector 7G Sessions', artist:'DJ Emalahleni', src:'/assets/audio/track1.mp3', thumb:'/assets/images/gallery2.jpg', duration:'5:17', tag:'HOT' },
+                    { id:'m3', type:'PHOTO', title:'Uplink II — Field Ops', artist:'M.O.G. Photography', src:'/assets/images/gallery3.jpg', thumb:'/assets/images/gallery3.jpg', duration:null, tag:null },
+                    { id:'m4', type:'VIDEO', title:'Piano Chronicles Ep.2', artist:'Kabz Collective', src:'/assets/videos/clip2.mp4', thumb:'/assets/images/gallery4.jpg', duration:'4:09', tag:'HOT' },
+                    { id:'m5', type:'AUDIO', title:'104.7 FM — Live Set', artist:'Ministry Broadcast', src:'/assets/audio/track2.mp3', thumb:'/assets/images/gallery1.jpg', duration:'58:00', tag:'LIVE' },
+                    { id:'m6', type:'PHOTO', title:'Directorate Brief', artist:'Intel Division', src:'/assets/images/gallery2.jpg', thumb:'/assets/images/gallery2.jpg', duration:null, tag:null },
+                ];
+            },
+
+            async loadLikeCounts() {
+                try {
+                    const { data } = await sb.from('media_likes')
+                        .select('media_id, count');
+                    if (data) {
+                        const counts = {};
+                        data.forEach(d => { counts[d.media_id] = d.count || 0; });
+                        this.likesCounts = counts;
+                    }
+                } catch(_) {}
+            },
+
+            async loadLikedAssets() {
+                if (!this.currentUser) return;
+                try {
+                    const { data } = await sb.from('media_likes_users')
+                        .select('media_id').eq('user_id', this.currentUser.id);
+                    if (data) {
+                        this.likedAssets = new Set(data.map(d => d.media_id));
+                    }
+                } catch(_) { this.likedAssets = new Set(); }
+            },
+
+            async toggleLike(asset) {
+                if (!this.currentUser) return;
+                const mid = asset.id;
+                const wasLiked = this.likedAssets.has(mid);
+
+                // Optimistic update
+                if (wasLiked) {
+                    this.likedAssets.delete(mid);
+                    this.likesCounts[mid] = Math.max(0, (this.likesCounts[mid]||1) - 1);
+                } else {
+                    this.likedAssets.add(mid);
+                    this.likesCounts[mid] = (this.likesCounts[mid]||0) + 1;
+                }
+                // Force Alpine reactivity for Set
+                this.likedAssets = new Set(this.likedAssets);
+
+                try {
+                    if (wasLiked) {
+                        // Unlike
+                        await sb.from('media_likes_users')
+                            .delete()
+                            .eq('media_id', mid)
+                            .eq('user_id', this.currentUser.id);
+                        // Decrement count
+                        await sb.from('media_likes')
+                            .update({ count: this.likesCounts[mid] })
+                            .eq('media_id', mid);
+                    } else {
+                        // Like — upsert user record
+                        await sb.from('media_likes_users').upsert({
+                            media_id: mid,
+                            user_id:  this.currentUser.id,
+                            created_at: new Date().toISOString()
+                        }, { onConflict: 'media_id,user_id' });
+                        // Upsert count
+                        const { data: existing } = await sb.from('media_likes')
+                            .select('count').eq('media_id', mid).single();
+                        if (existing) {
+                            await sb.from('media_likes').update({ count: (existing.count||0)+1 }).eq('media_id', mid);
+                        } else {
+                            await sb.from('media_likes').insert({ media_id: mid, title: asset.title, count: 1 });
+                        }
+                        this.showNotification('Asset Liked ♥', 'success');
+                    }
+                } catch(e) {
+                    // Revert optimistic update on error
+                    if (wasLiked) {
+                        this.likedAssets.add(mid);
+                        this.likesCounts[mid] = (this.likesCounts[mid]||0) + 1;
+                    } else {
+                        this.likedAssets.delete(mid);
+                        this.likesCounts[mid] = Math.max(0, (this.likesCounts[mid]||1) - 1);
+                    }
+                    this.likedAssets = new Set(this.likedAssets);
+                }
+            },
+
+            isLiked(id) { return this.likedAssets.has(id); },
+            getLikeCount(id) { return this.likesCounts[id] || 0; },
+
+            openMedia(asset) {
+                if (asset.type==='VIDEO' && asset.src) {
+                    window.open(asset.src, '_blank');
+                } else if (asset.type==='PHOTO') {
+                    window.open(asset.src||asset.thumb, '_blank');
+                } else {
+                    window.open(asset.src, '_blank');
+                }
+                this.logActivity('MEDIA_VIEW', `Viewed: ${asset.title}`);
+            },
+
+            listenMedia(asset) {
+                if (asset.src) window.open(asset.src, '_blank');
+                this.logActivity('MEDIA_LISTEN', `Listened: ${asset.title}`);
+            },
+
+            downloadMedia(asset) {
+                const a = document.createElement('a');
+                a.href = asset.src || asset.thumb;
+                a.download = (asset.title||'mog-asset').replace(/\s+/g,'-').toLowerCase();
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                this.showNotification('Download initiated', 'info');
+                this.logActivity('MEDIA_DOWNLOAD', `Downloaded: ${asset.title}`);
+            },
+
+            getMediaTypeColor(type) {
+                return { VIDEO:'rgba(220,38,38,0.75)', AUDIO:'rgba(0,212,170,0.7)', PHOTO:'rgba(212,175,55,0.75)' }[type] || 'rgba(100,100,100,0.7)';
+            },
+
+            getMediaTypeTextColor(type) {
+                return { VIDEO:'#fff', AUDIO:'#000', PHOTO:'#000' }[type] || '#fff';
+            },
+
+            /* ── Profile actions ── */
             async updateProfile() {
                 this.isLoading = true;
                 try {
@@ -572,17 +772,14 @@
             async uploadAvatar(e) {
                 const file = e.target.files[0];
                 if (!file) return;
-                if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
-                    this.showNotification('JPG, PNG or WEBP only','error'); return;
-                }
+                if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { this.showNotification('JPG, PNG or WEBP only','error'); return; }
                 if (file.size > 2*1024*1024) { this.showNotification('Max 2 MB','error'); return; }
                 this.isLoading=true; this.uploadProgress=15;
                 try {
                     const ext  = file.name.split('.').pop();
                     const path = `mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
                     this.uploadProgress=35;
-                    const { error:ue } = await sb.storage.from('operative-assets')
-                        .upload(path,file,{cacheControl:'3600',upsert:true});
+                    const { error:ue } = await sb.storage.from('operative-assets').upload(path,file,{cacheControl:'3600',upsert:true});
                     if (ue) throw ue;
                     this.uploadProgress=75;
                     const { data:{publicUrl} } = sb.storage.from('operative-assets').getPublicUrl(path);
@@ -605,13 +802,12 @@
                 } catch(_) {}
             },
 
+            /* ── Helpers ── */
             getRankIcon(rank) {
                 return {INITIATE:'radio',AGENT:'user',OPERATIVE:'target',SPECIALIST:'star',DIRECTOR:'crown'}[rank]||'radio';
             },
             getRankBadgeClass(rank) {
-                return {INITIATE:'border-gray-600/50 text-gray-400',AGENT:'border-teal-600/50 text-teal-400',
-                    OPERATIVE:'border-cyan-600/50 text-cyan-400',SPECIALIST:'border-amber-600/50 text-amber-400',
-                    DIRECTOR:'border-yellow-500/60 text-yellow-300'}[rank]||'border-gray-600/50 text-gray-400';
+                return {INITIATE:'border-gray-600/50 text-gray-400',AGENT:'border-teal-600/50 text-teal-400',OPERATIVE:'border-cyan-600/50 text-cyan-400',SPECIALIST:'border-amber-600/50 text-amber-400',DIRECTOR:'border-yellow-500/60 text-yellow-300'}[rank]||'border-gray-600/50 text-gray-400';
             },
             getOnlineStatus(ts) {
                 if (!ts) return {label:'OFFLINE',color:'bg-gray-700'};
@@ -632,29 +828,18 @@
 
             showNotification(message, type='info') {
                 const cfg={
-                    success:{bg:'bg-teal-800',  border:'border-teal-500/50',  icon:'check-circle'},
-                    error:  {bg:'bg-red-900',   border:'border-red-500/50',   icon:'alert-triangle'},
+                    success:{bg:'bg-teal-800', border:'border-teal-500/50',   icon:'check-circle'},
+                    error:  {bg:'bg-red-900',  border:'border-red-500/50',    icon:'alert-triangle'},
                     warning:{bg:'bg-yellow-900',border:'border-yellow-500/50',icon:'alert-circle'},
-                    info:   {bg:'bg-zinc-900',  border:'border-zinc-500/50',  icon:'info'}
+                    info:   {bg:'bg-zinc-900', border:'border-zinc-500/50',   icon:'info'}
                 }[type]||{bg:'bg-zinc-900',border:'border-zinc-500/50',icon:'info'};
                 const t=document.createElement('div');
-                /* Responsive position: bottom on mobile, top-right on desktop */
-                const isMobile = window.innerWidth < 640;
-                t.className=`toast fixed z-[99999] text-white ${cfg.bg} ${cfg.border} ${
-                    isMobile
-                        ? 'bottom-24 left-1/2 -translate-x-1/2 translate-y-20'
-                        : 'top-5 right-5 translate-x-[120%]'
-                }`;
+                const isMobile=window.innerWidth<640;
+                t.className=`toast fixed z-[99999] text-white ${cfg.bg} ${cfg.border} ${isMobile?'bottom-24 left-1/2 -translate-x-1/2 translate-y-20':'top-14 right-5 translate-x-[120%]'}`;
                 t.innerHTML=`<i data-lucide="${cfg.icon}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${message.toUpperCase()}</span>`;
                 document.body.appendChild(t); lucide.createIcons();
-                requestAnimationFrame(()=>setTimeout(()=>{
-                    t.style.transform = isMobile ? 'translate(-50%, 0)' : 'translateX(0)';
-                },30));
-                setTimeout(()=>{
-                    t.style.opacity='0';
-                    t.style.transform = isMobile ? 'translate(-50%, 20px)' : 'translateX(120%)';
-                    setTimeout(()=>t.remove(),350);
-                },3600);
+                requestAnimationFrame(()=>setTimeout(()=>{ t.style.transform=isMobile?'translate(-50%,0)':'translateX(0)'; },30));
+                setTimeout(()=>{ t.style.opacity='0'; t.style.transform=isMobile?'translate(-50%,20px)':'translateX(120%)'; setTimeout(()=>t.remove(),350); },3600);
             },
 
             async logout() {
@@ -665,6 +850,7 @@
     }
     </script>
 </head>
+
 <body x-data="mogNetwork()" x-init="init()" x-cloak class="bg-black min-h-screen">
 
     <div class="mog-seal" aria-hidden="true"></div>
@@ -672,56 +858,53 @@
     <div class="vignette" aria-hidden="true"></div>
     <div class="scanline" aria-hidden="true"></div>
 
-    <!-- ══ LOCKDOWN ══════════════════════════════════════════════ -->
+    <!-- ══ PROTOCOL ZERO / LOCKDOWN SCREEN ═══════════════════════ -->
     <div x-show="lockdownActive" x-transition class="lockdown-screen">
-        <img src="/assets/images/logo.png" alt="M.O.G."
-             class="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-5 opacity-80"
-             style="filter:drop-shadow(0 0 20px rgba(212,175,55,0.5))">
-        <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-yellow-500/50
-                    flex items-center justify-center mb-5 pulse-gold">
-            <i data-lucide="lock" class="w-7 h-7 sm:w-8 sm:h-8 text-gold"></i>
+        <div class="lockdown-border"></div>
+        <div class="relative z-10 flex flex-col items-center gap-6 max-w-lg">
+            <img src="/assets/images/logo.png" alt="M.O.G."
+                 class="w-16 h-16 sm:w-20 sm:h-20 object-contain"
+                 style="filter:drop-shadow(0 0 20px rgba(212,175,55,0.5))">
+            <div class="w-14 h-14 rounded-full border-2 border-red-500/50 flex items-center justify-center pulse-gold"
+                 style="background:rgba(220,38,38,0.08)">
+                <i data-lucide="lock" class="w-7 h-7 text-red-400"></i>
+            </div>
+            <p class="mono text-[10px] text-red-700 uppercase tracking-[0.4em]">Protocol Zero Active</p>
+            <h1 class="orbit font-black uppercase tracking-[0.15em] text-center"
+                style="font-size:var(--text-2xl);color:var(--red);text-shadow:0 0 30px rgba(220,38,38,0.5)">
+                SYSTEM LOCKDOWN
+            </h1>
+            <div class="gold-line w-40" style="opacity:0.3"></div>
+            <p class="text-white/50 mono text-center" style="font-size:var(--text-sm)"
+               x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE — ALL TERMINALS FROZEN'"></p>
+            <p class="text-gray-700 uppercase tracking-widest mono" style="font-size:var(--text-xs)">
+                Ministry of Groove // Sector Control
+            </p>
+            <button @click="checkDirectorateControl()"
+                    class="px-6 py-3 border border-yellow-600/35 text-gold rounded-full hover:bg-yellow-500/10 transition-all uppercase tracking-widest font-bold"
+                    style="font-size:var(--text-xs)">
+                Refresh Status
+            </button>
         </div>
-        <p class="mono text-[10px] text-yellow-700 uppercase tracking-[0.4em] mb-3">Protocol Active</p>
-        <h1 class="font-black uppercase tracking-[0.15em] text-gold glow-gold mb-3"
-            style="font-size:var(--text-2xl)">NETWORK LOCKDOWN</h1>
-        <div class="gold-line w-40 mb-4" style="opacity:0.5"></div>
-        <p class="text-white/50 mono mb-1" style="font-size:var(--text-sm)"
-           x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
-        <p class="text-yellow-900 uppercase tracking-widest mb-6 mono" style="font-size:var(--text-xs)">
-            Ministry of Groove // Sector Control
-        </p>
-        <button @click="checkDirectorateControl()"
-                class="px-6 py-3 border border-yellow-600/35 text-gold rounded-full
-                       hover:bg-yellow-500/10 transition-all uppercase tracking-widest font-bold"
-                style="font-size:var(--text-xs)">
-            Refresh Status
-        </button>
     </div>
 
     <!-- ══ LOADING ════════════════════════════════════════════════ -->
     <template x-if="view==='loading'">
         <div class="h-screen h-dvh flex flex-col items-center justify-center gap-6 relative z-10 px-4">
             <div class="relative">
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-yellow-800/30
-                            border-t-yellow-500 animate-spin absolute inset-0"></div>
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-teal-800/20
-                            border-b-teal-400 absolute inset-0"
-                     style="animation:spin 1.8s linear infinite reverse"></div>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-yellow-800/30 border-t-yellow-500 animate-spin absolute inset-0"></div>
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-teal-800/20 border-b-teal-400 absolute inset-0" style="animation:spin 1.8s linear infinite reverse"></div>
                 <div class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center relative z-10">
-                    <img src="/assets/images/logo.png" alt="M.O.G."
-                         class="w-12 h-12 sm:w-14 sm:h-14 object-contain"
-                         style="filter:drop-shadow(0 0 12px rgba(212,175,55,0.4))">
+                    <img src="/assets/images/logo.png" alt="M.O.G." class="w-12 h-12 sm:w-14 sm:h-14 object-contain" style="filter:drop-shadow(0 0 12px rgba(212,175,55,0.4))">
                 </div>
             </div>
             <div class="text-center space-y-2">
-                <p class="mono uppercase tracking-[0.35em] text-gold"
-                   style="font-size:var(--text-xs)">
+                <p class="mono uppercase tracking-[0.35em] text-gold" style="font-size:var(--text-xs)">
                     Connecting to M.O.G. Network
                     <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span>
                 </p>
-                <p class="text-gray-700 uppercase tracking-widest mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">
-                    Ministry of Groove // Est. 2026
-                </p>
+                <p class="slogan-text">Decrypting the Culture. Synchronizing the Grid.</p>
+                <p class="text-gray-700 uppercase tracking-widest mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Ministry of Groove // Est. 2026</p>
             </div>
         </div>
     </template>
@@ -730,85 +913,91 @@
     <template x-if="view==='hub'">
         <div class="min-h-screen min-h-dvh relative z-10 fade-up">
 
+            <!-- GLOBAL ALERT TICKER -->
+            <template x-if="tickerActive && tickerMessages.length">
+                <div class="ticker-bar sticky top-0 z-50">
+                    <div class="ticker-label">LIVE</div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="ticker-track">
+                            <template x-for="m in tickerMessages" :key="m.id||m.message">
+                                <span>
+                                    <span class="ticker-text" x-text="m.message||m"></span>
+                                    <span class="ticker-sep"> ◆ </span>
+                                </span>
+                            </template>
+                            <!-- Duplicate for seamless loop -->
+                            <template x-for="m in tickerMessages" :key="'d-'+(m.id||m.message)">
+                                <span>
+                                    <span class="ticker-text" x-text="m.message||m"></span>
+                                    <span class="ticker-sep"> ◆ </span>
+                                </span>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
             <!-- NAV -->
-            <nav class="glass sticky top-0 z-50 safe-top" style="border-bottom:1px solid rgba(212,175,55,0.12)">
+            <nav class="glass sticky top-0 z-40 safe-top" :class="tickerActive&&tickerMessages.length?'':''" style="border-bottom:1px solid rgba(212,175,55,0.12)">
                 <div class="max-w-7xl mx-auto px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3">
 
                     <!-- Logo + wordmark -->
                     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <img src="/assets/images/logo.png" alt="M.O.G."
-                             class="w-10 h-10 sm:w-12 sm:h-12 object-contain opacity-95 spin-slow"
-                             style="filter:drop-shadow(0 0 8px rgba(212,175,55,0.3))">
+                        <img src="/assets/images/logo.png" alt="M.O.G." class="w-10 h-10 sm:w-12 sm:h-12 object-contain opacity-95 spin-slow" style="filter:drop-shadow(0 0 8px rgba(212,175,55,0.3))">
                         <div class="hidden sm:block">
-                            <p class="font-black uppercase tracking-tight leading-none text-gold glow-gold"
-                               style="font-size:var(--text-lg)">M.O.G.</p>
-                            <p class="text-gray-600 uppercase tracking-[0.3em] mono"
-                               style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Ministry of Groove</p>
+                            <p class="orbit font-black uppercase tracking-tight leading-none text-gold glow-gold" style="font-size:var(--text-lg)">M.O.G.</p>
+                            <p class="slogan-text" style="font-size:clamp(0.48rem,1.2vw,0.58rem)">Decrypting the Culture. Synchronizing the Grid.</p>
                         </div>
-                        <!-- Mobile: show short brand -->
-                        <p class="sm:hidden font-black uppercase text-gold glow-gold"
-                           style="font-size:var(--text-base);letter-spacing:0.1em">M.O.G.</p>
+                        <p class="sm:hidden orbit font-black uppercase text-gold glow-gold" style="font-size:var(--text-base);letter-spacing:0.1em">M.O.G.</p>
                     </div>
 
-                    <!-- Directorate banner — tablet/desktop only -->
-                    <div x-show="directorateBanner"
-                         class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full glass-gold truncate max-w-xs">
-                        <i data-lucide="radio" class="w-3 h-3 text-gold flex-shrink-0"></i>
-                        <span class="mono uppercase tracking-wider truncate text-gold"
-                              style="font-size:var(--text-xs)" x-text="directorateBanner"></span>
+                    <!-- Banner + Operative ID — tablet+ -->
+                    <div class="hidden lg:flex items-center gap-3 flex-1 justify-center max-w-sm">
+                        <template x-if="directorateBanner">
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full glass-gold truncate">
+                                <i data-lucide="radio" class="w-3 h-3 text-gold flex-shrink-0"></i>
+                                <span class="mono uppercase tracking-wider truncate text-gold" style="font-size:var(--text-xs)" x-text="directorateBanner"></span>
+                            </div>
+                        </template>
+                        <span class="operative-id" x-text="operativeId"></span>
                     </div>
 
                     <div class="flex items-center gap-1.5 sm:gap-2">
+                        <!-- Operative ID — mobile -->
+                        <span class="sm:hidden operative-id text-[8px] px-2 py-1" x-text="operativeId" style="font-size:8px;letter-spacing:0.2em"></span>
+
                         <!-- Director portal -->
                         <a x-show="isDirector" href="/pages/directorate.html"
-                           class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full
-                                  uppercase font-bold tracking-wider transition-all group
-                                  border border-yellow-600/40 text-gold
-                                  hover:border-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]"
+                           class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full uppercase font-bold tracking-wider transition-all border border-yellow-600/40 text-gold hover:border-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]"
                            style="background:rgba(212,175,55,0.08);font-size:var(--text-xs)">
                             <i data-lucide="crown" class="w-3.5 h-3.5"></i>
                             <span class="hidden lg:inline">Directorate</span>
                         </a>
-                        <!-- Mobile director icon only -->
                         <a x-show="isDirector" href="/pages/directorate.html"
-                           class="md:hidden p-2.5 rounded-full border border-yellow-600/40 text-gold
-                                  hover:bg-yellow-500/10 transition-all">
+                           class="md:hidden p-2.5 rounded-full border border-yellow-600/40 text-gold hover:bg-yellow-500/10 transition-all">
                             <i data-lucide="crown" class="w-4 h-4"></i>
                         </a>
 
                         <!-- Profile button -->
-                        <button @click="showProfileModal=true"
-                                class="flex items-center gap-2 pl-1 pr-3 sm:pr-4 py-1 rounded-full
-                                       border border-yellow-700/25 hover:border-yellow-500/50 transition-all"
-                                style="background:rgba(0,0,0,0.6)">
+                        <button @click="showProfileModal=true" class="flex items-center gap-2 pl-1 pr-3 sm:pr-4 py-1 rounded-full border border-yellow-700/25 hover:border-yellow-500/50 transition-all" style="background:rgba(0,0,0,0.6)">
                             <div class="avatar-ring w-9 h-9 sm:w-10 sm:h-10">
                                 <div>
-                                    <img x-show="profile.avatar_url" :src="profile.avatar_url"
-                                         class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                    <i x-show="!profile.avatar_url" data-lucide="user"
-                                       class="w-4 h-4 text-gold"></i>
+                                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                                    <i x-show="!profile.avatar_url" data-lucide="user" class="w-4 h-4 text-gold"></i>
                                 </div>
                             </div>
                             <div class="hidden sm:block text-left leading-tight">
-                                <p class="font-bold text-white uppercase tracking-wider"
-                                   style="font-size:var(--text-xs)"
-                                   x-text="profile.codename||'OPERATIVE'"></p>
-                                <p class="uppercase" :class="rankColor"
-                                   style="font-size:clamp(0.55rem,1.5vw,0.65rem)"
-                                   x-text="profile.rank"></p>
+                                <p class="font-bold text-white uppercase tracking-wider" style="font-size:var(--text-xs)" x-text="profile.codename||'OPERATIVE'"></p>
+                                <p class="uppercase" :class="rankColor" style="font-size:clamp(0.55rem,1.5vw,0.65rem)" x-text="profile.rank"></p>
                             </div>
                         </button>
 
-                        <!-- Live indicator — sm+ only -->
-                        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full
-                                    border border-teal-700/25" style="background:rgba(0,0,0,0.5)">
+                        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-teal-700/25" style="background:rgba(0,0,0,0.5)">
                             <span class="w-1.5 h-1.5 rounded-full bg-teal-400 pulse-dot"></span>
                             <span class="mono uppercase text-teal" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">LIVE</span>
                         </div>
 
-                        <button @click="logout()"
-                                class="p-2 sm:p-2.5 text-gray-600 hover:text-gold hover:bg-yellow-500/8 rounded-full transition-all"
-                                title="Sign Out">
+                        <button @click="logout()" class="p-2 sm:p-2.5 text-gray-600 hover:text-gold hover:bg-yellow-500/8 rounded-full transition-all" title="Sign Out">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -819,133 +1008,99 @@
             <main class="max-w-7xl mx-auto px-4 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5">
 
                 <!-- Hero banner -->
-                <div class="glass p-4 sm:p-6 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] bracket overflow-hidden relative"
-                     style="border-color:rgba(212,175,55,0.18)">
+                <div class="glass p-4 sm:p-6 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] bracket overflow-hidden relative" style="border-color:rgba(212,175,55,0.18)">
                     <div class="absolute inset-0 bg-gradient-to-br from-yellow-900/8 via-transparent to-teal-900/5 pointer-events-none"></div>
-
                     <div class="relative z-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                        <!-- Avatar -->
-                        <div class="avatar-ring w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 hero-avatar">
+                        <div class="avatar-ring w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
                             <div>
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url"
-                                     class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                <i x-show="!profile.avatar_url" data-lucide="user"
-                                   class="w-9 h-9 sm:w-10 sm:h-10 text-gold"></i>
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-9 h-9 sm:w-10 sm:h-10 text-gold"></i>
                             </div>
                         </div>
-
-                        <!-- Info -->
                         <div class="flex-1 min-w-0 text-center sm:text-left">
-                            <p class="text-teal uppercase tracking-[0.35em] mono mb-1"
-                               style="font-size:var(--text-xs)">Operative Online</p>
-                            <h2 class="font-black uppercase italic tracking-tight text-white mb-2 sm:mb-3 truncate"
-                                style="font-size:var(--text-3xl)"
-                                x-text="profile.username||'UNKNOWN'"></h2>
+                            <p class="text-teal uppercase tracking-[0.35em] mono mb-1" style="font-size:var(--text-xs)">Operative Online</p>
+                            <h2 class="orbit font-black uppercase tracking-tight text-white mb-2 truncate" style="font-size:var(--text-3xl)" x-text="profile.username||'UNKNOWN'"></h2>
                             <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                <span class="mog-badge px-3 sm:px-4 py-1 font-black uppercase tracking-wider text-gold mono"
-                                      style="font-size:var(--text-xs)"
-                                      x-text="profile.codename"></span>
-                                <span class="rank-chip border" :class="getRankBadgeClass(profile.rank)"
-                                      x-text="profile.rank"></span>
-                                <span class="flex items-center gap-1.5 text-gray-500 uppercase tracking-widest"
-                                      style="font-size:var(--text-xs)">
-                                    <i data-lucide="layers" class="w-3 h-3"></i>
-                                    <span x-text="profile.department"></span>
-                                </span>
+                                <span class="mog-badge px-3 sm:px-4 py-1 font-black uppercase tracking-wider text-gold mono" style="font-size:var(--text-xs)" x-text="profile.codename"></span>
+                                <span class="rank-chip border" :class="getRankBadgeClass(profile.rank)" x-text="profile.rank"></span>
+                                <span class="operative-id" x-text="operativeId"></span>
                             </div>
+                            <p class="slogan-text mt-2">Decrypting the Culture. Synchronizing the Grid.</p>
                         </div>
-
-                        <!-- Meta — hidden on landscape phone -->
-                        <div class="flex-shrink-0 text-center space-y-1.5 hero-meta">
+                        <div class="flex-shrink-0 text-center space-y-1.5">
                             <div class="flex items-center gap-2 justify-center">
                                 <span class="w-2 h-2 rounded-full bg-teal-400 pulse-dot"></span>
-                                <span class="font-bold uppercase tracking-wider text-teal"
-                                      style="font-size:var(--text-xs)" x-text="networkStatus"></span>
+                                <span class="font-bold uppercase tracking-wider text-teal" style="font-size:var(--text-xs)" x-text="networkStatus"></span>
                             </div>
-                            <p class="text-gray-600 mono uppercase" style="font-size:var(--text-xs)">
-                                Clearance L<span x-text="clearanceLevel"></span>
-                            </p>
-                            <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)"
-                               x-show="profile.joined_at">
-                                Enlisted
-                                <span x-text="profile.joined_at?new Date(profile.joined_at).toLocaleDateString('en-ZA'):''"></span>
+                            <p class="text-gray-600 mono uppercase" style="font-size:var(--text-xs)">Clearance L<span x-text="clearanceLevel"></span></p>
+                            <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)" x-show="profile.joined_at">
+                                Enlisted <span x-text="profile.joined_at?new Date(profile.joined_at).toLocaleDateString('en-ZA'):''"></span>
                             </p>
                         </div>
                     </div>
                     <div class="gold-line mt-4 sm:mt-5" style="opacity:0.25"></div>
                 </div>
 
-                <!-- Directives -->
+                <!-- Active directives -->
                 <template x-if="directives.length>0">
                     <div class="space-y-2">
                         <template x-for="d in directives" :key="d.id">
                             <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl dir-pulse flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                                     style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25)">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25)">
                                     <i data-lucide="radio" class="w-4 h-4 text-gold"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-gold uppercase tracking-widest font-bold mb-0.5 mono"
-                                       style="font-size:var(--text-xs)">Directorate Directive</p>
-                                    <p class="text-white/90 truncate" style="font-size:var(--text-sm)"
-                                       x-text="d.content"></p>
+                                    <p class="text-gold uppercase tracking-widest font-bold mb-0.5 mono" style="font-size:var(--text-xs)">Directorate Directive</p>
+                                    <p class="text-white/90 truncate" style="font-size:var(--text-sm)" x-text="d.content"></p>
                                 </div>
-                                <span class="text-gray-600 mono flex-shrink-0" style="font-size:var(--text-xs)"
-                                      x-text="timeAgo(d.timestamp)"></span>
+                                <span class="text-gray-600 mono flex-shrink-0" style="font-size:var(--text-xs)" x-text="timeAgo(d.timestamp)"></span>
                             </div>
                         </template>
                     </div>
                 </template>
 
-                <!-- Dashboard grid: 1 col phone, 3 col desktop -->
+                <!-- MAIN GRID -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
 
-                    <!-- LEFT SIDEBAR — stacks on mobile -->
+                    <!-- LEFT SIDEBAR -->
                     <div class="space-y-4 sm:space-y-5">
 
                         <!-- Stats -->
                         <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-4 sm:mb-5
-                                       flex items-center gap-2" style="font-size:var(--text-xs)">
+                            <h3 class="text-gold uppercase tracking-widest font-bold mb-4 sm:mb-5 flex items-center gap-2" style="font-size:var(--text-xs)">
                                 <i data-lucide="activity" class="w-3.5 h-3.5"></i>Performance Metrics
                             </h3>
                             <div class="space-y-3 sm:space-y-4">
                                 <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5"
-                                         style="font-size:var(--text-xs)">
+                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
                                         <span class="text-gray-500">Missions</span>
                                         <span class="font-bold mono text-gold" x-text="profile.stats.missions"></span>
                                     </div>
                                     <div class="stat-track"><div class="bar-gold" :style="`width:${Math.min(profile.stats.missions*10,100)}%`"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5"
-                                         style="font-size:var(--text-xs)">
+                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
                                         <span class="text-gray-500">Contributions</span>
                                         <span class="font-bold mono text-teal" x-text="profile.stats.contributions"></span>
                                     </div>
                                     <div class="stat-track"><div class="bar-teal" :style="`width:${Math.min(profile.stats.contributions*5,100)}%`"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5"
-                                         style="font-size:var(--text-xs)">
+                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
                                         <span class="text-gray-500">Influence</span>
                                         <span class="font-bold mono text-gold" x-text="profile.stats.influence+'%'"></span>
                                     </div>
                                     <div class="stat-track"><div class="bar-gold" :style="`width:${profile.stats.influence}%`"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5"
-                                         style="font-size:var(--text-xs)">
+                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
                                         <span class="text-gray-500">Groove Factor</span>
-                                        <span class="font-bold mono" style="color:var(--teal-bright)"
-                                              x-text="profile.stats.groove+'%'"></span>
+                                        <span class="font-bold mono" style="color:var(--teal-bright)" x-text="profile.stats.groove+'%'"></span>
                                     </div>
                                     <div class="stat-track"><div class="bar-cyan" :style="`width:${profile.stats.groove}%`"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5"
-                                         style="font-size:var(--text-xs)">
+                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
                                         <span class="text-gray-500">Loyalty</span>
                                         <span class="font-bold mono text-red-400" x-text="profile.stats.loyalty+'%'"></span>
                                     </div>
@@ -954,48 +1109,38 @@
                             </div>
                         </div>
 
-                        <!-- Quick actions — 2x2 grid -->
+                        <!-- Quick actions -->
                         <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4"
-                                style="font-size:var(--text-xs)">Quick Actions</h3>
+                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4" style="font-size:var(--text-xs)">Quick Actions</h3>
                             <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
-                                <button @click="showProfileModal=true"
-                                        class="btn-gold p-3 sm:p-4 rounded-xl text-center group">
+                                <button @click="showProfileModal=true" class="btn-gold p-3 sm:p-4 rounded-xl text-center">
                                     <i data-lucide="user-cog" class="w-5 h-5 mx-auto mb-1.5"></i>
                                     <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Dossier</span>
                                 </button>
-                                <button @click="activeTab='operatives'"
-                                        class="btn-teal p-3 sm:p-4 rounded-xl text-center group">
+                                <button @click="activeTab='operatives'" class="btn-teal p-3 sm:p-4 rounded-xl text-center">
                                     <i data-lucide="users" class="w-5 h-5 mx-auto mb-1.5"></i>
                                     <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Network</span>
                                 </button>
-                                <button disabled class="p-3 sm:p-4 rounded-xl text-center opacity-30 cursor-not-allowed
-                                                        border border-yellow-700/20 text-gold">
-                                    <i data-lucide="radio" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Dispatch</span>
+                                <button @click="activeTab='grid'" class="btn-gold p-3 sm:p-4 rounded-xl text-center">
+                                    <i data-lucide="grid" class="w-5 h-5 mx-auto mb-1.5"></i>
+                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Grid</span>
                                 </button>
-                                <button disabled class="p-3 sm:p-4 rounded-xl text-center opacity-30 cursor-not-allowed
-                                                        border border-yellow-700/20 text-gold">
-                                    <i data-lucide="archive" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Archives</span>
+                                <button @click="activeTab='activity'" class="btn-teal p-3 sm:p-4 rounded-xl text-center">
+                                    <i data-lucide="activity" class="w-5 h-5 mx-auto mb-1.5"></i>
+                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Log</span>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Achievements -->
                         <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4
-                                       flex items-center gap-2" style="font-size:var(--text-xs)">
-                                <i data-lucide="award" class="w-3.5 h-3.5"></i>
-                                Achievements
-                                <span class="ml-auto mono text-gray-600"
-                                      x-text="(profile.achievements||[]).length"></span>
+                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4 flex items-center gap-2" style="font-size:var(--text-xs)">
+                                <i data-lucide="award" class="w-3.5 h-3.5"></i>Achievements
+                                <span class="ml-auto mono text-gray-600" x-text="(profile.achievements||[]).length"></span>
                             </h3>
                             <div class="flex flex-wrap gap-2">
                                 <template x-if="!profile.achievements||profile.achievements.length===0">
-                                    <p class="text-gray-700 italic mono" style="font-size:var(--text-xs)">
-                                        No achievements unlocked
-                                    </p>
+                                    <p class="text-gray-700 italic mono" style="font-size:var(--text-xs)">No achievements unlocked</p>
                                 </template>
                                 <template x-for="a in (profile.achievements||[])" :key="a">
                                     <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full uppercase tracking-wider"
@@ -1011,106 +1156,174 @@
                     <!-- MAIN PANEL -->
                     <div class="lg:col-span-2 space-y-3 sm:space-y-4">
 
-                        <!-- Tabs — hidden on mobile (bottom nav handles it) -->
+                        <!-- Desktop tabs -->
                         <div class="hidden sm:flex gap-1.5 overflow-x-auto pb-px">
-                            <button @click="activeTab='overview'"
-                                    :class="activeTab==='overview'?'tab-active text-gold border-yellow-600/50':'border-yellow-800/20 text-gray-600'"
-                                    class="px-4 sm:px-5 py-2.5 rounded-full border uppercase font-bold
-                                           tracking-wider transition-all whitespace-nowrap relative"
-                                    style="font-size:var(--text-xs)"
-                                    :style="activeTab==='overview'?'background:rgba(212,175,55,0.1)':''">
-                                Overview
-                            </button>
-                            <button @click="activeTab='operatives'"
-                                    :class="activeTab==='operatives'?'tab-active text-teal border-teal-600/50':'border-yellow-800/20 text-gray-600'"
-                                    class="px-4 sm:px-5 py-2.5 rounded-full border uppercase font-bold
-                                           tracking-wider transition-all whitespace-nowrap relative"
-                                    style="font-size:var(--text-xs)"
-                                    :style="activeTab==='operatives'?'background:rgba(0,212,170,0.08)':''">
-                                Network
-                                <span class="ml-1 text-gray-600 mono" x-text="allOperatives.length"></span>
-                            </button>
-                            <button @click="activeTab='activity'"
-                                    :class="activeTab==='activity'?'tab-active text-gold border-yellow-600/50':'border-yellow-800/20 text-gray-600'"
-                                    class="px-4 sm:px-5 py-2.5 rounded-full border uppercase font-bold
-                                           tracking-wider transition-all whitespace-nowrap relative"
-                                    style="font-size:var(--text-xs)"
-                                    :style="activeTab==='activity'?'background:rgba(212,175,55,0.1)':''">
-                                Activity
-                                <span x-show="recentActivity.length>0" class="ml-1 text-teal mono"
-                                      x-text="recentActivity.length"></span>
-                            </button>
+                            <template x-for="tab in [
+                                {id:'grid',       label:'Media Grid',  icon:'grid'},
+                                {id:'overview',   label:'Overview',    icon:'layout-dashboard'},
+                                {id:'operatives', label:'Network',     icon:'users'},
+                                {id:'activity',   label:'Activity',    icon:'activity'}
+                            ]" :key="tab.id">
+                                <button @click="activeTab=tab.id; $nextTick(()=>lucide.createIcons())"
+                                        :class="activeTab===tab.id?'tab-active text-gold border-yellow-600/50':'border-yellow-800/20 text-gray-600'"
+                                        class="px-4 sm:px-5 py-2.5 rounded-full border uppercase font-bold tracking-wider transition-all whitespace-nowrap relative flex items-center gap-1.5"
+                                        style="font-size:var(--text-xs)"
+                                        :style="activeTab===tab.id?'background:rgba(212,175,55,0.1)':''">
+                                    <i :data-lucide="tab.icon" class="w-3.5 h-3.5"></i>
+                                    <span x-text="tab.label"></span>
+                                </button>
+                            </template>
                         </div>
 
                         <!-- Panel body -->
                         <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] min-h-[400px] sm:min-h-[480px]">
 
-                            <!-- Overview -->
-                            <div x-show="activeTab==='overview'" class="space-y-4 sm:space-y-6">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="font-black uppercase italic tracking-tight text-white"
-                                        style="font-size:var(--text-xl)">Mission Control</h3>
-                                    <span class="text-gray-600 mono uppercase"
-                                          style="font-size:var(--text-xs)">
-                                        L<span x-text="clearanceLevel"></span> Access
-                                    </span>
+                            <!-- ▸ MEDIA GRID TAB -->
+                            <div x-show="activeTab==='grid'" class="space-y-4">
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                    <div>
+                                        <h3 class="orbit font-black uppercase tracking-tight text-white" style="font-size:var(--text-xl)">Asset Grid</h3>
+                                        <p class="slogan-text mt-0.5">Decrypting the Culture. Synchronizing the Grid.</p>
+                                    </div>
+                                    <!-- Filter chips -->
+                                    <div class="flex gap-1.5 flex-wrap">
+                                        <template x-for="f in mediaTypes" :key="f">
+                                            <button @click="mediaFilter=f"
+                                                    class="px-3 py-1.5 rounded-full border uppercase font-bold tracking-wider transition-all"
+                                                    style="font-size:0.6rem;font-family:'Orbitron',sans-serif"
+                                                    :class="mediaFilter===f
+                                                        ? 'bg-yellow-500/15 border-yellow-500/50 text-gold'
+                                                        : 'border-yellow-800/20 text-gray-600 hover:text-gray-400'"
+                                                    x-text="f">
+                                            </button>
+                                        </template>
+                                    </div>
                                 </div>
 
-                                <!-- Stat cards: 2 cols on phone, 4 on sm+ -->
+                                <!-- Media tiles grid -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <template x-if="filteredMedia.length===0">
+                                        <div class="col-span-2 text-center py-12 text-gray-700">
+                                            <i data-lucide="grid" class="w-10 h-10 mx-auto mb-3 opacity-25"></i>
+                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No assets in this category</p>
+                                        </div>
+                                    </template>
+                                    <template x-for="asset in filteredMedia" :key="asset.id">
+                                        <div class="glass-media rounded-2xl overflow-hidden">
+
+                                            <!-- Thumbnail / preview -->
+                                            <div class="media-thumb">
+                                                <template x-if="asset.type==='VIDEO'">
+                                                    <video :src="asset.src" :poster="asset.thumb" class="w-full h-full object-cover" muted loop preload="none"
+                                                           @mouseenter="$el.play()" @mouseleave="$el.pause(); $el.currentTime=0">
+                                                    </video>
+                                                </template>
+                                                <template x-if="asset.type!=='VIDEO'">
+                                                    <img :src="asset.thumb||asset.src" :alt="asset.title"
+                                                         class="w-full h-full object-cover"
+                                                         @error="$el.src='/assets/images/logo.png'">
+                                                </template>
+                                                <div class="media-glow-overlay"></div>
+
+                                                <!-- Type badge -->
+                                                <span class="media-type-badge text-xs font-black"
+                                                      :style="`background:${getMediaTypeColor(asset.type)};color:${getMediaTypeTextColor(asset.type)}`"
+                                                      x-text="asset.type"></span>
+
+                                                <!-- HOT/NEW/LIVE tag -->
+                                                <template x-if="asset.tag">
+                                                    <span class="absolute top-2 right-2 orbit font-black text-[8px] uppercase tracking-widest px-2 py-1 rounded-full"
+                                                          :style="asset.tag==='LIVE'?'background:rgba(220,38,38,0.9);color:#fff':asset.tag==='HOT'?'background:rgba(212,175,55,0.85);color:#000':'background:rgba(0,212,170,0.85);color:#000'"
+                                                          x-text="asset.tag">
+                                                    </span>
+                                                </template>
+
+                                                <!-- Duration badge -->
+                                                <template x-if="asset.duration">
+                                                    <span class="absolute bottom-2 right-2 mono text-[9px] text-white px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.75)" x-text="asset.duration"></span>
+                                                </template>
+                                            </div>
+
+                                            <!-- Info row -->
+                                            <div class="px-3 pt-3 pb-2">
+                                                <p class="font-bold text-white leading-tight truncate" style="font-size:var(--text-sm)" x-text="asset.title"></p>
+                                                <p class="text-gray-500 uppercase tracking-wider truncate mt-0.5" style="font-size:var(--text-xs)" x-text="asset.artist||'M.O.G. Network'"></p>
+                                            </div>
+
+                                            <!-- Action control bar -->
+                                            <div class="flex gap-1.5 px-3 pb-3">
+                                                <!-- VIEW -->
+                                                <button @click="openMedia(asset)" class="media-action-btn view">
+                                                    <i data-lucide="play" style="width:10px;height:10px;flex-shrink:0"></i>
+                                                    <span>View</span>
+                                                </button>
+                                                <!-- LISTEN (audio/video only) -->
+                                                <template x-if="asset.type!=='PHOTO'">
+                                                    <button @click="listenMedia(asset)" class="media-action-btn listen">
+                                                        <i data-lucide="headphones" style="width:10px;height:10px;flex-shrink:0"></i>
+                                                        <span>Listen</span>
+                                                    </button>
+                                                </template>
+                                                <!-- LIKE -->
+                                                <button @click="toggleLike(asset)"
+                                                        class="media-action-btn like"
+                                                        :class="isLiked(asset.id)?'liked':''">
+                                                    <i :data-lucide="isLiked(asset.id)?'heart':'heart'" style="width:10px;height:10px;flex-shrink:0" :style="isLiked(asset.id)?'fill:#f87171':''"></i>
+                                                    <span x-text="getLikeCount(asset.id)||'Like'" class="like-count" :class="isLiked(asset.id)?'liked-count':''"></span>
+                                                </button>
+                                                <!-- DL -->
+                                                <button @click="downloadMedia(asset)" class="media-action-btn dl">
+                                                    <i data-lucide="download" style="width:10px;height:10px;flex-shrink:0"></i>
+                                                    <span>DL</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- ▸ OVERVIEW TAB -->
+                            <div x-show="activeTab==='overview'" class="space-y-4 sm:space-y-6">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Mission Control</h3>
+                                    <span class="text-gray-600 mono uppercase" style="font-size:var(--text-xs)">L<span x-text="clearanceLevel"></span> Access</span>
+                                </div>
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                     <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
                                         <i data-lucide="target" class="w-4 h-4 sm:w-5 sm:h-5 text-gold mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)"
-                                           x-text="profile.stats.missions"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5"
-                                           style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Missions</p>
+                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)" x-text="profile.stats.missions"></p>
+                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Missions</p>
                                     </div>
                                     <div class="glass p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
                                         <i data-lucide="message-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-teal mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)"
-                                           x-text="profile.stats.contributions"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5"
-                                           style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Posts</p>
+                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)" x-text="profile.stats.contributions"></p>
+                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Posts</p>
                                     </div>
                                     <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
                                         <i data-lucide="zap" class="w-4 h-4 sm:w-5 sm:h-5 text-gold mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)"
-                                           x-text="clearanceLevel"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5"
-                                           style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Level</p>
+                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)" x-text="clearanceLevel"></p>
+                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Level</p>
                                     </div>
-                                    <div class="glass p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card"
-                                         style="border-color:rgba(0,212,170,0.14)">
+                                    <div class="glass p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
                                         <i data-lucide="music" class="w-4 h-4 sm:w-5 sm:h-5 text-teal mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)"
-                                           x-text="profile.stats.groove+'%'"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5"
-                                           style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Groove</p>
+                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)" x-text="profile.stats.groove+'%'"></p>
+                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Groove</p>
                                     </div>
                                 </div>
-
-                                <!-- Bio -->
-                                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl"
-                                     style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
-                                    <h4 class="text-gold uppercase tracking-widest font-bold mb-2 sm:mb-3
-                                               flex items-center gap-2" style="font-size:var(--text-xs)">
+                                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
+                                    <h4 class="text-gold uppercase tracking-widest font-bold mb-2 sm:mb-3 flex items-center gap-2" style="font-size:var(--text-xs)">
                                         <i data-lucide="file-text" class="w-3.5 h-3.5"></i>Operative Bio
                                     </h4>
                                     <p class="text-gray-400 leading-relaxed" style="font-size:var(--text-sm)"
                                        x-text="profile.bio||'No bio on file — open your dossier to add operational notes.'"></p>
                                 </div>
-
-                                <!-- Skills -->
                                 <div>
-                                    <h4 class="text-teal uppercase tracking-widest font-bold mb-2 sm:mb-3
-                                               flex items-center gap-2" style="font-size:var(--text-xs)">
+                                    <h4 class="text-teal uppercase tracking-widest font-bold mb-2 sm:mb-3 flex items-center gap-2" style="font-size:var(--text-xs)">
                                         <i data-lucide="cpu" class="w-3.5 h-3.5"></i>Skill Matrix
                                     </h4>
                                     <div class="flex flex-wrap gap-2">
                                         <template x-if="!profile.skills||profile.skills.length===0">
-                                            <span class="text-gray-700 italic mono" style="font-size:var(--text-xs)">
-                                                No skills on record
-                                            </span>
+                                            <span class="text-gray-700 italic mono" style="font-size:var(--text-xs)">No skills on record</span>
                                         </template>
                                         <template x-for="s in (profile.skills||[])" :key="s">
                                             <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg uppercase tracking-wider"
@@ -1123,50 +1336,34 @@
                                 </div>
                             </div>
 
-                            <!-- Network -->
+                            <!-- ▸ NETWORK TAB -->
                             <div x-show="activeTab==='operatives'" class="space-y-3 sm:space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-black uppercase italic tracking-tight text-white"
-                                        style="font-size:var(--text-xl)">Network Nodes</h3>
-                                    <span class="text-teal mono uppercase" style="font-size:var(--text-xs)"
-                                          x-text="allOperatives.length+' operatives'"></span>
+                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Network Nodes</h3>
+                                    <span class="text-teal mono uppercase" style="font-size:var(--text-xs)" x-text="allOperatives.length+' operatives'"></span>
                                 </div>
-                                <!-- 1 col phone, 2 col tablet+ -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                                     <template x-if="allOperatives.length===0">
                                         <div class="col-span-2 text-center py-12 text-gray-700">
                                             <i data-lucide="users" class="w-10 h-10 mx-auto mb-3 opacity-25"></i>
-                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">
-                                                No operatives found
-                                            </p>
+                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No operatives found</p>
                                         </div>
                                     </template>
                                     <template x-for="op in allOperatives" :key="op.id">
-                                        <div class="glass p-3 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center gap-3 op-card"
-                                             style="border-color:rgba(0,212,170,0.12)">
+                                        <div class="glass p-3 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center gap-3 op-card" style="border-color:rgba(0,212,170,0.12)">
                                             <div class="relative flex-shrink-0">
-                                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden
-                                                            flex items-center justify-center"
-                                                     style="background:rgba(0,212,170,0.08);border:1px solid rgba(212,175,55,0.2)">
-                                                    <img x-show="op.avatar_url" :src="op.avatar_url"
-                                                         class="w-full h-full object-cover" @error="op.avatar_url=null">
-                                                    <i x-show="!op.avatar_url" :data-lucide="getRankIcon(op.rank)"
-                                                       class="w-4 h-4 text-gold"></i>
+                                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden flex items-center justify-center" style="background:rgba(0,212,170,0.08);border:1px solid rgba(212,175,55,0.2)">
+                                                    <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
+                                                    <i x-show="!op.avatar_url" :data-lucide="getRankIcon(op.rank)" class="w-4 h-4 text-gold"></i>
                                                 </div>
-                                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black"
-                                                      :class="getOnlineStatus(op.last_active).color"></span>
+                                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black" :class="getOnlineStatus(op.last_active).color"></span>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="font-bold text-white truncate leading-tight"
-                                                   style="font-size:var(--text-sm)"
-                                                   x-text="op.codename||op.username"></p>
-                                                <p class="text-gray-600 uppercase tracking-wider"
-                                                   style="font-size:var(--text-xs)"
-                                                   x-text="op.rank+' · '+getOnlineStatus(op.last_active).label"></p>
+                                                <p class="font-bold text-white truncate leading-tight" style="font-size:var(--text-sm)" x-text="op.codename||op.username"></p>
+                                                <p class="text-gray-600 uppercase tracking-wider" style="font-size:var(--text-xs)" x-text="op.rank+' · '+getOnlineStatus(op.last_active).label"></p>
                                             </div>
                                             <div class="text-right flex-shrink-0">
-                                                <p class="text-gold font-bold mono" style="font-size:var(--text-xs)"
-                                                   x-text="op.stats?.influence||0"></p>
+                                                <p class="text-gold font-bold mono" style="font-size:var(--text-xs)" x-text="op.stats?.influence||0"></p>
                                                 <p class="text-gray-700 uppercase" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">INF</p>
                                             </div>
                                         </div>
@@ -1174,14 +1371,11 @@
                                 </div>
                             </div>
 
-                            <!-- Activity -->
+                            <!-- ▸ ACTIVITY TAB -->
                             <div x-show="activeTab==='activity'" class="space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="font-black uppercase italic tracking-tight text-white"
-                                        style="font-size:var(--text-xl)">Transmission Log</h3>
-                                    <button @click="loadActivity()"
-                                            class="flex items-center gap-1.5 text-gray-600 hover:text-teal transition-colors mono uppercase"
-                                            style="font-size:var(--text-xs)">
+                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Transmission Log</h3>
+                                    <button @click="loadActivity()" class="flex items-center gap-1.5 text-gray-600 hover:text-teal transition-colors mono uppercase" style="font-size:var(--text-xs)">
                                         <i data-lucide="refresh-cw" class="w-3 h-3"></i>Refresh
                                     </button>
                                 </div>
@@ -1189,9 +1383,7 @@
                                     <template x-if="recentActivity.length===0">
                                         <div class="text-center py-12 text-gray-700">
                                             <i data-lucide="radio" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
-                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">
-                                                No transmissions on record
-                                            </p>
+                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No transmissions on record</p>
                                         </div>
                                     </template>
                                     <template x-for="act in recentActivity" :key="act.id">
@@ -1199,15 +1391,12 @@
                                              style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,212,170,0.07)"
                                              @mouseover="$el.style.borderColor='rgba(212,175,55,0.2)'"
                                              @mouseout="$el.style.borderColor='rgba(0,212,170,0.07)'">
-                                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                                                 style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.15)">
+                                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.15)">
                                                 <i data-lucide="activity" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-white/90 truncate" style="font-size:var(--text-sm)"
-                                                   x-text="act.description"></p>
-                                                <p class="text-gray-600 mt-0.5 mono" style="font-size:var(--text-xs)"
-                                                   x-text="timeAgo(act.created_at)"></p>
+                                                <p class="text-white/90 truncate" style="font-size:var(--text-sm)" x-text="act.description"></p>
+                                                <p class="text-gray-600 mt-0.5 mono" style="font-size:var(--text-xs)" x-text="timeAgo(act.created_at)"></p>
                                             </div>
                                             <span class="px-2 py-1 rounded-lg flex-shrink-0 mono uppercase tracking-wider"
                                                   style="background:rgba(212,175,55,0.07);color:var(--gold);border:1px solid rgba(212,175,55,0.2);font-size:clamp(0.5rem,1.5vw,0.6rem)"
@@ -1217,18 +1406,18 @@
                                 </div>
                             </div>
 
-                        </div>
-                    </div>
-                </div>
+                        </div><!-- /panel body -->
+                    </div><!-- /main panel -->
+                </div><!-- /grid -->
             </main>
 
-            <!-- Mobile bottom nav -->
+            <!-- ── MOBILE BOTTOM NAV ── -->
             <nav class="bottom-nav safe-bottom">
-                <button @click="activeTab='overview'"
-                        :style="activeTab==='overview'?'color:var(--gold)':'color:#4b5563'"
+                <button @click="activeTab='grid'"
+                        :style="activeTab==='grid'?'color:var(--gold)':'color:#4b5563'"
                         class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
                         style="font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Overview</span>
+                    <i data-lucide="grid" class="w-5 h-5"></i><span>Grid</span>
                 </button>
                 <button @click="activeTab='operatives'"
                         :style="activeTab==='operatives'?'color:var(--teal)':'color:#4b5563'"
@@ -1236,40 +1425,35 @@
                         style="font-size:clamp(0.55rem,2vw,0.65rem)">
                     <i data-lucide="users" class="w-5 h-5"></i><span>Network</span>
                 </button>
-                <button @click="activeTab='activity'"
-                        :style="activeTab==='activity'?'color:var(--gold)':'color:#4b5563'"
+                <button @click="activeTab='overview'"
+                        :style="activeTab==='overview'?'color:var(--gold)':'color:#4b5563'"
                         class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
                         style="font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="activity" class="w-5 h-5"></i><span>Activity</span>
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Hub</span>
                 </button>
                 <button @click="showProfileModal=true"
                         class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
-                        style="color:#4b5563;font-size:clamp(0.55rem,2vw,0.65rem)"
-                        @touchstart="$el.style.color='var(--gold)'"
-                        @touchend="setTimeout(()=>$el.style.color='#4b5563',200)">
+                        style="color:#4b5563;font-size:clamp(0.55rem,2vw,0.65rem)">
                     <i data-lucide="user-cog" class="w-5 h-5"></i><span>Dossier</span>
                 </button>
             </nav>
 
-             <!-- Footer — desktop only -->
-            <footer class="hidden lg:block mt-10 py-8 text-center"
-                    style="border-top:1px solid rgba(212,175,55,0.08)">
+            <!-- Footer — desktop only -->
+            <footer class="hidden lg:block mt-10 py-8 text-center" style="border-top:1px solid rgba(212,175,55,0.08)">
                 <div class="flex items-center justify-center gap-3 mb-2">
                     <img src="/assets/images/logo.png" alt="M.O.G." class="w-8 h-8 opacity-25">
-                    <span class="font-black uppercase tracking-[0.2em] text-gold" style="opacity:0.4;font-size:var(--text-sm)">M.O.G.</span>
+                    <span class="orbit font-black uppercase tracking-[0.2em] text-gold" style="opacity:0.4;font-size:var(--text-sm)">M.O.G.</span>
                 </div>
                 <div class="gold-line w-48 mx-auto mb-3" style="opacity:0.2"></div>
-                <p class="text-gray-700 uppercase tracking-[0.3em] mono" style="font-size:var(--text-xs)">
-                    Ministry of Groove // Emalahleni Uplink II // Est. 2026
-                </p>
-                <p class="mono mt-1.5" style="color:var(--teal-dim);font-size:clamp(0.5rem,1.5vw,0.6rem)"
-                   x-text="'NODE: '+profile.codename"></p>
+                <p class="slogan-text mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
+                <p class="text-gray-700 uppercase tracking-[0.3em] mono" style="font-size:var(--text-xs)">Ministry of Groove // Emalahleni Uplink II // Est. 2026</p>
+                <p class="mono mt-1.5" style="color:var(--teal-dim);font-size:clamp(0.5rem,1.5vw,0.6rem)" x-text="'NODE: '+profile.codename"></p>
             </footer>
 
         </div>
     </template>
 
-    <!-- ══ PROFILE MODAL ══════════════════════════════════════════ -->
+    <!-- ══ PROFILE / DOSSIER MODAL ════════════════════════════════ -->
     <div x-show="showProfileModal"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
@@ -1281,31 +1465,21 @@
          style="background:rgba(0,0,0,0.95);backdrop-filter:blur(20px)"
          @click.self="showProfileModal=false">
 
-        <div class="glass modal-sheet"
-             style="border-color:rgba(212,175,55,0.3)"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 translate-y-8"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             @click.stop>
+        <div class="glass modal-sheet" style="border-color:rgba(212,175,55,0.3)" @click.stop>
 
-            <!-- Modal header — sticky -->
+            <!-- Modal header -->
             <div class="sticky top-0 z-10 p-4 sm:p-6 flex items-center justify-between"
                  style="background:rgba(4,8,6,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,0.12)">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
-                         style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3)">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3)">
                         <i data-lucide="file-text" class="w-4 h-4 sm:w-5 sm:h-5 text-gold"></i>
                     </div>
                     <div>
-                        <h2 class="font-black uppercase italic tracking-tight text-white"
-                            style="font-size:var(--text-lg)">Operative Dossier</h2>
-                        <p class="text-teal mono uppercase tracking-widest" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">
-                            M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span>
-                        </p>
+                        <h2 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-lg)">Operative Dossier</h2>
+                        <p class="text-teal mono uppercase tracking-widest" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span></p>
                     </div>
                 </div>
-                <button @click="showProfileModal=false"
-                        class="p-2 rounded-full text-gray-600 hover:text-gold hover:bg-yellow-500/8 transition-colors">
+                <button @click="showProfileModal=false" class="p-2 rounded-full text-gray-600 hover:text-gold hover:bg-yellow-500/8 transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -1318,68 +1492,47 @@
                     <div class="relative group">
                         <div class="avatar-ring w-24 h-24 sm:w-28 sm:h-28">
                             <div>
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url"
-                                     class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                <i x-show="!profile.avatar_url" data-lucide="user"
-                                   class="w-10 h-10 sm:w-12 sm:h-12 text-gold"></i>
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-10 h-10 sm:w-12 sm:h-12 text-gold"></i>
                             </div>
                         </div>
-                        <!-- Tap to upload on mobile -->
-                        <label class="absolute inset-0 rounded-full flex flex-col items-center justify-center
-                                      cursor-pointer transition-opacity
-                                      opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100"
+                        <label class="absolute inset-0 rounded-full flex flex-col items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100"
                                style="background:rgba(0,0,0,0.8);border:2px solid rgba(212,175,55,0.4)">
                             <i data-lucide="camera" class="w-6 h-6 mb-1 text-gold"></i>
-                            <span class="mono uppercase font-bold tracking-widest text-gold"
-                                  style="font-size:var(--text-xs)">Upload</span>
-                            <input type="file" accept="image/jpeg,image/png,image/webp"
-                                   class="hidden" @change="uploadAvatar($event)">
+                            <span class="mono uppercase font-bold tracking-widest text-gold" style="font-size:var(--text-xs)">Upload</span>
+                            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
                         </label>
-                        <!-- Mobile tap target (always visible) -->
-                        <label class="sm:hidden absolute -bottom-1 -right-1 w-8 h-8 rounded-full
-                                      flex items-center justify-center cursor-pointer"
-                               style="background:rgba(212,175,55,0.9);border:2px solid black">
+                        <label class="sm:hidden absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer" style="background:rgba(212,175,55,0.9);border:2px solid black">
                             <i data-lucide="camera" class="w-4 h-4 text-black"></i>
-                            <input type="file" accept="image/jpeg,image/png,image/webp"
-                                   class="hidden" @change="uploadAvatar($event)">
+                            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
                         </label>
                     </div>
-
                     <div x-show="uploadProgress>0" class="w-full max-w-[220px]">
-                        <div class="h-1 rounded-full overflow-hidden"
-                             style="background:rgba(0,0,0,0.7);border:1px solid rgba(212,175,55,0.15)">
-                            <div class="h-full rounded-full transition-all duration-300 bar-gold"
-                                 :style="`width:${uploadProgress}%`"></div>
+                        <div class="h-1 rounded-full overflow-hidden" style="background:rgba(0,0,0,0.7);border:1px solid rgba(212,175,55,0.15)">
+                            <div class="h-full rounded-full transition-all duration-300 bar-gold" :style="`width:${uploadProgress}%`"></div>
                         </div>
-                        <p class="text-center text-gold mt-1 mono" style="font-size:var(--text-xs)"
-                           x-text="uploadProgress+'%'"></p>
+                        <p class="text-center text-gold mt-1 mono" style="font-size:var(--text-xs)" x-text="uploadProgress+'%'"></p>
                     </div>
                     <p class="text-gray-700 mono" style="font-size:var(--text-xs)">MAX 2 MB · JPG PNG WEBP</p>
                 </div>
 
-                <!-- Form: 1 col on phone, 2 col on sm+ -->
+                <!-- Form fields: 1 col phone, 2 col sm+ -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5"
-                               style="font-size:var(--text-xs)">
+                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
                             <i data-lucide="user" class="w-3 h-3"></i>Operative Name
                         </label>
-                        <input type="text" x-model="profile.username"
-                               class="input-field px-4 py-3 rounded-xl" placeholder="Enter designation">
+                        <input type="text" x-model="profile.username" class="input-field px-4 py-3 rounded-xl" placeholder="Enter designation">
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5"
-                               style="font-size:var(--text-xs)">
+                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
                             <i data-lucide="hash" class="w-3 h-3"></i>Codename
                         </label>
-                        <input type="text" x-model="profile.codename"
-                               class="input-field px-4 py-3 rounded-xl text-teal font-bold mono"
-                               readonly disabled>
+                        <input type="text" x-model="profile.codename" class="input-field px-4 py-3 rounded-xl text-teal font-bold mono" readonly disabled>
                         <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">AUTO-GENERATED</p>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5"
-                               style="font-size:var(--text-xs)">
+                        <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
                             <i data-lucide="building" class="w-3 h-3"></i>Department
                         </label>
                         <select x-model="profile.department" class="input-field px-4 py-3 rounded-xl">
@@ -1393,83 +1546,60 @@
                         </select>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5"
-                               style="font-size:var(--text-xs)">
+                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
                             <i data-lucide="award" class="w-3 h-3"></i>Rank
                         </label>
-                        <input type="text" :value="profile.rank"
-                               class="input-field px-4 py-3 rounded-xl font-bold uppercase tracking-wider"
-                               :class="isDirector?'text-yellow-300':'text-teal'" readonly disabled>
+                        <input type="text" :value="profile.rank" class="input-field px-4 py-3 rounded-xl font-bold uppercase tracking-wider" :class="isDirector?'text-yellow-300':'text-teal'" readonly disabled>
                         <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">DIRECTORATE ONLY</p>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5"
-                           style="font-size:var(--text-xs)">
+                    <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
                         <i data-lucide="align-left" class="w-3 h-3"></i>Operational Notes
                     </label>
-                    <textarea x-model="profile.bio" rows="3"
-                              class="input-field px-4 py-3 rounded-xl resize-none"
-                              placeholder="Enter operative background and specializations..."></textarea>
+                    <textarea x-model="profile.bio" rows="3" class="input-field px-4 py-3 rounded-xl resize-none" placeholder="Enter operative background and specializations..."></textarea>
                 </div>
 
-                <!-- Stats summary — 3 col on phone, 5 col on sm+ -->
-                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl"
-                     style="background:rgba(0,0,0,0.55);border:1px solid rgba(212,175,55,0.12)">
-                    <h4 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4 flex items-center gap-2"
-                        style="font-size:var(--text-xs)">
+                <!-- Stats summary -->
+                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl" style="background:rgba(0,0,0,0.55);border:1px solid rgba(212,175,55,0.12)">
+                    <h4 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4 flex items-center gap-2" style="font-size:var(--text-xs)">
                         <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>Performance Summary
                     </h4>
                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
                         <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.15)">
-                            <p class="font-black mono text-gold" style="font-size:var(--text-base)"
-                               x-text="profile.stats.missions"></p>
+                            <p class="font-black mono text-gold" style="font-size:var(--text-base)" x-text="profile.stats.missions"></p>
                             <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Missions</p>
                         </div>
                         <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15)">
-                            <p class="font-black mono text-teal" style="font-size:var(--text-base)"
-                               x-text="profile.stats.contributions"></p>
+                            <p class="font-black mono text-teal" style="font-size:var(--text-base)" x-text="profile.stats.contributions"></p>
                             <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Posts</p>
                         </div>
                         <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.15)">
-                            <p class="font-black mono text-gold" style="font-size:var(--text-base)"
-                               x-text="profile.stats.influence+'%'"></p>
+                            <p class="font-black mono text-gold" style="font-size:var(--text-base)" x-text="profile.stats.influence+'%'"></p>
                             <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Influence</p>
                         </div>
                         <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15)">
-                            <p class="font-black mono text-teal" style="font-size:var(--text-base)"
-                               x-text="profile.stats.groove+'%'"></p>
+                            <p class="font-black mono text-teal" style="font-size:var(--text-base)" x-text="profile.stats.groove+'%'"></p>
                             <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Groove</p>
                         </div>
                         <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15)">
-                            <p class="font-black mono text-red-400" style="font-size:var(--text-base)"
-                               x-text="profile.stats.loyalty+'%'"></p>
+                            <p class="font-black mono text-red-400" style="font-size:var(--text-base)" x-text="profile.stats.loyalty+'%'"></p>
                             <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Loyalty</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal footer — sticky -->
+            <!-- Modal footer -->
             <div class="gold-line" style="opacity:0.3"></div>
-            <div class="sticky bottom-0 p-4 sm:p-5 flex justify-end gap-3 safe-bottom"
-                 style="background:rgba(2,6,4,0.97);backdrop-filter:blur(20px)">
-                <button @click="showProfileModal=false"
-                        class="px-5 sm:px-6 py-2.5 rounded-full uppercase font-bold tracking-wider
-                               transition-all text-gray-500 hover:text-gold"
-                        style="border:1px solid rgba(212,175,55,0.15);font-size:var(--text-xs)">
-                    Cancel
-                </button>
-                <button @click="updateProfile()" :disabled="isLoading"
-                        class="px-6 sm:px-7 py-2.5 rounded-full uppercase font-bold tracking-wider
-                               transition-all disabled:opacity-35 flex items-center gap-2 text-black"
-                        style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-bright),var(--teal-dim));box-shadow:0 4px 20px rgba(212,175,55,0.3);font-size:var(--text-xs)">
+            <div class="sticky bottom-0 p-4 sm:p-5 flex justify-end gap-3 safe-bottom" style="background:rgba(2,6,4,0.97);backdrop-filter:blur(20px)">
+                <button @click="showProfileModal=false" class="px-5 sm:px-6 py-2.5 rounded-full uppercase font-bold tracking-wider transition-all text-gray-500 hover:text-gold" style="border:1px solid rgba(212,175,55,0.15);font-size:var(--text-xs)">Cancel</button>
+                <button @click="updateProfile()" :disabled="isLoading" class="px-6 sm:px-7 py-2.5 rounded-full uppercase font-bold tracking-wider transition-all disabled:opacity-35 flex items-center gap-2 text-black" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-bright),var(--teal-dim));box-shadow:0 4px 20px rgba(212,175,55,0.3);font-size:var(--text-xs)">
                     <i x-show="isLoading" data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
                     <span x-text="isLoading?'Syncing...':'Save Dossier'"></span>
                 </button>
             </div>
-
         </div>
     </div>
 
