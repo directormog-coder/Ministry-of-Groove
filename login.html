@@ -116,7 +116,7 @@
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
 
-        /* ── GOOGLE BUTTON HARD FIX ── */
+        /* ── GOOGLE BUTTON FIXED ── */
         .btn-google {
             width: 100% !important; height: 46px !important;
             background: rgba(255,255,255,0.05) !important;
@@ -181,7 +181,7 @@
             <p class="mono" style="color:var(--teal); font-size:var(--text-xs); opacity:0.7;">SECURE ACCESS TERMINAL v2.0</p>
         </div>
 
-<button class="btn-google" id="googleBtn" onclick="signInWithGoogle()">
+        <button class="btn-google" id="googleBtn" onclick="signInWithGoogle()">
             <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -191,7 +191,7 @@
             Continue with Google
         </button>
 
-        <button class="btn-otp" onclick="showAlert('Magic Link system initializing...', 'info')">
+        <button class="btn-otp" onclick="alert('Magic Link system initializing...')">
             Magic Link / OTP Access
         </button>
 
@@ -209,11 +209,42 @@
     </main>
 
     <script>
+    /* ══════════════════════════════════════════════════════════
+       M.O.G. LOGIN SCRIPT — STABILIZED
+    ══════════════════════════════════════════════════════════ */
+
     function getSb() { return window.sb || window.supabaseClient; }
 
+    // This ensures MOGAuth is fully loaded from auth.js before use
+    async function waitForAuth() {
+        let attempts = 0;
+        while (typeof window.MOGAuth === 'undefined' && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+        }
+        if (typeof window.MOGAuth === 'undefined') {
+            console.error("M.O.G. Auth timed out.");
+            return null;
+        }
+        return window.MOGAuth;
+    }
+
+    window.addEventListener('load', async () => {
+        const client = getSb();
+        if (!client) return;
+
+        const { data:{ session } } = await client.auth.getSession();
+        if (session) {
+            setLoading(true, 'RESUMING SESSION...');
+            const auth = await waitForAuth();
+            if (auth) await auth.handleLoginRedirect();
+        }
+    });
+
     async function signInWithGoogle() {
+        const client = getSb();
         setLoading(true, 'REDIRECTING TO GOOGLE...');
-        await getSb().auth.signInWithOAuth({
+        await client.auth.signInWithOAuth({
             provider: 'google',
             options: { redirectTo: window.location.origin + '/login.html' }
         });
@@ -222,21 +253,35 @@
     async function handleLogin(e) {
         e.preventDefault();
         setLoading(true, 'AUTHENTICATING...');
-        const { error } = await getSb().auth.signInWithPassword({
-            email: document.getElementById('emailInput').value,
-            password: document.getElementById('passwordInput').value
-        });
-        if (error) { setLoading(false); alert(error.message); }
-        else { await window.MOGAuth.handleLoginRedirect(); }
+        
+        try {
+            const client = getSb();
+            const { error } = await client.auth.signInWithPassword({
+                email: document.getElementById('emailInput').value.trim(),
+                password: document.getElementById('passwordInput').value
+            });
+            
+            if (error) throw error;
+
+            const auth = await waitForAuth();
+            if (auth) {
+                await auth.handleLoginRedirect();
+            } else {
+                throw new Error("Security module unavailable.");
+            }
+
+        } catch (err) {
+            setLoading(false);
+            alert("ACCESS DENIED: " + err.message);
+        }
     }
 
     function setLoading(show, text) {
         const overlay = document.getElementById('loadingOverlay');
-        document.getElementById('loadingText').innerText = text;
-        overlay.classList.toggle('show', show);
+        const textEl = document.getElementById('loadingText');
+        if (textEl) textEl.innerText = text;
+        if (overlay) overlay.classList.toggle('show', show);
     }
-
-    function showAlert(msg) { alert(msg); }
     </script>
 </body>
 </html>
