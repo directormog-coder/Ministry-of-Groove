@@ -1,32 +1,7 @@
 {
   "version": 2,
-  "name": "ministry-of-groove",
   "rewrites": [
-    {
-      "source": "/api/config",
-      "destination": "/api/config.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" },
-        { "key": "Content-Type", "value": "application/json" }
-      ]
-    }
+    { "source": "/api/config", "destination": "/api/config.js" },
+    { "source": "/(.*)", "destination": "/$1" }
   ]
 }
