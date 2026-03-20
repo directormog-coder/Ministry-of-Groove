@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "ministry-of-groove",
   "rewrites": [
     { "source": "/api/config", "destination": "/api/config.js" },
     { "source": "/(.*)", "destination": "/$1" }
