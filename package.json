@@ -1,12 +1,10 @@
 {
   "name": "ministry-of-groove",
   "version": "1.0.0",
-  "description": "M.O.G. Network Dashboard",
-  "main": "index.html",
+  "private": true,
   "scripts": {
     "dev": "vercel dev",
-    "build": "vercel build",
-    "start": "vercel dev"
+    "build": "vercel build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0"
