@@ -60,6 +60,7 @@
         .glass-red  { background:rgba(14,4,4,0.9); backdrop-filter:blur(24px); border:1px solid rgba(220,38,38,0.25); box-shadow:0 4px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04); }
         .glass-gold { background:rgba(14,10,2,0.92); backdrop-filter:blur(24px); border:1px solid rgba(212,175,55,0.28); box-shadow:0 4px 40px rgba(0,0,0,0.6),inset 0 1px 0 rgba(212,175,55,0.05); }
         .glass-dark { background:rgba(8,6,2,0.95); backdrop-filter:blur(24px); border:1px solid rgba(212,175,55,0.1); }
+        .glass-teal { background:rgba(0,20,16,0.92); backdrop-filter:blur(24px); border:1px solid rgba(0,212,170,0.22); box-shadow:0 4px 40px rgba(0,0,0,0.6); }
 
         /* Text */
         .text-gold     { color:var(--gold); text-shadow:0 0 14px var(--gold-glow); }
@@ -73,7 +74,6 @@
         .btn:hover::after { transform:translateX(100%); }
         .btn:hover { transform:translateY(-1px); }
         .btn:disabled { opacity:0.35; cursor:not-allowed; transform:none !important; }
-
         .btn-red   { background:linear-gradient(135deg,rgba(220,38,38,0.15),rgba(153,27,27,0.28)); border:1px solid rgba(220,38,38,0.45); color:#fca5a5; }
         .btn-red:hover   { background:linear-gradient(135deg,rgba(220,38,38,0.3),rgba(153,27,27,0.45)); border-color:var(--gold); box-shadow:0 0 24px var(--red-glow); color:#fff; }
         .btn-gold  { background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22)); border:1px solid rgba(212,175,55,0.4); color:var(--gold); }
@@ -160,21 +160,112 @@
         .rank-badge { border-radius:999px; padding:2px 10px; font-size:0.62rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; font-family:'Orbitron',sans-serif; }
 
         /* Permission toggle */
-        .perm-toggle { width:44px; height:24px; border-radius:12px; border:1px solid rgba(212,175,55,0.3); background:rgba(0,0,0,0.6); cursor:pointer; position:relative; transition:all 0.3s ease; }
+        .perm-toggle { width:44px; height:24px; border-radius:12px; border:1px solid rgba(212,175,55,0.3); background:rgba(0,0,0,0.6); cursor:pointer; position:relative; transition:all 0.3s ease; flex-shrink:0; }
         .perm-toggle.on { background:rgba(22,163,74,0.3); border-color:rgba(22,163,74,0.5); box-shadow:0 0 12px rgba(22,163,74,0.3); }
         .perm-toggle::after { content:''; position:absolute; top:3px; left:3px; width:16px; height:16px; border-radius:50%; background:var(--gold-dark); transition:all 0.3s ease; }
         .perm-toggle.on::after { left:22px; background:#4ade80; }
+
+        /* ── NEW: Lockdown Overlay ── */
+        .lockdown-overlay {
+            position:fixed; inset:0; z-index:99999;
+            background:rgba(0,0,0,0.97);
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            animation:fadeUp 0.3s ease forwards;
+        }
+        .lockdown-overlay-border {
+            position:absolute; inset:12px; border:2px solid var(--red); border-radius:24px;
+            animation:lockPulse 1.5s ease-in-out infinite;
+            pointer-events:none;
+        }
+        .lockdown-skull { animation:spin 8s linear infinite; }
+
+        /* ── NEW: Ticker bar ── */
+        .ticker-bar {
+            position:fixed; top:0; left:0; right:0; z-index:9998;
+            height:28px; overflow:hidden;
+            background:linear-gradient(90deg,var(--red-dark),rgba(0,0,0,0.9),var(--red-dark));
+            border-bottom:1px solid rgba(220,38,38,0.4);
+            display:flex; align-items:center;
+        }
+        .ticker-track {
+            display:flex; gap:0; white-space:nowrap;
+            animation:tickerScroll 25s linear infinite;
+        }
+        @keyframes tickerScroll {
+            0%   { transform:translateX(100vw); }
+            100% { transform:translateX(-100%); }
+        }
+        .ticker-text { font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; }
+        .ticker-sep { color:var(--red); margin:0 24px; font-size:10px; }
+
+        /* ── NEW: Protocol Zero button ── */
+        .proto-zero-btn {
+            position:relative; overflow:hidden;
+            background:linear-gradient(135deg,rgba(220,38,38,0.08),rgba(0,0,0,0.9));
+            border:2px solid rgba(220,38,38,0.5);
+            border-radius:20px; cursor:pointer; transition:all 0.3s ease;
+        }
+        .proto-zero-btn:hover { border-color:var(--red); box-shadow:0 0 40px var(--red-glow),0 0 80px rgba(220,38,38,0.1); }
+        .proto-zero-btn.armed { animation:lockPulse 0.8s ease-in-out infinite; }
+        .proto-zero-ring {
+            position:absolute; inset:-6px; border-radius:26px;
+            border:1px solid rgba(220,38,38,0.2);
+            animation:ringPulse 2s ease-in-out infinite;
+        }
+        @keyframes ringPulse { 0%,100%{transform:scale(1);opacity:0.3} 50%{transform:scale(1.02);opacity:0.7} }
+
+        /* ── NEW: Piano chart bar ── */
+        .piano-bar { height:4px; background:rgba(0,0,0,0.6); border-radius:99px; overflow:hidden; margin-top:4px; }
+        .piano-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--teal),var(--gold)); box-shadow:0 0 6px var(--teal-glow); transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ── NEW: Intel gallery ── */
+        .intel-thumb { transition:all 0.3s ease; border-radius:12px; overflow:hidden; aspect-ratio:16/9; }
+        .intel-thumb:hover { transform:scale(1.04); box-shadow:0 0 30px var(--gold-glow); }
+        .intel-thumb img, .intel-thumb video { width:100%; height:100%; object-fit:cover; }
+
+        /* ── NEW: Chat message ── */
+        .chat-msg-director { align-self:flex-end; background:linear-gradient(135deg,rgba(220,38,38,0.18),rgba(0,0,0,0.8)); border:1px solid rgba(220,38,38,0.3); border-radius:16px 16px 4px 16px; }
+        .chat-msg-operative { align-self:flex-start; background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(0,0,0,0.8)); border:1px solid rgba(212,175,55,0.18); border-radius:16px 16px 16px 4px; }
+
+        /* ── NEW: Popularity chart bar ── */
+        .pop-bar { height:5px; background:rgba(0,0,0,0.7); border-radius:99px; overflow:hidden; }
+        .pop-bar-fill { height:100%; border-radius:99px; transition:width 1.5s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ── NEW: Command seal ring ── */
+        .seal-ring {
+            position:absolute; inset:-8px; border-radius:50%;
+            border:1px solid rgba(212,175,55,0.25);
+            animation:ringPulse 3s ease-in-out infinite;
+        }
+        .seal-ring-2 {
+            position:absolute; inset:-16px; border-radius:50%;
+            border:1px solid rgba(220,38,38,0.12);
+            animation:ringPulse 3s ease-in-out infinite 0.5s;
+        }
+
+        /* auth gate */
+        .auth-gate { position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.99);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px; }
+
+        /* Slogan */
+        .slogan-text { font-family:'Orbitron',sans-serif; font-size:9px; letter-spacing:0.35em; color:var(--teal); text-transform:uppercase; opacity:0.7; text-shadow:0 0 12px var(--teal-glow); }
     </style>
 
     <script>
+    /* ─────────────────────────────────────────────
+       commandCenter()  — Alpine.js root component
+    ───────────────────────────────────────────── */
     function commandCenter() {
         return {
-            /* ── State ── */
+            /* ── Views / tabs ── */
             view: 'gate',
             activeTab: 'broadcast',
+
+            /* ── Clock ── */
             currentTime: '',
             sessionDuration: '00:00:00',
             sessionStart: null,
+
+            /* ── UI State ── */
             isLoading: false,
             systemStatus: 'ONLINE',
             activeNodes: 0,
@@ -183,14 +274,30 @@
             confirmLockdown: false,
             currentDirectorId: null,
 
+            /* ── Protocol Zero (Panic Button) ── */
+            protocolZeroArmed: false,
+            protocolZeroActive: false,
+            protocolZeroCountdown: 0,
+            protocolZeroTimer: null,
+
+            /* ── Ticker ── */
+            tickerMessage: '',
+            tickerActive: false,
+            tickerMessages: [],
+
             /* ── Data ── */
             operatives: [],
             liveActivity: [],
             recentDirectives: [],
             allMessages: [],
+            chatMessages: [],
+            chatInput: '',
+            popularityData: [],
+            amapianoChart: [],
+            intelGallery: [],
             wealth: '1.4M',
 
-            /* ── Index.html control ── */
+            /* ── Index control ── */
             indexControl: {
                 bannerText:   'THE MINISTRY OF GROOVE',
                 subText:      'EMALAHLENI UPLINK II EST. 2026',
@@ -236,34 +343,82 @@
                 );
             },
 
-            /* ── Init ── */
+            /* ──────────────────────── INIT ──────────────────────── */
             async init() {
+                // ── ALPHA GATEKEEPER ──
                 const role      = localStorage.getItem('userRole');
                 const clearance = localStorage.getItem('clearanceLevel');
                 if (role !== 'director' && clearance !== 'ALPHA') {
-                    window.location.href = '/index.html'; return;
+                    this.showAuthFail(); return;
                 }
+
+                // Wait for supabase-client.js to expose `sb`
                 let tries = 0;
                 while (typeof sb === 'undefined' && tries < 30) {
                     await new Promise(r => setTimeout(r, 100)); tries++;
                 }
-                if (!sb) { window.location.href = '/login.html'; return; }
+                if (!sb) { this.hardRedirect('/login.html'); return; }
 
                 const { data:{ session } } = await sb.auth.getSession();
-                if (!session) { window.location.href = '/login.html'; return; }
-                this.currentDirectorId = session.user.id;
+                if (!session) { this.hardRedirect('/login.html'); return; }
 
+                // Double-check DB rank
+                const { data: profile } = await sb.from('profiles')
+                    .select('rank').eq('id', session.user.id).single();
+                if (profile && profile.rank !== 'DIRECTOR') {
+                    this.showAuthFail(); return;
+                }
+
+                this.currentDirectorId = session.user.id;
                 this.view = 'active';
                 this.sessionStart = Date.now();
                 this.lastSync = new Date().toISOString();
                 this.startClock();
                 this.syncWithIndex();
                 this.loadSysSettings();
+                this.seedStaticData();
                 await this.loadAll();
                 this.$nextTick(() => lucide.createIcons());
             },
 
-            /* ── Load everything ── */
+            showAuthFail() {
+                document.body.innerHTML = `
+                    <div style="position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;font-family:'Orbitron',sans-serif;">
+                        <div style="width:60px;height:60px;border-radius:50%;border:2px solid #dc2626;display:flex;align-items:center;justify-content:center;color:#dc2626;font-size:24px;box-shadow:0 0 30px rgba(220,38,38,0.5);">✕</div>
+                        <p style="color:#dc2626;font-size:11px;letter-spacing:0.4em;text-transform:uppercase;text-shadow:0 0 10px rgba(220,38,38,0.6);">Insufficient Clearance</p>
+                        <p style="color:#6b7280;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;">Access Denied — Redirecting to Login Terminal</p>
+                    </div>`;
+                setTimeout(() => { window.location.href = '/login.html'; }, 2500);
+            },
+
+            hardRedirect(url) { window.location.href = url; },
+
+            /* ── Seed static/mock data for new modules ── */
+            seedStaticData() {
+                this.amapianoChart = [
+                    { rank:1,  title:'John Vuli Gate',  artist:'Mapara A Jazz ft. Ntosh Gazi', plays:'2.4M', trend:'up',   pct:98 },
+                    { rank:2,  title:'Stimela',          artist:'Master KG ft. Nomcebo',        plays:'2.1M', trend:'up',   pct:92 },
+                    { rank:3,  title:'Bayeke',           artist:'Ami Faku ft. Donald',          plays:'1.9M', trend:'same', pct:87 },
+                    { rank:4,  title:'Umsebenzi Wethu',  artist:'Vigro Deep ft. Nhlanhla',      plays:'1.7M', trend:'up',   pct:81 },
+                    { rank:5,  title:'Phoyisa',          artist:'DJ Stokie ft. Samthing',       plays:'1.5M', trend:'down', pct:76 },
+                    { rank:6,  title:'Piano Season',     artist:'DBN Gogo',                     plays:'1.4M', trend:'up',   pct:72 },
+                    { rank:7,  title:'Gqom Theory',      artist:'DJ Lag ft. Lasoulmate',        plays:'1.2M', trend:'same', pct:65 },
+                    { rank:8,  title:'Umlando',          artist:'9umba, Comado, Njelic',        plays:'1.1M', trend:'down', pct:60 },
+                    { rank:9,  title:'Ke Star',          artist:'Focalistic ft. Vigro Deep',    plays:'1.0M', trend:'up',   pct:55 },
+                    { rank:10, title:'Love You Tonight', artist:'Kabza De Small ft. Howard',    plays:'0.9M', trend:'same', pct:50 },
+                ];
+
+                this.intelGallery = [
+                    { id:1, type:'image', src:'/assets/images/gallery1.jpg',  label:'OP: EMALAHLENI DROP', date:'2 days ago' },
+                    { id:2, type:'image', src:'/assets/images/gallery2.jpg',  label:'OP: GROOVE SUMMIT',   date:'4 days ago' },
+                    { id:3, type:'video', src:'/assets/videos/clip1.mp4',     label:'INTEL CLIP A',        date:'1 week ago' },
+                    { id:4, type:'image', src:'/assets/images/gallery3.jpg',  label:'OP: SECTOR 7G AUDIT', date:'1 week ago' },
+                    { id:5, type:'image', src:'/assets/images/gallery4.jpg',  label:'DIRECTORATE BRIEF',   date:'2 weeks ago'},
+                    { id:6, type:'video', src:'/assets/videos/clip2.mp4',     label:'FIELD TRANSMISSION',  date:'2 weeks ago'},
+                ];
+            },
+
+            /* ──────────────── LOAD ALL ────────────────── */
             async loadAll() {
                 this.isLoading = true;
                 try {
@@ -271,7 +426,10 @@
                         this.loadOperatives(),
                         this.loadActivity(),
                         this.loadDirectives(),
-                        this.loadMessages()
+                        this.loadMessages(),
+                        this.loadChat(),
+                        this.loadPopularity(),
+                        this.loadTickers()
                     ]);
                     this.lastSync = new Date().toISOString();
                 } finally {
@@ -281,12 +439,10 @@
 
             async loadOperatives() {
                 const { data } = await sb.from('profiles')
-                    .select('*')
-                    .order('last_active', { ascending: false });
+                    .select('*').order('last_active', { ascending: false });
                 this.operatives = data || [];
                 this.activeNodes = this.operatives.filter(o => {
-                    const m = (Date.now() - new Date(o.last_active||0)) / 60000;
-                    return m < 30;
+                    return (Date.now() - new Date(o.last_active||0)) / 60000 < 30;
                 }).length;
             },
 
@@ -308,7 +464,53 @@
                 this.allMessages = data || [];
             },
 
-            /* ── Index.html sync ── */
+            async loadChat() {
+                try {
+                    const { data } = await sb.from('chat_messages')
+                        .select('*').order('created_at', { ascending: false }).limit(40);
+                    this.chatMessages = (data || []).reverse();
+                } catch(_) { this.chatMessages = []; }
+            },
+
+            async loadPopularity() {
+                try {
+                    const { data } = await sb.from('media_likes')
+                        .select('media_id, title, count')
+                        .order('count', { ascending: false }).limit(8);
+                    if (data && data.length) {
+                        const max = data[0].count || 1;
+                        this.popularityData = data.map(d => ({
+                            ...d, pct: Math.round((d.count/max)*100)
+                        }));
+                    } else {
+                        // Fallback mock data
+                        this.popularityData = [
+                            { title:'Groove Drop Ep.01', count:284, pct:100, color:'var(--gold)' },
+                            { title:'Sector 7G Remix',   count:241, pct:85,  color:'var(--teal)' },
+                            { title:'Emalahleni Uplink', count:198, pct:70,  color:'var(--gold)' },
+                            { title:'Piano Chronicles',  count:155, pct:55,  color:'var(--teal)' },
+                            { title:'Frequency 104.7',   count:122, pct:43,  color:'var(--gold)' },
+                        ];
+                    }
+                } catch(_) {
+                    this.popularityData = [
+                        { title:'Groove Drop Ep.01', count:284, pct:100 },
+                        { title:'Sector 7G Remix',   count:241, pct:85 },
+                        { title:'Emalahleni Uplink', count:198, pct:70 },
+                    ];
+                }
+            },
+
+            async loadTickers() {
+                try {
+                    const { data } = await sb.from('ticker_messages')
+                        .select('*').eq('active', true).order('created_at', { ascending: false }).limit(5);
+                    this.tickerMessages = data || [];
+                    if (this.tickerMessages.length) this.tickerActive = true;
+                } catch(_) {}
+            },
+
+            /* ──────────────── INDEX SYNC ─────────────── */
             syncWithIndex() {
                 try {
                     const s = localStorage.getItem('ministrySettings');
@@ -319,10 +521,8 @@
             async pushToIndex() {
                 localStorage.setItem('ministrySettings', JSON.stringify(this.indexControl));
                 window.dispatchEvent(new StorageEvent('storage', {
-                    key: 'ministrySettings',
-                    newValue: JSON.stringify(this.indexControl)
+                    key: 'ministrySettings', newValue: JSON.stringify(this.indexControl)
                 }));
-                // Also persist to DB so all sessions pick it up
                 try {
                     await sb.from('system_settings').upsert({
                         key: 'ministrySettings',
@@ -332,17 +532,57 @@
                 } catch(_) {}
             },
 
-            /* ── Broadcast directive ── */
+            /* ──────────────── TICKER BROADCAST ─────────────── */
+            async pushTicker() {
+                if (!this.tickerMessage.trim()) return;
+                this.isLoading = true;
+                try {
+                    // Save to DB
+                    await sb.from('ticker_messages').insert({
+                        message: this.tickerMessage,
+                        active: true,
+                        created_at: new Date().toISOString()
+                    });
+                    // Broadcast via system_settings so index.html picks it up
+                    await sb.from('system_settings').upsert({
+                        key: 'tickerBroadcast',
+                        value: JSON.stringify({ message: this.tickerMessage, ts: Date.now() }),
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'key' });
+                    this.tickerActive = true;
+                    await this.loadTickers();
+                    this.showNotification('Ticker Broadcast Active', 'success');
+                    this.tickerMessage = '';
+                } catch(e) {
+                    this.showNotification('Ticker Push Failed', 'error');
+                } finally { this.isLoading = false; }
+            },
+
+            async clearTicker() {
+                try {
+                    await sb.from('ticker_messages').update({ active: false }).eq('active', true);
+                    await sb.from('system_settings').upsert({
+                        key: 'tickerBroadcast',
+                        value: JSON.stringify({ message: '', ts: Date.now() }),
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'key' });
+                    this.tickerMessages = [];
+                    this.tickerActive = false;
+                    this.showNotification('Ticker Cleared', 'success');
+                } catch(_) {}
+            },
+
+            /* ──────────────── BROADCAST DIRECTIVE ─────────────── */
             async sendBroadcast() {
                 if (!this.broadcastInput.trim()) return;
                 this.isLoading = true;
                 try {
                     const { error } = await sb.from('directives').insert({
-                        content:    this.broadcastInput,
-                        issued_by:  'DIRECTOR',
-                        priority:   this.broadcastPriority,
-                        timestamp:  new Date().toISOString(),
-                        status:     'ACTIVE'
+                        content:   this.broadcastInput,
+                        issued_by: 'DIRECTOR',
+                        priority:  this.broadcastPriority,
+                        timestamp: new Date().toISOString(),
+                        status:    'ACTIVE'
                     });
                     if (error) throw error;
                     this.indexControl.alertStatus = 'DIRECTIVE ACTIVE';
@@ -363,14 +603,85 @@
                 } catch(_) { this.showNotification('Delete Failed', 'error'); }
             },
 
-            /* ── Lockdown controls ── */
+            /* ──────────────── PROTOCOL ZERO ─────────────── */
+            armProtocolZero() {
+                this.protocolZeroArmed = true;
+            },
+
+            cancelProtocolZero() {
+                this.protocolZeroArmed = false;
+                if (this.protocolZeroTimer) { clearInterval(this.protocolZeroTimer); this.protocolZeroTimer = null; }
+                this.protocolZeroCountdown = 0;
+            },
+
+            async fireProtocolZero() {
+                this.isLoading = true;
+                this.protocolZeroCountdown = 5;
+                this.protocolZeroTimer = setInterval(() => {
+                    this.protocolZeroCountdown--;
+                    if (this.protocolZeroCountdown <= 0) {
+                        clearInterval(this.protocolZeroTimer);
+                        this.protocolZeroTimer = null;
+                        this._executeProtocolZero();
+                    }
+                }, 1000);
+            },
+
+            async _executeProtocolZero() {
+                try {
+                    this.indexControl.isLocked    = true;
+                    this.indexControl.alertStatus = '⚠ SYSTEM LOCKDOWN — ALL TERMINALS FROZEN';
+                    await this.pushToIndex();
+
+                    // Write lockdown flag to DB so every session picks it up
+                    await sb.from('system_settings').upsert({
+                        key: 'protocolZero',
+                        value: JSON.stringify({ active: true, ts: Date.now(), initiatedBy: this.currentDirectorId }),
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'key' });
+
+                    await sb.from('system_logs').insert({
+                        event: 'PROTOCOL_ZERO',
+                        initiated_by: 'DIRECTOR',
+                        timestamp: new Date().toISOString()
+                    }).catch(() => {});
+
+                    this.protocolZeroActive = true;
+                    this.protocolZeroArmed  = false;
+                    this.showNotification('Protocol Zero Engaged — All Terminals Frozen', 'warning');
+                } catch(e) {
+                    this.showNotification('Protocol Zero Failed', 'error');
+                } finally {
+                    this.isLoading = false;
+                    this.protocolZeroCountdown = 0;
+                }
+            },
+
+            async standDownProtocolZero() {
+                try {
+                    this.indexControl.isLocked    = false;
+                    this.indexControl.alertStatus = 'ALL CLEAR — STAND DOWN';
+                    await this.pushToIndex();
+                    await sb.from('system_settings').upsert({
+                        key: 'protocolZero',
+                        value: JSON.stringify({ active: false, ts: Date.now() }),
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'key' });
+                    this.protocolZeroActive = false;
+                    this.showNotification('Protocol Zero Lifted — Operatives Restored', 'success');
+                } catch(e) {
+                    this.showNotification('Stand Down Failed', 'error');
+                }
+            },
+
+            /* ──────────────── LOCKDOWN (legacy) ─────────────── */
             async lockdownIndex() {
                 this.isLoading = true;
                 try {
                     this.indexControl.isLocked    = true;
                     this.indexControl.alertStatus = 'NETWORK LOCKDOWN ACTIVE';
                     await this.pushToIndex();
-                    try { await sb.from('system_logs').insert({ event:'LOCKDOWN', initiated_by:'DIRECTOR', timestamp:new Date().toISOString() }); } catch(_) {}
+                    await sb.from('system_logs').insert({ event:'LOCKDOWN', initiated_by:'DIRECTOR', timestamp:new Date().toISOString() }).catch(() => {});
                     this.confirmLockdown = false;
                     this.showNotification('Sector Lockdown Engaged', 'warning');
                 } catch(e) {
@@ -385,7 +696,7 @@
                 this.showNotification('Sector Unlocked', 'success');
             },
 
-            /* ── Operative management ── */
+            /* ──────────────── OPERATIVE MANAGEMENT ─────────────── */
             selectOperative(op) {
                 this.selectedOperative = { ...op };
                 this.editingOperative = true;
@@ -396,66 +707,38 @@
                 this.isLoading = true;
                 try {
                     const { id, ...updates } = this.selectedOperative;
-                    const { error } = await sb.from('profiles')
-                        .update({
-                            username:   updates.username,
-                            codename:   updates.codename,
-                            rank:       updates.rank,
-                            department: updates.department,
-                            bio:        updates.bio,
-                            updated_at: new Date().toISOString()
-                        })
-                        .eq('id', id);
+                    const { error } = await sb.from('profiles').update({
+                        username:   updates.username,
+                        codename:   updates.codename,
+                        rank:       updates.rank,
+                        department: updates.department,
+                        bio:        updates.bio,
+                        updated_at: new Date().toISOString()
+                    }).eq('id', id);
                     if (error) throw error;
-
-                    // If rank changed to DIRECTOR, set their localStorage
-                    // (can't set other tabs' localStorage, but DB update is enough)
                     await this.loadOperatives();
                     this.editingOperative = false;
                     this.selectedOperative = null;
                     this.showNotification('Operative Dossier Updated', 'success');
-
-                    // Log the action
                     await sb.from('activity_log').insert({
-                        user_id: this.currentDirectorId,
-                        type: 'RANK_CHANGE',
+                        user_id: this.currentDirectorId, type: 'RANK_CHANGE',
                         description: `Director updated dossier for ${updates.username||id}`,
                         network: 'M.O.G.', created_at: new Date().toISOString()
-                    });
+                    }).catch(() => {});
                 } catch(e) {
                     this.showNotification('Update Failed — ' + (e.message||'retry'), 'error');
                 } finally { this.isLoading = false; }
             },
 
-            async promoteOperative(op, newRank) {
-                this.isLoading = true;
-                try {
-                    const { error } = await sb.from('profiles')
-                        .update({ rank: newRank, updated_at: new Date().toISOString() })
-                        .eq('id', op.id);
-                    if (error) throw error;
-                    await this.loadOperatives();
-                    this.showNotification(`${op.username} → ${newRank}`, 'success');
-                    await sb.from('activity_log').insert({
-                        user_id: this.currentDirectorId,
-                        type: 'RANK_CHANGE',
-                        description: `Rank updated: ${op.username||op.id} → ${newRank}`,
-                        network: 'M.O.G.', created_at: new Date().toISOString()
-                    });
-                } catch(e) {
-                    this.showNotification('Rank Change Failed', 'error');
-                } finally { this.isLoading = false; }
-            },
-
             async banOperative(op) {
-                if (!confirm(`Ban operative ${op.username}? This cannot be undone easily.`)) return;
+                if (!confirm(`Ban operative ${op.username}?`)) return;
                 this.isLoading = true;
                 try {
-                    // Soft ban — set rank to BANNED and note in bio
-                    const { error } = await sb.from('profiles')
-                        .update({ rank:'BANNED', bio:`[BANNED by Director on ${new Date().toLocaleDateString()}]`, updated_at:new Date().toISOString() })
-                        .eq('id', op.id);
-                    if (error) throw error;
+                    await sb.from('profiles').update({
+                        rank:'BANNED',
+                        bio:`[BANNED by Director on ${new Date().toLocaleDateString()}]`,
+                        updated_at:new Date().toISOString()
+                    }).eq('id', op.id);
                     await this.loadOperatives();
                     this.showNotification(`${op.username} Banned`, 'warning');
                 } catch(e) {
@@ -464,7 +747,7 @@
             },
 
             async deleteOperative(op) {
-                if (!confirm(`PERMANENTLY DELETE ${op.username}? This cannot be undone.`)) return;
+                if (!confirm(`PERMANENTLY DELETE ${op.username}?`)) return;
                 this.isLoading = true;
                 try {
                     await sb.from('profiles').delete().eq('id', op.id);
@@ -486,7 +769,36 @@
                 } catch(_) {}
             },
 
-            /* ── Announcements / content ── */
+            /* ──────────────── CHAT ─────────────── */
+            async sendChatMessage() {
+                if (!this.chatInput.trim()) return;
+                const msg = {
+                    sender_id:   this.currentDirectorId,
+                    sender_name: 'DIRECTOR',
+                    content:     this.chatInput,
+                    type:        'COMMAND',
+                    created_at:  new Date().toISOString()
+                };
+                // Optimistic update
+                this.chatMessages.push(msg);
+                this.chatInput = '';
+                try {
+                    await sb.from('chat_messages').insert(msg);
+                } catch(_) {}
+                this.$nextTick(() => {
+                    const el = document.getElementById('chatScroll');
+                    if (el) el.scrollTop = el.scrollHeight;
+                });
+            },
+
+            async deleteChatMessage(id) {
+                try {
+                    await sb.from('chat_messages').delete().eq('id', id);
+                    this.chatMessages = this.chatMessages.filter(m => m.id !== id);
+                } catch(_) {}
+            },
+
+            /* ──────────────── CONTENT ─────────────── */
             async postAnnouncement() {
                 if (!this.newAnnouncement.title.trim() || !this.newAnnouncement.content.trim()) return;
                 this.isLoading = true;
@@ -514,7 +826,7 @@
                 } catch(_) { this.showNotification('Delete Failed', 'error'); }
             },
 
-            /* ── System settings ── */
+            /* ──────────────── SYSTEM SETTINGS ─────────────── */
             loadSysSettings() {
                 try {
                     const s = localStorage.getItem('sysSettings');
@@ -531,7 +843,6 @@
                         value: JSON.stringify(this.sysSettings),
                         updated_at: new Date().toISOString()
                     }, { onConflict: 'key' });
-                    // Push maintenance mode to index.html
                     if (this.sysSettings.maintenanceMode) {
                         this.indexControl.isLocked    = true;
                         this.indexControl.alertStatus = 'SYSTEM MAINTENANCE';
@@ -543,7 +854,7 @@
                 } finally { this.isLoading = false; }
             },
 
-            /* ── Utils ── */
+            /* ──────────────── UTILS ─────────────── */
             startClock() {
                 setInterval(() => {
                     this.currentTime = new Date().toLocaleTimeString('en-ZA',{hour12:false});
@@ -566,13 +877,21 @@
 
             getRankBadge(rank) {
                 return {
-                    INITIATE:  'border-gray-600/40 text-gray-400',
-                    AGENT:     'border-teal-600/50 text-teal-400',
-                    OPERATIVE: 'border-teal-400/60 text-teal-300',
-                    SPECIALIST:'border-yellow-600/50 text-yellow-400',
-                    DIRECTOR:  'border-yellow-400/70 text-yellow-300',
-                    BANNED:    'border-red-700/60 text-red-400'
+                    INITIATE:   'border-gray-600/40 text-gray-400',
+                    AGENT:      'border-teal-600/50 text-teal-400',
+                    OPERATIVE:  'border-teal-400/60 text-teal-300',
+                    SPECIALIST: 'border-yellow-600/50 text-yellow-400',
+                    DIRECTOR:   'border-yellow-400/70 text-yellow-300',
+                    BANNED:     'border-red-700/60 text-red-400'
                 }[rank] || 'border-gray-600/40 text-gray-400';
+            },
+
+            trendIcon(t) {
+                return t==='up' ? '▲' : t==='down' ? '▼' : '—';
+            },
+
+            trendColor(t) {
+                return t==='up' ? 'text-green-400' : t==='down' ? 'text-red-400' : 'text-gray-500';
             },
 
             timeAgo(ts) {
@@ -592,7 +911,7 @@
                     info:   { bg:'bg-zinc-900',   border:'border-zinc-600/60',   icon:'info',           tc:'text-zinc-300'   }
                 }[type]||{ bg:'bg-zinc-900',border:'border-zinc-600/60',icon:'info',tc:'text-zinc-300' };
                 const t = document.createElement('div');
-                t.className=`toast fixed top-5 right-5 z-[99999] ${cfg.bg} ${cfg.border} ${cfg.tc} translate-x-[120%]`;
+                t.className=`toast fixed top-10 right-5 z-[999999] ${cfg.bg} ${cfg.border} ${cfg.tc} translate-x-[120%]`;
                 t.innerHTML=`<i data-lucide="${cfg.icon}" style="width:15px;height:15px;flex-shrink:0;"></i><span>${message.toUpperCase()}</span>`;
                 document.body.appendChild(t); lucide.createIcons();
                 requestAnimationFrame(()=>setTimeout(()=>t.style.transform='translateX(0)',30));
@@ -618,7 +937,63 @@
     <div class="vignette" aria-hidden="true"></div>
     <div class="scanline" aria-hidden="true"></div>
 
-        <!-- ══ GATE ═══════════════════════════════════════════════════ -->
+    <!-- ══ LIVE TICKER BAR ═══════════════════════════════════════════ -->
+    <template x-if="tickerActive && tickerMessages.length">
+        <div class="ticker-bar">
+            <div class="w-24 flex-shrink-0 flex items-center justify-center z-10" style="background:var(--red-dark);height:100%;border-right:1px solid rgba(220,38,38,0.5)">
+                <span class="orbit text-[8px] font-black tracking-widest text-white uppercase">LIVE</span>
+            </div>
+            <div class="flex-1 overflow-hidden relative">
+                <div class="ticker-track">
+                    <template x-for="m in tickerMessages" :key="m.id||m.message">
+                        <span>
+                            <span class="ticker-text" x-text="m.message||m"></span>
+                            <span class="ticker-sep">◆</span>
+                        </span>
+                    </template>
+                    <!-- Duplicate for seamless loop -->
+                    <template x-for="m in tickerMessages" :key="'dup-'+(m.id||m.message)">
+                        <span>
+                            <span class="ticker-text" x-text="m.message||m"></span>
+                            <span class="ticker-sep">◆</span>
+                        </span>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ══ PROTOCOL ZERO LOCKDOWN OVERLAY ════════════════════════════ -->
+    <template x-if="protocolZeroActive">
+        <div class="lockdown-overlay">
+            <div class="lockdown-overlay-border"></div>
+            <div class="relative z-10 text-center space-y-6 px-8 max-w-lg">
+                <!-- Rotating seal -->
+                <div class="mx-auto w-24 h-24 relative">
+                    <div class="seal-ring"></div>
+                    <div class="seal-ring-2"></div>
+                    <div class="w-24 h-24 rounded-full flex items-center justify-center" style="border:2px solid rgba(220,38,38,0.6);background:rgba(220,38,38,0.06)">
+                        <img src="/assets/images/1000219947.png" alt="Seal" class="w-16 h-16 object-contain lockdown-skull" style="filter:drop-shadow(0 0 20px var(--red))">
+                    </div>
+                </div>
+                <!-- Title -->
+                <div>
+                    <p class="orbit text-[10px] uppercase tracking-[0.6em] text-red-500 mb-2">Ministry of Groove</p>
+                    <h2 class="orbit text-3xl font-black uppercase" style="color:var(--red);text-shadow:0 0 30px var(--red-glow)">SYSTEM LOCKDOWN</h2>
+                    <p class="mono text-xs uppercase tracking-widest mt-2 text-gray-500">Protocol Zero — Initiated by Directorate Command</p>
+                </div>
+                <div class="gold-line" style="opacity:0.3"></div>
+                <p class="mono text-sm text-gray-400 uppercase tracking-wider">All operative terminals have been frozen.<br>Awaiting Director authorization to resume.</p>
+                <!-- Director override -->
+                <button @click="standDownProtocolZero()"
+                        class="btn btn-gold px-10 py-3 rounded-2xl text-xs uppercase font-black tracking-widest flex items-center gap-3 mx-auto">
+                    <i data-lucide="unlock" class="w-4 h-4"></i>Director Override — Stand Down
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- ══ GATE ═══════════════════════════════════════════════════════ -->
     <template x-if="view==='gate'">
         <div class="h-screen flex flex-col items-center justify-center gap-8 relative z-10">
             <div class="relative">
@@ -632,18 +1007,17 @@
                     Establishing High-Clearance Uplink
                     <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span>
                 </p>
-                <p class="mono text-[10px] uppercase tracking-widest" style="color:var(--red-dark)">
-                    Ministry of Groove // Directorate Channel
-                </p>
+                <p class="mono text-[10px] uppercase tracking-widest" style="color:var(--red-dark)">Ministry of Groove // Directorate Channel</p>
+                <p class="slogan-text mt-2">Decrypting the Culture. Synchronizing the Grid.</p>
             </div>
         </div>
     </template>
 
-    <!-- ══ ACTIVE VIEW ════════════════════════════════════════════ -->
+    <!-- ══ ACTIVE VIEW ════════════════════════════════════════════════ -->
     <template x-if="view==='active'">
-        <div class="max-w-7xl mx-auto px-4 md:px-8 py-6 relative z-10 fade-up">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-6 relative z-10 fade-up" :class="tickerActive && tickerMessages.length ? 'pt-14' : ''">
 
-            <!-- HEADER -->
+            <!-- ═══ HEADER ═══════════════════════════════════════════ -->
             <header class="glass-red rounded-[2rem] p-5 md:p-7 mb-7 relative overflow-hidden" style="border-color:rgba(220,38,38,0.3)">
                 <div class="absolute inset-0 bg-gradient-to-r from-red-900/10 via-transparent to-yellow-900/6 pointer-events-none"></div>
                 <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-5">
@@ -651,11 +1025,17 @@
                         <button onclick="window.location.href='/index.html'" class="p-2.5 rounded-xl border border-yellow-700/30 text-gold hover:border-gold hover:bg-yellow-500/8 transition-all">
                             <i data-lucide="chevron-left" class="w-5 h-5"></i>
                         </button>
-                        <img src="/assets/images/1000219947.png" alt="Directorate Seal" class="w-12 h-12 object-contain flex-shrink-0" style="filter:drop-shadow(0 0 12px rgba(212,175,55,0.5))">
+                        <!-- Command Seal with rings -->
+                        <div class="relative w-14 h-14 flex-shrink-0">
+                            <div class="absolute inset-0 rounded-full" style="border:1px solid rgba(212,175,55,0.35);animation:ringPulse 3s ease-in-out infinite;"></div>
+                            <div class="absolute -inset-2 rounded-full" style="border:1px solid rgba(220,38,38,0.15);animation:ringPulse 3s ease-in-out infinite 0.6s;"></div>
+                            <img src="/assets/images/1000219947.png" alt="Directorate Seal" class="w-14 h-14 object-contain relative z-10" style="filter:drop-shadow(0 0 12px rgba(212,175,55,0.5)) drop-shadow(0 0 6px rgba(0,212,170,0.2))">
+                        </div>
                         <div>
                             <p class="mono text-[9px] uppercase tracking-[0.5em] mb-0.5" style="color:var(--red)">Clearance Alpha // Sector 7G</p>
                             <h1 class="orbit text-xl md:text-2xl font-black uppercase text-red-glow">Directorate HQ</h1>
                             <p class="mono text-[9px] uppercase tracking-widest text-gold">Master Command · Ministry of Groove</p>
+                            <p class="slogan-text mt-0.5">Decrypting the Culture. Synchronizing the Grid.</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -700,17 +1080,80 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                <!-- LEFT SIDEBAR -->
+                <!-- ══ LEFT SIDEBAR ════════════════════════════════ -->
                 <div class="lg:col-span-3 space-y-5">
 
-                    <!-- Seal -->
-                    <div class="glass-gold rounded-[2rem] p-6 seal-card" style="border-color:rgba(212,175,55,0.3)">
+                    <!-- Command Seal Card -->
+                    <div class="glass-gold rounded-[2rem] p-6 seal-card" style="border-color:rgba(212,175,55,0.35);box-shadow:0 0 40px rgba(212,175,55,0.08)">
                         <div class="classified">Classified</div>
-                        <img src="/assets/images/1000219947.png" alt="Seal of the Directorate" class="w-full aspect-square object-contain">
+                        <div class="relative">
+                            <div class="absolute inset-0 rounded-full m-4" style="border:1px dashed rgba(212,175,55,0.2);animation:spin 30s linear infinite;"></div>
+                            <img src="/assets/images/1000219947.png" alt="Seal of the Directorate" class="w-full aspect-square object-contain p-2">
+                        </div>
                         <div class="gold-line my-4" style="opacity:0.4"></div>
                         <div class="text-center">
                             <h3 class="orbit text-sm font-black uppercase text-gold tracking-wide">Seal of the Directorate</h3>
-                            <p class="mono text-[9px] uppercase tracking-widest mt-1" style="color:var(--teal)">Auth Verified ✓</p>
+                            <p class="slogan-text mt-1">Decrypting the Culture</p>
+                            <p class="slogan-text" style="color:var(--gold);opacity:0.5">Synchronizing the Grid</p>
+                            <p class="mono text-[9px] uppercase tracking-widest mt-2" style="color:var(--teal)">Auth Verified ✓</p>
+                        </div>
+                    </div>
+
+                    <!-- ═══ PROTOCOL ZERO — PANIC BUTTON ════════════ -->
+                    <div class="proto-zero-btn p-5" :class="protocolZeroArmed?'armed':''">
+                        <div class="proto-zero-ring"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-2 rounded-xl flex-shrink-0" style="background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.4)">
+                                    <i data-lucide="alert-octagon" class="w-4 h-4" style="color:var(--red)"></i>
+                                </div>
+                                <div>
+                                    <h4 class="orbit text-[9px] font-black uppercase tracking-widest text-red-glow">Protocol Zero</h4>
+                                    <p class="mono text-[8px] text-gray-600 uppercase">Emergency Lockdown</p>
+                                </div>
+                            </div>
+
+                            <template x-if="!protocolZeroArmed && !protocolZeroActive">
+                                <div class="space-y-2">
+                                    <p class="mono text-[9px] text-gray-500 uppercase tracking-wide leading-relaxed">Freeze ALL operative terminals instantly. Replaces every screen with lockdown UI.</p>
+                                    <button @click="armProtocolZero()"
+                                            class="btn btn-red w-full py-3 rounded-xl text-xs uppercase font-black tracking-wider flex items-center justify-center gap-2">
+                                        <i data-lucide="zap" class="w-3.5 h-3.5"></i>Arm Protocol Zero
+                                    </button>
+                                </div>
+                            </template>
+
+                            <template x-if="protocolZeroArmed && !protocolZeroActive && protocolZeroCountdown===0">
+                                <div class="space-y-2">
+                                    <p class="mono text-[9px] text-red-400 uppercase tracking-wider text-center">⚠ ARMED — Confirm to engage?</p>
+                                    <button @click="fireProtocolZero()"
+                                            class="w-full py-3 rounded-xl text-xs uppercase font-black tracking-wider text-white flex items-center justify-center gap-2 transition-all"
+                                            style="background:var(--red);box-shadow:0 0 24px var(--red-glow)">
+                                        <i data-lucide="flame" class="w-3.5 h-3.5"></i>Initiate Lockdown
+                                    </button>
+                                    <button @click="cancelProtocolZero()" class="btn btn-gold w-full py-2.5 rounded-xl text-xs uppercase font-bold tracking-wider">Cancel</button>
+                                </div>
+                            </template>
+
+                            <template x-if="protocolZeroCountdown > 0">
+                                <div class="text-center py-2">
+                                    <p class="orbit text-4xl font-black" style="color:var(--red);text-shadow:0 0 20px var(--red-glow)" x-text="protocolZeroCountdown"></p>
+                                    <p class="mono text-[9px] text-gray-500 uppercase tracking-widest mt-1">Engaging in...</p>
+                                </div>
+                            </template>
+
+                            <template x-if="protocolZeroActive">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-center gap-2 py-2">
+                                        <div class="w-2 h-2 rounded-full dot-red dot-pulse"></div>
+                                        <span class="orbit text-[9px] font-black uppercase text-red-glow tracking-widest">Lockdown Active</span>
+                                    </div>
+                                    <button @click="standDownProtocolZero()"
+                                            class="btn btn-green w-full py-2.5 rounded-xl text-xs uppercase font-black tracking-wider flex items-center justify-center gap-2">
+                                        <i data-lucide="unlock" class="w-3.5 h-3.5"></i>Stand Down
+                                    </button>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
@@ -719,15 +1162,12 @@
                         <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-4 text-red-glow flex items-center gap-2">
                             <i data-lucide="shield" class="w-3.5 h-3.5"></i>Network Control
                         </h4>
-                        <!-- Alert message -->
                         <label class="mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Alert Message</label>
                         <input type="text" x-model="indexControl.alertStatus" @change="pushToIndex()"
                                class="input-dir px-3 py-2 rounded-xl text-xs mb-3" placeholder="ALL CLEAR">
-                        <!-- Banner text -->
                         <label class="mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Banner Text</label>
                         <input type="text" x-model="indexControl.bannerText" @change="pushToIndex()"
                                class="input-dir px-3 py-2 rounded-xl text-xs mb-4" placeholder="THE MINISTRY OF GROOVE">
-                        <!-- Lockdown -->
                         <div class="space-y-2">
                             <template x-if="!confirmLockdown && !indexControl.isLocked">
                                 <button @click="confirmLockdown=true" class="btn btn-red w-full py-2.5 px-4 rounded-xl text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2">
@@ -779,17 +1219,20 @@
                     </div>
                 </div>
 
-                <!-- MAIN PANEL -->
+                <!-- ══ MAIN PANEL ═══════════════════════════════════ -->
                 <div class="lg:col-span-9 space-y-5">
 
                     <!-- Tab bar -->
                     <div class="flex gap-1.5 overflow-x-auto pb-px">
                         <template x-for="tab in [
-                            {id:'broadcast',   icon:'zap',      label:'Broadcast'},
-                            {id:'operatives',  icon:'users',    label:'Operatives'},
-                            {id:'content',     icon:'edit',     label:'Content'},
-                            {id:'activity',    icon:'terminal', label:'Activity'},
-                            {id:'settings',    icon:'settings', label:'Settings'}
+                            {id:'broadcast',    icon:'zap',       label:'Broadcast'},
+                            {id:'intelligence', icon:'bar-chart-2',label:'Intelligence'},
+                            {id:'operatives',   icon:'users',     label:'Operatives'},
+                            {id:'comms',        icon:'message-circle',label:'Comms'},
+                            {id:'gallery',      icon:'film',      label:'Intel Gallery'},
+                            {id:'content',      icon:'edit',      label:'Content'},
+                            {id:'activity',     icon:'terminal',  label:'Activity'},
+                            {id:'settings',     icon:'settings',  label:'Settings'}
                         ]" :key="tab.id">
                             <button @click="activeTab=tab.id; $nextTick(()=>lucide.createIcons())"
                                     :class="activeTab===tab.id
@@ -802,8 +1245,55 @@
                         </template>
                     </div>
 
-                    <!-- ▸ BROADCAST TAB -->
+                    <!-- ▸ BROADCAST TAB ──────────────────────────── -->
                     <div x-show="activeTab==='broadcast'" class="space-y-5">
+
+                        <!-- Direct Broadcast System (Ticker) -->
+                        <div class="glass-teal rounded-[2.5rem] p-7 relative overflow-hidden" style="border-color:rgba(0,212,170,0.3)">
+                            <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-3xl pointer-events-none" style="background:rgba(0,212,170,0.05)"></div>
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-4 mb-5">
+                                    <div class="p-3 rounded-2xl" style="background:linear-gradient(135deg,rgba(0,212,170,0.2),rgba(0,110,89,0.3));border:1px solid rgba(0,212,170,0.4)">
+                                        <i data-lucide="tv-2" class="w-5 h-5" style="color:var(--teal)"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="orbit text-base font-black uppercase text-teal-acc">Direct Broadcast Ticker</h3>
+                                        <p class="mono text-[9px] uppercase tracking-widest text-gray-500">Pushes live scrolling message to ALL operative screens</p>
+                                    </div>
+                                    <div class="ml-auto flex items-center gap-2">
+                                        <div class="w-2 h-2 rounded-full dot-pulse" :class="tickerActive?'dot-online':'dot-offline'"></div>
+                                        <span class="mono text-[9px] uppercase" :class="tickerActive?'text-green-400':'text-gray-600'" x-text="tickerActive?'LIVE':'OFF'"></span>
+                                    </div>
+                                </div>
+                                <div class="flex gap-3 mb-4">
+                                    <input type="text" x-model="tickerMessage"
+                                           @keydown.enter="pushTicker()"
+                                           class="input-dir px-5 py-3 rounded-2xl text-sm flex-1"
+                                           style="border-color:rgba(0,212,170,0.2)"
+                                           placeholder="TYPE YOUR BROADCAST MESSAGE...">
+                                    <button @click="pushTicker()" :disabled="isLoading||!tickerMessage.trim()"
+                                            class="btn btn-teal px-6 py-3 rounded-2xl text-xs uppercase font-black tracking-wider flex items-center gap-2">
+                                        <i data-lucide="send" class="w-4 h-4"></i>Push
+                                    </button>
+                                    <button @click="clearTicker()" :disabled="!tickerActive"
+                                            class="btn btn-red px-5 py-3 rounded-2xl text-xs uppercase font-bold tracking-wider flex items-center gap-2">
+                                        <i data-lucide="x" class="w-4 h-4"></i>Clear
+                                    </button>
+                                </div>
+                                <!-- Active tickers -->
+                                <template x-if="tickerMessages.length">
+                                    <div class="space-y-2 mt-3">
+                                        <template x-for="t in tickerMessages" :key="t.id">
+                                            <div class="flex items-center gap-3 p-2.5 rounded-xl" style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.12)">
+                                                <div class="w-1.5 h-1.5 rounded-full dot-online dot-pulse flex-shrink-0"></div>
+                                                <p class="mono text-xs flex-1 truncate" style="color:var(--teal)" x-text="t.message"></p>
+                                                <span class="mono text-[8px] text-gray-600" x-text="timeAgo(t.created_at)"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
 
                         <!-- Directive terminal -->
                         <div class="glass-red rounded-[2.5rem] p-7 relative overflow-hidden" style="border-color:rgba(220,38,38,0.3)">
@@ -874,9 +1364,108 @@
                         </div>
                     </div>
 
-                    <!-- ▸ OPERATIVES TAB -->
+                    <!-- ▸ INTELLIGENCE TAB ─────────────────────────── -->
+                    <div x-show="activeTab==='intelligence'" class="space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                            <!-- Popularity Index -->
+                            <div class="glass-gold rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.25)">
+                                <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-5 text-gold flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>Network Popularity Index
+                                    <span class="ml-auto mono text-[8px] text-gray-600 uppercase">Live Like Count</span>
+                                </h4>
+                                <div class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                                    <template x-for="(item,i) in popularityData" :key="item.title||i">
+                                        <div class="p-3 rounded-xl" style="background:rgba(0,0,0,0.55);border:1px solid rgba(212,175,55,0.08)">
+                                            <div class="flex items-center gap-3 mb-1.5">
+                                                <span class="orbit text-xs font-black text-gold w-5 flex-shrink-0" x-text="'#'+(i+1)"></span>
+                                                <p class="mono text-xs text-white/80 flex-1 truncate" x-text="item.title"></p>
+                                                <span class="mono text-[9px] text-teal-acc flex-shrink-0" x-text="item.count+' ♥'"></span>
+                                            </div>
+                                            <div class="pop-bar ml-8">
+                                                <div class="pop-bar-fill" :style="'width:'+item.pct+'%;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright))'"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template x-if="popularityData.length===0">
+                                        <p class="mono text-xs text-gray-700 text-center py-6 uppercase tracking-widest">No media data</p>
+                                    </template>
+                                </div>
+                                <button @click="loadPopularity()" class="mt-3 btn btn-gold w-full py-2 rounded-xl text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2">
+                                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>Refresh Index
+                                </button>
+                            </div>
+
+                            <!-- Amapiano Top 10 Chart -->
+                            <div class="glass-teal rounded-[2rem] p-6" style="border-color:rgba(0,212,170,0.22)">
+                                <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-1 text-teal-acc flex items-center gap-2">
+                                    <i data-lucide="music" class="w-3.5 h-3.5"></i>Piano Chart
+                                </h4>
+                                <p class="mono text-[8px] text-gray-600 uppercase tracking-widest mb-4">Amapiano Top 10 — Live Status</p>
+                                <div class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                                    <template x-for="track in amapianoChart" :key="track.rank">
+                                        <div class="row-hover p-3 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(0,212,170,0.08)">
+                                            <div class="flex items-center gap-3">
+                                                <!-- Rank number -->
+                                                <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                     :style="track.rank<=3 ? 'background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3)' : 'background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.06)'">
+                                                    <span class="orbit text-[9px] font-black" :class="track.rank<=3?'text-gold':'text-gray-500'" x-text="track.rank"></span>
+                                                </div>
+                                                <!-- Info -->
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="mono text-xs text-white/85 truncate leading-tight" x-text="track.title"></p>
+                                                    <p class="mono text-[8px] text-gray-600 truncate" x-text="track.artist"></p>
+                                                </div>
+                                                <!-- Stats -->
+                                                <div class="flex items-center gap-2 flex-shrink-0">
+                                                    <span class="mono text-[8px] text-gray-600" x-text="track.plays"></span>
+                                                    <span class="text-[10px] font-bold" :class="trendColor(track.trend)" x-text="trendIcon(track.trend)"></span>
+                                                </div>
+                                            </div>
+                                            <div class="piano-bar ml-10 mt-1.5">
+                                                <div class="piano-bar-fill" :style="'width:'+track.pct+'%'"></div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Threat / system overview -->
+                        <div class="glass-dark rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.1)">
+                            <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-4 text-gold flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>System Intelligence Overview
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                <div class="p-4 rounded-2xl text-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(212,175,55,0.1)">
+                                    <p class="orbit text-2xl font-black text-gold" x-text="operatives.length"></p>
+                                    <p class="mono text-[9px] text-gray-600 uppercase mt-1">Total Operatives</p>
+                                </div>
+                                <div class="p-4 rounded-2xl text-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(22,163,74,0.2)">
+                                    <p class="orbit text-2xl font-black text-green-400" x-text="activeNodes"></p>
+                                    <p class="mono text-[9px] text-gray-600 uppercase mt-1">Active (30m)</p>
+                                </div>
+                                <div class="p-4 rounded-2xl text-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.15)">
+                                    <p class="orbit text-2xl font-black text-red-400" x-text="recentDirectives.length"></p>
+                                    <p class="mono text-[9px] text-gray-600 uppercase mt-1">Active Directives</p>
+                                </div>
+                                <div class="p-4 rounded-2xl text-center" style="background:rgba(0,0,0,0.6);border:1px solid rgba(0,212,170,0.15)">
+                                    <p class="orbit text-2xl font-black text-teal-acc" x-text="liveActivity.length"></p>
+                                    <p class="mono text-[9px] text-gray-600 uppercase mt-1">Log Entries</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3" style="border-top:1px solid rgba(212,175,55,0.08)">
+                                <p class="mono text-[9px] text-gray-600 uppercase tracking-widest">
+                                    Last sync: <span class="text-gold" x-text="timeAgo(lastSync)"></span>
+                                    &nbsp;·&nbsp; Network: <span :class="indexControl.isLocked?'text-red-400':'text-green-400'" x-text="indexControl.isLocked?'LOCKED':'LIVE'"></span>
+                                    &nbsp;·&nbsp; Ticker: <span :class="tickerActive?'text-teal-acc':'text-gray-600'" x-text="tickerActive?'BROADCASTING':'SILENT'"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ▸ OPERATIVES TAB ─────────────────────────── -->
                     <div x-show="activeTab==='operatives'" class="space-y-5">
-                        <!-- Search + stats -->
                         <div class="glass-dark rounded-[2rem] p-5" style="border-color:rgba(212,175,55,0.1)">
                             <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
                                 <h4 class="orbit text-[9px] uppercase tracking-widest font-bold text-gold flex items-center gap-2 flex-shrink-0">
@@ -889,7 +1478,6 @@
                                     <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
-                            <!-- Rank breakdown -->
                             <div class="grid grid-cols-5 gap-2 text-center">
                                 <template x-for="rank in rankOptions" :key="rank">
                                     <div class="p-2 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
@@ -900,13 +1488,11 @@
                             </div>
                         </div>
 
-                        <!-- Edit panel (shows when operative selected) -->
                         <template x-if="editingOperative && selectedOperative">
                             <div class="glass-gold rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.35)">
                                 <div class="flex items-center justify-between mb-5">
                                     <h4 class="orbit text-sm font-black uppercase text-gold flex items-center gap-2">
-                                        <i data-lucide="edit" class="w-4 h-4"></i>
-                                        Edit: <span x-text="selectedOperative.username||selectedOperative.id"></span>
+                                        <i data-lucide="edit" class="w-4 h-4"></i>Edit: <span x-text="selectedOperative.username||selectedOperative.id"></span>
                                     </h4>
                                     <button @click="editingOperative=false; selectedOperative=null" class="p-2 rounded-xl text-gray-500 hover:text-gold transition-colors">
                                         <i data-lucide="x" class="w-4 h-4"></i>
@@ -943,7 +1529,6 @@
                                     <label class="mono text-[9px] uppercase tracking-widest text-gray-500 block mb-1">Bio / Notes</label>
                                     <textarea x-model="selectedOperative.bio" rows="3" class="input-dir px-4 py-2.5 rounded-xl text-sm resize-none" placeholder="Operational notes..."></textarea>
                                 </div>
-                                <!-- Stats editors -->
                                 <div class="mb-5 p-4 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
                                     <p class="mono text-[9px] uppercase tracking-widest text-gray-500 mb-3">Adjust Stats</p>
                                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -972,7 +1557,6 @@
                             </div>
                         </template>
 
-                        <!-- Operatives grid -->
                         <div class="glass-dark rounded-[2rem] p-5" style="border-color:rgba(212,175,55,0.1)">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
                                 <template x-if="filteredOperatives.length===0">
@@ -982,12 +1566,10 @@
                                     <div class="op-card p-3.5 rounded-2xl flex items-center gap-3 cursor-pointer"
                                          @click="selectOperative(op)"
                                          style="background:rgba(0,0,0,0.55);border:1px solid rgba(212,175,55,0.1)">
-                                        <!-- Avatar -->
                                         <div class="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2)">
                                             <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
                                             <i x-show="!op.avatar_url" data-lucide="user" class="w-5 h-5 text-gold"></i>
                                         </div>
-                                        <!-- Info -->
                                         <div class="flex-1 min-w-0">
                                             <p class="font-bold text-sm text-white truncate leading-tight" x-text="op.username||op.email||'Unknown'"></p>
                                             <div class="flex items-center gap-2 mt-0.5">
@@ -995,7 +1577,6 @@
                                                 <span class="mono text-[8px] text-gray-600 uppercase" x-text="op.department||'UNASSIGNED'"></span>
                                             </div>
                                         </div>
-                                        <!-- Status -->
                                         <div class="text-right flex-shrink-0">
                                             <div class="w-2 h-2 rounded-full ml-auto mb-1" :class="getOnlineStatus(op.last_active).dot"></div>
                                             <p class="mono text-[8px] text-gray-600" x-text="timeAgo(op.last_active)"></p>
@@ -1006,9 +1587,127 @@
                         </div>
                     </div>
 
-                    <!-- ▸ CONTENT TAB -->
+                    <!-- ▸ COMMS TAB (Encrypted Chat) ─────────────── -->
+                    <div x-show="activeTab==='comms'" class="space-y-5">
+                        <div class="glass-dark rounded-[2rem] overflow-hidden flex flex-col" style="border-color:rgba(212,175,55,0.1);height:600px">
+                            <!-- Chat header -->
+                            <div class="p-5 flex-shrink-0" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 rounded-xl" style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.25)">
+                                            <i data-lucide="terminal" class="w-4 h-4" style="color:var(--teal)"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="orbit text-[9px] uppercase tracking-widest font-bold text-gold">Encrypted Comms</h4>
+                                            <p class="mono text-[8px] text-gray-600 uppercase">Command-Line Channel // Private Transmissions</p>
+                                        </div>
+                                    </div>
+                                    <button @click="loadChat()" class="p-2 rounded-xl text-gray-600 hover:text-gold transition-colors">
+                                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Chat messages -->
+                            <div id="chatScroll" class="flex-1 overflow-y-auto p-5 flex flex-col gap-3">
+                                <template x-if="chatMessages.length===0">
+                                    <div class="flex-1 flex items-center justify-center">
+                                        <p class="mono text-xs text-gray-700 uppercase tracking-widest">No transmissions on record</p>
+                                    </div>
+                                </template>
+                                <template x-for="(msg, i) in chatMessages" :key="msg.id||i">
+                                    <div class="flex flex-col max-w-[85%]"
+                                         :class="msg.sender_name==='DIRECTOR'?'self-end items-end':'self-start items-start'">
+                                        <!-- Sender label -->
+                                        <div class="flex items-center gap-2 mb-1 px-1">
+                                            <span class="mono text-[8px] uppercase font-bold"
+                                                  :class="msg.sender_name==='DIRECTOR'?'text-red-400':'text-teal-acc'"
+                                                  x-text="msg.sender_name||'UNKNOWN'"></span>
+                                            <span class="mono text-[8px] text-gray-600" x-text="timeAgo(msg.created_at)"></span>
+                                        </div>
+                                        <!-- Message bubble -->
+                                        <div class="relative group px-4 py-3"
+                                             :class="msg.sender_name==='DIRECTOR'?'chat-msg-director':'chat-msg-operative'">
+                                            <p class="mono text-sm text-white/85 leading-relaxed" x-text="msg.content"></p>
+                                            <!-- Delete button (director only) -->
+                                            <button x-show="msg.sender_name==='DIRECTOR'"
+                                                    @click="deleteChatMessage(msg.id)"
+                                                    class="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    style="background:var(--red-dark);border:1px solid rgba(220,38,38,0.5)">
+                                                <i data-lucide="x" style="width:10px;height:10px;color:#fff"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Chat input -->
+                            <div class="p-4 flex-shrink-0 flex gap-3" style="border-top:1px solid rgba(212,175,55,0.1)">
+                                <input type="text" x-model="chatInput"
+                                       @keydown.enter="sendChatMessage()"
+                                       class="input-dir px-4 py-3 rounded-2xl text-sm flex-1"
+                                       placeholder="> ENTER COMMAND TRANSMISSION...">
+                                <button @click="sendChatMessage()" :disabled="!chatInput.trim()"
+                                        class="btn btn-teal px-5 py-3 rounded-2xl text-xs uppercase font-bold tracking-wider flex items-center gap-2">
+                                    <i data-lucide="send" class="w-4 h-4"></i>Send
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ▸ INTEL GALLERY TAB ────────────────────────── -->
+                    <div x-show="activeTab==='gallery'" class="space-y-5">
+                        <div class="glass-dark rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.1)">
+                            <div class="flex items-center justify-between mb-5">
+                                <h4 class="orbit text-[9px] uppercase tracking-widest font-bold text-gold flex items-center gap-2">
+                                    <i data-lucide="film" class="w-3.5 h-3.5"></i>Intel Gallery
+                                    <span class="ml-1 mono text-gray-600">Media Assets &amp; Production Intel</span>
+                                </h4>
+                                <span class="mono text-[9px] uppercase text-gray-600" x-text="intelGallery.length+' assets'"></span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                <template x-for="asset in intelGallery" :key="asset.id">
+                                    <div class="intel-thumb cursor-pointer group relative"
+                                         style="background:rgba(0,0,0,0.7);border:1px solid rgba(212,175,55,0.1)">
+                                        <!-- Image -->
+                                        <template x-if="asset.type==='image'">
+                                            <img :src="asset.src" :alt="asset.label"
+                                                 class="w-full h-full object-cover"
+                                                 @error="$el.src='/assets/images/1000219947.png'">
+                                        </template>
+                                        <!-- Video -->
+                                        <template x-if="asset.type==='video'">
+                                            <video :src="asset.src" class="w-full h-full object-cover" muted loop
+                                                   @mouseenter="$el.play()" @mouseleave="$el.pause(); $el.currentTime=0"></video>
+                                        </template>
+                                        <!-- Overlay -->
+                                        <div class="absolute inset-0 flex flex-col justify-between p-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                                             style="background:linear-gradient(to bottom,rgba(0,0,0,0.3),rgba(0,0,0,0.85))">
+                                            <div class="flex justify-between items-start">
+                                                <span class="mono text-[8px] uppercase px-2 py-1 rounded-lg text-white"
+                                                      :style="asset.type==='video'?'background:rgba(220,38,38,0.7)':'background:rgba(0,0,0,0.6);border:1px solid rgba(212,175,55,0.3)'"
+                                                      x-text="asset.type==='video'?'▶ VIDEO':'◼ IMAGE'"></span>
+                                            </div>
+                                            <div>
+                                                <p class="orbit text-[9px] font-bold uppercase text-gold truncate" x-text="asset.label"></p>
+                                                <p class="mono text-[8px] text-gray-400" x-text="asset.date"></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template x-if="intelGallery.length===0">
+                                    <div class="col-span-3 text-center py-12">
+                                        <i data-lucide="film" class="w-10 h-10 mx-auto mb-3 text-gray-700"></i>
+                                        <p class="mono text-xs text-gray-700 uppercase tracking-widest">No assets in gallery</p>
+                                        <p class="mono text-[9px] text-gray-800 uppercase mt-1">Add images/videos to /assets/images and /assets/videos</p>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ▸ CONTENT TAB ────────────────────────────── -->
                     <div x-show="activeTab==='content'" class="space-y-5">
-                        <!-- Post announcement -->
                         <div class="glass-gold rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.25)">
                             <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-5 text-gold flex items-center gap-2">
                                 <i data-lucide="megaphone" class="w-3.5 h-3.5"></i>Post Announcement
@@ -1046,7 +1745,6 @@
                             </button>
                         </div>
 
-                        <!-- Message moderation -->
                         <div class="glass-dark rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.1)">
                             <div class="flex items-center justify-between mb-5">
                                 <h4 class="orbit text-[9px] uppercase tracking-widest font-bold text-gold flex items-center gap-2">
@@ -1075,7 +1773,7 @@
                         </div>
                     </div>
 
-                    <!-- ▸ ACTIVITY TAB -->
+                    <!-- ▸ ACTIVITY TAB ────────────────────────────── -->
                     <div x-show="activeTab==='activity'" class="space-y-5">
                         <div class="glass-dark rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.1)">
                             <div class="flex items-center justify-between mb-5">
@@ -1104,7 +1802,7 @@
                         </div>
                     </div>
 
-                    <!-- ▸ SETTINGS TAB -->
+                    <!-- ▸ SETTINGS TAB ───────────────────────────── -->
                     <div x-show="activeTab==='settings'" class="space-y-5">
                         <div class="glass-gold rounded-[2rem] p-6" style="border-color:rgba(212,175,55,0.25)">
                             <h4 class="orbit text-[9px] uppercase tracking-widest font-bold mb-6 text-gold flex items-center gap-2">
@@ -1132,8 +1830,6 @@
                                     <input type="number" x-model="sysSettings.maxOperatives" class="input-dir px-4 py-2.5 rounded-xl text-sm">
                                 </div>
                             </div>
-
-                            <!-- Toggle switches -->
                             <div class="space-y-3 mb-6">
                                 <div class="flex items-center justify-between p-4 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
                                     <div>
@@ -1150,7 +1846,6 @@
                                     <div class="perm-toggle" :class="sysSettings.registrationOpen?'on':''" @click="sysSettings.registrationOpen=!sysSettings.registrationOpen"></div>
                                 </div>
                             </div>
-
                             <button @click="saveSysSettings()" :disabled="isLoading"
                                     class="btn btn-gold px-8 py-3 rounded-xl text-xs uppercase font-bold tracking-wider flex items-center gap-2">
                                 <i data-lucide="save" class="w-3.5 h-3.5"></i>
@@ -1170,9 +1865,7 @@
                                         <p class="mono text-[9px] text-gray-500 uppercase mt-0.5">Remove all active directives from DB</p>
                                     </div>
                                     <button @click="if(confirm('Purge ALL directives?')){sb.from('directives').delete().neq('id','00000000-0000-0000-0000-000000000000').then(()=>{recentDirectives=[];showNotification('Directives Purged','warning')})}"
-                                            class="btn btn-red px-4 py-2 rounded-xl text-xs uppercase font-bold tracking-wider">
-                                        Purge
-                                    </button>
+                                            class="btn btn-red px-4 py-2 rounded-xl text-xs uppercase font-bold tracking-wider">Purge</button>
                                 </div>
                                 <div class="flex items-center justify-between p-4 rounded-xl" style="background:rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.2)">
                                     <div>
@@ -1180,9 +1873,15 @@
                                         <p class="mono text-[9px] text-gray-500 uppercase mt-0.5">Wipe the activity_log table</p>
                                     </div>
                                     <button @click="if(confirm('Clear ALL activity logs?')){sb.from('activity_log').delete().neq('id','00000000-0000-0000-0000-000000000000').then(()=>{liveActivity=[];showNotification('Logs Cleared','warning')})}"
-                                            class="btn btn-red px-4 py-2 rounded-xl text-xs uppercase font-bold tracking-wider">
-                                        Clear
-                                    </button>
+                                            class="btn btn-red px-4 py-2 rounded-xl text-xs uppercase font-bold tracking-wider">Clear</button>
+                                </div>
+                                <div class="flex items-center justify-between p-4 rounded-xl" style="background:rgba(0,0,0,0.6);border:1px solid rgba(220,38,38,0.2)">
+                                    <div>
+                                        <p class="orbit text-xs font-bold uppercase text-white">Clear Ticker Feed</p>
+                                        <p class="mono text-[9px] text-gray-500 uppercase mt-0.5">Remove all active ticker broadcasts</p>
+                                    </div>
+                                    <button @click="clearTicker()"
+                                            class="btn btn-red px-4 py-2 rounded-xl text-xs uppercase font-bold tracking-wider">Clear</button>
                                 </div>
                             </div>
                         </div>
@@ -1198,6 +1897,7 @@
                     <img src="/assets/images/1000219947.png" alt="Seal" class="w-7 h-7 object-contain opacity-25">
                     <span class="orbit text-xs text-gold tracking-[0.25em] font-black" style="opacity:0.4">DIRECTORATE HQ</span>
                 </div>
+                <p class="slogan-text mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
                 <p class="mono text-[9px] uppercase tracking-[0.3em] text-gray-700">The Ministry of Groove // Emalahleni Uplink II // Est. 2026</p>
                 <p class="mono text-[8px] uppercase tracking-widest mt-1" style="color:var(--red-dark)">[Sector 7G] // Authorized Personnel Only</p>
             </footer>
@@ -1205,7 +1905,7 @@
         </div>
     </template>
 
-    <!-- Binary rain -->
+    <!-- Binary rain canvas -->
     <script>
     (function(){
         const c = document.getElementById('binaryCanvas');
