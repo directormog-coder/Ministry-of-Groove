@@ -3,1060 +3,763 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>M.O.G. | OPERATIVE NETWORK</title>
-    
+    <meta name="theme-color" content="#080d0d">
+    <title>Ministry of Groove| OPERATIVE NETWORK</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- ============================================================
-         SUPABASE CLIENT INITIALIZATION
-         Replace the values below with your actual project credentials
-         from: https://app.supabase.com → Project Settings → API
-    ============================================================ -->
-    <script>
-        const SUPABASE_URL = 'https://your-project-ref.supabase.co';
-        const SUPABASE_ANON_KEY = 'your-anon-key-here';
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    </script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
-        
-        [x-cloak] { display: none !important; }
-        
-        :root {
-            --teal: #00d4aa;
-            --teal-dark: #00a884;
-            --teal-glow: rgba(0, 212, 170, 0.4);
-            --gold: #d4af37;
-            --gold-light: #f4d03f;
-            --gold-glow: rgba(212, 175, 55, 0.4);
-            --dark-bg: #0a0f0f;
-            --circuit: #001a16;
-        }
-        
-        * { box-sizing: border-box; }
+    <!--
+        SUPABASE CLIENT
+        Expects `sb` to be defined by /js/supabase-client.js
+        That file should contain:
+            const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    -->
+    <script src="/js/supabase-client.js"></script>
 
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap');
+
+        [x-cloak] { display: none !important; }
+
+        :root {
+            --teal:         #00d4aa;
+            --teal-dark:    #00a884;
+            --teal-dim:     #007a60;
+            --teal-glow:    rgba(0,212,170,0.35);
+            --gold:         #d4af37;
+            --gold-dark:    #b8860b;
+            --gold-glow:    rgba(212,175,55,0.35);
+            --dark-bg:      #080d0d;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Rajdhani', sans-serif;
             background: var(--dark-bg);
+            color: #e8f5f2;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
-        
-        .terminal-font { 
-            font-family: 'Share Tech Mono', monospace; 
+        .terminal-font { font-family: 'Share Tech Mono', monospace; }
+
+        /* ── Background ── */
+        .mog-seal {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            width: 85vmin; height: 85vmin;
+            background: url('../assets/images/logo.png') center/contain no-repeat;
+            opacity: 0.035; pointer-events: none; z-index: 0;
+            filter: drop-shadow(0 0 60px var(--teal-glow));
         }
-        
-        /* M.O.G. Seal Background */
-        .mog-bg {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90vmin;
-            height: 90vmin;
-            background-image: url('../assets/images/logo.png');
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
-            opacity: 0.04;
-            pointer-events: none;
-            z-index: 0;
-            filter: drop-shadow(0 0 50px var(--teal-glow));
-        }
-        
-        /* Circuit Pattern Overlay */
         .circuit-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            pointer-events: none;
-            z-index: 1;
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
+            background-size: 56px 56px;
+            pointer-events: none; z-index: 1;
+        }
+        .vignette {
+            position: fixed; inset: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.65) 100%);
+            pointer-events: none; z-index: 2;
+        }
+        .scanline {
+            position: fixed; top: -80px; left: 0;
+            width: 100%; height: 80px;
+            background: linear-gradient(transparent, rgba(0,212,170,0.03) 50%, transparent);
+            animation: scanline 12s linear infinite;
+            pointer-events: none; z-index: 3;
+        }
+        @keyframes scanline { to { top: 100vh; } }
+
+        /* ── Glass ── */
+        .glass {
+            background: rgba(8,22,20,0.82);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(0,212,170,0.14);
+            box-shadow: 0 4px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .glass-gold {
+            background: rgba(20,16,4,0.88);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(212,175,55,0.22);
+            box-shadow: 0 4px 40px rgba(0,0,0,0.4);
+        }
+        .glass-dark {
+            background: rgba(6,12,12,0.94);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(0,212,170,0.09);
         }
 
-        /* Noise texture overlay for depth */
-        .noise-overlay {
-            position: fixed;
-            inset: 0;
-            opacity: 0.025;
-            pointer-events: none;
-            z-index: 2;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            background-size: 150px 150px;
-        }
-        
-        /* Glass Effects */
-        .glass-teal { 
-            background: rgba(0, 26, 22, 0.85); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 212, 170, 0.2); 
-            box-shadow: 
-                0 0 40px rgba(0, 212, 170, 0.08),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        
-        .glass-gold { 
-            background: rgba(26, 22, 0, 0.85); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(212, 175, 55, 0.3); 
-            box-shadow: 
-                0 0 40px rgba(212, 175, 55, 0.1),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-        
-        .glass-dark { 
-            background: rgba(10, 15, 15, 0.95); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 212, 170, 0.1); 
-        }
-        
-        /* Text Effects */
-        .text-teal { 
-            color: var(--teal);
-            text-shadow: 0 0 15px var(--teal-glow);
-        }
-        
-        .text-gold { 
-            color: var(--gold);
-            text-shadow: 0 0 10px var(--gold-glow);
-        }
-        
-        /* Button Styles */
+        /* ── Text ── */
+        .text-teal { color: var(--teal); text-shadow: 0 0 12px var(--teal-glow); }
+        .text-gold  { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
+        .glow-teal  { text-shadow: 0 0 20px var(--teal-glow), 0 0 40px rgba(0,212,170,0.12); }
+
+        /* ── Buttons ── */
         .btn-teal {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.12) 0%, rgba(0, 168, 132, 0.2) 100%);
-            border: 1px solid rgba(0, 212, 170, 0.35);
-            color: var(--teal);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,168,132,0.18));
+            border: 1px solid rgba(0,212,170,0.32); color: var(--teal);
+            position: relative; overflow: hidden; transition: all 0.28s ease;
         }
-        
-        .btn-teal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.15), transparent);
-            transition: left 0.5s;
+        .btn-teal::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(0,212,170,0.12), transparent);
+            transform: translateX(-100%); transition: transform 0.5s ease;
         }
-        
-        .btn-teal:hover::before { left: 100%; }
-        
+        .btn-teal:hover::after  { transform: translateX(100%); }
         .btn-teal:hover {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.25) 0%, rgba(0, 168, 132, 0.35) 100%);
-            border-color: var(--teal);
-            box-shadow: 0 0 25px var(--teal-glow);
-            transform: translateY(-2px);
+            background: linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,168,132,0.32));
+            border-color: var(--teal); box-shadow: 0 0 22px var(--teal-glow);
+            transform: translateY(-1px);
         }
-        
+        .btn-teal:active { transform: translateY(0); }
         .btn-gold {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(184, 134, 11, 0.2) 100%);
-            border: 1px solid rgba(212, 175, 55, 0.35);
-            color: var(--gold);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg,rgba(212,175,55,0.1),rgba(184,134,11,0.18));
+            border: 1px solid rgba(212,175,55,0.32); color: var(--gold);
+            transition: all 0.28s ease;
         }
-        
         .btn-gold:hover {
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(184, 134, 11, 0.35) 100%);
-            border-color: var(--gold);
-            box-shadow: 0 0 25px var(--gold-glow);
-        }
-        
-        /* Profile Avatar with Circuit Border */
-        .avatar-circuit {
-            position: relative;
-            border-radius: 50%;
-            padding: 3px;
-            background: conic-gradient(from 0deg, var(--teal), var(--gold), var(--teal));
-            animation: rotate 20s linear infinite;
-        }
-        
-        .avatar-circuit img,
-        .avatar-circuit > div {
-            border-radius: 50%;
-            border: 3px solid var(--dark-bg);
-        }
-        
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Stats Bar */
-        .stat-bar {
-            background: rgba(0,0,0,0.6);
-            border-radius: 999px;
-            overflow: hidden;
-            height: 5px;
-            border: 1px solid rgba(0, 212, 170, 0.15);
-        }
-        
-        .stat-fill {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(90deg, var(--teal-dark), var(--teal));
-            box-shadow: 0 0 8px var(--teal-glow);
+            background: linear-gradient(135deg,rgba(212,175,55,0.22),rgba(184,134,11,0.32));
+            border-color: var(--gold); box-shadow: 0 0 22px var(--gold-glow);
         }
 
-        .stat-fill-gold {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(90deg, #b8860b, var(--gold));
-            box-shadow: 0 0 8px var(--gold-glow);
+        /* ── Avatar ring ── */
+        .avatar-ring {
+            position: relative; border-radius: 50%; padding: 2px;
+            background: conic-gradient(from 0deg,var(--teal),var(--gold),var(--teal-dark),var(--teal));
+            animation: ringRotate 18s linear infinite; flex-shrink: 0;
         }
+        .avatar-ring > div {
+            border-radius: 50%; border: 2px solid var(--dark-bg); overflow: hidden;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg,rgba(0,212,170,0.15),#000);
+            display: flex; align-items: center; justify-content: center;
+        }
+        @keyframes ringRotate { to { transform: rotate(360deg); } }
 
-        .stat-fill-cyan {
-            height: 100%;
-            border-radius: 999px;
-            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: linear-gradient(90deg, #0891b2, #22d3ee);
-            box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        /* ── Stat bars ── */
+        .stat-track {
+            height: 4px; background: rgba(0,0,0,0.7);
+            border-radius: 99px; overflow: hidden;
+            border: 1px solid rgba(0,212,170,0.1);
         }
-        
-        /* Scanline */
-        .scanline-teal {
-            width: 100%;
-            height: 100px;
-            background: linear-gradient(0deg, transparent 0%, rgba(0, 212, 170, 0.035) 50%, transparent 100%);
-            position: fixed;
-            top: -100px;
-            left: 0;
-            pointer-events: none;
-            animation: scanline 10s linear infinite;
-            z-index: 100;
-        }
-        
-        @keyframes scanline {
-            from { top: -100px; }
-            to { top: 100vh; }
-        }
-        
-        /* Lockdown Overlay */
-        .lockdown-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 30, 30, 0.97);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(20px);
-        }
-        
-        /* M.O.G. Badge */
+        .bar-teal { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dark),var(--teal));box-shadow:0 0 8px var(--teal-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .bar-gold { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));box-shadow:0 0 8px var(--gold-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .bar-cyan { height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);box-shadow:0 0 8px rgba(34,211,238,0.4);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .bar-red  { height:100%;border-radius:99px;background:linear-gradient(90deg,#991b1b,#ef4444);box-shadow:0 0 8px rgba(239,68,68,0.3);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
+
+        /* ── Badges ── */
         .mog-badge {
-            background: linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(212, 175, 55, 0.1));
-            border: 1px solid rgba(0, 212, 170, 0.35);
-            clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+            background: linear-gradient(135deg,rgba(0,212,170,0.13),rgba(212,175,55,0.08));
+            border: 1px solid rgba(0,212,170,0.3);
+            clip-path: polygon(8% 0%,100% 0%,92% 100%,0% 100%);
         }
-        
-        /* Input Styles */
-        .input-teal {
-            background: rgba(0, 15, 15, 0.8);
-            border: 1px solid rgba(0, 212, 170, 0.2);
-            color: white;
-            transition: all 0.3s ease;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 0.95rem;
+        .rank-chip {
+            border-radius:999px; padding:2px 12px;
+            font-size:0.65rem; font-weight:700;
+            letter-spacing:0.12em; text-transform:uppercase;
         }
-        
-        .input-teal:focus {
+
+/* ── Inputs ── */
+        .input-field {
+            background: rgba(0,10,10,0.85);
+            border: 1px solid rgba(0,212,170,0.18); color: #e8f5f2;
+            font-family: 'Rajdhani',sans-serif; font-size: 0.95rem;
+            transition: border-color 0.25s, box-shadow 0.25s; width:100%;
+        }
+        .input-field:focus {
             border-color: var(--teal);
-            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.08), 0 0 20px rgba(0, 212, 170, 0.1);
+            box-shadow: 0 0 0 3px rgba(0,212,170,0.07), 0 0 18px rgba(0,212,170,0.08);
             outline: none;
         }
-
-        .input-teal::placeholder {
-            color: rgba(255,255,255,0.2);
-        }
-
-        /* Select arrow */
-        select.input-teal {
+        .input-field::placeholder { color: rgba(255,255,255,0.18); }
+        .input-field:disabled { opacity:0.45; cursor:not-allowed; }
+        select.input-field {
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d4aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 1rem center;
-            padding-right: 2.5rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d4aa' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 1rem center;
+            padding-right:2.5rem;
         }
+        select.input-field option { background:#0a1a16; color:#e8f5f2; }
 
-        select.input-teal option {
-            background: #0a1a18;
-            color: white;
-        }
-        
-        /* Vinyl Spin */
-        .vinyl-spin {
-            animation: spin 4s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: rgba(0,20,20,0.4); }
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width:4px; height:4px; }
+        ::-webkit-scrollbar-track { background:rgba(0,15,15,0.5); }
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--teal-dark), #b8860b);
-            border-radius: 3px;
-        }
-        
-        /* Pulse */
-        .pulse-teal {
-            animation: pulse-teal 2s infinite;
-        }
-        
-        @keyframes pulse-teal {
-            0%, 100% { box-shadow: 0 0 4px var(--teal); }
-            50% { box-shadow: 0 0 16px var(--teal), 0 0 32px var(--teal-glow); }
+            background:linear-gradient(180deg,var(--teal-dim),var(--gold-dark)); border-radius:4px;
         }
 
-        /* Fade in animation for hub */
-        .fade-in {
-            animation: fadeIn 0.6s ease forwards;
+        /* ── Pulse ── */
+        .pulse-dot { animation: pulseDot 2.2s ease-in-out infinite; }
+        @keyframes pulseDot {
+            0%,100% { box-shadow:0 0 0 0 rgba(0,212,170,0.5); }
+            50%      { box-shadow:0 0 0 5px rgba(0,212,170,0); }
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* ── Animations ── */
+        .fade-up { animation: fadeUp 0.55s cubic-bezier(0.22,1,0.36,1) forwards; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-        /* Operative card hover */
-        .operative-card {
-            transition: all 0.25s ease;
-            cursor: pointer;
-        }
-        .operative-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(0, 212, 170, 0.5) !important;
-            box-shadow: 0 8px 30px rgba(0, 212, 170, 0.1);
-        }
+        .dot-blink span { animation: dotBlink 1.3s infinite; }
+        .dot-blink span:nth-child(2) { animation-delay:.2s; }
+        .dot-blink span:nth-child(3) { animation-delay:.4s; }
+        @keyframes dotBlink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
 
-        /* Corner bracket decoration */
-        .bracket-corner {
-            position: relative;
-        }
-        .bracket-corner::before,
-        .bracket-corner::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border-color: var(--teal);
-            border-style: solid;
-            opacity: 0.4;
-        }
-        .bracket-corner::before {
-            top: 8px; left: 8px;
-            border-width: 2px 0 0 2px;
-        }
-        .bracket-corner::after {
-            bottom: 8px; right: 8px;
-            border-width: 0 2px 2px 0;
-        }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        .spin-slow { animation: spin 22s linear infinite; }
 
-        /* Loading dots */
-        .loading-dots span {
-            animation: blink 1.4s infinite;
-        }
-        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink {
-            0%, 80%, 100% { opacity: 0; }
-            40% { opacity: 1; }
-        }
-
-        /* Tab underline indicator */
-        .tab-active {
-            position: relative;
-        }
+        /* ── Tabs ── */
+        .tab-active { position:relative; }
         .tab-active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 25%;
-            width: 50%;
-            height: 2px;
-            background: var(--teal);
-            border-radius: 2px;
-            box-shadow: 0 0 8px var(--teal-glow);
+            content:''; position:absolute; bottom:-1px; left:20%; width:60%; height:2px;
+            background:var(--teal); border-radius:2px; box-shadow:0 0 8px var(--teal-glow);
         }
 
-        /* Stat card glow on hover */
-        .stat-card {
-            transition: all 0.25s ease;
+        /* ── Cards ── */
+        .op-card {
+            transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+            cursor:pointer;
         }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0, 212, 170, 0.15);
+        .op-card:hover { transform:translateY(-2px); border-color:rgba(0,212,170,0.45)!important; box-shadow:0 8px 28px rgba(0,212,170,0.09); }
+        .stat-card { transition:transform .22s ease,box-shadow .22s ease; }
+        .stat-card:hover { transform:translateY(-3px); box-shadow:0 12px 32px rgba(0,212,170,0.1); }
+
+        /* ── Corner brackets ── */
+        .bracket { position:relative; }
+        .bracket::before,.bracket::after {
+            content:''; position:absolute;
+            width:16px; height:16px;
+            border-color:rgba(0,212,170,0.35); border-style:solid;
+        }
+        .bracket::before { top:10px;left:10px;border-width:2px 0 0 2px; }
+        .bracket::after  { bottom:10px;right:10px;border-width:0 2px 2px 0; }
+
+        /* ── Directive border pulse ── */
+        .dir-pulse { animation:dirPulse 3s ease-in-out infinite; }
+        @keyframes dirPulse { 0%,100%{border-color:rgba(212,175,55,0.22)} 50%{border-color:rgba(212,175,55,0.55)} }
+
+        /* ── Lockdown ── */
+        .lockdown-screen {
+            position:fixed;inset:0;z-index:9999;
+            background:rgba(0,22,18,0.97); backdrop-filter:blur(24px);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            text-align:center;padding:2rem;
         }
 
-        /* Directive pulse border */
-        @keyframes borderPulse {
-            0%, 100% { border-color: rgba(212, 175, 55, 0.3); }
-            50% { border-color: rgba(212, 175, 55, 0.7); }
+        /* ── Toast ── */
+        .toast {
+            font-family:'Rajdhani',sans-serif; font-weight:700; font-size:0.82rem;
+            letter-spacing:0.07em; text-transform:uppercase;
+            border-radius:14px; padding:14px 18px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.5);
+            display:flex; align-items:center; gap:10px;
+            border-width:1px; border-style:solid;
+            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s ease;
         }
-        .directive-card {
-            animation: borderPulse 3s ease-in-out infinite;
+
+        /* ── Mobile nav ── */
+        @media (max-width:640px) {
+            .bottom-nav {
+                position:fixed; bottom:0; left:0; right:0; z-index:40;
+                background:rgba(6,12,12,0.97); backdrop-filter:blur(20px);
+                border-top:1px solid rgba(0,212,170,0.12);
+                display:flex; padding-bottom:env(safe-area-inset-bottom,0);
+            }
+            main { padding-bottom:80px !important; }
         }
+        @media (min-width:641px) { .bottom-nav { display:none; } }
     </style>
 
     <script>
-        function mogNetwork() {
-            return {
-                view: 'loading',
-                currentUser: null,
-                profile: {
-                    username: '',
-                    codename: '',
-                    rank: 'INITIATE',
-                    department: 'UNASSIGNED',
-                    bio: '',
-                    avatar_url: null,
-                    stats: {
-                        missions: 0,
-                        contributions: 0,
-                        influence: 0,
-                        loyalty: 100,
-                        groove: 50
-                    },
-                    skills: [],
-                    achievements: [],
-                    joined_at: null,
-                    last_active: null
-                },
-                isEditing: false,
-                isLoading: false,
-                uploadProgress: 0,
-                systemStatus: 'ONLINE',
-                networkStatus: 'CONNECTED',
-                lockdownActive: false,
-                directorateMessage: '',
-                activeTab: 'overview',
-                showProfileModal: false,
-                allOperatives: [],
-                recentActivity: [],
-                directives: [],
-                directorateBanner: '',
-                
-                get rankColor() {
-                    const colors = {
-                        'INITIATE': 'text-gray-400',
-                        'AGENT': 'text-teal-400',
-                        'OPERATIVE': 'text-cyan-400',
-                        'SPECIALIST': 'text-amber-400',
-                        'DIRECTOR': 'text-gold'
-                    };
-                    return colors[this.profile.rank] || 'text-gray-400';
-                },
-                
-                get clearanceLevel() {
-                    const levels = {
-                        'INITIATE': 1,
-                        'AGENT': 2,
-                        'OPERATIVE': 3,
-                        'SPECIALIST': 4,
-                        'DIRECTOR': 5
-                    };
-                    return levels[this.profile.rank] || 1;
-                },
+    function mogNetwork() {
+        return {
+            view: 'loading',
+            currentUser: null,
+            profile: {
+                username:'', codename:'', rank:'INITIATE',
+                department:'UNASSIGNED', bio:'', avatar_url:null,
+                stats:{ missions:0, contributions:0, influence:0, loyalty:100, groove:50 },
+                skills:[], achievements:[], joined_at:null, last_active:null
+            },
+            isLoading: false,
+            uploadProgress: 0,
+            networkStatus: 'CONNECTED',
+            lockdownActive: false,
+            directorateMessage: '',
+            directorateBanner: '',
+            activeTab: 'overview',
+            showProfileModal: false,
+            allOperatives: [],
+            recentActivity: [],
+            directives: [],
 
-                async init() {
-                    this.checkDirectorateControl();
-                    
-                    window.addEventListener('storage', (e) => {
-                        if (e.key === 'ministrySettings') this.checkDirectorateControl();
-                        if (e.key === 'lastDirective') this.loadDirectives();
-                    });
+            get rankColor() {
+                return {INITIATE:'text-gray-400',AGENT:'text-teal-400',
+                    OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',
+                    DIRECTOR:'text-yellow-300'}[this.profile.rank] || 'text-gray-400';
+            },
+            get clearanceLevel() {
+                return {INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1;
+            },
+            get isDirector() { return this.profile.rank === 'DIRECTOR'; },
 
-                    // Guard: ensure Supabase is initialized
-                    if (!window.sb) {
-                        console.error('Supabase client not initialized. Check your credentials.');
-                        this.showNotification('Network client error — check config', 'error');
-                        return;
-                    }
-                    
-                    try {
-                        const { data: { session } } = await sb.auth.getSession();
-                        if (!session) {
-                            window.location.href = '/login.html';
-                            return;
-                        }
-                        this.currentUser = session.user;
-                    } catch (err) {
-                        console.error('Auth check failed:', err);
-                        this.showNotification('Authentication error', 'error');
-                        return;
-                    }
-                    
-                    await this.loadProfile();
-                    await Promise.all([
-                        this.loadOperatives(),
-                        this.loadActivity(),
-                        this.loadDirectives()
-                    ]);
-                    
-                    this.view = 'hub';
-                    this.$nextTick(() => lucide.createIcons());
-                },
-                
-                checkDirectorateControl() {
-                    try {
-                        const settings = localStorage.getItem('ministrySettings');
-                        if (settings) {
-                            const parsed = JSON.parse(settings);
-                            this.lockdownActive = parsed.isLocked || false;
-                            this.directorateMessage = parsed.alertStatus || '';
-                            if (parsed.bannerText) this.directorateBanner = parsed.bannerText;
-                        }
-                    } catch (e) {
-                        console.warn('Directorate link weak');
-                    }
-                },
-                
-                async loadProfile() {
-                    try {
-                        let { data, error } = await sb
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', this.currentUser.id)
-                            .single();
-                        
-                        if (error && error.code === 'PGRST116') {
-                            const codename = 'MOG-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-                            const newProfile = {
-                                id: this.currentUser.id,
-                                email: this.currentUser.email,
-                                username: this.currentUser.email.split('@')[0],
-                                codename,
-                                rank: 'INITIATE',
-                                department: 'UNASSIGNED',
-                                bio: '',
-                                avatar_url: null,
-                                stats: { missions: 0, contributions: 0, influence: 0, loyalty: 100, groove: 50 },
-                                skills: [],
-                                achievements: ['ENLISTED'],
-                                joined_at: new Date().toISOString(),
-                                last_active: new Date().toISOString(),
-                                network: 'M.O.G.'
-                            };
-                            
-                            const { data: created, error: createError } = await sb
-                                .from('profiles')
-                                .insert(newProfile)
-                                .select()
-                                .single();
-                                
-                            if (createError) throw createError;
-                            data = created;
-                        } else if (error) {
-                            throw error;
-                        }
-                        
-                        await sb
-                            .from('profiles')
-                            .update({ last_active: new Date().toISOString() })
-                            .eq('id', this.currentUser.id);
-                        
-                        this.profile = { ...this.profile, ...data };
-                        
-                        if (data.rank === 'DIRECTOR') {
-                            localStorage.setItem('userRole', 'director');
-                            localStorage.setItem('clearanceLevel', 'ALPHA');
-                        }
-                    } catch (e) {
-                        console.error('M.O.G. Network sync failed:', e);
-                        this.showNotification('Network sync failed', 'error');
-                    }
-                },
-                
-                async loadOperatives() {
-                    try {
-                        const { data, error } = await sb
-                            .from('profiles')
-                            .select('id, username, codename, rank, avatar_url, last_active, stats, network')
-                            .order('last_active', { ascending: false })
-                            .limit(12);
-                        
-                        if (error) throw error;
-                        this.allOperatives = data || [];
-                    } catch (e) {
-                        console.warn('Operative network unreachable:', e);
-                        this.allOperatives = [];
-                    }
-                },
-                
-                async loadActivity() {
-                    try {
-                        const { data, error } = await sb
-                            .from('activity_log')
-                            .select('*')
-                            .order('created_at', { ascending: false })
-                            .limit(20);
-                        
-                        if (error) throw error;
-                        this.recentActivity = data || [];
-                    } catch (e) {
-                        this.recentActivity = [];
-                    }
-                },
-                
-                async loadDirectives() {
-                    try {
-                        const { data, error } = await sb
-                            .from('directives')
-                            .select('*')
-                            .order('timestamp', { ascending: false })
-                            .limit(3);
-                        
-                        if (error) throw error;
-                        this.directives = data || [];
-                    } catch (e) {
-                        this.directives = [];
-                    }
-                },
-                
-                async updateProfile() {
-                    this.isLoading = true;
-                    try {
-                        const updateData = {
-                            username: this.profile.username,
-                            codename: this.profile.codename,
-                            bio: this.profile.bio,
-                            department: this.profile.department,
-                            updated_at: new Date().toISOString()
-                        };
-                        
-                        const { error } = await sb
-                            .from('profiles')
-                            .update(updateData)
-                            .eq('id', this.currentUser.id);
-                        
-                        if (error) throw error;
-                        
-                        this.isEditing = false;
-                        this.showProfileModal = false;
-                        this.showNotification('Dossier updated', 'success');
-                        await this.logActivity('PROFILE_UPDATE', 'Updated operative dossier');
-                    } catch (e) {
-                        console.error('Profile update failed:', e);
-                        this.showNotification('Update failed — ' + (e.message || 'unknown error'), 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-                
-                async uploadAvatar(event) {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-                    if (!allowedTypes.includes(file.type)) {
-                        this.showNotification('Invalid file type — JPG, PNG, WEBP only', 'error');
-                        return;
-                    }
+            async init() {
+                this.checkDirectorateControl();
+                window.addEventListener('storage', e => {
+                    if (e.key==='ministrySettings') this.checkDirectorateControl();
+                    if (e.key==='lastDirective')    this.loadDirectives();
+                });
 
-                    if (file.size > 2 * 1024 * 1024) {
-                        this.showNotification('File exceeds 2MB limit', 'error');
-                        return;
-                    }
-                    
-                    this.isLoading = true;
-                    this.uploadProgress = 10;
-                    
-                    try {
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `mog-${this.currentUser.id}-${Date.now()}.${fileExt}`;
-                        const filePath = `mog-avatars/${fileName}`;
-                        
-                        this.uploadProgress = 30;
-
-                        const { error: uploadError } = await sb.storage
-                            .from('operative-assets')
-                            .upload(filePath, file, { cacheControl: '3600', upsert: true });
-                        
-                        if (uploadError) throw uploadError;
-                        this.uploadProgress = 70;
-                        
-                        const { data: { publicUrl } } = sb.storage
-                            .from('operative-assets')
-                            .getPublicUrl(filePath);
-                        
-                        const { error: updateError } = await sb
-                            .from('profiles')
-                            .update({ avatar_url: publicUrl })
-                            .eq('id', this.currentUser.id);
-                        
-                        if (updateError) throw updateError;
-                        
-                        this.profile.avatar_url = publicUrl;
-                        this.uploadProgress = 100;
-                        this.showNotification('Visual ID updated', 'success');
-                        
-                    } catch (e) {
-                        console.error('Upload failed:', e);
-                        this.showNotification('Upload failed — ' + (e.message || 'try again'), 'error');
-                    } finally {
-                        this.isLoading = false;
-                        setTimeout(() => this.uploadProgress = 0, 1500);
-                    }
-                },
-                
-                async logActivity(type, description) {
-                    try {
-                        await sb.from('activity_log').insert({
-                            user_id: this.currentUser.id,
-                            type,
-                            description,
-                            network: 'M.O.G.',
-                            created_at: new Date().toISOString()
-                        });
-                    } catch (e) {
-                        console.warn('Activity log write failed:', e);
-                    }
-                },
-                
-                getRankIcon(rank) {
-                    const icons = {
-                        'INITIATE': 'radio',
-                        'AGENT': 'user',
-                        'OPERATIVE': 'target',
-                        'SPECIALIST': 'star',
-                        'DIRECTOR': 'crown'
-                    };
-                    return icons[rank] || 'radio';
-                },
-                
-                getStatusColor(timestamp) {
-                    if (!timestamp) return 'text-gray-700';
-                    const diff = (new Date() - new Date(timestamp)) / 1000 / 60;
-                    if (diff < 5) return 'text-teal-400';
-                    if (diff < 30) return 'text-amber-400';
-                    if (diff < 1440) return 'text-gray-500';
-                    return 'text-gray-700';
-                },
-
-                getStatusLabel(timestamp) {
-                    if (!timestamp) return 'OFFLINE';
-                    const diff = (new Date() - new Date(timestamp)) / 1000 / 60;
-                    if (diff < 5) return 'LIVE';
-                    if (diff < 30) return 'RECENT';
-                    if (diff < 1440) return 'TODAY';
-                    return 'OFFLINE';
-                },
-
-                formatTimeAgo(timestamp) {
-                    if (!timestamp) return '—';
-                    const diff = (new Date() - new Date(timestamp)) / 1000;
-                    if (diff < 60) return Math.floor(diff) + 's ago';
-                    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-                    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-                    return Math.floor(diff / 86400) + 'd ago';
-                },
-                
-                showNotification(message, type = 'info') {
-                    const colors = {
-                        success: 'bg-teal-600 border-teal-400/40',
-                        error: 'bg-red-800 border-red-500/40',
-                        warning: 'bg-amber-700 border-amber-400/40',
-                        info: 'bg-cyan-700 border-cyan-400/40'
-                    };
-                    const icons = { success: 'check-circle', error: 'alert-triangle', warning: 'alert-circle', info: 'info' };
-
-                    const notif = document.createElement('div');
-                    notif.className = `fixed top-5 right-5 p-4 rounded-2xl z-[99999] font-bold tracking-wider transform transition-all duration-300 translate-x-[120%] ${colors[type] || colors.info} text-white shadow-2xl border`;
-                    notif.style.fontFamily = "'Rajdhani', sans-serif";
-                    notif.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="${icons[type] || 'info'}" style="width:18px;height:18px;flex-shrink:0;"></i>
-                            <span style="font-size:0.85rem;letter-spacing:0.08em;">${message.toUpperCase()}</span>
-                        </div>
-                    `;
-                    document.body.appendChild(notif);
-                    lucide.createIcons();
-                    
-                    requestAnimationFrame(() => {
-                        setTimeout(() => notif.classList.remove('translate-x-[120%]'), 50);
-                    });
-                    setTimeout(() => {
-                        notif.classList.add('translate-x-[120%]');
-                        setTimeout(() => notif.remove(), 350);
-                    }, 3500);
-                },
-                
-                async logout() {
-                    try {
-                        await sb.auth.signOut();
-                    } catch(e) {}
-                    localStorage.clear();
-                    window.location.href = '/login.html';
+                /* Wait up to 2s for sb from supabase-client.js */
+                let tries = 0;
+                while (typeof sb === 'undefined' && tries < 20) {
+                    await new Promise(r => setTimeout(r, 100)); tries++;
                 }
-            };
-        }
+                if (typeof sb === 'undefined') {
+                    console.error('[M.O.G.] sb not found — check /js/supabase-client.js');
+                    return;
+                }
+
+                try {
+                    const { data:{ session } } = await sb.auth.getSession();
+                    if (!session) { window.location.href = '/login.html'; return; }
+                    this.currentUser = session.user;
+                } catch(err) {
+                    console.error('[M.O.G.] Auth error:', err);
+                    this.showNotification('Authentication failed', 'error');
+                    return;
+                }
+
+                await this.loadProfile();
+                await Promise.all([this.loadOperatives(), this.loadActivity(), this.loadDirectives()]);
+                this.view = 'hub';
+                this.$nextTick(() => lucide.createIcons());
+            },
+
+            checkDirectorateControl() {
+                try {
+                    const s = localStorage.getItem('ministrySettings');
+                    if (!s) return;
+                    const p = JSON.parse(s);
+                    this.lockdownActive     = p.isLocked    || false;
+                    this.directorateMessage = p.alertStatus || '';
+                    if (p.bannerText) this.directorateBanner = p.bannerText;
+                } catch(e) {}
+            },
+
+            async loadProfile() {
+                try {
+                    let { data, error } = await sb.from('profiles').select('*')
+                        .eq('id', this.currentUser.id).single();
+
+                    if (error?.code === 'PGRST116') {
+                        const codename = 'MOG-' + Math.random().toString(36).substr(2,6).toUpperCase();
+                        const np = {
+                            id: this.currentUser.id, email: this.currentUser.email,
+                            username: this.currentUser.email.split('@')[0], codename,
+                            rank:'INITIATE', department:'UNASSIGNED', bio:'', avatar_url:null,
+                            stats:{ missions:0,contributions:0,influence:0,loyalty:100,groove:50 },
+                            skills:[], achievements:['ENLISTED'],
+                            joined_at: new Date().toISOString(),
+                            last_active: new Date().toISOString(), network:'M.O.G.'
+                        };
+                        const { data:c, error:ce } = await sb.from('profiles').insert(np).select().single();
+                        if (ce) throw ce;
+                        data = c;
+                    } else if (error) throw error;
+
+                    await sb.from('profiles')
+                        .update({ last_active: new Date().toISOString() })
+                        .eq('id', this.currentUser.id);
+
+                    this.profile = { ...this.profile, ...data };
+                    if (data.rank === 'DIRECTOR') {
+                        localStorage.setItem('userRole','director');
+                        localStorage.setItem('clearanceLevel','ALPHA');
+                    }
+                } catch(e) {
+                    console.error('[M.O.G.] Profile sync failed:', e);
+                    this.showNotification('Profile sync failed','error');
+                }
+            },
+
+            async loadOperatives() {
+                try {
+                    const { data, error } = await sb.from('profiles')
+                        .select('id,username,codename,rank,avatar_url,last_active,stats,department')
+                        .order('last_active',{ ascending:false }).limit(16);
+                    if (error) throw error;
+                    this.allOperatives = data || [];
+                } catch(e) { this.allOperatives = []; }
+            },
+
+            async loadActivity() {
+                try {
+                    const { data, error } = await sb.from('activity_log')
+                        .select('*').order('created_at',{ ascending:false }).limit(25);
+                    if (error) throw error;
+                    this.recentActivity = data || [];
+                } catch(e) { this.recentActivity = []; }
+            },
+
+            async loadDirectives() {
+                try {
+                    const { data, error } = await sb.from('directives')
+                        .select('*').order('timestamp',{ ascending:false }).limit(3);
+                    if (error) throw error;
+                    this.directives = data || [];
+                } catch(e) { this.directives = []; }
+            },
+
+            async updateProfile() {
+                this.isLoading = true;
+                try {
+                    const { error } = await sb.from('profiles').update({
+                        username:   this.profile.username,
+                        bio:        this.profile.bio,
+                        department: this.profile.department,
+                        updated_at: new Date().toISOString()
+                    }).eq('id', this.currentUser.id);
+                    if (error) throw error;
+                    this.showProfileModal = false;
+                    this.showNotification('Dossier saved','success');
+                    this.logActivity('PROFILE_UPDATE','Updated operative dossier');
+                } catch(e) {
+                    this.showNotification('Save failed — '+(e.message||'retry'),'error');
+                } finally { this.isLoading = false; }
+            },
+
+            async uploadAvatar(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+                    this.showNotification('JPG, PNG or WEBP only','error'); return;
+                }
+                if (file.size > 2*1024*1024) {
+                    this.showNotification('Max 2 MB','error'); return;
+                }
+                this.isLoading = true; this.uploadProgress = 15;
+                try {
+                    const ext  = file.name.split('.').pop();
+                    const path = `mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
+                    this.uploadProgress = 35;
+                    const { error:ue } = await sb.storage.from('operative-assets')
+                        .upload(path, file, { cacheControl:'3600', upsert:true });
+                    if (ue) throw ue;
+                    this.uploadProgress = 75;
+                    const { data:{ publicUrl } } = sb.storage.from('operative-assets').getPublicUrl(path);
+                    const { error:pe } = await sb.from('profiles')
+                        .update({ avatar_url: publicUrl }).eq('id', this.currentUser.id);
+                    if (pe) throw pe;
+                    this.profile.avatar_url = publicUrl;
+                    this.uploadProgress = 100;
+                    this.showNotification('Photo updated','success');
+                } catch(err) {
+                    this.showNotification('Upload failed — '+(err.message||'retry'),'error');
+                } finally {
+                    this.isLoading = false;
+                    setTimeout(() => this.uploadProgress = 0, 1800);
+                }
+            },
+
+            async logActivity(type, description) {
+                try {
+                    await sb.from('activity_log').insert({
+                        user_id:this.currentUser.id, type, description,
+                        network:'M.O.G.', created_at: new Date().toISOString()
+                    });
+                } catch(_) {}
+            },
+
+            getRankIcon(rank) {
+                return {INITIATE:'radio',AGENT:'user',OPERATIVE:'target',
+                    SPECIALIST:'star',DIRECTOR:'crown'}[rank]||'radio';
+            },
+            getRankBadgeClass(rank) {
+                return {INITIATE:'border-gray-600/50 text-gray-400',AGENT:'border-teal-600/50 text-teal-400',
+                    OPERATIVE:'border-cyan-600/50 text-cyan-400',SPECIALIST:'border-amber-600/50 text-amber-400',
+                    DIRECTOR:'border-yellow-500/60 text-yellow-300'}[rank]||'border-gray-600/50 text-gray-400';
+            },
+            getOnlineStatus(ts) {
+                if (!ts) return { label:'OFFLINE', color:'bg-gray-700' };
+                const m = (Date.now()-new Date(ts))/60000;
+                if (m<5)    return { label:'LIVE',    color:'bg-teal-400' };
+                if (m<30)   return { label:'RECENT',  color:'bg-amber-400' };
+                if (m<1440) return { label:'TODAY',   color:'bg-gray-500' };
+                return           { label:'OFFLINE',  color:'bg-gray-700' };
+            },
+            timeAgo(ts) {
+                if (!ts) return '—';
+                const s = (Date.now()-new Date(ts))/1000;
+                if (s<60)    return Math.floor(s)+'s ago';
+                if (s<3600)  return Math.floor(s/60)+'m ago';
+                if (s<86400) return Math.floor(s/3600)+'h ago';
+                return Math.floor(s/86400)+'d ago';
+            },
+
+            showNotification(message, type='info') {
+                const cfg = {
+                    success:{ bg:'bg-teal-700',  border:'border-teal-500/50',  icon:'check-circle' },
+                    error:  { bg:'bg-red-800',   border:'border-red-500/50',   icon:'alert-triangle' },
+                    warning:{ bg:'bg-amber-700', border:'border-amber-500/50', icon:'alert-circle' },
+                    info:   { bg:'bg-slate-700', border:'border-slate-500/50', icon:'info' }
+                }[type]||{ bg:'bg-slate-700',border:'border-slate-500/50',icon:'info' };
+                const t = document.createElement('div');
+                t.className=`toast fixed top-5 right-5 z-[99999] text-white ${cfg.bg} ${cfg.border} translate-x-[120%]`;
+                t.innerHTML=`<i data-lucide="${cfg.icon}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${message.toUpperCase()}</span>`;
+                document.body.appendChild(t); lucide.createIcons();
+                requestAnimationFrame(() => setTimeout(() => t.style.transform='translateX(0)', 30));
+                setTimeout(() => { t.style.transform='translateX(120%)'; t.style.opacity='0'; setTimeout(()=>t.remove(),350); }, 3600);
+            },
+
+            async logout() {
+                try { await sb.auth.signOut(); } catch(_) {}
+                localStorage.clear();
+                window.location.href = '/login.html';
+            }
+        };
+    }
     </script>
 </head>
-<body x-data="mogNetwork()" x-init="init()" x-cloak class="bg-[#0a0f0f] text-white min-h-screen relative overflow-x-hidden">
 
-    <!-- Background Elements -->
-    <div class="mog-bg"></div>
-    <div class="circuit-grid"></div>
-    <div class="noise-overlay"></div>
-    <div class="scanline-teal"></div>
+<body x-data="mogNetwork()" x-init="init()" x-cloak class="bg-[#080d0d] text-white min-h-screen">
 
-    <!-- Lockdown Overlay -->
-    <div x-show="lockdownActive" x-transition class="lockdown-overlay">
-        <div class="w-24 h-24 rounded-full border-2 border-teal-400/60 flex items-center justify-center mb-8 pulse-teal">
-            <i data-lucide="lock" class="w-10 h-10 text-teal-400"></i>
+    <div class="mog-seal" aria-hidden="true"></div>
+    <div class="circuit-grid" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+
+    <!-- ══ LOCKDOWN ══════════════════════════════════════════ -->
+    <div x-show="lockdownActive" x-transition class="lockdown-screen">
+        <div class="w-20 h-20 rounded-full border-2 border-teal-400/50
+                    flex items-center justify-center mb-8 pulse-dot">
+            <i data-lucide="lock" class="w-9 h-9 text-teal-400"></i>
         </div>
-        <p class="text-[10px] text-teal-600 uppercase tracking-[0.5em] terminal-font mb-3">Protocol Active</p>
-        <h1 class="text-4xl font-black text-teal-400 uppercase tracking-[0.25em] mb-4" style="text-shadow: 0 0 40px rgba(0,212,170,0.5);">NETWORK LOCKDOWN</h1>
-        <p class="text-base text-white/60 terminal-font mb-1" x-text="directorateMessage || 'DIRECTORATE PROTOCOL ACTIVE'"></p>
-        <p class="text-xs text-teal-700 uppercase tracking-widest mb-8">Ministry of Groove // Sector Control</p>
-        <button @click="checkDirectorateControl()" 
-                class="px-8 py-3 border border-teal-500/40 text-teal-400 rounded-full hover:bg-teal-500/15 transition-all uppercase tracking-widest text-xs font-bold">
+        <p class="terminal-font text-[10px] text-teal-600 uppercase tracking-[0.5em] mb-3">Protocol Active</p>
+        <h1 class="text-4xl font-black uppercase tracking-[0.2em] text-teal-400 glow-teal mb-3">NETWORK LOCKDOWN</h1>
+        <p class="text-sm text-white/50 terminal-font mb-1" x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
+        <p class="text-[10px] text-teal-800 uppercase tracking-widest mb-8 terminal-font">Ministry of Groove // Sector Control</p>
+        <button @click="checkDirectorateControl()"
+                class="px-8 py-3 border border-teal-500/35 text-teal-400 rounded-full
+                       hover:bg-teal-500/12 transition-all text-xs uppercase tracking-widest font-bold">
             Refresh Status
         </button>
     </div>
 
-    <!-- Loading View -->
-    <template x-if="view === 'loading'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-8 relative z-50">
+    <!-- ══ LOADING ════════════════════════════════════════════ -->
+    <template x-if="view==='loading'">
+        <div class="h-screen flex flex-col items-center justify-center gap-8 relative z-10">
             <div class="relative">
                 <div class="w-20 h-20 rounded-full border-2 border-teal-500/20 border-t-teal-400 animate-spin"></div>
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-3 h-3 rounded-full bg-teal-400 pulse-teal"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-teal-400 pulse-dot"></div>
                 </div>
             </div>
             <div class="text-center space-y-2">
-                <p class="terminal-font text-sm text-teal-400 uppercase tracking-[0.4em]">
+                <p class="terminal-font text-xs text-teal-400 uppercase tracking-[0.4em]">
                     Connecting to M.O.G. Network
-                    <span class="loading-dots">
-                        <span>.</span><span>.</span><span>.</span>
-                    </span>
+                    <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span>
                 </p>
-                <p class="text-xs text-gray-700 uppercase tracking-widest terminal-font">Ministry of Groove // Est. 2026</p>
+                <p class="text-[10px] text-gray-700 uppercase tracking-widest terminal-font">Ministry of Groove // Est. 2026</p>
             </div>
         </div>
     </template>
 
-    <!-- Main Hub -->
-    <template x-if="view === 'hub'">
-        <div class="min-h-screen relative z-10 fade-in">
-            
-            <!-- Navigation -->
-            <nav class="glass-teal border-b border-teal-500/15 px-6 py-3 sticky top-0 z-50">
-                <div class="max-w-7xl mx-auto flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <img src="../assets/images/logo.png" alt="M.O.G." 
-                             class="w-12 h-12 object-contain opacity-90" 
-                             style="animation: spin 25s linear infinite;">
-                        <div>
-                            <h1 class="text-xl font-black uppercase tracking-tight text-teal-400" 
-                                style="text-shadow: 0 0 20px rgba(0,212,170,0.35);">M.O.G.</h1>
-                            <p class="text-[9px] text-gray-600 uppercase tracking-[0.35em] terminal-font">Ministry of Groove Network</p>
+    <!-- ══ HUB ════════════════════════════════════════════════ -->
+    <template x-if="view==='hub'">
+        <div class="min-h-screen relative z-10 fade-up">
+
+            <!-- NAV -->
+            <nav class="glass sticky top-0 z-50 border-b border-teal-500/10">
+                <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        <img src="../assets/images/logo.png" alt="M.O.G." class="w-11 h-11 object-contain opacity-90 spin-slow">
+                        <div class="hidden sm:block">
+                            <p class="text-lg font-black uppercase tracking-tight text-teal-400 leading-none glow-teal">M.O.G.</p>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-[0.35em] terminal-font">Ministry of Groove</p>
                         </div>
                     </div>
-                    
-                    <!-- Directorate Banner -->
-                    <div x-show="directorateBanner" 
-                         class="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-xs terminal-font uppercase tracking-wider truncate max-w-xs">
-                        <i data-lucide="radio" class="w-3 h-3 flex-shrink-0"></i>
-                        <span x-text="directorateBanner" class="truncate"></span>
+
+                    <div x-show="directorateBanner"
+                         class="hidden lg:flex items-center gap-2 px-4 py-1.5 rounded-full
+                                bg-yellow-500/8 border border-yellow-500/18 truncate max-w-xs">
+                        <i data-lucide="radio" class="w-3 h-3 text-yellow-500 flex-shrink-0"></i>
+                        <span class="text-[10px] text-yellow-400 terminal-font uppercase tracking-wider truncate"
+                              x-text="directorateBanner"></span>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <!-- Directorate Portal -->
-                        <a x-show="profile.rank === 'DIRECTOR'" 
-                           href="/pages/directorate.html"
-                           class="hidden md:flex items-center gap-2 px-4 py-2 bg-red-900/15 border border-red-500/40 rounded-full text-red-400 text-xs uppercase font-bold tracking-wider hover:bg-red-900/30 transition-all group">
+                    <div class="flex items-center gap-2">
+                        <a x-show="isDirector" href="/pages/directorate.html"
+                           class="hidden md:flex items-center gap-1.5 px-4 py-2
+                                  bg-red-900/12 border border-red-500/35 rounded-full
+                                  text-red-400 text-xs uppercase font-bold tracking-wider
+                                  hover:bg-red-900/28 transition-all group">
                             <i data-lucide="shield" class="w-3.5 h-3.5 group-hover:animate-pulse"></i>
-                            <span>Directorate</span>
+                            Directorate
                         </a>
-                        
-                        <!-- Profile Trigger -->
-                        <button @click="showProfileModal = true" 
-                                class="flex items-center gap-3 pl-1 pr-4 py-1 rounded-full bg-black/50 border border-teal-500/25 hover:border-teal-400/60 transition-all group">
-                            <div class="avatar-circuit w-10 h-10">
-                                <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-900/60 to-black flex items-center justify-center overflow-hidden">
-                                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
+                        <button @click="showProfileModal=true"
+                                class="flex items-center gap-2.5 pl-1 pr-4 py-1 rounded-full
+                                       bg-black/50 border border-teal-500/22 hover:border-teal-400/55 transition-all">
+                            <div class="avatar-ring w-10 h-10">
+                                <div>
+                                    <img x-show="profile.avatar_url" :src="profile.avatar_url"
+                                         class="w-full h-full object-cover" @error="profile.avatar_url=null">
                                     <i x-show="!profile.avatar_url" data-lucide="user" class="w-4 h-4 text-teal-400"></i>
                                 </div>
                             </div>
-                            <div class="hidden md:block text-left">
-                                <p class="text-xs font-bold text-white uppercase tracking-wider leading-tight" x-text="profile.codename"></p>
-                                <p class="text-[10px] text-teal-500 uppercase leading-tight" x-text="profile.rank"></p>
+                            <div class="hidden sm:block text-left leading-tight">
+                                <p class="text-xs font-bold text-white uppercase tracking-wider"
+                                   x-text="profile.codename||'OPERATIVE'"></p>
+                                <p class="text-[10px] uppercase" :class="rankColor" x-text="profile.rank"></p>
                             </div>
                         </button>
-                        
-                        <button @click="logout()" 
-                                class="p-2.5 text-gray-600 hover:text-teal-400 hover:bg-teal-500/10 rounded-full transition-all" 
+                        <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                                    border border-teal-500/15 bg-black/40">
+                            <span class="w-1.5 h-1.5 rounded-full bg-teal-400 pulse-dot"></span>
+                            <span class="text-[10px] text-teal-500 terminal-font uppercase">LIVE</span>
+                        </div>
+                        <button @click="logout()"
+                                class="p-2.5 text-gray-600 hover:text-teal-400 hover:bg-teal-500/8 rounded-full transition-all"
                                 title="Sign Out">
                             <i data-lucide="log-out" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
             </nav>
-                                
-                 <!-- Main Content -->
-            <main class="max-w-7xl mx-auto p-6 space-y-6">
-                
-                <!-- Welcome Banner -->
-                <div class="glass-teal p-7 rounded-[2.5rem] relative overflow-hidden bracket-corner">
-                    <div class="absolute inset-0 bg-gradient-to-br from-teal-900/20 via-transparent to-transparent pointer-events-none"></div>
-                    <div class="absolute top-0 right-0 w-64 h-64 rounded-full bg-teal-500/5 blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2"></div>
-                    
-                    <div class="relative z-10 flex flex-col md:flex-row items-center gap-7">
-                        <div class="avatar-circuit w-24 h-24 flex-shrink-0">
-                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/15 to-black flex items-center justify-center overflow-hidden">
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
+
+            <main class="max-w-7xl mx-auto px-5 py-6 space-y-5">
+
+                <!-- Hero -->
+                <div class="glass p-6 md:p-8 rounded-[2.5rem] bracket overflow-hidden relative">
+                    <div class="absolute inset-0 bg-gradient-to-br from-teal-900/18 via-transparent to-transparent pointer-events-none"></div>
+                    <div class="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-teal-500/5 blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col sm:flex-row items-center gap-6">
+                        <div class="avatar-ring w-24 h-24 flex-shrink-0">
+                            <div>
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url"
+                                     class="w-full h-full object-cover" @error="profile.avatar_url=null">
                                 <i x-show="!profile.avatar_url" data-lucide="user" class="w-10 h-10 text-teal-400"></i>
                             </div>
                         </div>
-
-                        <div class="text-center md:text-left flex-1 min-w-0">
-                            <p class="text-[10px] text-teal-500 uppercase tracking-[0.4em] mb-1 terminal-font">Operative Online</p>
-                            <h2 class="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white mb-3 truncate" x-text="profile.username"></h2>
-                            <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
-                                <span class="mog-badge px-4 py-1 text-xs font-bold uppercase tracking-wider text-teal-300 terminal-font" x-text="profile.codename"></span>
-                                <span class="px-3 py-1 rounded-full border text-xs font-bold uppercase tracking-wider" 
-                                      :class="profile.rank === 'DIRECTOR' ? 'border-yellow-500/50 text-yellow-400' : 'border-teal-500/40 text-teal-400'"
-                                      x-text="profile.rank"></span>
-                                <span class="text-xs text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <div class="flex-1 min-w-0 text-center sm:text-left">
+                            <p class="text-[10px] text-teal-500 uppercase tracking-[0.4em] terminal-font mb-1">Operative Online</p>
+                            <h2 class="text-3xl md:text-4xl font-black uppercase italic tracking-tight text-white mb-3 truncate"
+                                x-text="profile.username||'UNKNOWN'"></h2>
+                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                                <span class="mog-badge px-4 py-1 text-xs font-black uppercase tracking-wider text-teal-300 terminal-font"
+                                      x-text="profile.codename"></span>
+                                <span class="rank-chip border" :class="getRankBadgeClass(profile.rank)" x-text="profile.rank"></span>
+                                <span class="flex items-center gap-1.5 text-xs text-gray-500 uppercase tracking-widest">
                                     <i data-lucide="layers" class="w-3 h-3"></i>
                                     <span x-text="profile.department"></span>
                                 </span>
                             </div>
                         </div>
-
-                        <div class="text-center space-y-2 flex-shrink-0">
+                        <div class="flex-shrink-0 text-center space-y-1.5">
                             <div class="flex items-center gap-2 justify-center">
-                                <span class="w-2 h-2 rounded-full bg-teal-400 pulse-teal"></span>
-                                <span class="text-teal-400 font-bold uppercase text-xs tracking-wider" x-text="networkStatus"></span>
+                                <span class="w-2 h-2 rounded-full bg-teal-400 pulse-dot"></span>
+                                <span class="text-teal-400 font-bold text-xs uppercase tracking-wider" x-text="networkStatus"></span>
                             </div>
-                            <p class="text-[10px] text-gray-600 uppercase tracking-widest terminal-font">Clearance L<span x-text="clearanceLevel"></span></p>
-                            <p class="text-[10px] text-gray-700 uppercase tracking-widest terminal-font" x-show="profile.joined_at">
-                                Enlisted <span x-text="profile.joined_at ? new Date(profile.joined_at).toLocaleDateString() : ''"></span>
+                            <p class="text-[10px] text-gray-600 terminal-font uppercase tracking-wider">
+                                Clearance L<span x-text="clearanceLevel"></span>
+                            </p>
+                            <p class="text-[10px] text-gray-700 terminal-font" x-show="profile.joined_at">
+                                Enlisted <span x-text="profile.joined_at ? new Date(profile.joined_at).toLocaleDateString('en-ZA') : ''"></span>
                             </p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Directives -->
-                <div x-show="directives.length > 0" class="space-y-2">
-                    <template x-for="directive in directives" :key="directive.id">
-                        <div class="glass-gold p-4 rounded-2xl directive-card flex items-center gap-4">
-                            <div class="w-9 h-9 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0 border border-yellow-500/20">
-                                <i data-lucide="radio" class="w-4 h-4 text-yellow-400"></i>
+                <template x-if="directives.length>0">
+                    <div class="space-y-2">
+                        <template x-for="d in directives" :key="d.id">
+                            <div class="glass-gold p-4 rounded-2xl dir-pulse flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                                    <i data-lucide="radio" class="w-4 h-4 text-yellow-400"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold mb-0.5">Directorate Directive</p>
+                                    <p class="text-sm text-white/90 truncate" x-text="d.content"></p>
+                                </div>
+                                <span class="text-[10px] text-gray-600 terminal-font flex-shrink-0" x-text="timeAgo(d.timestamp)"></span>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-[10px] text-yellow-500 uppercase tracking-widest font-bold mb-0.5">Directorate Directive</p>
-                                <p class="text-sm text-white truncate" x-text="directive.content"></p>
-                            </div>
-                            <span class="text-[10px] text-gray-600 terminal-font flex-shrink-0" x-text="formatTimeAgo(directive.timestamp)"></span>
-                        </div>
-                    </template>
-                </div>
+                        </template>
+                    </div>
+                </template>
 
-                <!-- Dashboard Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Left Column -->
-                    <div class="space-y-6">
+                <!-- Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-                        <!-- Stats Panel -->
-                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-5 flex items-center gap-2">
-                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                                Performance Metrics
+                    <!-- Left sidebar -->
+                    <div class="space-y-5">
+
+                        <!-- Stats -->
+                        <div class="glass-dark p-6 rounded-[2rem]">
+                            <h3 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-5 flex items-center gap-2">
+                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>Performance Metrics
                             </h3>
-                            
-                            <div class="space-y-5">
+                            <div class="space-y-4">
                                 <div>
-                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-1.5">
                                         <span class="text-gray-500">Missions</span>
-                                        <span class="text-teal-400 font-bold terminal-font" x-text="profile.stats.missions"></span>
+                                        <span class="font-bold terminal-font text-teal-400" x-text="profile.stats.missions"></span>
                                     </div>
-                                    <div class="stat-bar">
-                                        <div class="stat-fill" :style="`width: ${Math.min(profile.stats.missions * 10, 100)}%`"></div>
-                                    </div>
+                                    <div class="stat-track"><div class="bar-teal" :style="`width:${Math.min(profile.stats.missions*10,100)}%`"></div></div>
                                 </div>
-                                
                                 <div>
-                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-1.5">
                                         <span class="text-gray-500">Contributions</span>
-                                        <span class="text-teal-400 font-bold terminal-font" x-text="profile.stats.contributions"></span>
+                                        <span class="font-bold terminal-font text-teal-400" x-text="profile.stats.contributions"></span>
                                     </div>
-                                    <div class="stat-bar">
-                                        <div class="stat-fill" :style="`width: ${Math.min(profile.stats.contributions * 5, 100)}%`"></div>
-                                    </div>
+                                    <div class="stat-track"><div class="bar-teal" :style="`width:${Math.min(profile.stats.contributions*5,100)}%`"></div></div>
                                 </div>
-                                
                                 <div>
-                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-1.5">
                                         <span class="text-gray-500">Influence</span>
-                                        <span class="font-bold terminal-font text-yellow-400" x-text="profile.stats.influence + '%'"></span>
+                                        <span class="font-bold terminal-font text-yellow-400" x-text="profile.stats.influence+'%'"></span>
                                     </div>
-                                    <div class="stat-bar border-yellow-500/15">
-                                        <div class="stat-fill-gold" :style="`width: ${profile.stats.influence}%`"></div>
-                                    </div>
+                                    <div class="stat-track"><div class="bar-gold" :style="`width:${profile.stats.influence}%`"></div></div>
                                 </div>
-                                
                                 <div>
-                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-1.5">
                                         <span class="text-gray-500">Groove Factor</span>
-                                        <span class="text-cyan-400 font-bold terminal-font" x-text="profile.stats.groove + '%'"></span>
+                                        <span class="font-bold terminal-font text-cyan-400" x-text="profile.stats.groove+'%'"></span>
                                     </div>
-                                    <div class="stat-bar border-cyan-500/15">
-                                        <div class="stat-fill-cyan" :style="`width: ${profile.stats.groove}%`"></div>
-                                    </div>
+                                    <div class="stat-track"><div class="bar-cyan" :style="`width:${profile.stats.groove}%`"></div></div>
                                 </div>
-
                                 <div>
-                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between text-xs uppercase tracking-wider mb-1.5">
                                         <span class="text-gray-500">Loyalty</span>
-                                        <span class="text-red-400 font-bold terminal-font" x-text="profile.stats.loyalty + '%'"></span>
+                                        <span class="font-bold terminal-font text-red-400" x-text="profile.stats.loyalty+'%'"></span>
                                     </div>
-                                    <div class="stat-bar border-red-500/15">
-                                        <div class="h-full rounded-full bg-gradient-to-r from-red-800 to-red-500 transition-all duration-1000 shadow-[0_0_8px_rgba(239,68,68,0.3)]" 
-                                             :style="`width: ${profile.stats.loyalty}%`"></div>
-                                    </div>
+                                    <div class="stat-track"><div class="bar-red" :style="`width:${profile.stats.loyalty}%`"></div></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Quick Actions -->
-                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-4">Quick Actions</h3>
-                            <div class="grid grid-cols-2 gap-3">
-                                <button @click="showProfileModal = true" class="btn-teal p-4 rounded-xl text-center group">
-                                    <i data-lucide="user-cog" class="w-5 h-5 mx-auto mb-2 group-hover:text-teal-300 transition-colors"></i>
+                        <!-- Quick actions -->
+                        <div class="glass-dark p-6 rounded-[2rem]">
+                            <h3 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <button @click="showProfileModal=true" class="btn-teal p-4 rounded-xl text-center group">
+                                    <i data-lucide="user-cog" class="w-5 h-5 mx-auto mb-2 group-hover:text-white transition-colors"></i>
                                     <span class="text-xs uppercase tracking-wider">Dossier</span>
                                 </button>
-                                <button @click="activeTab = 'operatives'" class="btn-teal p-4 rounded-xl text-center group">
-                                    <i data-lucide="users" class="w-5 h-5 mx-auto mb-2 group-hover:text-teal-300 transition-colors"></i>
+                                <button @click="activeTab='operatives'" class="btn-teal p-4 rounded-xl text-center group">
+                                    <i data-lucide="users" class="w-5 h-5 mx-auto mb-2 group-hover:text-white transition-colors"></i>
                                     <span class="text-xs uppercase tracking-wider">Network</span>
                                 </button>
-                                <button class="btn-gold p-4 rounded-xl text-center opacity-50 cursor-not-allowed" disabled>
+                                <button class="btn-gold p-4 rounded-xl text-center opacity-40 cursor-not-allowed" disabled>
                                     <i data-lucide="radio" class="w-5 h-5 mx-auto mb-2"></i>
                                     <span class="text-xs uppercase tracking-wider">Dispatch</span>
                                 </button>
-                                <button class="btn-gold p-4 rounded-xl text-center opacity-50 cursor-not-allowed" disabled>
+                                <button class="btn-gold p-4 rounded-xl text-center opacity-40 cursor-not-allowed" disabled>
                                     <i data-lucide="archive" class="w-5 h-5 mx-auto mb-2"></i>
                                     <span class="text-xs uppercase tracking-wider">Archives</span>
                                 </button>
@@ -1064,140 +767,136 @@
                         </div>
 
                         <!-- Achievements -->
-                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10">
-                            <h3 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
+                        <div class="glass-dark p-6 rounded-[2rem]">
+                            <h3 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
                                 <i data-lucide="award" class="w-3.5 h-3.5"></i>
                                 Achievements
-                                <span class="ml-auto text-gray-600 terminal-font" x-text="profile.achievements.length"></span>
+                                <span class="ml-auto text-gray-600 terminal-font text-xs"
+                                      x-text="(profile.achievements||[]).length"></span>
                             </h3>
                             <div class="flex flex-wrap gap-2">
-                                <template x-if="profile.achievements.length === 0">
+                                <template x-if="!profile.achievements||profile.achievements.length===0">
                                     <p class="text-xs text-gray-700 italic terminal-font">No achievements unlocked</p>
                                 </template>
-                                <template x-for="achievement in profile.achievements" :key="achievement">
-                                    <span class="px-3 py-1.5 bg-teal-500/8 border border-teal-500/25 rounded-full text-xs text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <i data-lucide="star" class="w-3 h-3"></i>
-                                        <span x-text="achievement"></span>
+                                <template x-for="a in (profile.achievements||[])" :key="a">
+                                    <span class="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500/7 border border-teal-500/22 rounded-full text-xs text-teal-400 uppercase tracking-wider">
+                                        <i data-lucide="star" class="w-2.5 h-2.5"></i>
+                                        <span x-text="a"></span>
                                     </span>
                                 </template>
                             </div>
                         </div>
                     </div>
-                                <!-- Main Content Area -->
-                    <div class="lg:col-span-2 space-y-5">
-                        
-                        <!-- Tab Navigation -->
-                        <div class="flex gap-1.5 overflow-x-auto pb-1">
-                            <button @click="activeTab = 'overview'" 
-                                    :class="activeTab === 'overview' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+
+                    <!-- Main panel -->
+                    <div class="lg:col-span-2 space-y-4">
+
+                        <!-- Tabs -->
+                        <div class="flex gap-1.5 overflow-x-auto pb-px">
+                            <button @click="activeTab='overview'"
+                                    :class="activeTab==='overview'?'bg-teal-500/14 border-teal-400/55 text-teal-300 tab-active':'border-teal-500/12 text-gray-600 hover:text-gray-400'"
                                     class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
                                 Overview
                             </button>
-                            <button @click="activeTab = 'operatives'" 
-                                    :class="activeTab === 'operatives' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+                            <button @click="activeTab='operatives'"
+                                    :class="activeTab==='operatives'?'bg-teal-500/14 border-teal-400/55 text-teal-300 tab-active':'border-teal-500/12 text-gray-600 hover:text-gray-400'"
                                     class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
                                 Network
                                 <span class="ml-1.5 text-[9px] text-gray-600 terminal-font" x-text="allOperatives.length"></span>
                             </button>
-                            <button @click="activeTab = 'activity'" 
-                                    :class="activeTab === 'activity' ? 'bg-teal-500/15 border-teal-400/60 text-teal-300 tab-active' : 'border-teal-500/15 text-gray-600 hover:text-gray-400'"
+                            <button @click="activeTab='activity'"
+                                    :class="activeTab==='activity'?'bg-teal-500/14 border-teal-400/55 text-teal-300 tab-active':'border-teal-500/12 text-gray-600 hover:text-gray-400'"
                                     class="px-5 py-2.5 rounded-full border text-xs uppercase font-bold tracking-wider transition-all whitespace-nowrap relative">
                                 Activity
-                                <span x-show="recentActivity.length > 0" class="ml-1.5 text-[9px] text-teal-600 terminal-font" x-text="recentActivity.length"></span>
+                                <span x-show="recentActivity.length>0" class="ml-1.5 text-[9px] text-teal-600 terminal-font" x-text="recentActivity.length"></span>
                             </button>
                         </div>
 
-                        <!-- Content Panel -->
-                        <div class="glass-dark p-6 rounded-[2rem] border border-teal-500/10 min-h-[460px]">
-                            
+                        <div class="glass-dark p-6 rounded-[2rem] min-h-[480px]">
+
                             <!-- Overview -->
-                            <div x-show="activeTab === 'overview'" class="space-y-6">
+                            <div x-show="activeTab==='overview'" class="space-y-6">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Mission Control</h3>
-                                    <span class="text-[10px] text-gray-600 terminal-font uppercase tracking-widest">L<span x-text="clearanceLevel"></span> Access</span>
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight">Mission Control</h3>
+                                    <span class="text-[10px] text-gray-600 terminal-font uppercase">L<span x-text="clearanceLevel"></span> Access</span>
                                 </div>
-                                
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div class="glass p-4 rounded-2xl text-center stat-card">
                                         <i data-lucide="target" class="w-5 h-5 text-teal-400 mx-auto mb-2"></i>
-                                        <p class="text-2xl font-black text-white terminal-font" x-text="profile.stats.missions"></p>
-                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Missions</p>
+                                        <p class="text-2xl font-black terminal-font" x-text="profile.stats.missions"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-0.5">Missions</p>
                                     </div>
-                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card">
+                                    <div class="glass p-4 rounded-2xl text-center stat-card">
                                         <i data-lucide="message-circle" class="w-5 h-5 text-teal-400 mx-auto mb-2"></i>
-                                        <p class="text-2xl font-black text-white terminal-font" x-text="profile.stats.contributions"></p>
-                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Posts</p>
+                                        <p class="text-2xl font-black terminal-font" x-text="profile.stats.contributions"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-0.5">Posts</p>
                                     </div>
                                     <div class="glass-gold p-4 rounded-2xl text-center stat-card">
                                         <i data-lucide="zap" class="w-5 h-5 text-yellow-400 mx-auto mb-2"></i>
                                         <p class="text-2xl font-black text-yellow-400 terminal-font" x-text="clearanceLevel"></p>
-                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Level</p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-0.5">Level</p>
                                     </div>
-                                    <div class="glass-teal p-4 rounded-2xl text-center stat-card" style="border-color: rgba(0,212,255,0.15);">
+                                    <div class="glass p-4 rounded-2xl text-center stat-card" style="border-color:rgba(34,211,238,0.12)">
                                         <i data-lucide="music" class="w-5 h-5 text-cyan-400 mx-auto mb-2"></i>
-                                        <p class="text-2xl font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
-                                        <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-0.5">Groove</p>
+                                        <p class="text-2xl font-black text-cyan-400 terminal-font" x-text="profile.stats.groove+'%'"></p>
+                                        <p class="text-[9px] text-gray-600 uppercase tracking-wider mt-0.5">Groove</p>
                                     </div>
                                 </div>
-
-                                <div class="p-5 bg-black/40 rounded-2xl border border-teal-500/15">
-                                    <h4 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
-                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
-                                        Operative Bio
+                                <div class="p-5 bg-black/35 rounded-2xl border border-teal-500/12">
+                                    <h4 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>Operative Bio
                                     </h4>
-                                    <p class="text-gray-400 leading-relaxed text-sm" 
-                                       x-text="profile.bio || 'No bio data on file. Open your dossier to add operational notes.'"></p>
+                                    <p class="text-sm text-gray-400 leading-relaxed"
+                                       x-text="profile.bio||'No bio on file — open your dossier to add operational notes.'"></p>
                                 </div>
-
                                 <div>
-                                    <h4 class="text-xs text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
-                                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
-                                        Skill Matrix
+                                    <h4 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-3 flex items-center gap-2">
+                                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i>Skill Matrix
                                     </h4>
                                     <div class="flex flex-wrap gap-2">
-                                        <template x-if="!profile.skills || profile.skills.length === 0">
-                                            <span class="text-xs text-gray-700 italic terminal-font">No skills recorded in dossier</span>
+                                        <template x-if="!profile.skills||profile.skills.length===0">
+                                            <span class="text-xs text-gray-700 italic terminal-font">No skills on record</span>
                                         </template>
-                                        <template x-for="skill in (profile.skills || [])" :key="skill">
-                                            <span class="px-3 py-1.5 bg-teal-500/8 border border-teal-500/25 rounded-lg text-xs text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <template x-for="s in (profile.skills||[])" :key="s">
+                                            <span class="flex items-center gap-1.5 px-3 py-1.5 bg-teal-500/7 border border-teal-500/22 rounded-lg text-xs text-teal-300 uppercase tracking-wider">
                                                 <i data-lucide="check-circle" class="w-3 h-3"></i>
-                                                <span x-text="skill"></span>
+                                                <span x-text="s"></span>
                                             </span>
                                         </template>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Operatives Network -->
-                            <div x-show="activeTab === 'operatives'" class="space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Network Nodes</h3>
-                                    <span class="text-[10px] text-teal-500 uppercase tracking-widest terminal-font" x-text="allOperatives.length + ' operatives'"></span>
+                            <!-- Network -->
+                            <div x-show="activeTab==='operatives'" class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight">Network Nodes</h3>
+                                    <span class="text-[10px] text-teal-500 terminal-font uppercase" x-text="allOperatives.length+' operatives'"></span>
                                 </div>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <template x-if="allOperatives.length === 0">
-                                        <div class="col-span-2 text-center py-12 text-gray-700">
-                                            <i data-lucide="users" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <template x-if="allOperatives.length===0">
+                                        <div class="col-span-2 text-center py-16 text-gray-700">
+                                            <i data-lucide="users" class="w-10 h-10 mx-auto mb-3 opacity-25"></i>
                                             <p class="text-xs uppercase tracking-widest terminal-font">No operatives found</p>
                                         </div>
                                     </template>
-                                    <template x-for="operative in allOperatives" :key="operative.id">
-                                        <div class="glass-teal p-4 rounded-2xl flex items-center gap-3 operative-card border border-teal-500/15">
+                                    <template x-for="op in allOperatives" :key="op.id">
+                                        <div class="glass p-3.5 rounded-2xl flex items-center gap-3 op-card" style="border-color:rgba(0,212,170,0.12)">
                                             <div class="relative flex-shrink-0">
-                                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-500/15 to-black flex items-center justify-center border border-teal-500/20 overflow-hidden">
-                                                    <img x-show="operative.avatar_url" :src="operative.avatar_url" class="w-full h-full object-cover" @error="operative.avatar_url = null">
-                                                    <i x-show="!operative.avatar_url" :data-lucide="getRankIcon(operative.rank)" class="w-5 h-5 text-teal-400"></i>
+                                                <div class="w-11 h-11 rounded-full bg-teal-500/10 border border-teal-500/18 overflow-hidden flex items-center justify-center">
+                                                    <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
+                                                    <i x-show="!op.avatar_url" :data-lucide="getRankIcon(op.rank)" class="w-5 h-5 text-teal-400"></i>
                                                 </div>
-                                                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0a0f0f]"
-                                                     :class="getStatusColor(operative.last_active).replace('text-', 'bg-')"></div>
+                                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#080d0d]"
+                                                      :class="getOnlineStatus(op.last_active).color"></span>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="font-bold text-white text-sm truncate" x-text="operative.codename || operative.username"></p>
-                                                <p class="text-[10px] text-gray-600 uppercase tracking-wider" x-text="operative.rank + ' · ' + getStatusLabel(operative.last_active)"></p>
+                                                <p class="font-bold text-sm text-white truncate leading-tight" x-text="op.codename||op.username"></p>
+                                                <p class="text-[10px] text-gray-600 uppercase tracking-wider"
+                                                   x-text="op.rank+' · '+getOnlineStatus(op.last_active).label"></p>
                                             </div>
                                             <div class="text-right flex-shrink-0">
-                                                <p class="text-xs text-yellow-500 font-bold terminal-font" x-text="operative.stats?.influence || 0"></p>
+                                                <p class="text-xs text-yellow-500 font-bold terminal-font" x-text="op.stats?.influence||0"></p>
                                                 <p class="text-[9px] text-gray-700 uppercase">INF</p>
                                             </div>
                                         </div>
@@ -1205,229 +904,235 @@
                                 </div>
                             </div>
 
-                            <!-- Activity Log -->
-                            <div x-show="activeTab === 'activity'" class="space-y-3">
+                            <!-- Activity -->
+                            <div x-show="activeTab==='activity'" class="space-y-3">
                                 <div class="flex items-center justify-between">
-                                    <h3 class="text-xl font-black uppercase italic tracking-tight text-white">Transmission Log</h3>
-                                    <button @click="loadActivity()" 
-                                            class="text-[10px] text-gray-600 hover:text-teal-400 uppercase tracking-widest terminal-font flex items-center gap-1 transition-colors">
-                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+                                    <h3 class="text-xl font-black uppercase italic tracking-tight">Transmission Log</h3>
+                                    <button @click="loadActivity()" class="flex items-center gap-1.5 text-[10px] text-gray-600 hover:text-teal-400 transition-colors terminal-font uppercase">
+                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i>Refresh
                                     </button>
                                 </div>
-                                
                                 <div class="space-y-2">
-                                    <template x-if="recentActivity.length === 0">
-                                        <div class="text-center py-12 text-gray-700">
+                                    <template x-if="recentActivity.length===0">
+                                        <div class="text-center py-16 text-gray-700">
                                             <i data-lucide="radio" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
-                                            <p class="text-xs uppercase tracking-widest terminal-font">No transmissions recorded</p>
+                                            <p class="text-xs uppercase tracking-widest terminal-font">No transmissions on record</p>
                                         </div>
                                     </template>
-                                    
-                                    <template x-for="activity in recentActivity" :key="activity.id">
-                                        <div class="flex items-start gap-3 p-4 bg-black/30 rounded-xl border border-teal-500/8 hover:border-teal-500/25 transition-all">
-                                            <div class="w-8 h-8 rounded-full bg-teal-500/8 flex items-center justify-center flex-shrink-0 border border-teal-500/15 mt-0.5">
-                                                <i data-lucide="activity" class="w-4 h-4 text-teal-400"></i>
+                                    <template x-for="act in recentActivity" :key="act.id">
+                                        <div class="flex items-start gap-3 p-3.5 bg-black/28 rounded-xl border border-teal-500/7 hover:border-teal-500/22 transition-colors">
+                                            <div class="w-8 h-8 rounded-full bg-teal-500/7 border border-teal-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                <i data-lucide="activity" class="w-3.5 h-3.5 text-teal-400"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm text-white font-medium truncate" x-text="activity.description"></p>
-                                                <p class="text-[10px] text-gray-600 mt-0.5 terminal-font" x-text="formatTimeAgo(activity.created_at)"></p>
+                                                <p class="text-sm text-white/90 truncate" x-text="act.description"></p>
+                                                <p class="text-[10px] text-gray-600 mt-0.5 terminal-font" x-text="timeAgo(act.created_at)"></p>
                                             </div>
-                                            <span class="text-[10px] px-2 py-1 rounded-lg bg-teal-500/8 text-teal-500 uppercase tracking-wider border border-teal-500/15 flex-shrink-0" 
-                                                  x-text="activity.type?.replace('_', ' ')"></span>
+                                            <span class="text-[9px] px-2 py-1 rounded-md bg-teal-500/7 text-teal-500 uppercase tracking-wider border border-teal-500/14 flex-shrink-0"
+                                                  x-text="(act.type||'').replace(/_/g,' ')"></span>
                                         </div>
                                     </template>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </main>
 
+            <!-- Mobile bottom nav -->
+            <nav class="bottom-nav">
+                <button @click="activeTab='overview'" :class="activeTab==='overview'?'text-teal-400':'text-gray-600'"
+                        class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] uppercase tracking-wider transition-colors">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Overview</span>
+                </button>
+                <button @click="activeTab='operatives'" :class="activeTab==='operatives'?'text-teal-400':'text-gray-600'"
+                        class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] uppercase tracking-wider transition-colors">
+                    <i data-lucide="users" class="w-5 h-5"></i><span>Network</span>
+                </button>
+                <button @click="activeTab='activity'" :class="activeTab==='activity'?'text-teal-400':'text-gray-600'"
+                        class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] uppercase tracking-wider transition-colors">
+                    <i data-lucide="activity" class="w-5 h-5"></i><span>Activity</span>
+                </button>
+                <button @click="showProfileModal=true"
+                        class="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] text-gray-600 uppercase tracking-wider hover:text-teal-400 transition-colors">
+                    <i data-lucide="user-cog" class="w-5 h-5"></i><span>Dossier</span>
+                </button>
+            </nav>
+
             <!-- Footer -->
-            <footer class="mt-10 py-8 text-center border-t border-teal-500/8">
+            <footer class="hidden sm:block mt-10 py-8 text-center border-t border-teal-500/7">
                 <div class="flex items-center justify-center gap-2 mb-2">
-                    <img src="../assets/images/logo.png" alt="M.O.G." class="w-7 h-7 opacity-30">
-                    <span class="text-teal-700/60 font-black uppercase tracking-[0.25em] text-sm">M.O.G.</span>
+                    <img src="../assets/images/logo.png" alt="M.O.G." class="w-7 h-7 opacity-25">
+                    <span class="text-teal-800/60 font-black uppercase tracking-[0.2em] text-sm">M.O.G.</span>
                 </div>
                 <p class="text-[10px] text-gray-700 uppercase tracking-[0.3em] terminal-font">
                     Ministry of Groove // Emalahleni Uplink II // Est. 2026
                 </p>
-                <p class="text-[9px] text-teal-900/60 uppercase tracking-widest mt-1.5 terminal-font" x-text="'NODE: ' + profile.codename"></p>
+                <p class="text-[9px] text-teal-900/50 terminal-font mt-1.5" x-text="'NODE: '+profile.codename"></p>
             </footer>
+
         </div>
-    </template>
-                                <!-- Profile Dossier Modal -->
-    <div x-show="showProfileModal" 
-         x-transition:enter="transition ease-out duration-250"
+</template>
+
+    <!-- ══ PROFILE MODAL ══════════════════════════════════════ -->
+    <div x-show="showProfileModal"
+         x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/92 backdrop-blur-lg"
-         @click.self="showProfileModal = false">
-        
-        <div class="glass-teal w-full max-w-2xl rounded-[2.5rem] border border-teal-500/40 shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto"
-             x-transition:enter="transition ease-out duration-250"
-             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+         class="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center sm:p-4 bg-black/92 backdrop-blur-xl"
+         @click.self="showProfileModal=false">
+
+        <div class="glass w-full sm:max-w-2xl rounded-t-[2.5rem] sm:rounded-[2.5rem] border border-teal-500/35 max-h-[94vh] overflow-y-auto"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-8"
+             x-transition:enter-end="opacity-100 translate-y-0"
              @click.stop>
-            
-            <!-- Modal Header -->
-            <div class="p-7 border-b border-teal-500/15 flex justify-between items-center bg-gradient-to-r from-teal-900/25 to-transparent sticky top-0 z-10 backdrop-blur-md">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-teal-500/15 flex items-center justify-center border border-teal-400/30">
+
+            <!-- Modal header -->
+            <div class="sticky top-0 z-10 backdrop-blur-xl bg-[rgba(8,22,20,0.92)] p-6 border-b border-teal-500/12 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-teal-500/12 border border-teal-400/25 flex items-center justify-center">
                         <i data-lucide="file-text" class="w-5 h-5 text-teal-400"></i>
                     </div>
                     <div>
-                        <h2 class="text-xl font-black uppercase italic tracking-tight text-white">Operative Dossier</h2>
-                        <p class="text-[10px] text-teal-500 uppercase tracking-widest terminal-font">M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span></p>
+                        <h2 class="text-lg font-black uppercase italic tracking-tight">Operative Dossier</h2>
+                        <p class="text-[9px] text-teal-500 uppercase tracking-widest terminal-font">
+                            M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span>
+                        </p>
                     </div>
                 </div>
-                <button @click="showProfileModal = false" 
-                        class="p-2 hover:bg-white/8 rounded-full transition-colors text-gray-500 hover:text-gray-300">
+                <button @click="showProfileModal=false" class="p-2 rounded-full text-gray-500 hover:text-gray-300 hover:bg-white/6 transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="p-7 space-y-7">
-                
-                <!-- Avatar Upload -->
-                <div class="flex flex-col items-center gap-4">
+            <div class="p-6 space-y-6">
+
+                <!-- Avatar -->
+                <div class="flex flex-col items-center gap-3">
                     <div class="relative group">
-                        <div class="avatar-circuit w-32 h-32">
-                            <div class="w-full h-full rounded-full bg-gradient-to-br from-teal-500/20 to-black flex items-center justify-center overflow-hidden">
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url = null">
-                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-14 h-14 text-teal-400"></i>
+                        <div class="avatar-ring w-28 h-28">
+                            <div>
+                                <img x-show="profile.avatar_url" :src="profile.avatar_url"
+                                     class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-12 h-12 text-teal-400"></i>
                             </div>
                         </div>
-                        <label class="absolute inset-0 flex items-center justify-center bg-black/75 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity border-2 border-teal-400/40">
-                            <div class="text-center">
-                                <i data-lucide="camera" class="w-7 h-7 text-teal-400 mx-auto mb-1"></i>
-                                <span class="text-[10px] text-teal-300 uppercase tracking-widest font-bold">Update</span>
-                            </div>
+                        <label class="absolute inset-0 rounded-full flex flex-col items-center justify-center
+                                      bg-black/78 opacity-0 group-hover:opacity-100 cursor-pointer
+                                      transition-opacity border-2 border-teal-400/35">
+                            <i data-lucide="camera" class="w-6 h-6 text-teal-400 mb-1"></i>
+                            <span class="text-[10px] text-teal-300 uppercase font-bold tracking-widest">Upload</span>
                             <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
                         </label>
                     </div>
-                    
-                    <!-- Upload Progress -->
-                    <div x-show="uploadProgress > 0" class="w-full max-w-xs">
+                    <div x-show="uploadProgress>0" class="w-full max-w-[220px]">
                         <div class="h-1 bg-black/60 rounded-full overflow-hidden border border-teal-500/15">
-                            <div class="h-full bg-gradient-to-r from-teal-600 to-cyan-400 transition-all duration-300 rounded-full" 
-                                 :style="`width: ${uploadProgress}%`"></div>
+                            <div class="h-full bg-gradient-to-r from-teal-600 to-cyan-400 rounded-full transition-all duration-300"
+                                 :style="`width:${uploadProgress}%`"></div>
                         </div>
-                        <p class="text-[10px] text-center text-teal-500 mt-1 terminal-font" x-text="uploadProgress + '%'"></p>
+                        <p class="text-[10px] text-center text-teal-500 mt-1 terminal-font" x-text="uploadProgress+'%'"></p>
                     </div>
-                    <p class="text-[10px] text-gray-700 terminal-font">MAX 2MB // JPG PNG WEBP</p>
+                    <p class="text-[10px] text-gray-700 terminal-font">MAX 2 MB · JPG PNG WEBP</p>
                 </div>
 
-                <!-- Form Fields -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Form -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                            <i data-lucide="user" class="w-3 h-3"></i>
-                            Operative Name
+                            <i data-lucide="user" class="w-3 h-3"></i>Operative Name
                         </label>
-                        <input type="text" x-model="profile.username" 
-                               class="input-teal w-full px-4 py-3 rounded-xl" 
-                               placeholder="Enter designation">
+                        <input type="text" x-model="profile.username" class="input-field px-4 py-3 rounded-xl" placeholder="Enter designation">
                     </div>
-                    
                     <div class="space-y-1.5">
                         <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                            <i data-lucide="hash" class="w-3 h-3"></i>
-                            Codename
+                            <i data-lucide="hash" class="w-3 h-3"></i>Codename
                         </label>
-                        <input type="text" x-model="profile.codename" 
-                               class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 text-teal-300 font-bold terminal-font opacity-60 cursor-not-allowed" 
-                               readonly disabled>
-                        <p class="text-[9px] text-gray-700 terminal-font">AUTO-GENERATED BY SYSTEM</p>
+                        <input type="text" x-model="profile.codename" class="input-field px-4 py-3 rounded-xl text-teal-300 font-bold terminal-font" readonly disabled>
+                        <p class="text-[9px] text-gray-700 terminal-font">AUTO-GENERATED</p>
                     </div>
-                    
                     <div class="space-y-1.5">
                         <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                            <i data-lucide="building" class="w-3 h-3"></i>
-                            Department
+                            <i data-lucide="building" class="w-3 h-3"></i>Department
                         </label>
-                        <select x-model="profile.department" class="input-teal w-full px-4 py-3 rounded-xl">
+                        <select x-model="profile.department" class="input-field px-4 py-3 rounded-xl">
                             <option value="UNASSIGNED">Unassigned</option>
                             <option value="OPERATIONS">Field Operations</option>
                             <option value="INTELLIGENCE">Intelligence</option>
                             <option value="COMMUNICATIONS">Communications</option>
                             <option value="LOGISTICS">Logistics</option>
-                            <option value="RESEARCH">R&D Division</option>
+                            <option value="RESEARCH">R&amp;D Division</option>
                             <option value="SOUND">Audio Engineering</option>
                         </select>
                     </div>
-                    
                     <div class="space-y-1.5">
                         <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                            <i data-lucide="award" class="w-3 h-3"></i>
-                            Rank
+                            <i data-lucide="award" class="w-3 h-3"></i>Rank
                         </label>
-                        <input type="text" :value="profile.rank" 
-                               class="input-teal w-full px-4 py-3 rounded-xl bg-black/60 font-bold uppercase tracking-wider opacity-60 cursor-not-allowed"
-                               :class="profile.rank === 'DIRECTOR' ? 'text-yellow-400' : 'text-teal-400'" 
-                               readonly disabled>
-                        <p class="text-[9px] text-gray-700 terminal-font">ASSIGNED BY DIRECTORATE ONLY</p>
+                        <input type="text" :value="profile.rank" class="input-field px-4 py-3 rounded-xl font-bold uppercase tracking-wider"
+                               :class="isDirector?'text-yellow-300':'text-teal-400'" readonly disabled>
+                        <p class="text-[9px] text-gray-700 terminal-font">DIRECTORATE ONLY</p>
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-[10px] text-teal-400 uppercase tracking-widest font-bold flex items-center gap-1.5">
-                        <i data-lucide="align-left" class="w-3 h-3"></i>
-                        Operational Notes / Bio
+                        <i data-lucide="align-left" class="w-3 h-3"></i>Operational Notes
                     </label>
-                    <textarea x-model="profile.bio" rows="4" 
-                              class="input-teal w-full px-4 py-3 rounded-xl resize-none" 
+                    <textarea x-model="profile.bio" rows="4" class="input-field px-4 py-3 rounded-xl resize-none"
                               placeholder="Enter operative background and specializations..."></textarea>
                 </div>
 
-                <!-- Stats Summary -->
-                <div class="p-5 bg-black/50 rounded-2xl border border-teal-500/15">
+                <!-- Stats summary -->
+                <div class="p-5 bg-black/45 rounded-2xl border border-teal-500/12">
                     <h4 class="text-[10px] text-teal-400 uppercase tracking-widest font-bold mb-4 flex items-center gap-2">
-                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
-                        Performance Summary
+                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>Performance Summary
                     </h4>
-                    <div class="grid grid-cols-3 md:grid-cols-5 gap-3 text-center">
-                        <div class="p-3 bg-teal-900/15 rounded-xl border border-teal-500/15">
-                            <p class="text-lg font-black text-teal-400 terminal-font" x-text="profile.stats.missions"></p>
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2.5 text-center">
+                        <div class="p-3 rounded-xl border bg-teal-900/12 border-teal-500/12">
+                            <p class="text-base font-black terminal-font text-teal-400" x-text="profile.stats.missions"></p>
                             <p class="text-[9px] text-gray-600 uppercase tracking-wider">Missions</p>
                         </div>
-                        <div class="p-3 bg-teal-900/15 rounded-xl border border-teal-500/15">
-                            <p class="text-lg font-black text-teal-400 terminal-font" x-text="profile.stats.contributions"></p>
+                        <div class="p-3 rounded-xl border bg-teal-900/12 border-teal-500/12">
+                            <p class="text-base font-black terminal-font text-teal-400" x-text="profile.stats.contributions"></p>
                             <p class="text-[9px] text-gray-600 uppercase tracking-wider">Posts</p>
                         </div>
-                        <div class="p-3 bg-yellow-900/10 rounded-xl border border-yellow-500/15">
-                            <p class="text-lg font-black text-yellow-400 terminal-font" x-text="profile.stats.influence + '%'"></p>
+                        <div class="p-3 rounded-xl border bg-yellow-900/10 border-yellow-500/12">
+                            <p class="text-base font-black terminal-font text-yellow-400" x-text="profile.stats.influence+'%'"></p>
                             <p class="text-[9px] text-gray-600 uppercase tracking-wider">Influence</p>
                         </div>
-                        <div class="p-3 bg-cyan-900/10 rounded-xl border border-cyan-500/15">
-                            <p class="text-lg font-black text-cyan-400 terminal-font" x-text="profile.stats.groove + '%'"></p>
+                        <div class="p-3 rounded-xl border bg-cyan-900/10 border-cyan-500/12">
+                            <p class="text-base font-black terminal-font text-cyan-400" x-text="profile.stats.groove+'%'"></p>
                             <p class="text-[9px] text-gray-600 uppercase tracking-wider">Groove</p>
                         </div>
-                        <div class="p-3 bg-red-900/10 rounded-xl border border-red-500/15">
-                            <p class="text-lg font-black text-red-400 terminal-font" x-text="profile.stats.loyalty + '%'"></p>
+                        <div class="p-3 rounded-xl border bg-red-900/10 border-red-500/12">
+                            <p class="text-base font-black terminal-font text-red-400" x-text="profile.stats.loyalty+'%'"></p>
                             <p class="text-[9px] text-gray-600 uppercase tracking-wider">Loyalty</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="p-6 border-t border-teal-500/15 flex justify-end gap-3 bg-black/50">
-                <button @click="showProfileModal = false" 
-                        class="px-6 py-2.5 rounded-full border border-teal-500/25 text-gray-500 hover:text-teal-300 hover:border-teal-400/50 transition-all text-xs uppercase font-bold tracking-wider">
+            <!-- Modal footer -->
+            <div class="sticky bottom-0 backdrop-blur-xl bg-[rgba(6,12,12,0.95)] p-5 border-t border-teal-500/12 flex justify-end gap-3">
+                <button @click="showProfileModal=false"
+                        class="px-6 py-2.5 rounded-full border border-teal-500/22 text-gray-500
+                               hover:text-teal-300 hover:border-teal-400/45 transition-all text-xs uppercase font-bold tracking-wider">
                     Cancel
                 </button>
-                <button @click="updateProfile()" 
-                        :disabled="isLoading"
-                        class="px-7 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full hover:from-teal-500 hover:to-cyan-500 transition-all text-xs uppercase font-bold tracking-wider disabled:opacity-40 flex items-center gap-2 shadow-lg shadow-teal-500/15">
+                <button @click="updateProfile()" :disabled="isLoading"
+                        class="px-7 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-full
+                               hover:from-teal-500 hover:to-cyan-500 transition-all text-xs uppercase font-bold
+                               tracking-wider disabled:opacity-35 flex items-center gap-2 shadow-lg shadow-teal-500/15">
                     <i x-show="isLoading" data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
-                    <span x-text="isLoading ? 'Syncing...' : 'Save Dossier'"></span>
+                    <span x-text="isLoading?'Syncing...':'Save Dossier'"></span>
                 </button>
             </div>
+
         </div>
     </div>
 
