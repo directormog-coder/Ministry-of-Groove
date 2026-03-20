@@ -1,43 +1,25 @@
-/**
- * Ministry of Groove - Supabase Client Configuration
- * NCC Master v5.2.3
- */
+// Function to initialize Supabase
+const initSupabase = () => {
+    // 1. Get keys from the window.CONFIG object (loaded from our API)
+    const supabaseUrl = window.CONFIG?.SUPABASE_URL;
+    const supabaseKey = window.CONFIG?.SUPABASE_ANON_KEY;
 
-(function() {
-    // 1. Define credentials (Hardcoded as fallback, but prefers window.ENV)
-    const SB_URL = "https://fgkljjgxecjmiiaptiug.supabase.co";
-    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE";
+    if (!supabaseUrl || !supabaseKey) {
+        console.error("M.O.G. Error: Supabase keys are missing from config!");
+        return null;
+    }
 
-    /**
-     * Initialize the Supabase Client
-     */
-    const initSupabase = () => {
-        // Use window.ENV if available (from env-config.js), otherwise use hardcoded
-        const url = (window.ENV && window.ENV.SUPABASE_URL) ? window.ENV.SUPABASE_URL : SB_URL;
-        const key = (window.ENV && window.ENV.SUPABASE_ANON_KEY) ? window.ENV.SUPABASE_ANON_KEY : SB_KEY;
+    // 2. Use 'supabase' (the global object created by the CDN script in index.html)
+    // Note: The CDN uses 'supabase', not 'supabaseJs' or 'Supabase'
+    try {
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+        console.log("M.O.G. Network: Supabase connection established.");
+        return client;
+    } catch (error) {
+        console.error("M.O.G. Error: Failed to create Supabase client", error);
+        return null;
+    }
+};
 
-        if (!url || !key) {
-            console.error("MOG Error: Supabase credentials could not be resolved.");
-            return null;
-        }
-
-        try {
-            return supabase.createClient(url, key, {
-                auth: {
-                    persistSession: true,
-                    autoRefreshToken: true,
-                    detectSessionInUrl: true,
-                    flowType: 'pkce'
-                }
-            });
-        } catch (error) {
-            console.error("MOG Error: Failed to initialize Supabase client:", error);
-            return null;
-        }
-    };
-
-    // Attach to window so Auth.js and Dashboard.js can access it globally
-    window.supabaseClient = initSupabase();
-
-    console.log("MOG: Supabase Client Initialized.");
-})();
+// Export the client for use in Auth.js
+window.supabaseClient = initSupabase();
