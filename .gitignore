@@ -1,36 +1,46 @@
-# Environment Variables
+# Ministry of Groove - Security & Environment Protection
+
+# 1. Environment Variables (CRITICAL: Keeps keys off GitHub)
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Also ignore the config file if you hardcoded keys there for testing
+js/env-config.js
 
-# Logs
+# 2. Dependencies
+node_modules/
+jspm_packages/
+
+# 3. Vercel & Build Outputs
+.vercel
+.vercelignore
+.next/
+out/
+dist/
+build/
+.cache/
+
+# 4. Logs & Debugging
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Vercel
-.vercel
-.vercelignore
-
-# Dependencies
-node_modules/
-
-# Local development server (if using custom server.js for dev)
-server.js
-dev-server.js
-
-# OS Files
+# 5. OS & IDE Files
 .DS_Store
 Thumbs.db
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
-# Temporary files
+# 6. Temporary & Backup Files
 *.tmp
 *.temp
-.cache/
+*.bak
+.eslintcache
