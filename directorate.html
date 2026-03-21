@@ -1364,8 +1364,8 @@ function directorate() {
             /* 5. Ready */
             this.view = 'active';
             this._sessionStart = Date.now();
-            this.syncFromStorage();
-            this.loadSysConfig();
+            // Load real state from DB FIRST — never from localStorage
+            await this.loadSysConfig();
             this.seedGallery();
             this.startClock();
             await this.loadAll();
