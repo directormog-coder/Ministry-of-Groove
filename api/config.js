@@ -1,59 +1,66 @@
 /**
- * M.O.G. Config Provider — Vercel Serverless Function
- * =====================================================
- * Serves credentials from Vercel Environment Variables to the frontend.
- * Keys returned as SUPABASE_URL + SUPABASE_ANON_KEY so supabase-client.js
- * can read them directly from window.CONFIG without remapping.
+ * M.O.G. CONFIG API — api/config.js
+ * =====================================
+ * Vercel Serverless Function.
+ * Serves Supabase credentials from environment variables to the frontend.
  *
  * Set these in Vercel Dashboard → Project → Settings → Environment Variables:
  *   SUPABASE_URL
  *   SUPABASE_ANON_KEY
+ *
+ * This function is the PREFERRED credential source on Vercel and local dev
+ * (via `vercel dev` or `node scripts/server.js`).
+ * On static hosts (GitHub Pages, file://), js/config.js fallback is used instead.
+ *
+ * Security:
+ *   - Only ANON key is served (never the service_role key)
+ *   - CORS restricted to known origins
+ *   - GET only, no caching
  */
 
 export default function handler(req, res) {
 
-    // ── Security headers ──────────────────────────────────────────
-    // Restrict to your own domain in production
+    // ── CORS ──────────────────────────────────────────────────────
     const origin = req.headers.origin || '';
-    const allowed = [
+    const ALLOWED_ORIGINS = [
         'https://ministry-of-groove.vercel.app',
         'http://localhost:3000',
-        'http://127.0.0.1:5500',  // Live Server (VS Code)
-        'http://localhost:5500'
+        'http://localhost:5500',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:5500',
     ];
+    const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 
-    const allowOrigin = allowed.includes(origin) ? origin : allowed[0];
-    res.setHeader('Access-Control-Allow-Origin', allowOrigin);
+    res.setHeader('Access-Control-Allow-Origin',  allowOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate'); // Never cache credentials
+    res.setHeader('Vary',                         'Origin');
+    res.setHeader('Content-Type',                 'application/json');
+    res.setHeader('Cache-Control',                'no-store, no-cache, must-revalidate');
 
     // ── Preflight ─────────────────────────────────────────────────
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // ── Only allow GET ────────────────────────────────────────────
+    // ── GET only ──────────────────────────────────────────────────
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // ── Read from Vercel env vars (set these in the dashboard) ────
+    // ── Credentials from env ──────────────────────────────────────
     const SUPABASE_URL      = process.env.SUPABASE_URL;
     const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
-    // Guard: if env vars aren't set, fail loudly so you notice in logs
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error('[M.O.G.] CRITICAL: SUPABASE_URL or SUPABASE_ANON_KEY env vars are missing!');
         return res.status(500).json({
-            error: 'Server configuration error — env vars not set',
-            hint:  'Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel Dashboard → Settings → Environment Variables'
+            error: 'Server configuration error',
+            hint:  'Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel Dashboard → Settings → Environment Variables',
         });
     }
 
-    // ── Respond ───────────────────────────────────────────────────
-    // Key names match exactly what supabase-client.js reads from window.CONFIG
+    // ── Response ──────────────────────────────────────────────────
     return res.status(200).json({
         SUPABASE_URL,
         SUPABASE_ANON_KEY,
@@ -64,10 +71,10 @@ export default function handler(req, res) {
                 tiktok:    'https://tiktok.com/@ministryofgroove',
                 facebook:  'https://www.facebook.com/share/1ELj9aECsQ/',
                 instagram: 'https://www.instagram.com/ministryofgroove_hq?igsh=Y3Rwc24zcmtsY2xj',
-                youtube:   'https://www.youtube.com/@MinistryofGroove-m1q'
-            }
+                youtube:   'https://www.youtube.com/@MinistryofGroove-m1q',
+            },
         },
         network: 'M.O.G.',
-        version: '2.0.0'
+        version: '2.0.0',
     });
 }
