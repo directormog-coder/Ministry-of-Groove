@@ -1,8 +1,19 @@
 /**
  * M.O.G. AUTH MODULE — js/auth.js
- * =================================
- * Handles session checking and role-based redirects.
- * UPGRADED: Added handleLoginRedirect and metadata-to-profile sync.
+ * ================================
+ * Role-based session management for all M.O.G. pages.
+ *
+ * Usage:
+ *   MOGAuth.init()              — call on every protected page
+ *   MOGAuth.requireAuth()       — redirects to login if no session
+ *   MOGAuth.requireDirector()   — redirects to hub if not Director
+ *   MOGAuth.handleLoginRedirect()— call after successful login
+ *   MOGAuth.signOut()           — clears session + redirects
+ *
+ * Director detection (checked in order):
+ *   1. profiles.rank === 'DIRECTOR'  (DB — most authoritative)
+ *   2. user_metadata.role === 'director'  (Supabase Auth metadata)
+ *   3. email === 'director.mog@gmail.com'  (hardcoded admin)
  */
 
 const MOGAuth = {
@@ -11,34 +22,33 @@ const MOGAuth = {
     profile:     null,
     initialized: false,
 
-    /* ── Wait for window.sb (set async by supabase-client.js) ── */
-    async waitForClient(maxMs = 5000) {
-        const step = 100;
+    // ── Wait for window.sb ────────────────────────────────────────
+    async waitForClient(maxMs = 6000) {
+        const step = 80;
         let elapsed = 0;
-        while ((typeof sb === 'undefined' || !sb) && elapsed < maxMs) {
+        while ((!window.sb || !window.supabaseClient) && elapsed < maxMs) {
             await new Promise(r => setTimeout(r, step));
             elapsed += step;
         }
-        if (typeof sb === 'undefined' || !sb) {
-            throw new Error('[M.O.G. Auth] sb not available — check /js/supabase-client.js');
+        const client = window.sb || window.supabaseClient;
+        if (!client) {
+            throw new Error('[M.O.G. Auth] Supabase client not available after ' + maxMs + 'ms');
         }
-        return sb;
+        return client;
     },
 
-    /* ── Initialize: get session, load profile ─────────────── */
+    // ── Init: load session + profile, set localStorage ───────────
     async init() {
         if (this.initialized) return this.session;
 
         try {
             const client = await this.waitForClient();
-
             const { data: { session }, error } = await client.auth.getSession();
             if (error) throw error;
 
             this.session = session;
 
             if (session) {
-                // Load profile for rank / role info
                 const { data: profile } = await client
                     .from('profiles')
                     .select('rank, department, username, codename, avatar_url')
@@ -47,82 +57,65 @@ const MOGAuth = {
 
                 this.profile = profile || null;
 
-                /** * UPGRADE: Enhanced Role Detection
-                 * Checks: 1. DB Rank, 2. Auth Metadata, 3. Hardcoded Admin Email
-                 */
                 const isDirector =
-                    profile?.rank === 'DIRECTOR' || 
-                    session.user.user_metadata?.role === 'director' ||
+                    profile?.rank === 'DIRECTOR'                          ||
+                    session.user.user_metadata?.role === 'director'       ||
                     session.user.email === 'director.mog@gmail.com';
 
-                localStorage.setItem('userRole',       isDirector ? 'director' : 'operative');
-                localStorage.setItem('clearanceLevel', isDirector ? 'ALPHA'    : 'STANDARD');
-                
-                console.log(`[M.O.G. Auth] Profile Loaded: ${isDirector ? 'DIRECTOR' : 'OPERATIVE'} Access.`);
-            }
+                localStorage.setItem('userRole',       isDirector ? 'director'  : 'operative');
+                localStorage.setItem('clearanceLevel', isDirector ? 'ALPHA'     : 'STANDARD');
 
-            this.initialized = true;
-            return session;
+                console.log(
+                    `%c[M.O.G. Auth] ${isDirector ? '★ DIRECTOR' : '● OPERATIVE'} — ${session.user.email}`,
+                    `color:${isDirector ? '#d4af37' : '#00d4aa'};font-family:monospace;font-weight:bold`
+                );
+            }
 
         } catch (err) {
             console.error('[M.O.G. Auth] init failed:', err.message);
+        } finally {
             this.initialized = true;
-            return null;
         }
+
+        return this.session;
     },
 
-    /**
-     * UPGRADE: handleLoginRedirect
-     * Call this specifically in your login.html script after 
-     * a successful supabase.auth.signInWithPassword call.
-     */
+    // ── Redirect after login ──────────────────────────────────────
     async handleLoginRedirect() {
-        // Ensure init has run to set localStorage
         await this.init();
-        
         const role = localStorage.getItem('userRole');
-        
-        if (role === 'director') {
-            console.log("[M.O.G. Auth] Routing to Directorate...");
-            window.location.href = '/directorate.html';
-        } else {
-            console.log("[M.O.G. Auth] Routing to Operative Hub...");
-            window.location.href = '/index.html';
-        }
+        // directorate.html lives in /pages/ — operatives go to root index
+        window.location.href = role === 'director' ? '/pages/directorate.html' : '/index.html';
     },
 
-    /* ── Require auth — redirect to login if no session ─────── */
+    // ── Require any authenticated session ────────────────────────
     async requireAuth() {
         const session = await this.init();
-
         if (!session) {
             console.warn('[M.O.G. Auth] No session — redirecting to login');
             window.location.href = '/login.html';
             return null;
         }
-
         return session;
     },
 
-    /* ── Require Director — redirect to hub if not Director ─── */
+    // ── Require Director clearance ───────────────────────────────
     async requireDirector() {
         const session = await this.requireAuth();
         if (!session) return null;
 
-        const role      = localStorage.getItem('userRole');
-        const clearance = localStorage.getItem('clearanceLevel');
-        const isDir     = role === 'director' || clearance === 'ALPHA';
+        const isDir = localStorage.getItem('userRole') === 'director' ||
+                      localStorage.getItem('clearanceLevel') === 'ALPHA';
 
         if (!isDir) {
             console.warn('[M.O.G. Auth] Insufficient clearance — redirecting to hub');
             window.location.href = '/index.html';
             return null;
         }
-
         return session;
     },
 
-    /* ── Sign out ────────────────────────────────────────────── */
+    // ── Sign out ──────────────────────────────────────────────────
     async signOut() {
         try {
             const client = await this.waitForClient();
@@ -136,20 +129,10 @@ const MOGAuth = {
         }
     },
 
-    /* ── Getters ────────────────────────────────────────────── */
-    get user() {
-        return this.session?.user || null;
-    },
-
-    get isDirector() {
-        return localStorage.getItem('userRole') === 'director' ||
-               localStorage.getItem('clearanceLevel') === 'ALPHA';
-    },
-
-    get isAuthenticated() {
-        return !!this.session;
-    }
+    // ── Convenience getters ───────────────────────────────────────
+    get user()            { return this.session?.user || null; },
+    get isDirector()      { return localStorage.getItem('userRole') === 'director' || localStorage.getItem('clearanceLevel') === 'ALPHA'; },
+    get isAuthenticated() { return !!this.session; },
 };
 
-/* Export for pages that use it directly */
 window.MOGAuth = MOGAuth;
