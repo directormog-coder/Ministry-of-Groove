@@ -2,401 +2,402 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MOG | FREQUENCY UPLINK</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>M.O.G. | FREQUENCY UPLINK</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase-client.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="stylesheet" href="../css/style.css">
-    
-    <style>
-        [x-cloak] { display: none !important; }
-        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 30px 30px; }
-        .glass-gold-strong { background: rgba(10, 10, 15, 0.97); backdrop-filter: blur(35px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        
-        /* AUDIO VISUALIZER BARS */
-        .visualizer { display: flex; align-items: flex-end; gap: 3px; height: 40px; }
-        .v-bar { width: 4px; background: var(--gold); border-radius: 2px; animation: bounce 1s infinite ease-in-out; }
-        @keyframes bounce { 
-            0%, 100% { height: 10%; opacity: 0.3; } 
-            50% { height: 100%; opacity: 1; } 
-        }
 
-        .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .chart-row:hover { background: rgba(212, 175, 55, 0.08); transform: translateX(10px); border-color: var(--electric); }
-        .chart-row { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        
-        .vote-btn:active { transform: scale(0.95); }
-        .vote-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        [x-cloak] { display:none !important; }
+        :root {
+            --black:#000; --gold:#d4af37; --gold-bright:#f0c040; --gold-dark:#8b6914;
+            --gold-glow:rgba(212,175,55,0.4); --teal:#00d4aa; --teal-glow:rgba(0,212,170,0.3);
+            --red:#dc2626; --red-glow:rgba(220,38,38,0.4);
+        }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:'Rajdhani',sans-serif; background:var(--black); color:#e8e0cc; min-height:100vh; min-height:100dvh; overflow-x:hidden; -webkit-tap-highlight-color:transparent; }
+        .mono  { font-family:'Share Tech Mono',monospace; }
+        .orbit { font-family:'Orbitron',sans-serif; }
+
+        .bg-seal { position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,75vmin,600px);height:clamp(280px,75vmin,600px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0; }
+        .bg-grid { position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(0,212,170,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.022) 1px,transparent 1px);background-size:52px 52px; }
+        @media (max-width:480px){.bg-grid{display:none}}
+        .bg-vignette { position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%); }
+
+        .glass { background:rgba(8,10,6,0.93);border:1px solid rgba(212,175,55,0.18);box-shadow:0 4px 40px rgba(0,0,0,0.5); }
+        .glass-teal { background:rgba(0,14,10,0.93);border:1px solid rgba(0,212,170,0.2); }
+        @media (min-width:641px){ .glass,.glass-teal { backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px); } }
+
+        .gold-line { height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal),transparent); }
+        .slogan { font-family:'Orbitron',sans-serif;font-size:clamp(0.44rem,1.1vw,0.54rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase; }
+
+        .btn { display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.24s ease;font-family:'Orbitron',sans-serif;font-weight:700;text-transform:uppercase; }
+        .btn-gold { background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22));border:1px solid rgba(212,175,55,0.38);color:var(--gold); }
+        .btn-gold:hover { background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(139,105,20,0.38));box-shadow:0 0 20px var(--gold-glow);border-color:var(--gold-bright);transform:translateY(-1px); }
+        .btn-red { background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(153,27,27,0.22));border:1px solid rgba(220,38,38,0.38);color:#fca5a5; }
+        .btn-red:hover { box-shadow:0 0 20px var(--red-glow);border-color:var(--red);color:#fff;transform:translateY(-1px); }
+        .btn-teal { background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,110,89,0.2));border:1px solid rgba(0,212,170,0.35);color:var(--teal); }
+        .btn-teal:hover { background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));box-shadow:0 0 18px var(--teal-glow);border-color:var(--teal);transform:translateY(-1px); }
+        .btn-teal.voted { background:rgba(22,163,74,0.2);border-color:rgba(22,163,74,0.45);color:#86efac;box-shadow:0 0 12px rgba(22,163,74,0.25); }
+        .btn:active { transform:scale(0.97) !important; }
+        .btn:disabled { opacity:0.4;cursor:not-allowed;transform:none !important; }
+
+        /* Visualizer bars */
+        .v-bar { width:4px;border-radius:2px;background:var(--gold);animation:vbounce 1s ease-in-out infinite; }
+        @keyframes vbounce { 0%,100%{height:20%;opacity:0.3} 50%{height:100%;opacity:1} }
+
+        /* Chart row */
+        .chart-row { transition:all 0.3s ease;border-left:3px solid transparent;border-radius:1rem; }
+        .chart-row:hover { border-left-color:var(--gold);background:rgba(212,175,55,0.04); }
+
+        /* Bar fill */
+        .vote-bar { height:3px;background:rgba(0,0,0,0.6);border-radius:99px;overflow:hidden;margin-top:4px; }
+        .vote-fill { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 6px var(--gold-glow);transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+
+        .fade-up { animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+        .dot-blink span { animation:blink 1.3s infinite; }
+        .dot-blink span:nth-child(2){animation-delay:.2s} .dot-blink span:nth-child(3){animation-delay:.4s}
+        @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+
+        ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-track{background:rgba(0,0,0,0.6)} ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal));border-radius:4px}
+        @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
     </style>
 
     <script>
-        // Secure configuration - replace with environment variables or config.js
-        const CONFIG = {
-            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
-            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
-        };
-        
-        let sb = null;
+    function frequencyEngine() {
+        return {
+            view: 'gate',
+            isDirector: false,
+            isLoading: false,
+            isVoting: false,
+            chartItems: [],
+            votedSet: new Set(),
+            signal: 94,
+            nowPlaying: null,
 
-        function frequencyEngine() {
-            return {
-                view: 'gate',
-                chartItems: [],
-                isDirector: false,
-                nowPlaying: null,
-                signalStrength: 94,
-                isLoading: false,
-                isVoting: false,
-                authError: null,
-                userVotes: new Set(), // Track voted items
+            get sb() { return window.sb || window.supabaseClient; },
 
-                async init() {
-                    // Security Gate Check
-                    const role = localStorage.getItem('userRole');
-                    if (!role) {
-                        window.location.href = '../login.html';
-                        return;
-                    }
+            get maxVotes() {
+                if (!this.chartItems.length) return 1;
+                return Math.max(...this.chartItems.map(i => i.votes||0), 1);
+            },
 
-                    // Validate configuration
-                    if (!this.isSupabaseConfigured()) {
-                        this.authError = 'FREQUENCY SYSTEM OFFLINE - CONFIGURATION REQUIRED';
-                        console.error('[FREQUENCY] Supabase not configured');
-                        setTimeout(() => this.view = 'error', 1000);
-                        return;
-                    }
+            async init() {
+                const role = localStorage.getItem('userRole');
+                if (!role) { window.location.href = '../login.html'; return; }
 
-                    try {
-                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                        const { data: { session } } = await sb.auth.getSession();
-                        
-                        if (!session) {
-                            window.location.href = '../index.html';
-                            return;
-                        }
+                let tries = 0;
+                while (!this.sb && tries < 30) { await new Promise(r=>setTimeout(r,100)); tries++; }
+                if (!this.sb) { this.toast('Connection failed','error'); return; }
 
-                        this.isDirector = role === 'director';
-                        this.view = 'active';
-                        await this.loadFrequencyData();
-                        
-                        // Simulate signal fluctuation
-                        this.startSignalSimulation();
-                        
-                        this.$nextTick(() => {
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                        });
-                        
-                    } catch (error) {
-                        console.error('[FREQUENCY] Initialization failed:', error);
-                        this.authError = 'SECURE CONNECTION FAILED';
-                        this.view = 'error';
-                    }
-                },
+                try {
+                    const { data:{ session } } = await this.sb.auth.getSession();
+                    if (!session) { window.location.href = '../login.html'; return; }
 
-                isSupabaseConfigured() {
-                    return CONFIG.SUPABASE_URL && 
-                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
-                           CONFIG.SUPABASE_ANON_KEY && 
-                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
-                },
-
-                async loadFrequencyData() {
-                    try {
-                        this.isLoading = true;
-                        const { data, error } = await sb
-                            .from('frequency')
-                            .select('*')
-                            .order('votes', { ascending: false })
-                            .limit(10);
-
-                        if (error) throw error;
-                        
-                        this.chartItems = data || [];
-                    } catch (error) {
-                        console.error('[FREQUENCY] Load failed:', error);
-                        this.showNotification('FAILED TO LOAD FREQUENCIES', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                async castVote(id) {
-                    // Prevent double voting
-                    if (this.userVotes.has(id)) {
-                        this.showNotification('ALREADY VOTED ON THIS FREQUENCY', 'warning');
-                        return;
-                    }
-
-                    this.isVoting = true;
-
-                    try {
-                        // Try RPC first, fallback to direct update
-                        let error;
-                        
-                        try {
-                            const result = await sb.rpc('increment_vote', { row_id: id });
-                            error = result.error;
-                        } catch (rpcError) {
-                            // Fallback: direct update with optimistic locking
-                            const { data: current } = await sb
-                                .from('frequency')
-                                .select('votes')
-                                .eq('id', id)
-                                .single();
-                            
-                            if (current) {
-                                const { error: updateError } = await sb
-                                    .from('frequency')
-                                    .update({ votes: current.votes + 1 })
-                                    .eq('id', id);
-                                error = updateError;
-                            }
-                        }
-
-                        if (error) throw error;
-
-                        // Track vote locally
-                        this.userVotes.add(id);
-                        
-                        // Optimistic UI update
-                        const item = this.chartItems.find(i => i.id === id);
-                        if (item) item.votes++;
-
-                        this.showNotification('SIGNAL WEIGHT INCREASED', 'success');
-                        
-                        // Refresh after delay
-                        setTimeout(() => this.loadFrequencyData(), 500);
-                        
-                    } catch (error) {
-                        console.error('[FREQUENCY] Vote failed:', error);
-                        this.showNotification('FREQUENCY LOCK FAILED', 'error');
-                    } finally {
-                        this.isVoting = false;
-                    }
-                },
-
-                startSignalSimulation() {
-                    // Simulate realistic signal strength fluctuations
-                    setInterval(() => {
-                        const base = 94;
-                        const variance = Math.floor(Math.random() * 6) - 3; // -3 to +3
-                        this.signalStrength = Math.max(85, Math.min(99, base + variance));
-                    }, 3000);
-                },
-
-                hasVoted(id) {
-                    return this.userVotes.has(id);
-                },
-
-                showNotification(message, type = 'info') {
-                    const colors = {
-                        success: 'border-green-500 text-green-400 bg-green-500/10',
-                        error: 'border-red-500 text-red-400 bg-red-500/10',
-                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
-                        info: 'border-electric text-electric bg-electric/10'
-                    };
-                    
-                    const toast = document.createElement('div');
-                    toast.className = `fixed top-4 right-4 z-50 glass-gold-strong px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
-                    toast.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
-                            <p class="text-xs text-white">${message}</p>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(toast);
-                    
-                    setTimeout(() => {
-                        toast.classList.add('animate-fade-out');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 4000);
-                },
-
-                async terminateSession() {
-                    try {
-                        await sb?.auth?.signOut();
-                    } catch (e) {
-                        console.error('[FREQUENCY] Sign out error:', e);
-                    }
-                    
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userData');
-                    sessionStorage.clear();
-                    
-                    window.location.href = '../login.html';
-                },
-
-                destroy() {
-                    // Clean up intervals if any
+                    this.isDirector = role === 'director';
+                    this.view = 'active';
+                    await this.loadChart();
+                    this.loadVotedFromStorage();
+                    this.startSignalSim();
+                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+                } catch(e) {
+                    console.error('[FREQUENCY]', e);
+                    this.toast('Authentication failed','error');
                 }
+            },
+
+            loadVotedFromStorage() {
+                try { this.votedSet = new Set(JSON.parse(localStorage.getItem('mog_voted_freq')||'[]')); } catch(_) {}
+            },
+            saveVotedToStorage() {
+                try { localStorage.setItem('mog_voted_freq', JSON.stringify([...this.votedSet])); } catch(_) {}
+            },
+
+            async loadChart() {
+                this.isLoading = true;
+                try {
+                    const { data, error } = await this.sb.from('frequency')
+                        .select('*').order('votes', { ascending:false }).limit(10);
+                    if (error) throw error;
+                    this.chartItems = data || [];
+                } catch(e) {
+                    // If table doesn't exist, use placeholder data
+                    console.warn('[FREQUENCY] table may not exist yet:', e.message);
+                    this.chartItems = this.placeholderChart();
+                } finally { this.isLoading = false; }
+            },
+
+            placeholderChart() {
+                return [
+                    { id:'p1', title:'John Vuli Gate',  artist:'Mapara A Jazz ft. Ntosh Gazi',  votes:248 },
+                    { id:'p2', title:'Stimela',          artist:'Master KG ft. Nomcebo',          votes:211 },
+                    { id:'p3', title:'Bayeke',           artist:'Ami Faku ft. Donald',            votes:187 },
+                    { id:'p4', title:'Umsebenzi Wethu',  artist:'Vigro Deep ft. Nhlanhla',        votes:165 },
+                    { id:'p5', title:'Phoyisa',          artist:'DJ Stokie ft. Samthing Soweto',  votes:142 },
+                    { id:'p6', title:'Piano Season',     artist:'DBN Gogo',                       votes:128 },
+                    { id:'p7', title:'Gqom Theory',      artist:'DJ Lag ft. Lasoulmate',          votes:104 },
+                    { id:'p8', title:'Umlando',          artist:'9umba, Comado, Njelic',          votes:98  },
+                    { id:'p9', title:'Ke Star',          artist:'Focalistic ft. Vigro Deep',      votes:87  },
+                    { id:'p10',title:'Love You Tonight', artist:'Kabza De Small ft. Howard',      votes:74  },
+                ];
+            },
+
+            async castVote(item) {
+                if (this.votedSet.has(item.id)) { this.toast('Already voted on this frequency','warning'); return; }
+                if (this.isVoting) return;
+                this.isVoting = true;
+
+                // Optimistic
+                const idx = this.chartItems.findIndex(i=>i.id===item.id);
+                if (idx>-1) this.chartItems[idx].votes = (this.chartItems[idx].votes||0)+1;
+                this.votedSet.add(item.id);
+                this.votedSet = new Set(this.votedSet);
+                this.saveVotedToStorage();
+
+                try {
+                    // Try RPC, then fallback
+                    let err;
+                    try {
+                        const { error } = await this.sb.rpc('increment_vote', { row_id:item.id });
+                        err = error;
+                    } catch(_) {
+                        const { data:cur } = await this.sb.from('frequency').select('votes').eq('id',item.id).single();
+                        if (cur) {
+                            const { error } = await this.sb.from('frequency').update({ votes:(cur.votes||0)+1 }).eq('id',item.id);
+                            err = error;
+                        }
+                    }
+                    if (err) throw err;
+                    this.toast('Signal weight increased','success');
+                    setTimeout(() => this.loadChart(), 800);
+                } catch(e) {
+                    console.error('[FREQUENCY] vote:', e);
+                    // Revert optimistic if DB fails — but keep local to avoid re-vote spam
+                }
+                this.isVoting = false;
+            },
+
+            hasVoted(id) { return this.votedSet.has(id); },
+            pct(votes) { return Math.round(((votes||0)/this.maxVotes)*100); },
+
+            startSignalSim() {
+                setInterval(() => {
+                    this.signal = Math.max(85, Math.min(99, 94 + Math.floor(Math.random()*7)-3));
+                }, 3000);
+            },
+
+            logout() {
+                try { this.sb?.auth?.signOut(); } catch(_) {}
+                localStorage.removeItem('userRole');
+                window.location.href = '../login.html';
+            },
+
+            toast(message, type='info') {
+                const cfg={success:{bg:'#052010',border:'rgba(0,212,170,0.4)',color:'#4aecd4'},error:{bg:'#1a0404',border:'rgba(220,38,38,0.45)',color:'#f87171'},warning:{bg:'#1a1000',border:'rgba(212,175,55,0.4)',color:'#fcd34d'},info:{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'}}[type]||{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'};
+                const t=document.createElement('div');
+                const m=window.innerWidth<640;
+                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:16px;right:16px;transform:translateX(120%)'};background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:12px;padding:11px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.8);display:flex;align-items:center;gap:8px;max-width:min(90vw,360px);`;
+                t.textContent=message;
+                document.body.appendChild(t);
+                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';},20));
+                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),350);},4000);
             }
-        }
+        };
+    }
     </script>
 </head>
-<body x-data="frequencyEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
 
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
-    <div class="circuit-vignette"></div>
+<body x-data="frequencyEngine()" x-init="init()" x-cloak class="bg-black min-h-screen">
 
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <div class="loader-gold"></div>
-            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Scanning Frequencies...</p>
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vignette" aria-hidden="true"></div>
+
+<!-- Gate -->
+<template x-if="view==='gate'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black">
+    <div style="width:52px;height:52px;position:relative">
+        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
+    </div>
+    <div class="text-center space-y-2">
+        <p class="orbit text-xs tracking-widest" style="color:var(--gold)">Scanning Frequencies <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+    </div>
+</div>
+</template>
+
+<!-- Active -->
+<template x-if="view==='active'">
+<div class="relative z-10 min-h-screen fade-up">
+
+    <!-- Nav -->
+    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.12)">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px;font-size:0.6rem">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </a>
+                <img src="../assets/images/logo.png" alt="M.O.G." style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px var(--gold-glow))" onerror="this.style.display='none'">
+                <div>
+                    <p class="orbit font-black text-base sm:text-lg uppercase" style="color:var(--gold);line-height:1.1">Frequency Uplink</p>
+                    <p class="slogan">Audio Surveillance // Sector 7G</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Signal strength -->
+                <div class="hidden sm:flex items-center gap-3 px-3 py-2 rounded-xl" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.18)">
+                    <div class="flex items-end gap-0.5" style="height:20px">
+                        <div class="v-bar" style="animation-delay:0s"></div>
+                        <div class="v-bar" style="animation-delay:0.15s"></div>
+                        <div class="v-bar" style="animation-delay:0.3s"></div>
+                        <div class="v-bar" style="animation-delay:0.1s"></div>
+                        <div class="v-bar" style="animation-delay:0.25s"></div>
+                    </div>
+                    <div class="text-right">
+                        <p class="orbit font-black text-teal" style="font-size:0.75rem" x-text="signal+'%'"></p>
+                        <p class="mono text-gray-600" style="font-size:0.52rem">SIGNAL</p>
+                    </div>
+                </div>
+                <button @click="loadChart()" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :class="isLoading?'spin-anim':''"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+                <button @click="logout()" class="btn btn-red p-2 rounded-xl" style="min-height:unset;padding:7px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
         </div>
-    </template>
+        <div class="gold-line" style="opacity:0.2"></div>
+    </nav>
 
-    <template x-if="view === 'error'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
-            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
-            <button @click="terminateSession()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
-                Return to Gate
-            </button>
-        </div>
-    </template>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-    <template x-if="view === 'active'">
-        <div class="max-w-7xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
-            
-            <header class="p-8 glass-gold-strong rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-12 shadow-2xl">
-                <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='../index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
-                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
-                    </button>
-                    <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Frequency Uplink</h1>
-                        <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Audio Surveillance // Sector 7G</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-8">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[9px] text-zinc-500 font-black uppercase tracking-widest">Signal Integrity</p>
-                        <p class="text-xl font-black terminal-font text-electric" x-text="signalStrength + '%'"></p>
-                    </div>
-                    <div class="visualizer">
-                        <div class="v-bar"></div>
-                        <div class="v-bar" style="animation-delay: 0.2s"></div>
-                        <div class="v-bar" style="animation-delay: 0.4s"></div>
-                        <div class="v-bar" style="animation-delay: 0.1s"></div>
-                        <div class="v-bar" style="animation-delay: 0.3s"></div>
-                    </div>
-                    
-                    <!-- Session Controls -->
-                    <button @click="terminateSession()" 
-                            class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all"
-                            title="Terminate Session">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                
-                <div class="space-y-10">
-                    <div class="glass-gold-strong p-10 rounded-[4rem] border border-gold/10 shadow-2xl relative overflow-hidden">
-                        <div class="absolute -top-10 -left-10 w-32 h-32 bg-gold/5 rounded-full blur-2xl"></div>
-                        <h3 class="text-xs font-black uppercase text-gold tracking-widest mb-8 italic flex items-center gap-3">
-                            <i data-lucide="radio"></i> Master Signal
-                        </h3>
-                        <div class="space-y-6">
-                            <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                                <p class="text-[8px] text-zinc-600 uppercase font-black mb-1">Active Stream</p>
-                                <p class="text-xs font-black terminal-font uppercase text-zinc-300">AMAPIANO_SYNC_B-01</p>
-                            </div>
-                            <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                                <p class="text-[8px] text-zinc-600 uppercase font-black mb-1">Target Sector</p>
-                                <p class="text-xs font-black terminal-font uppercase text-zinc-300">Highveld / Sector 7G</p>
-                            </div>
+            <!-- Sidebar -->
+            <div class="space-y-4">
+                <!-- Master signal card -->
+                <div class="glass rounded-3xl p-5">
+                    <p class="orbit font-bold text-gold flex items-center gap-2 mb-4" style="font-size:0.65rem;letter-spacing:0.15em">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                        Master Signal
+                    </p>
+                    <div class="space-y-3">
+                        <div class="p-3 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
+                            <p class="mono text-gray-600 uppercase mb-1" style="font-size:0.52rem">Active Stream</p>
+                            <p class="mono text-white uppercase" style="font-size:0.7rem">AMAPIANO_SYNC_B-01</p>
                         </div>
-                        <button class="btn-command w-full mt-8 py-4 text-[10px] opacity-50 cursor-not-allowed" disabled>
-                            Optimize Uplink
-                        </button>
-                    </div>
-
-                    <div class="glass p-8 rounded-[3rem] border border-white/5 shadow-xl">
-                        <h4 class="terminal-font text-[10px] text-zinc-500 mb-6 tracking-widest italic">System Nodes</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button onclick="window.location.href='../index.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center border border-white/5">
-                                <i data-lucide="layout-grid" class="mx-auto mb-2 text-gold"></i>
-                                <span class="text-[8px] font-black uppercase">Hub</span>
-                            </button>
-                            <button onclick="window.location.href='dossier.html'" class="p-5 bg-white/5 rounded-2xl hover:bg-white/10 transition-all text-center border border-white/5">
-                                <i data-lucide="shield-check" class="mx-auto mb-2 text-electric"></i>
-                                <span class="text-[8px] font-black uppercase">Dossier</span>
-                            </button>
+                        <div class="p-3 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
+                            <p class="mono text-gray-600 uppercase mb-1" style="font-size:0.52rem">Target Sector</p>
+                            <p class="mono text-white uppercase" style="font-size:0.7rem">Highveld / Sector 7G</p>
+                        </div>
+                        <div class="p-3 rounded-xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(0,212,170,0.15)">
+                            <p class="mono text-gray-600 uppercase mb-1" style="font-size:0.52rem">Frequency</p>
+                            <p class="orbit font-black text-teal" style="font-size:1.1rem">104.7 FM</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-2">
-                    <div class="glass-gold-strong p-10 rounded-[4rem] border border-gold/10 shadow-2xl">
-                        <div class="flex items-center justify-between mb-10 border-b border-gold/10 pb-8">
-                            <div>
-                                <h3 class="text-2xl font-black uppercase italic tracking-tighter text-white">Frequency Rankings</h3>
-                                <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mt-2">The Top 10 Amapiano Directives</p>
-                            </div>
-                            <i data-lucide="trending-up" class="text-gold w-10 h-10 opacity-20"></i>
-                        </div>
-
-                        <div x-show="isLoading" class="py-12 text-center">
-                            <div class="loader-gold mx-auto mb-4"></div>
-                            <p class="terminal-font text-[10px] text-zinc-500 uppercase">Loading Frequencies...</p>
-                        </div>
-
-                        <div class="space-y-4">
-                            <template x-for="(item, index) in chartItems" :key="item.id">
-                                <div class="chart-row p-6 bg-white/[0.03] border border-white/5 rounded-[2.5rem] flex items-center justify-between">
-                                    <div class="flex items-center gap-8">
-                                        <span class="text-xl font-black terminal-font" 
-                                              :class="index < 3 ? 'text-gold' : 'text-gold/40'" 
-                                              x-text="(index + 1).toString().padStart(2, '0')"></span>
-                                        <div>
-                                            <p class="text-sm font-black uppercase tracking-wider text-white" x-text="item.title"></p>
-                                            <p class="text-[9px] text-zinc-600 uppercase font-black italic" x-text="item.artist"></p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-6">
-                                        <div class="text-right hidden sm:block">
-                                            <p class="text-[8px] text-zinc-700 uppercase font-black">Weight</p>
-                                            <p class="text-[10px] font-black terminal-font text-electric" x-text="item.votes?.toLocaleString() || 0"></p>
-                                        </div>
-                                        <button @click="castVote(item.id)" 
-                                                :disabled="isVoting || hasVoted(item.id)"
-                                                class="vote-btn p-4 bg-gold/10 text-gold rounded-full hover:bg-gold hover:text-black transition-all disabled:opacity-30"
-                                                :class="{ 'bg-green-500/20 text-green-400': hasVoted(item.id) }"
-                                                :title="hasVoted(item.id) ? 'Already Voted' : 'Cast Vote'">
-                                            <i data-lucide="zap" class="w-5 h-5" x-show="!hasVoted(item.id)"></i>
-                                            <i data-lucide="check" class="w-5 h-5" x-show="hasVoted(item.id)"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </template>
-
-                            <div x-show="chartItems.length === 0 && !isLoading" class="py-20 text-center opacity-20">
-                                <i data-lucide="music" class="mx-auto mb-4 w-12 h-12"></i>
-                                <p class="terminal-font text-[10px] uppercase tracking-widest">No Frequencies Logged</p>
-                            </div>
-                        </div>
+                <!-- Nav nodes -->
+                <div class="glass rounded-3xl p-4">
+                    <p class="mono text-gray-500 uppercase mb-3" style="font-size:0.56rem;letter-spacing:0.15em">System Nodes</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <template x-for="node in [
+                            {label:'Hub',      url:'../index.html',  icon:'layout-grid'},
+                            {label:'Gallery',  url:'gallery.html',   icon:'camera'},
+                            {label:'Dispatch', url:'dispatch.html',  icon:'radio'},
+                            {label:'Vault',    url:'archives.html',  icon:'archive'}
+                        ]" :key="node.url">
+                            <a :href="node.url" class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.3)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
+                                <i :data-lucide="node.icon" class="text-gold" style="width:18px;height:18px"></i>
+                                <span class="orbit font-bold text-white uppercase" style="font-size:0.52rem" x-text="node.label"></span>
+                            </a>
+                        </template>
                     </div>
                 </div>
             </div>
 
-            <footer class="mt-24 pt-10 border-t border-white/5 text-center text-zinc-800">
-                <p class="terminal-font text-[11px] uppercase tracking-[0.6em] italic leading-relaxed">
-                    DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
-                </p>
-            </footer>
+            <!-- Chart panel -->
+            <div class="lg:col-span-2">
+                <div class="glass rounded-3xl p-5 sm:p-6">
+                    <div class="flex items-center justify-between mb-5 pb-4" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+                        <div>
+                            <p class="orbit font-black text-white text-lg sm:text-xl uppercase">Frequency Rankings</p>
+                            <p class="mono text-gray-600 uppercase" style="font-size:0.56rem;letter-spacing:0.12em">Top 10 Amapiano Directives</p>
+                        </div>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold);opacity:0.25"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    </div>
+
+                    <!-- Loading -->
+                    <template x-if="isLoading">
+                        <div class="flex items-center justify-center py-12 gap-3">
+                            <div style="width:28px;height:28px;border:3px solid transparent;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite"></div>
+                            <p class="orbit text-xs text-gold tracking-widest">Loading Frequencies...</p>
+                        </div>
+                    </template>
+
+                    <!-- Chart rows -->
+                    <template x-if="!isLoading">
+                        <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                            <template x-if="!chartItems.length">
+                                <div class="text-center py-16" style="opacity:0.2">
+                                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-3" style="color:var(--gold)"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                                    <p class="orbit text-sm uppercase tracking-widest" style="color:var(--gold)">No Frequencies Logged</p>
+                                </div>
+                            </template>
+                            <template x-for="(item, idx) in chartItems" :key="item.id">
+                                <div class="chart-row p-3.5 flex items-center justify-between gap-3" style="background:rgba(0,0,0,0.3)">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        <!-- Rank -->
+                                        <div class="flex-shrink-0 w-8 text-center">
+                                            <span class="orbit font-black" :class="idx<3?'text-gold':'text-gray-600'" style="font-size:0.8rem" x-text="String(idx+1).padStart(2,'0')"></span>
+                                        </div>
+                                        <!-- Info -->
+                                        <div class="flex-1 min-w-0">
+                                            <p class="orbit font-bold text-white truncate" style="font-size:0.72rem" x-text="item.title"></p>
+                                            <p class="mono text-gray-600 truncate" style="font-size:0.58rem" x-text="item.artist"></p>
+                                            <div class="vote-bar mt-1"><div class="vote-fill" :style="'width:'+pct(item.votes)+'%'"></div></div>
+                                        </div>
+                                    </div>
+                                    <!-- Votes + button -->
+                                    <div class="flex items-center gap-3 flex-shrink-0">
+                                        <div class="text-right hidden sm:block">
+                                            <p class="mono text-gray-700 uppercase" style="font-size:0.52rem">Weight</p>
+                                            <p class="orbit font-black text-teal" style="font-size:0.75rem" x-text="(item.votes||0).toLocaleString()"></p>
+                                        </div>
+                                        <button @click="castVote(item)"
+                                                :disabled="isVoting||hasVoted(item.id)"
+                                                class="btn btn-teal rounded-full px-3 py-2"
+                                                :class="hasVoted(item.id)?'voted':''"
+                                                style="font-size:0.58rem;min-height:unset">
+                                            <svg x-show="!hasVoted(item.id)" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                            <svg x-show="hasVoted(item.id)" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                            <span x-text="hasVoted(item.id)?'Voted':'Vote'"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
         </div>
-    </template>
+    </main>
+
+    <footer class="text-center py-6 mt-4" style="border-top:1px solid rgba(212,175,55,0.06)">
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid. © 2026</p>
+        <p class="mono text-gray-800 mt-1" style="font-size:0.52rem;letter-spacing:0.2em">MINISTRY OF GROOVE // FREQUENCY UPLINK // SECTOR 7G</p>
+    </footer>
+</div>
+</template>
+
 </body>
 </html>
-                               
