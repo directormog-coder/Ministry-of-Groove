@@ -6,37 +6,55 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+  NODE_VERSION: '20'
 
 jobs:
+
+  # ── 1. DEPENDENCY AUDIT ──────────────────────────────────────────
   security-audit:
+    name: Dependency Security Audit
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Validate package.json is valid JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json OK')"
+      - name: Validate package.json
+        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('✓ package.json valid')"
 
       - name: Generate lockfile if missing
         run: |
           if [ ! -f package-lock.json ]; then
             echo "No lockfile found — generating..."
             npm install --package-lock-only --ignore-scripts
+          else
+            echo "✓ Lockfile present"
           fi
 
       - name: Run npm audit
-        run: npm audit --audit-level=moderate || true
+        run: npm audit --audit-level=moderate
         continue-on-error: true
 
-      - name: Scan for leaked secrets
+  # ── 2. SECRET SCAN ──────────────────────────────────────────────
+  secret-scan:
+    name: Scan for Leaked Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Full history needed for TruffleHog
+
+      - name: TruffleHog secret scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
@@ -45,49 +63,44 @@ jobs:
           extra_args: --only-verified
         continue-on-error: true
 
-  static-analysis:
+  # ── 3. STATIC ANALYSIS (ESLint) ─────────────────────────────────
+  lint:
+    name: ESLint Static Analysis
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Validate package.json before install
-        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
-
-      - name: Install ESLint only
+      - name: Install ESLint
         run: npm install --save-dev eslint --ignore-scripts
 
       - name: Run ESLint on js/ folder
-        run: npx eslint js/ --ext .js || true
+        run: npx eslint js/ --ext .js
         continue-on-error: true
 
+  # ── 4. OWASP DEPENDENCY CHECK ───────────────────────────────────
   dependency-check:
+    name: OWASP Dependency Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-
-      - name: Validate package.json is valid JSON
-        run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package.json valid')"
 
       - name: Generate lockfile if missing
         run: |
           if [ ! -f package-lock.json ]; then
-            echo "No lockfile — generating..."
             npm install --package-lock-only --ignore-scripts
-          else
-            echo "Lockfile exists — skipping"
           fi
 
       - name: Install dependencies
