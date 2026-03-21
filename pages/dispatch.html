@@ -2,419 +2,357 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MOG | DISPATCH ARCHIVE</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>M.O.G. | DISPATCH LOG</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase-client.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="stylesheet" href="../css/style.css">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        [x-cloak] { display: none !important; }
-        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 35px 35px; }
-        .glass-gold-dispatch { background: rgba(10, 10, 15, 0.98); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        
-        /* ALERT BEACON */
-        .beacon { width: 10px; height: 10px; background: var(--gold); border-radius: 50%; position: relative; }
-        .beacon::after { content: ''; position: absolute; inset: -5px; border: 2px solid var(--gold); border-radius: 50%; animation: ring 1.5s infinite; }
-        @keyframes ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+        [x-cloak]{display:none!important}
+        :root{--black:#000;--gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;--gold-glow:rgba(212,175,55,0.4);--teal:#00d4aa;--teal-glow:rgba(0,212,170,0.3);--red:#dc2626;--red-glow:rgba(220,38,38,0.4);}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:#e8e0cc;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'Share Tech Mono',monospace}.orbit{font-family:'Orbitron',sans-serif}
 
-        .beacon-active { background: #ef4444; }
-        .beacon-active::after { border-color: #ef4444; }
+        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,75vmin,600px);height:clamp(280px,75vmin,600px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(220,38,38,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(220,38,38,0.025) 1px,transparent 1px);background-size:52px 52px}
+        @media (max-width:480px){.bg-grid{display:none}}
+        .bg-vignette{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%)}
 
-        .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .directive-card { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); border-left: 4px solid transparent; }
-        .directive-card:hover { border-left-color: var(--gold); background: rgba(212, 175, 55, 0.05); transform: scale(1.02); }
-        
-        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .glass{background:rgba(8,10,6,0.93);border:1px solid rgba(212,175,55,0.18);box-shadow:0 4px 40px rgba(0,0,0,0.5)}
+        .glass-red{background:rgba(12,3,3,0.93);border:1px solid rgba(220,38,38,0.2)}
+        @media (min-width:641px){.glass,.glass-red{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}}
+
+        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--red-dark,#7f1d1d),transparent)}
+        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.44rem,1.1vw,0.54rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.24s ease;font-family:'Orbitron',sans-serif;font-weight:700;text-transform:uppercase}
+        .btn-gold{background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22));border:1px solid rgba(212,175,55,0.38);color:var(--gold)}
+        .btn-gold:hover{background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(139,105,20,0.38));box-shadow:0 0 20px var(--gold-glow);border-color:var(--gold-bright);transform:translateY(-1px)}
+        .btn-red{background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(153,27,27,0.22));border:1px solid rgba(220,38,38,0.38);color:#fca5a5}
+        .btn-red:hover{box-shadow:0 0 20px var(--red-glow);border-color:var(--red);color:#fff;transform:translateY(-1px)}
+        .btn-green{background:linear-gradient(135deg,rgba(22,163,74,0.12),rgba(21,128,61,0.22));border:1px solid rgba(22,163,74,0.38);color:#86efac}
+        .btn-green:hover{box-shadow:0 0 16px rgba(22,163,74,0.3);border-color:#4ade80;transform:translateY(-1px)}
+        .btn:active{transform:scale(0.97)!important}
+        .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+
+        /* Beacon */
+        .beacon{width:10px;height:10px;border-radius:50%;position:relative;flex-shrink:0}
+        .beacon.online{background:#22c55e;box-shadow:0 0 8px #22c55e}
+        .beacon.alert{background:var(--red);box-shadow:0 0 8px var(--red)}
+        .beacon::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid currentColor;animation:beaconRing 1.5s infinite}
+        .beacon.online::after{border-color:#22c55e}
+        .beacon.alert::after{border-color:var(--red)}
+        @keyframes beaconRing{0%{transform:scale(1);opacity:1}100%{transform:scale(2.5);opacity:0}}
+
+        /* Directive card */
+        .directive-card{border-left:4px solid rgba(212,175,55,0.15);border-radius:1rem;transition:all 0.3s ease}
+        .directive-card:hover{border-left-color:var(--gold);background:rgba(212,175,55,0.03)!important}
+        .directive-card.new-in{animation:slideIn 0.4s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+        .directive-card.acknowledged{opacity:0.55}
+
+        /* Priority badge */
+        .priority-critical{background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.4);color:#f87171}
+        .priority-high{background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.35);color:var(--gold)}
+        .priority-normal{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.25);color:var(--teal)}
+
+        .fade-up{animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .dot-blink span{animation:blink 1.3s infinite}
+        .dot-blink span:nth-child(2){animation-delay:.2s}.dot-blink span:nth-child(3){animation-delay:.4s}
+        @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:rgba(0,0,0,0.6)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--red));border-radius:4px}
+        @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
     </style>
 
     <script>
-        // Secure configuration - replace with environment variables or config.js
-        const CONFIG = {
-            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
-            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
-        };
-        
-        let sb = null;
-        let realtimeChannel = null;
+    function dispatchEngine() {
+        return {
+            view: 'gate',
+            isDirector: false,
+            isLoading: false,
+            directives: [],
+            systemStatus: 'MONITORING',
+            newCount: 0,
+            currentUserId: null,
+            _channel: null,
 
-        function dispatchEngine() {
-            return {
-                view: 'gate',
-                directives: [],
-                isDirector: false,
-                status: 'MONITORING',
-                authError: null,
-                isLoading: false,
-                newDirectiveCount: 0,
+            get sb() { return window.sb || window.supabaseClient; },
 
-                async init() {
-                    // Security Gate Verification
-                    const role = localStorage.getItem('userRole');
-                    if (!role) {
-                        window.location.href = '../login.html';
-                        return;
-                    }
+            async init() {
+                const role = localStorage.getItem('userRole');
+                if (!role) { window.location.href = '../login.html'; return; }
 
-                    // Validate configuration
-                    if (!this.isSupabaseConfigured()) {
-                        this.authError = 'DISPATCH SYSTEM OFFLINE - CONFIGURATION REQUIRED';
-                        console.error('[DISPATCH] Supabase not configured');
-                        setTimeout(() => this.view = 'error', 1000);
-                        return;
-                    }
+                let tries = 0;
+                while (!this.sb && tries < 30) { await new Promise(r=>setTimeout(r,100)); tries++; }
+                if (!this.sb) { this.toast('Connection failed','error'); return; }
 
-                    try {
-                        sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                        const { data: { session } } = await sb.auth.getSession();
-                        
-                        if (!session) {
-                            window.location.href = '../index.html';
-                            return;
-                        }
-
-                        this.isDirector = role === 'director';
-                        this.view = 'active';
-                        await this.loadDirectives();
-                        this.subscribeToDirectives();
-                        
-                        this.$nextTick(() => {
-                            if (typeof lucide !== 'undefined') lucide.createIcons();
-                        });
-                        
-                    } catch (error) {
-                        console.error('[DISPATCH] Initialization failed:', error);
-                        this.authError = 'SECURE CONNECTION FAILED';
-                        this.view = 'error';
-                    }
-                },
-
-                isSupabaseConfigured() {
-                    return CONFIG.SUPABASE_URL && 
-                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
-                           CONFIG.SUPABASE_ANON_KEY && 
-                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
-                },
-
-                async loadDirectives() {
-                    try {
-                        this.isLoading = true;
-                        const { data, error } = await sb
-                            .from('broadcasts')
-                            .select('*')
-                            .order('created_at', { ascending: false })
-                            .limit(50);
-
-                        if (error) throw error;
-                        
-                        this.directives = data || [];
-                    } catch (error) {
-                        console.error('[DISPATCH] Load failed:', error);
-                        this.showNotification('FAILED TO LOAD DIRECTIVES', 'error');
-                    } finally {
-                        this.isLoading = false;
-                    }
-                },
-
-                subscribeToDirectives() {
-                    // Clean up existing subscription
-                    if (realtimeChannel) {
-                        realtimeChannel.unsubscribe();
-                    }
-
-                    realtimeChannel = sb
-                        .channel('public:broadcasts')
-                        .on('postgres_changes', 
-                            { 
-                                event: 'INSERT', 
-                                schema: 'public', 
-                                table: 'broadcasts' 
-                            }, 
-                            (payload) => {
-                                this.handleNewDirective(payload.new);
-                            }
-                        )
-                        .on('postgres_changes',
-                            {
-                                event: 'UPDATE',
-                                schema: 'public',
-                                table: 'broadcasts'
-                            },
-                            () => {
-                                this.loadDirectives();
-                            }
-                        )
-                        .subscribe((status) => {
-                            console.log('[DISPATCH] Realtime status:', status);
-                        });
-                },
-
-                handleNewDirective(newDirective) {
-                    // Add to top of list
-                    this.directives.unshift(newDirective);
-                    
-                    // Keep only last 50
-                    if (this.directives.length > 50) {
-                        this.directives = this.directives.slice(0, 50);
-                    }
-
-                    this.newDirectiveCount++;
-                    this.status = 'NEW DIRECTIVE INCOMING';
-                    
-                    // Visual alert
-                    this.showNotification('NEW DIRECTIVE RECEIVED', 'warning');
-                    
-                    // Reset status after delay
-                    setTimeout(() => {
-                        this.status = 'MONITORING';
-                        this.newDirectiveCount = 0;
-                    }, 5000);
-
-                    // Update icons
-                    this.$nextTick(() => {
-                        if (typeof lucide !== 'undefined') lucide.createIcons();
-                    });
-                },
-
-                async acknowledge(id) {
-                    try {
-                        const { error } = await sb
-                            .from('broadcasts')
-                            .update({ 
-                                acknowledged: true,
-                                acknowledged_by: (await sb.auth.getUser()).data.user?.id,
-                                acknowledged_at: new Date().toISOString()
-                            })
-                            .eq('id', id);
-
-                        if (error) throw error;
-
-                        // Update local state
-                        const directive = this.directives.find(d => d.id === id);
-                        if (directive) {
-                            directive.acknowledged = true;
-                        }
-
-                        this.showNotification('DIRECTIVE ACKNOWLEDGED', 'success');
-                        
-                    } catch (error) {
-                        console.error('[DISPATCH] Acknowledge failed:', error);
-                        this.showNotification('ACKNOWLEDGMENT FAILED', 'error');
-                    }
-                },
-
-                isAcknowledged(item) {
-                    return item.acknowledged === true;
-                },
-
-                showNotification(message, type = 'info') {
-                    const colors = {
-                        success: 'border-green-500 text-green-400 bg-green-500/10',
-                        error: 'border-red-500 text-red-400 bg-red-500/10',
-                        warning: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
-                        info: 'border-electric text-electric bg-electric/10'
-                    };
-                    
-                    const toast = document.createElement('div');
-                    toast.className = `fixed top-4 right-4 z-50 glass-gold-dispatch px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in max-w-md`;
-                    toast.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
-                            <p class="text-xs text-white">${message}</p>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(toast);
-                    
-                    setTimeout(() => {
-                        toast.classList.add('animate-fade-out');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 4000);
-                },
-
-                formatDate(dateString) {
-                    if (!dateString) return 'UNKNOWN';
-                    try {
-                        return new Date(dateString).toLocaleString('en-ZA', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                    } catch (e) {
-                        return dateString;
-                    }
-                },
-
-                terminateSession() {
-                    if (realtimeChannel) {
-                        realtimeChannel.unsubscribe();
-                    }
-                    
-                    try {
-                        sb?.auth?.signOut();
-                    } catch (e) {
-                        console.error('[DISPATCH] Sign out error:', e);
-                    }
-                    
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userData');
-                    sessionStorage.clear();
-                    
-                    window.location.href = '../login.html';
-                },
-
-                destroy() {
-                    if (realtimeChannel) {
-                        realtimeChannel.unsubscribe();
-                    }
+                try {
+                    const { data:{ session } } = await this.sb.auth.getSession();
+                    if (!session) { window.location.href = '../login.html'; return; }
+                    this.currentUserId = session.user.id;
+                    this.isDirector = role === 'director';
+                    this.view = 'active';
+                    await this.loadDirectives();
+                    this.subscribeRealtime();
+                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+                } catch(e) {
+                    console.error('[DISPATCH]', e);
+                    this.toast('Authentication failed','error');
                 }
+            },
+
+            async loadDirectives() {
+                this.isLoading = true;
+                try {
+                    // Try 'directives' table first (main table), then 'broadcasts' fallback
+                    let data, error;
+                    ({ data, error } = await this.sb.from('directives')
+                        .select('*').order('timestamp', { ascending:false }).limit(50));
+                    if (error) {
+                        ({ data, error } = await this.sb.from('broadcasts')
+                            .select('*').order('created_at', { ascending:false }).limit(50));
+                    }
+                    this.directives = (data||[]).map(d => ({
+                        ...d,
+                        // Normalize field names between tables
+                        content: d.content || d.message || '',
+                        created_at: d.timestamp || d.created_at,
+                        priority: d.priority || 'HIGH',
+                        acknowledged: d.acknowledged || false
+                    }));
+                } catch(e) {
+                    console.error('[DISPATCH] load:', e);
+                    this.directives = [];
+                } finally { this.isLoading = false; }
+            },
+
+            subscribeRealtime() {
+                try {
+                    if (this._channel) this._channel.unsubscribe();
+                    this._channel = this.sb.channel('dispatch-realtime')
+                        .on('postgres_changes', { event:'INSERT', schema:'public', table:'directives' }, payload => {
+                            const d = payload.new;
+                            this.directives.unshift({ ...d, content:d.content||'', created_at:d.timestamp||d.created_at, priority:d.priority||'HIGH', acknowledged:false });
+                            if (this.directives.length > 50) this.directives = this.directives.slice(0,50);
+                            this.newCount++;
+                            this.systemStatus = 'NEW DIRECTIVE';
+                            this.toast('New directive received','warning');
+                            setTimeout(() => { this.systemStatus='MONITORING'; this.newCount=0; }, 5000);
+                        })
+                        .subscribe();
+                } catch(_) {}
+            },
+
+            async acknowledge(id) {
+                try {
+                    const { error } = await this.sb.from('directives').update({
+                        acknowledged: true,
+                        acknowledged_by: this.currentUserId,
+                        acknowledged_at: new Date().toISOString()
+                    }).eq('id', id);
+                    if (error) throw error;
+                    const d = this.directives.find(x => x.id === id);
+                    if (d) { d.acknowledged = true; d.acknowledged_at = new Date().toISOString(); }
+                    this.toast('Directive acknowledged','success');
+                } catch(e) {
+                    // Try broadcasts table as fallback
+                    try {
+                        await this.sb.from('broadcasts').update({ acknowledged:true }).eq('id',id);
+                        const d = this.directives.find(x => x.id === id);
+                        if (d) d.acknowledged = true;
+                        this.toast('Directive acknowledged','success');
+                    } catch(_) { this.toast('Acknowledgment failed','error'); }
+                }
+            },
+
+            priorityClass(p) {
+                return { CRITICAL:'priority-critical', HIGH:'priority-high', NORMAL:'priority-normal', LOW:'priority-normal' }[p] || 'priority-high';
+            },
+
+            formatDate(ts) {
+                if (!ts) return '—';
+                try { return new Date(ts).toLocaleString('en-ZA',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(_) { return ts; }
+            },
+
+            timeAgo(ts) {
+                if (!ts) return '—';
+                const s=(Date.now()-new Date(ts))/1000;
+                if (s<60) return Math.floor(s)+'s ago';
+                if (s<3600) return Math.floor(s/60)+'m ago';
+                if (s<86400) return Math.floor(s/3600)+'h ago';
+                return Math.floor(s/86400)+'d ago';
+            },
+
+            logout() {
+                try { this.sb?.auth?.signOut(); } catch(_) {}
+                if (this._channel) this._channel.unsubscribe();
+                localStorage.removeItem('userRole');
+                window.location.href = '../login.html';
+            },
+
+            toast(message, type='info') {
+                const cfg={success:{bg:'#052010',border:'rgba(0,212,170,0.4)',color:'#4aecd4'},error:{bg:'#1a0404',border:'rgba(220,38,38,0.45)',color:'#f87171'},warning:{bg:'#1a1000',border:'rgba(212,175,55,0.4)',color:'#fcd34d'},info:{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'}}[type]||{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'};
+                const t=document.createElement('div');const m=window.innerWidth<640;
+                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:16px;right:16px;transform:translateX(120%)'};background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:12px;padding:11px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.8);display:flex;align-items:center;gap:8px;max-width:min(90vw,360px);`;
+                t.textContent=message;document.body.appendChild(t);
+                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';},20));
+                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),350);},4000);
             }
-        }
+        };
+    }
     </script>
 </head>
-<body x-data="dispatchEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
 
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
-    <div class="circuit-vignette"></div>
+<body x-data="dispatchEngine()" x-init="init()" x-cloak class="bg-black min-h-screen">
 
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <div class="loader-gold"></div>
-            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Decrypting Tactical Feed...</p>
-        </div>
-    </template>
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vignette" aria-hidden="true"></div>
 
-    <template x-if="view === 'error'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <i data-lucide="shield-alert" class="w-16 h-16 text-red-500"></i>
-            <p class="terminal-font text-[11px] text-red-500 uppercase tracking-[0.3em]" x-text="authError || 'SYSTEM ERROR'"></p>
-            <button @click="terminateSession()" class="px-8 py-4 bg-white/10 rounded-full text-xs uppercase tracking-widest hover:bg-white/20 transition-all">
-                Return to Gate
-            </button>
-        </div>
-    </template>
+<!-- Gate -->
+<template x-if="view==='gate'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black">
+    <div style="width:52px;height:52px;position:relative">
+        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
+    </div>
+    <div class="text-center space-y-2">
+        <p class="orbit text-xs tracking-widest" style="color:var(--gold)">Decrypting Tactical Feed <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+    </div>
+</div>
+</template>
 
-    <template x-if="view === 'active'">
-        <div class="max-w-5xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
-            
-            <header class="p-8 glass-gold-dispatch rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
-                <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='../index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
-                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
-                    </button>
-                    <div class="flex items-center gap-4">
-                        <img src="../assets/images/logo.png" alt="MOG Logo" class="w-10 h-10 object-contain" onerror="this.style.display='none'">
-                        <div>
-                            <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Dispatch Log</h1>
-                            <p class="text-[10px] text-zinc-500 font-black uppercase tracking-[0.4em] mt-2 italic">Sector 7G Directives</p>
-                        </div>
-                    </div>
-                </div>
+<!-- Active -->
+<template x-if="view==='active'">
+<div class="relative z-10 min-h-screen fade-up">
 
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-6 bg-gold/5 px-6 py-3 rounded-full border border-gold/20" :class="{ 'border-red-500/50 bg-red-500/10': status !== 'MONITORING' }">
-                        <div class="beacon" :class="{ 'beacon-active': status !== 'MONITORING' }"></div>
-                        <p class="text-[10px] font-black uppercase tracking-widest" :class="status !== 'MONITORING' ? 'text-red-400' : 'text-gold'" x-text="'System: ' + status"></p>
-                    </div>
-                    
-                    <!-- Session Controls -->
-                    <button @click="terminateSession()" 
-                            class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all"
-                            title="Terminate Session">
-                        <i data-lucide="log-out" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </header>
-
-            <div class="grid grid-cols-1 gap-12">
-                
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between mb-4 px-4">
-                        <h3 class="text-xs font-black uppercase text-zinc-500 tracking-[0.3em] italic flex items-center gap-2">
-                             <i data-lucide="radio" class="w-4 h-4"></i> Encrypted Transmissions
-                        </h3>
-                        <div class="flex items-center gap-4">
-                            <span x-show="newDirectiveCount > 0" class="px-3 py-1 bg-red-500 text-white text-[9px] font-black uppercase rounded-full animate-pulse" x-text="newDirectiveCount + ' NEW'"></span>
-                            <span class="terminal-font text-[9px] text-zinc-700 uppercase" x-text="directives.length + ' Logs Found'"></span>
-                        </div>
-                    </div>
-
-                    <div x-show="isLoading" class="py-12 text-center">
-                        <div class="loader-gold mx-auto mb-4"></div>
-                        <p class="terminal-font text-[10px] text-zinc-500 uppercase">Loading Directives...</p>
-                    </div>
-
-                    <template x-for="item in directives" :key="item.id">
-                        <div class="directive-card glass-gold-dispatch p-10 rounded-[3rem] shadow-xl relative overflow-hidden group" :class="{ 'opacity-50': isAcknowledged(item) }">
-                            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-opacity">
-                                <i data-lucide="shield-check" class="w-20 h-20 text-gold"></i>
-                            </div>
-
-                            <div class="flex flex-col md:flex-row justify-between gap-6 relative z-10">
-                                <div class="space-y-4 max-w-2xl">
-                                    <div class="flex items-center gap-4 flex-wrap">
-                                        <span class="px-3 py-1 bg-gold text-black text-[8px] font-black uppercase rounded-full" x-show="!isAcknowledged(item)">High Priority</span>
-                                        <span class="px-3 py-1 bg-green-500/20 text-green-400 text-[8px] font-black uppercase rounded-full" x-show="isAcknowledged(item)">Acknowledged</span>
-                                        <span class="text-[9px] text-zinc-600 font-black terminal-font uppercase" x-text="formatDate(item.created_at)"></span>
-                                    </div>
-                                    <p class="text-lg md:text-xl font-black uppercase italic tracking-tight text-zinc-200 leading-tight" x-text="item.content"></p>
-                                    <p x-show="isAcknowledged(item)" class="text-[9px] text-zinc-500 uppercase">Acknowledged at: <span x-text="formatDate(item.acknowledged_at)"></span></p>
-                                </div>
-
-                                <div class="flex items-end">
-                                    <button @click="acknowledge(item.id)" 
-                                            :disabled="isAcknowledged(item)"
-                                            class="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gold hover:text-black hover:border-gold transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/5 disabled:hover:text-white">
-                                        <span x-show="!isAcknowledged(item)">Acknowledge</span>
-                                        <span x-show="isAcknowledged(item)">Confirmed</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-
-                    <div x-show="directives.length === 0 && !isLoading" class="py-24 text-center opacity-10 bg-white/5 rounded-[4rem] border border-dashed border-gold/20">
-                        <i data-lucide="radio-off" class="mx-auto mb-6 w-16 h-16 text-zinc-700"></i>
-                        <p class="terminal-font text-xs uppercase tracking-[0.5em]">No Data in Current Buffer</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12">
-                    <button onclick="window.location.href='dossier.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
-                        <i data-lucide="user-cog" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
-                        <span class="text-[8px] font-black uppercase">Dossier</span>
-                    </button>
-                    <button onclick="window.location.href='frequency.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
-                        <i data-lucide="activity" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
-                        <span class="text-[8px] font-black uppercase">Frequency</span>
-                    </button>
-                    <button onclick="window.location.href='gallery.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
-                        <i data-lucide="camera" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
-                        <span class="text-[8px] font-black uppercase">Gallery</span>
-                    </button>
-                    <button onclick="window.location.href='archives.html'" class="p-6 glass-gold-dispatch rounded-3xl border border-white/5 hover:border-gold transition-all text-center group">
-                        <i data-lucide="database" class="mx-auto mb-2 text-zinc-600 group-hover:text-gold"></i>
-                        <span class="text-[8px] font-black uppercase">Vault</span>
-                    </button>
+    <!-- Nav -->
+    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.12)">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px;font-size:0.6rem">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </a>
+                <img src="../assets/images/logo.png" alt="M.O.G." style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px var(--gold-glow))" onerror="this.style.display='none'">
+                <div>
+                    <p class="orbit font-black text-base sm:text-lg uppercase" style="color:var(--gold);line-height:1.1">Dispatch Log</p>
+                    <p class="slogan">Sector 7G Directives</p>
                 </div>
             </div>
-
-            <footer class="mt-24 pt-10 border-t border-white/5 text-center text-zinc-800">
-                <p class="terminal-font text-[12px] uppercase tracking-[0.8em] italic">
-                    DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
-                </p>
-            </footer>
+            <div class="flex items-center gap-3">
+                <!-- System status indicator -->
+                <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full" :style="systemStatus!=='MONITORING'?'background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3)':'background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.15)'">
+                    <div class="beacon" :class="systemStatus!=='MONITORING'?'alert':'online'"></div>
+                    <p class="orbit font-bold uppercase" :class="systemStatus!=='MONITORING'?'text-red-400':'text-gold'" style="font-size:0.56rem;letter-spacing:0.1em" x-text="systemStatus"></p>
+                    <span x-show="newCount>0" class="orbit font-black text-white rounded-full px-2 py-0.5" style="font-size:0.52rem;background:var(--red);animation:pulse 1s infinite" x-text="newCount+' NEW'"></span>
+                </div>
+                <button @click="loadDirectives()" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :style="isLoading?'animation:spin 1s linear infinite':''"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+                <button @click="logout()" class="btn btn-red p-2 rounded-xl" style="min-height:unset;padding:7px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
         </div>
-    </template>
+        <div class="gold-line" style="opacity:0.2"></div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+
+        <!-- Header row -->
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+                <p class="orbit font-bold text-gold uppercase" style="font-size:0.65rem;letter-spacing:0.15em">Encrypted Transmissions</p>
+            </div>
+            <p class="mono text-gray-600" style="font-size:0.58rem" x-text="directives.length+' logs found'"></p>
+        </div>
+
+        <!-- Loading -->
+        <template x-if="isLoading">
+            <div class="flex items-center justify-center py-16 gap-3">
+                <div style="width:28px;height:28px;border:3px solid transparent;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite"></div>
+                <p class="orbit text-xs text-gold tracking-widest">Loading Directives...</p>
+            </div>
+        </template>
+
+        <!-- Directives list -->
+        <template x-if="!isLoading">
+            <div class="space-y-3">
+                <!-- Empty state -->
+                <template x-if="!directives.length">
+                    <div class="flex flex-col items-center justify-center py-24 gap-4 rounded-3xl" style="opacity:0.2;border:2px dashed rgba(212,175,55,0.2)">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
+                        <p class="orbit text-sm uppercase tracking-widest" style="color:var(--gold)">No Data in Current Buffer</p>
+                        <p class="mono text-gray-600" style="font-size:0.58rem">Directives will appear here when broadcast by the Directorate</p>
+                    </div>
+                </template>
+
+                <template x-for="item in directives" :key="item.id">
+                    <div class="directive-card glass p-4 sm:p-5" :class="item.acknowledged?'acknowledged':''">
+                        <div class="flex flex-col sm:flex-row justify-between gap-4">
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0 space-y-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="orbit font-bold px-2 py-0.5 rounded" style="font-size:0.54rem" :class="priorityClass(item.priority)" x-text="item.priority||'HIGH'"></span>
+                                    <span x-show="item.acknowledged" class="orbit font-bold px-2 py-0.5 rounded" style="font-size:0.54rem;background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.3);color:#86efac">ACKNOWLEDGED</span>
+                                    <span class="mono text-gray-600" style="font-size:0.56rem" x-text="timeAgo(item.created_at)"></span>
+                                    <span class="mono text-gray-700" style="font-size:0.54rem" x-text="'· '+formatDate(item.created_at)"></span>
+                                </div>
+                                <p class="orbit font-bold text-white leading-snug" style="font-size:0.9rem;line-height:1.4" x-text="item.content||'[Encrypted]'"></p>
+                                <p x-show="item.acknowledged&&item.acknowledged_at" class="mono text-gray-600" style="font-size:0.54rem" x-text="'Acknowledged: '+formatDate(item.acknowledged_at)"></p>
+                            </div>
+                            <!-- Acknowledge button -->
+                            <div class="flex items-end flex-shrink-0">
+                                <button @click="acknowledge(item.id)"
+                                        :disabled="item.acknowledged"
+                                        class="btn rounded-xl px-5 py-2.5 font-bold"
+                                        :class="item.acknowledged?'btn-green':'btn-gold'"
+                                        style="font-size:0.6rem;min-height:unset">
+                                    <svg x-show="item.acknowledged" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    <span x-text="item.acknowledged?'Confirmed':'Acknowledge'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Quick nav -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8">
+            <template x-for="node in [
+                {label:'Hub',       url:'../index.html', icon:'layout-grid'},
+                {label:'Gallery',   url:'gallery.html',  icon:'camera'},
+                {label:'Frequency', url:'frequency.html',icon:'activity'},
+                {label:'Vault',     url:'archives.html', icon:'archive'}
+            ]" :key="node.url">
+                <a :href="node.url" class="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.3)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
+                    <i :data-lucide="node.icon" class="text-gold" style="width:20px;height:20px"></i>
+                    <span class="orbit font-bold text-white uppercase" style="font-size:0.56rem" x-text="node.label"></span>
+                </a>
+            </template>
+        </div>
+    </main>
+
+    <footer class="text-center py-6 mt-4" style="border-top:1px solid rgba(212,175,55,0.06)">
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid. © 2026</p>
+        <p class="mono text-gray-800 mt-1" style="font-size:0.52rem;letter-spacing:0.2em">MINISTRY OF GROOVE // DISPATCH LOG // SECTOR 7G</p>
+    </footer>
+</div>
+</template>
 
 </body>
 </html>
