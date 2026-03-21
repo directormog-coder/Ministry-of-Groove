@@ -1,10 +1,28 @@
 {
   "name": "ministry-of-groove",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "description": "M.O.G. Secure Operative Network & Directorate Command System — Emalahleni Uplink II",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "start-local": "vercel dev"
+    "dev":         "node scripts/server.js",
+    "dev:vercel":  "vercel dev",
+    "start":       "node scripts/server.js",
+    "lint":        "eslint js/ --ext .js",
+    "lint:fix":    "eslint js/ --ext .js --fix",
+    "audit:deps":  "npm audit --audit-level=moderate"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv":                "^16.4.5",
+    "express":               "^4.18.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  },
+  "keywords": ["ministry-of-groove", "mog", "operative-network", "music", "emalahleni"],
+  "author": "Ministry of Groove — Directorate",
+  "license": "MIT"
 }
