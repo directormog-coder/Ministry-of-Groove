@@ -8,1600 +8,738 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>M.O.G. | OPERATIVE HUB</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase-client.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/js/supabase-client.js"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        [x-cloak] { display: none !important; }
+        [x-cloak]{display:none!important}
+        :root{
+            --black:#000;
+            --gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;--gold-glow:rgba(212,175,55,0.38);
+            --teal:#00d4aa;--teal-dim:#006e59;--teal-glow:rgba(0,212,170,0.3);
+            --red:#dc2626;--red-glow:rgba(220,38,38,0.4);
+            --text:#e8e0cc;
+        }
+        *,*::before,*::after{box-sizing:border-box}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'Share Tech Mono',monospace}
+        .orbit{font-family:'Orbitron',sans-serif}
+        button,a{touch-action:manipulation}
 
-        :root {
-            --black:       #000000;
-            --surface:     #0a0c0a;
-            --gold:        #d4af37;
-            --gold-bright: #f0c040;
-            --gold-dark:   #8b6914;
-            --gold-glow:   rgba(212,175,55,0.4);
-            --teal:        #00d4aa;
-            --teal-bright: #4aecd4;
-            --teal-dim:    #006e59;
-            --teal-glow:   rgba(0,212,170,0.35);
-            --red:         #dc2626;
-            --red-glow:    rgba(220,38,38,0.4);
+        /* bg */
+        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,70vmin,560px);height:clamp(280px,70vmin,560px);background:url('/assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(0,212,170,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.02) 1px,transparent 1px);background-size:56px 56px}
+        @media(max-width:480px){.bg-grid{display:none}}
+        .bg-vig{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.82) 100%)}
 
-            --text-xs:   clamp(0.6rem,  1.5vw, 0.75rem);
-            --text-sm:   clamp(0.75rem, 2vw,   0.875rem);
-            --text-base: clamp(0.875rem,2.5vw, 1rem);
-            --text-lg:   clamp(1rem,    3vw,   1.25rem);
-            --text-xl:   clamp(1.1rem,  4vw,   1.5rem);
-            --text-2xl:  clamp(1.25rem, 5vw,   1.875rem);
-            --text-3xl:  clamp(1.5rem,  6vw,   2.25rem);
-        }
+        /* glass */
+        .glass{background:rgba(6,9,6,0.94);border:1px solid rgba(0,212,170,0.11);box-shadow:0 2px 20px rgba(0,0,0,0.4)}
+        .glass-gold{background:rgba(10,8,2,0.95);border:1px solid rgba(212,175,55,0.16)}
+        @media(min-width:641px){.glass,.glass-gold{backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}}
 
-        *, *::before, *::after { box-sizing: border-box; }
-        html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+        /* type */
+        .text-gold{color:var(--gold);text-shadow:0 0 10px var(--gold-glow)}
+        .text-teal{color:var(--teal);text-shadow:0 0 10px var(--teal-glow)}
+        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.42rem,1vw,0.52rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+        .cap{font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#4b5563}
+        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent)}
 
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--black);
-            color: #e8f0ee;
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
+        /* buttons */
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.2s ease;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border-radius:0.75rem}
+        @media(hover:hover){.btn:hover{transform:translateY(-1px)}}
+        .btn:active{transform:scale(0.97)!important}
+        .btn:disabled{opacity:0.38;cursor:not-allowed;transform:none!important}
+        .btn-g{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
+        .btn-g:hover{background:rgba(212,175,55,0.2);border-color:var(--gold-bright);box-shadow:0 0 14px var(--gold-glow)}
+        .btn-t{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.26);color:var(--teal)}
+        .btn-t:hover{background:rgba(0,212,170,0.18);border-color:var(--teal);box-shadow:0 0 14px var(--teal-glow)}
+        .btn-r{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.28);color:#fca5a5}
+        .btn-r:hover{background:rgba(220,38,38,0.2);border-color:var(--red);box-shadow:0 0 14px var(--red-glow);color:#fff}
 
-        .mono  { font-family: 'Share Tech Mono', monospace; }
-        .orbit { font-family: 'Orbitron', sans-serif; }
+        /* avatar ring */
+        .aring{position:relative;border-radius:50%;padding:2px;flex-shrink:0;background:conic-gradient(from 0deg,var(--gold-bright),var(--teal),var(--gold-dark),var(--teal),var(--gold-bright));animation:rspin 20s linear infinite}
+        .aring>div{border-radius:50%;border:2px solid #000;overflow:hidden;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+        @keyframes rspin{to{transform:rotate(360deg)}}
 
-        button, a, [role="button"] {
-            min-height: 44px;
-            touch-action: manipulation;
-        }
+        /* ticker */
+        .ticker{height:26px;overflow:hidden;background:linear-gradient(90deg,rgba(153,27,27,0.88),rgba(0,0,0,0.92),rgba(153,27,27,0.88));border-bottom:1px solid rgba(220,38,38,0.25);display:flex;align-items:center}
+        .ticker-lbl{width:50px;height:100%;flex-shrink:0;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;color:#fff;letter-spacing:0.2em;border-right:1px solid rgba(255,255,255,0.08)}
+        .ticker-trk{display:flex;white-space:nowrap;animation:tmove 28s linear infinite}
+        @keyframes tmove{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+        .ticker-txt{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase}
+        .ticker-sep{color:rgba(220,38,38,0.5);margin:0 14px}
 
-        /* ── Watermark seal ── */
-        .mog-seal {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%,-50%);
-            width: clamp(260px, 88vmin, 600px);
-            height: clamp(260px, 88vmin, 600px);
-            background: url('/assets/images/logo.png') center/contain no-repeat;
-            opacity: 0.045; pointer-events: none; z-index: 0;
-            filter: drop-shadow(0 0 60px rgba(212,175,55,0.15))
-                    drop-shadow(0 0 30px rgba(0,212,170,0.1));
-        }
+        /* stat bars */
+        .sb{height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden;margin-top:4px}
+        .sb-g{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 5px var(--gold-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-t{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dim),var(--teal));box-shadow:0 0 5px var(--teal-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-c{height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-r{height:100%;border-radius:99px;background:linear-gradient(90deg,#991b1b,#ef4444);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
 
-        /* ── Circuit grid ── */
-        .circuit-grid {
-            position: fixed; inset: 0; pointer-events: none; z-index: 1;
-            background-image:
-                linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
-            background-size: 52px 52px;
-        }
-        @media (max-width:480px) { .circuit-grid { display: none; } }
+        /* tabs */
+        .tab{padding:0.48rem 0.85rem;border-radius:999px;font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.18s ease;background:transparent;border:1px solid rgba(212,175,55,0.1);color:#4b5563}
+        .tab.on{background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.35);color:var(--gold)}
+        .tab:not(.on):hover{border-color:rgba(212,175,55,0.2);color:#9ca3af}
 
-        .vignette {
-            position: fixed; inset: 0; pointer-events: none; z-index: 2;
-            background: radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.82) 100%);
-        }
+        /* media tile */
+        .mtile{border-radius:0.9rem;overflow:hidden;border:1px solid rgba(212,175,55,0.1);background:rgba(3,5,3,0.96);transition:all 0.28s ease}
+        @media(hover:hover){.mtile:hover{border-color:rgba(212,175,55,0.3);transform:translateY(-3px);box-shadow:0 10px 32px rgba(0,0,0,0.5)}.mtile:hover .mthumb{transform:scale(1.04)}}
+        .mtile:active{transform:scale(0.99)}
+        .mthumb{width:100%;aspect-ratio:16/9;object-fit:cover;transition:transform 0.35s ease;display:block}
+        .mtype{position:absolute;top:7px;left:7px;font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 6px;border-radius:5px;background:rgba(0,0,0,0.72);color:rgba(255,255,255,0.78)}
+        .mtag{position:absolute;top:7px;right:7px;font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:5px}
+        .mdur{position:absolute;bottom:7px;right:7px;font-family:'Share Tech Mono',monospace;font-size:0.54rem;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,0.75);color:rgba(255,255,255,0.7)}
 
-        .scanline {
-            position: fixed; top: -80px; left: 0;
-            width: 100%; height: 80px; z-index: 3; pointer-events: none;
-            background: linear-gradient(transparent, rgba(212,175,55,0.025) 50%, transparent);
-            animation: scanline 14s linear infinite;
-        }
-        @media (max-width:640px) { .scanline { display: none; } }
-        @keyframes scanline { to { top: 100vh; } }
+        /* tile actions */
+        .ma{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;padding:6px 3px;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all 0.16s ease}
+        .ma.v{background:rgba(0,212,170,0.07);border-color:rgba(0,212,170,0.2);color:var(--teal)}
+        .ma.v:hover{background:rgba(0,212,170,0.18)}
+        .ma.ls{background:rgba(212,175,55,0.07);border-color:rgba(212,175,55,0.2);color:var(--gold)}
+        .ma.ls:hover{background:rgba(212,175,55,0.18)}
+        .ma.lk{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.18);color:#f87171}
+        .ma.lk.on{background:rgba(220,38,38,0.18);border-color:rgba(220,38,38,0.42)}
+        .ma.dl{background:rgba(139,105,20,0.07);border-color:rgba(139,105,20,0.22);color:var(--gold-dark)}
+        .ma.dl:hover{background:rgba(212,175,55,0.14);color:var(--gold)}
 
-        /* ── Glass ── */
-        .glass {
-            background: rgba(8,12,10,0.92);
-            border: 1px solid rgba(0,212,170,0.14);
-            box-shadow: 0 4px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-        }
-        .glass-gold {
-            background: rgba(14,10,2,0.94);
-            border: 1px solid rgba(212,175,55,0.22);
-            box-shadow: 0 4px 40px rgba(0,0,0,0.5);
-        }
-        .glass-dark {
-            background: rgba(4,8,6,0.97);
-            border: 1px solid rgba(0,212,170,0.09);
-        }
-        .glass-media {
-            background: rgba(4,8,6,0.95);
-            border: 1px solid rgba(212,175,55,0.12);
-            transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
-        }
-        @media (min-width:641px) {
-            .glass, .glass-gold, .glass-dark, .glass-media {
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-            }
-        }
+        /* op card */
+        .opc{border:1px solid rgba(0,212,170,0.1);border-radius:0.9rem;background:rgba(0,0,0,0.42);transition:all 0.18s ease;cursor:pointer}
+        @media(hover:hover){.opc:hover{border-color:rgba(212,175,55,0.28);transform:translateY(-1px)}}
+        .opc:active{transform:scale(0.98)}
 
-        /* ── Text ── */
-        .text-teal { color: var(--teal); text-shadow: 0 0 12px var(--teal-glow); }
-        .text-gold  { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
-        .glow-gold  { text-shadow: 0 0 20px var(--gold-glow), 0 0 40px rgba(212,175,55,0.1); }
+        /* rank chip */
+        .rchip{border-radius:999px;padding:1px 8px;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid}
 
-        /* ── Buttons ── */
-        .btn-teal {
-            background: linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,110,89,0.18));
-            border: 1px solid rgba(0,212,170,0.32); color: var(--teal);
-            position: relative; overflow: hidden; transition: all 0.28s ease;
-        }
-        @media (hover:hover) {
-            .btn-teal::after { content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,170,0.1),transparent);transform:translateX(-100%);transition:transform 0.5s ease; }
-            .btn-teal:hover::after { transform:translateX(100%); }
-            .btn-teal:hover { background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));border-color:var(--teal);box-shadow:0 0 22px var(--teal-glow);transform:translateY(-1px); }
-        }
-        .btn-teal:active { opacity:0.8; transform:scale(0.97); }
+        /* directive */
+        .dir{border-radius:0.75rem;padding:0.6rem 0.9rem;background:rgba(10,8,2,0.9);border-left:3px solid var(--gold);border-top:1px solid rgba(212,175,55,0.12);border-right:1px solid rgba(212,175,55,0.06);border-bottom:1px solid rgba(212,175,55,0.06)}
 
-        .btn-gold {
-            background: linear-gradient(135deg,rgba(212,175,55,0.1),rgba(139,105,20,0.18));
-            border: 1px solid rgba(212,175,55,0.32); color: var(--gold);
-            transition: all 0.28s ease;
-        }
-        @media (hover:hover) {
-            .btn-gold:hover { background:linear-gradient(135deg,rgba(212,175,55,0.22),rgba(139,105,20,0.32));border-color:var(--gold-bright);box-shadow:0 0 22px var(--gold-glow);transform:translateY(-1px); }
-        }
-        .btn-gold:active { opacity:0.8; transform:scale(0.97); }
+        /* op id badge */
+        .opid{font-family:'Orbitron',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.16);border-radius:5px;padding:2px 8px}
 
-        /* ── Media tile action button ── */
-        .media-action-btn {
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px;
-            padding: 7px 4px; border-radius: 8px; font-family: 'Orbitron', sans-serif;
-            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-            transition: all 0.22s ease; cursor: pointer; border: 1px solid transparent;
-        }
-        .media-action-btn.view   { background:rgba(0,212,170,0.07);  border-color:rgba(0,212,170,0.22);  color:var(--teal); }
-        .media-action-btn.listen { background:rgba(212,175,55,0.07); border-color:rgba(212,175,55,0.22); color:var(--gold); }
-        .media-action-btn.like   { background:rgba(220,38,38,0.06);  border-color:rgba(220,38,38,0.2);   color:#f87171; }
-        .media-action-btn.like.liked { background:rgba(220,38,38,0.18); border-color:rgba(220,38,38,0.5); color:#fca5a5; box-shadow:0 0 10px rgba(220,38,38,0.25); }
-        .media-action-btn.dl     { background:rgba(139,105,20,0.08); border-color:rgba(139,105,20,0.3);  color:var(--gold-dark); }
-        @media (hover:hover) {
-            .media-action-btn.view:hover   { background:rgba(0,212,170,0.18);  box-shadow:0 0 14px var(--teal-glow); }
-            .media-action-btn.listen:hover { background:rgba(212,175,55,0.18); box-shadow:0 0 14px var(--gold-glow); }
-            .media-action-btn.like:hover   { background:rgba(220,38,38,0.22);  box-shadow:0 0 14px var(--red-glow); }
-            .media-action-btn.dl:hover     { background:rgba(139,105,20,0.2);  color:var(--gold); }
-        }
-        .media-action-btn:active { transform:scale(0.95); }
+        /* pulse */
+        .pulse{animation:pd 2.2s ease-in-out infinite}
+        @keyframes pd{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.45)}50%{box-shadow:0 0 0 4px rgba(0,212,170,0)}}
 
-        /* ── Media tile ── */
-        @media (hover:hover) {
-            .glass-media:hover {
-                border-color: rgba(212,175,55,0.38) !important;
-                box-shadow: 0 0 40px rgba(212,175,55,0.1), 0 0 80px rgba(0,212,170,0.04);
-                transform: translateY(-2px);
-            }
-        }
-        .glass-media:active { transform: scale(0.99); }
+        /* lockdown */
+        .ldover{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.98);backdrop-filter:blur(24px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+        .ldring{position:absolute;inset:12px;border-radius:20px;border:2px solid var(--red);pointer-events:none;animation:lp 1.4s ease-in-out infinite}
+        @keyframes lp{0%,100%{border-color:rgba(220,38,38,0.35)}50%{border-color:rgba(220,38,38,0.9);box-shadow:0 0 22px var(--red-glow)}}
 
-        .media-thumb {
-            aspect-ratio: 16/9; overflow: hidden; border-radius: 12px 12px 0 0;
-            position: relative;
-        }
-        .media-thumb img, .media-thumb video {
-            width:100%; height:100%; object-fit:cover;
-            transition: transform 0.4s ease;
-        }
-        @media (hover:hover) {
-            .glass-media:hover .media-thumb img,
-            .glass-media:hover .media-thumb video { transform: scale(1.04); }
-        }
-        .media-type-badge {
-            position: absolute; top: 8px; left: 8px;
-            font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 700;
-            letter-spacing: 0.12em; text-transform: uppercase;
-            padding: 3px 8px; border-radius: 6px;
-        }
-        .media-glow-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7) 100%);
-        }
+        /* modal */
+        .mbg{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.93);backdrop-filter:blur(20px);display:flex;align-items:flex-end;justify-content:center}
+        @media(min-width:640px){.mbg{align-items:center;padding:1rem}}
+        .msheet{width:100%;max-width:580px;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:rgba(3,5,3,0.98);border:1px solid rgba(212,175,55,0.18)}
+        @media(max-width:639px){.msheet{border-radius:1.4rem 1.4rem 0 0}}
+        @media(min-width:640px){.msheet{border-radius:1.4rem}}
 
-        /* ── Global Alert Ticker ── */
-        .ticker-bar {
-            height: 28px; overflow: hidden;
-            background: linear-gradient(90deg, rgba(220,38,38,0.9), rgba(0,0,0,0.95), rgba(220,38,38,0.9));
-            border-bottom: 1px solid rgba(220,38,38,0.35);
-            display: flex; align-items: center;
-        }
-        .ticker-label {
-            width: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-            background: var(--red); height: 100%;
-            font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 900;
-            letter-spacing: 0.2em; color: #fff; text-transform: uppercase;
-            border-right: 1px solid rgba(255,255,255,0.1);
-        }
-        .ticker-track {
-            display: flex; gap: 0; white-space: nowrap;
-            animation: tickerScroll 30s linear infinite;
-        }
-        @keyframes tickerScroll {
-            0%   { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
-        }
-        .ticker-text {
-            font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
-            letter-spacing: 0.25em; color: var(--gold); text-transform: uppercase;
-        }
-        .ticker-sep { color: rgba(220,38,38,0.7); margin: 0 20px; }
+        /* input */
+        .inp{width:100%;background:rgba(0,3,1,0.88);border:1px solid rgba(0,212,170,0.15);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:max(16px,0.875rem);border-radius:0.75rem;padding:0.7rem 0.9rem;transition:border-color 0.2s,box-shadow 0.2s}
+        .inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,0.05);outline:none}
+        .inp::placeholder{color:rgba(255,255,255,0.18)}
+        .inp:disabled{opacity:0.42;cursor:not-allowed}
+        select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.8rem center;padding-right:2.2rem}
+        select.inp option{background:#060906;color:var(--text)}
 
-        /* ── Avatar ring ── */
-        .avatar-ring {
-            position: relative; border-radius: 50%; padding: 2px; flex-shrink: 0;
-            background: conic-gradient(from 0deg, var(--gold-bright), var(--teal), var(--gold-dark), var(--teal-bright), var(--gold-bright));
-            animation: ringRotate 16s linear infinite;
-        }
-        .avatar-ring > div {
-            border-radius: 50%; border: 2px solid var(--black); overflow: hidden;
-            width: 100%; height: 100%;
-            background: linear-gradient(135deg,rgba(0,212,170,0.1),#000);
-            display: flex; align-items: center; justify-content: center;
-        }
-        @keyframes ringRotate { to { transform: rotate(360deg); } }
-        @media (max-width:640px) { .avatar-ring { animation-duration: 30s; } }
+        /* mobile nav */
+        .bnav{display:none}
+        @media(max-width:767px){.bnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(0,0,0,0.97);border-top:1px solid rgba(212,175,55,0.1);padding-bottom:env(safe-area-inset-bottom,0)}main{padding-bottom:70px!important}}
 
-        /* ── Stat bars ── */
-        .stat-track { height:5px;background:rgba(0,0,0,0.8);border-radius:99px;overflow:hidden;border:1px solid rgba(0,212,170,0.08); }
-        .bar-gold { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 6px var(--gold-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
-        .bar-teal { height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dim),var(--teal),var(--teal-bright));box-shadow:0 0 6px var(--teal-glow);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
-        .bar-cyan { height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);box-shadow:0 0 6px rgba(34,211,238,0.4);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
-        .bar-red  { height:100%;border-radius:99px;background:linear-gradient(90deg,#991b1b,#ef4444);box-shadow:0 0 6px rgba(239,68,68,0.3);transition:width 1.4s cubic-bezier(0.34,1.56,0.64,1); }
+        /* animations */
+        .fadeup{animation:fu 0.42s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .db span{animation:db 1.3s infinite}
+        .db span:nth-child(2){animation-delay:.2s}.db span:nth-child(3){animation-delay:.4s}
+        @keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .lspin{animation:spin 22s linear infinite}
 
-        /* ── MOG badge ── */
-        .mog-badge {
-            background: linear-gradient(135deg,rgba(212,175,55,0.15),rgba(0,212,170,0.08));
-            border: 1px solid rgba(212,175,55,0.4);
-            clip-path: polygon(8% 0%,100% 0%,92% 100%,0% 100%);
-        }
-        .rank-chip {
-            border-radius: 999px; padding: 2px 10px;
-            font-size: var(--text-xs); font-weight: 700;
-            letter-spacing: 0.1em; text-transform: uppercase;
-        }
-
-        .gold-line { height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent); }
-
-        .bracket { position:relative; }
-        .bracket::before, .bracket::after { content:'';position:absolute;width:14px;height:14px;border-style:solid; }
-        .bracket::before { top:8px;left:8px;border-color:rgba(212,175,55,0.4);border-width:2px 0 0 2px; }
-        .bracket::after  { bottom:8px;right:8px;border-color:rgba(0,212,170,0.4);border-width:0 2px 2px 0; }
-
-        /* ── Inputs ── */
-        .input-field {
-            background:rgba(0,6,4,0.9); border:1px solid rgba(0,212,170,0.18); color:#e8f0ee;
-            font-family:'Rajdhani',sans-serif; font-size:max(16px,var(--text-base));
-            transition:border-color 0.25s,box-shadow 0.25s; width:100%;
-        }
-        .input-field:focus { border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,0.07),0 0 18px rgba(0,212,170,0.08);outline:none; }
-        .input-field::placeholder { color:rgba(255,255,255,0.18); }
-        .input-field:disabled { opacity:0.45;cursor:not-allowed; }
-        select.input-field {
-            appearance:none;
-            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-            background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
-        }
-        select.input-field option { background:#0a0c06;color:#e8f0ee; }
-
-        ::-webkit-scrollbar { width:4px;height:4px; }
-        ::-webkit-scrollbar-track { background:rgba(0,0,0,0.8); }
-        ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px; }
-
-        /* ── Pulse ── */
-        .pulse-dot  { animation:pulseDot  2.2s ease-in-out infinite; }
-        .pulse-gold { animation:pulseGold 2.2s ease-in-out infinite; }
-        @keyframes pulseDot  { 0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.5)}  50%{box-shadow:0 0 0 5px rgba(0,212,170,0)} }
-        @keyframes pulseGold { 0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.5)} 50%{box-shadow:0 0 0 5px rgba(212,175,55,0)} }
-
-        /* ── Transitions ── */
-        .fade-up { animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-        .dot-blink span { animation:dotBlink 1.3s infinite; }
-        .dot-blink span:nth-child(2){animation-delay:.2s}
-        .dot-blink span:nth-child(3){animation-delay:.4s}
-        @keyframes dotBlink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
-
-        @keyframes spin { to{transform:rotate(360deg)} }
-        .spin-slow { animation:spin 22s linear infinite; }
-        @media (max-width:640px) { .spin-slow { animation-duration:35s; } }
-
-        /* ── Tabs ── */
-        .tab-active { position:relative; }
-        .tab-active::after { content:'';position:absolute;bottom:-1px;left:20%;width:60%;height:2px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright),var(--teal));border-radius:2px;box-shadow:0 0 8px var(--gold-glow); }
-
-        /* ── Cards ── */
-        .op-card { transition:transform .22s ease,border-color .22s ease; cursor:pointer; }
-        @media (hover:hover) { .op-card:hover { transform:translateY(-2px);border-color:rgba(212,175,55,0.4)!important; } }
-        .op-card:active { transform:scale(0.98); }
-        .stat-card { transition:transform .22s ease,box-shadow .22s ease; }
-        @media (hover:hover) { .stat-card:hover { transform:translateY(-3px);box-shadow:0 12px 32px rgba(212,175,55,0.1); } }
-
-        .dir-pulse { animation:dirPulse 3s ease-in-out infinite; }
-        @keyframes dirPulse { 0%,100%{border-color:rgba(212,175,55,0.22)} 50%{border-color:rgba(212,175,55,0.6)} }
-
-        /* ── Lockdown overlay ── */
-        .lockdown-screen {
-            position:fixed;inset:0;z-index:9999;
-            background:rgba(0,0,0,0.98);backdrop-filter:blur(24px);
-            display:flex;flex-direction:column;align-items:center;justify-content:center;
-            text-align:center;padding:clamp(1rem,5vw,2rem);
-            overflow-y:auto;
-        }
-        .lockdown-border { position:absolute;inset:12px;border-radius:24px;border:2px solid var(--red);animation:lockPulse 1.5s ease-in-out infinite;pointer-events:none; }
-        @keyframes lockPulse { 0%,100%{border-color:rgba(220,38,38,0.4)} 50%{border-color:rgba(220,38,38,0.95);box-shadow:0 0 30px rgba(220,38,38,0.2)} }
-
-        /* ── Toast ── */
-        .toast {
-            font-family:'Rajdhani',sans-serif;font-weight:700;font-size:var(--text-xs);
-            letter-spacing:0.07em;text-transform:uppercase;border-radius:12px;padding:12px 16px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.6);display:flex;align-items:center;gap:10px;
-            border-width:1px;border-style:solid;
-            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;
-            max-width:min(90vw,360px);
-        }
-
-        /* ── Mobile bottom nav ── */
-        .bottom-nav { display:none; }
-        @media (max-width:767px) {
-            .bottom-nav { display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(0,0,0,0.97);border-top:1px solid rgba(212,175,55,0.15);padding-bottom:env(safe-area-inset-bottom,0); }
-            main { padding-bottom:80px !important; }
-        }
-        @media (max-height:500px) and (orientation:landscape) {
-            .bottom-nav { display:none; }
-            main { padding-bottom:16px !important; }
-        }
-
-        /* ── Modal ── */
-        .modal-sheet { width:100%;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain; }
-        @media (max-width:767px) { .modal-sheet { border-radius:2rem 2rem 0 0 !important;max-height:92dvh; } }
-        @media (min-width:768px) { .modal-sheet { max-width:640px;border-radius:2rem !important; } }
-
-        .safe-top    { padding-top:    env(safe-area-inset-top,    0); }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0); }
-
-        /* ── Operative ID badge ── */
-        .operative-id {
-            font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
-            letter-spacing:0.3em; text-transform:uppercase; color:var(--teal);
-            background:rgba(0,212,170,0.06); border:1px solid rgba(0,212,170,0.2);
-            border-radius:6px; padding:3px 10px;
-        }
-
-        /* ── Agency slogan ── */
-        .slogan-text {
-            font-family:'Orbitron',sans-serif; font-size:clamp(0.5rem,1.2vw,0.62rem);
-            letter-spacing:0.28em; color:var(--teal); text-transform:uppercase;
-            opacity:0.65; text-shadow:0 0 10px var(--teal-glow);
-        }
-
-        /* ── Like counter badge ── */
-        .like-count { font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:#f87171; }
-        .like-count.liked-count { color:#fca5a5; }
-
-        @media (prefers-reduced-motion:reduce) {
-            *,*::before,*::after { animation-duration:0.01ms !important;transition-duration:0.01ms !important; }
-        }
+        ::-webkit-scrollbar{width:3px;height:3px}
+        ::-webkit-scrollbar-track{background:rgba(0,0,0,0.5)}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
     </style>
 
     <script>
-    function mogNetwork() {
-        return {
-            /* ── State ── */
-            view: 'loading',
-            currentUser: null,
-            operativeId: '',
-            profile: {
-                username:'', codename:'', rank:'INITIATE',
-                department:'UNASSIGNED', bio:'', avatar_url:null,
-                stats:{ missions:0, contributions:0, influence:0, loyalty:100, groove:50 },
-                skills:[], achievements:[], joined_at:null, last_active:null
-            },
-            isLoading: false,
-            uploadProgress: 0,
-            networkStatus: 'CONNECTED',
+    function hub(){return{
+        view:'loading',currentUser:null,operativeId:'',
+        profile:{username:'',codename:'',rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,
+                 stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:[],joined_at:null},
+        isLoading:false,uploadProgress:0,
+        lockdownActive:false,directorateMessage:'',directorateBanner:'',
+        tickerMessages:[],tickerActive:false,
+        activeTab:'grid',showModal:false,
+        allOperatives:[],recentActivity:[],directives:[],
+        mediaAssets:[],likedAssets:new Set(),likesCounts:{},mediaFilter:'ALL',
 
-            /* ── Lockdown / Directorate ── */
-            lockdownActive: false,
-            directorateMessage: '',
-            directorateBanner: '',
+        get rankColor(){return{INITIATE:'text-gray-400',AGENT:'text-teal-400',OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400'},
+        get clearanceLevel(){return{INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1},
+        get isDirector(){return this.profile.rank==='DIRECTOR'},
+        get filteredMedia(){return this.mediaFilter==='ALL'?this.mediaAssets:this.mediaAssets.filter(a=>(a.type||'').toUpperCase()===this.mediaFilter)},
 
-            /* ── Ticker ── */
-            tickerMessages: [],
-            tickerActive: false,
+        async init(){
+            this.checkLockdown();
+            window.addEventListener('storage',e=>{if(e.key==='ministrySettings')this.checkLockdown()});
+            this.poll();
+            let t=0;while(typeof sb==='undefined'&&t<20){await new Promise(r=>setTimeout(r,100));t++}
+            if(typeof sb==='undefined'||!sb)return;
+            try{
+                const{data:{session}}=await sb.auth.getSession();
+                if(!session){window.location.href='/login.html';return}
+                this.currentUser=session.user;
+                const pre=(this.currentUser.email||'').split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g,'_');
+                this.operativeId='ID:'+pre;
+            }catch(e){this.toast('Auth failed','error');return}
+            await this.loadProfile();
+            await Promise.all([this.loadOperatives(),this.loadActivity(),this.loadDirectives(),this.loadMedia(),this.loadLiked(),this.loadTicker()]);
+            this.view='hub';
+            this.$nextTick(()=>{if(typeof lucide!=='undefined')lucide.createIcons()});
+        },
 
-            /* ── Navigation ── */
-            activeTab: 'grid',
-            showProfileModal: false,
+        checkLockdown(){try{const s=localStorage.getItem('ministrySettings');if(!s)return;const p=JSON.parse(s);this.lockdownActive=p.isLocked||false;this.directorateMessage=p.alertStatus||'';if(p.bannerText)this.directorateBanner=p.bannerText}catch(_){}},
 
-            /* ── Data ── */
-            allOperatives: [],
-            recentActivity: [],
-            directives: [],
+        poll(){setInterval(async()=>{
+            try{
+                if(!window.sb)return;
+                const{data}=await sb.from('system_settings').select('value').eq('key','ministrySettings').single();
+                if(data?.value){const p=JSON.parse(data.value);this.lockdownActive=p.isLocked||false;this.directorateMessage=p.alertStatus||'';if(p.bannerText)this.directorateBanner=p.bannerText;localStorage.setItem('ministrySettings',data.value)}
+                const{data:pz}=await sb.from('system_settings').select('value').eq('key','protocolZero').single();
+                if(pz?.value&&JSON.parse(pz.value).active)this.lockdownActive=true;
+                const{data:tk}=await sb.from('system_settings').select('value').eq('key','tickerBroadcast').single();
+                if(tk?.value){const d=JSON.parse(tk.value);this.tickerActive=!!d.message;this.tickerMessages=d.message?[{message:d.message}]:[]}
+            }catch(_){}
+        },15000)},
 
-            /* ── Media Grid ── */
-            mediaAssets: [],
-            likedAssets: new Set(),
-            likesCounts: {},
-            mediaFilter: 'ALL',
-            mediaTypes: ['ALL','VIDEO','AUDIO','PHOTO'],
+        async loadTicker(){try{const{data}=await sb.from('system_settings').select('value').eq('key','tickerBroadcast').single();if(data?.value){const p=JSON.parse(data.value);if(p.message){this.tickerMessages=[{message:p.message}];this.tickerActive=true;return}}const{data:tm}=await sb.from('ticker_messages').select('*').eq('active',true).order('created_at',{ascending:false}).limit(5);if(tm&&tm.length){this.tickerMessages=tm;this.tickerActive=true}}catch(_){}},
 
-            /* ── Computed ── */
-            get rankColor() {
-                return {INITIATE:'text-gray-400',AGENT:'text-teal-400',OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400';
-            },
-            get clearanceLevel() {
-                return {INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1;
-            },
-            get isDirector() { return this.profile.rank==='DIRECTOR'; },
-            get filteredMedia() {
-                if (this.mediaFilter==='ALL') return this.mediaAssets;
-                return this.mediaAssets.filter(a => (a.type||'').toUpperCase()===this.mediaFilter);
-            },
+        async loadProfile(){
+            try{
+                let{data,error}=await sb.from('profiles').select('*').eq('id',this.currentUser.id).single();
+                if(error?.code==='PGRST116'){const c='MOG-'+Math.random().toString(36).substr(2,6).toUpperCase();const np={id:this.currentUser.id,email:this.currentUser.email,username:this.currentUser.email.split('@')[0],codename:c,rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:['ENLISTED'],joined_at:new Date().toISOString(),last_active:new Date().toISOString(),network:'M.O.G.'};const{data:cr,error:ce}=await sb.from('profiles').insert(np).select().single();if(ce)throw ce;data=cr}
+                else if(error)throw error;
+                await sb.from('profiles').update({last_active:new Date().toISOString()}).eq('id',this.currentUser.id);
+                this.profile={...this.profile,...data};
+                if(data.rank==='DIRECTOR'){localStorage.setItem('userRole','director');localStorage.setItem('clearanceLevel','ALPHA')}
+            }catch(e){this.toast('Profile sync failed','error')}
+        },
 
-            /* ── Init ── */
-            async init() {
-                this.checkDirectorateControl();
-                window.addEventListener('storage', e => {
-                    if (e.key==='ministrySettings') this.checkDirectorateControl();
-                    if (e.key==='lastDirective')    this.loadDirectives();
-                });
-                this.pollDirectorateSettings();
+        async loadOperatives(){try{const{data}=await sb.from('profiles').select('id,username,codename,rank,avatar_url,last_active,stats,department').order('last_active',{ascending:false}).limit(16);this.allOperatives=data||[]}catch(_){this.allOperatives=[]}},
+        async loadActivity(){try{const{data}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(25);this.recentActivity=data||[]}catch(_){this.recentActivity=[]}},
+        async loadDirectives(){try{const{data}=await sb.from('directives').select('*').order('timestamp',{ascending:false}).limit(3);this.directives=data||[]}catch(_){this.directives=[]}},
 
-                let tries=0;
-                while (typeof sb==='undefined' && tries<20) {
-                    await new Promise(r=>setTimeout(r,100)); tries++;
-                }
-                if (typeof sb==='undefined'||!sb) { console.error('[M.O.G.] sb not found'); return; }
-                try {
-                    const { data:{ session } } = await sb.auth.getSession();
-                    if (!session) { window.location.href='/login.html'; return; }
-                    this.currentUser = session.user;
-                    // Generate Operative ID from email prefix
-                    const prefix = (this.currentUser.email||'').split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g,'_');
-                    this.operativeId = 'ID: ' + prefix;
-                } catch(err) {
-                    this.showNotification('Authentication failed','error'); return;
-                }
-                await this.loadProfile();
-                await Promise.all([
-                    this.loadOperatives(),
-                    this.loadActivity(),
-                    this.loadDirectives(),
-                    this.loadMediaAssets(),
-                    this.loadLikedAssets(),
-                    this.loadTicker()
-                ]);
-                this.view = 'hub';
-                this.$nextTick(() => lucide.createIcons());
-            },
+        async loadMedia(){try{const{data}=await sb.from('media_assets').select('*').order('created_at',{ascending:false}).limit(24);this.mediaAssets=data&&data.length?data:this.fallback();await this.loadLikeCounts()}catch(_){this.mediaAssets=this.fallback()}},
+        fallback(){return[
+            {id:'m1',type:'VIDEO',title:'Groove Drop Vol.1',artist:'M.O.G. Collective',src:'/assets/videos/clip1.mp4',thumb:'/assets/images/gallery1.jpg',duration:'3:42',tag:'NEW'},
+            {id:'m2',type:'AUDIO',title:'Sector 7G Sessions',artist:'DJ Emalahleni',src:'/assets/audio/track1.mp3',thumb:'/assets/images/gallery2.jpg',duration:'5:17',tag:'HOT'},
+            {id:'m3',type:'PHOTO',title:'Uplink II — Field Ops',artist:'M.O.G. Photography',src:'/assets/images/gallery3.jpg',thumb:'/assets/images/gallery3.jpg',duration:null,tag:null},
+            {id:'m4',type:'VIDEO',title:'Piano Chronicles Ep.2',artist:'Kabz Collective',src:'/assets/videos/clip2.mp4',thumb:'/assets/images/gallery4.jpg',duration:'4:09',tag:'HOT'},
+            {id:'m5',type:'AUDIO',title:'104.7 FM — Live Set',artist:'Ministry Broadcast',src:'/assets/audio/track2.mp3',thumb:'/assets/images/gallery1.jpg',duration:'58:00',tag:'LIVE'},
+            {id:'m6',type:'PHOTO',title:'Directorate Brief',artist:'Intel Division',src:'/assets/images/gallery2.jpg',thumb:'/assets/images/gallery2.jpg',duration:null,tag:null},
+        ]},
+        async loadLikeCounts(){try{const{data}=await sb.from('media_likes').select('media_id,count');if(data){const c={};data.forEach(d=>{c[d.media_id]=d.count||0});this.likesCounts=c}}catch(_){}},
+        async loadLiked(){try{const s=JSON.parse(localStorage.getItem('mog_liked')||'[]');this.likedAssets=new Set(s);if(this.currentUser){const{data}=await sb.from('media_likes_users').select('media_id').eq('user_id',this.currentUser.id);if(data)this.likedAssets=new Set(data.map(d=>d.media_id))}}catch(_){}},
 
-            /* ── Directorate control ── */
-            checkDirectorateControl() {
-                try {
-                    const s = localStorage.getItem('ministrySettings');
-                    if (!s) return;
-                    const p = JSON.parse(s);
-                    this.lockdownActive     = p.isLocked    || false;
-                    this.directorateMessage = p.alertStatus || '';
-                    if (p.bannerText) this.directorateBanner = p.bannerText;
-                } catch(_) {}
-            },
+        async toggleLike(asset){
+            const mid=asset.id,was=this.likedAssets.has(mid);
+            if(was){this.likedAssets.delete(mid);this.likesCounts[mid]=Math.max(0,(this.likesCounts[mid]||1)-1)}
+            else{this.likedAssets.add(mid);this.likesCounts[mid]=(this.likesCounts[mid]||0)+1}
+            this.likedAssets=new Set(this.likedAssets);
+            localStorage.setItem('mog_liked',JSON.stringify([...this.likedAssets]));
+            try{
+                if(was){await sb.from('media_likes_users').delete().eq('media_id',mid).eq('user_id',this.currentUser.id);await sb.from('media_likes').update({count:this.likesCounts[mid]}).eq('media_id',mid)}
+                else{await sb.from('media_likes_users').upsert({media_id:mid,user_id:this.currentUser.id,created_at:new Date().toISOString()},{onConflict:'media_id,user_id'});const{data:ex}=await sb.from('media_likes').select('count').eq('media_id',mid).single();if(ex)await sb.from('media_likes').update({count:(ex.count||0)+1}).eq('media_id',mid);else await sb.from('media_likes').insert({media_id:mid,title:asset.title,count:1});this.toast('Liked ♥','success')}
+            }catch(_){}
+        },
+        isLiked(id){return this.likedAssets.has(id)},
+        lcount(id){return this.likesCounts[id]||0},
+        openMedia(a){window.open(a.src||a.thumb,'_blank');this.logActivity('MEDIA_VIEW','Viewed: '+a.title)},
+        listenMedia(a){window.open(a.src,'_blank');this.logActivity('MEDIA_LISTEN','Listened: '+a.title)},
+        dlMedia(a){const el=document.createElement('a');el.href=a.src||a.thumb;el.download=(a.title||'mog').replace(/\s+/g,'-').toLowerCase();document.body.appendChild(el);el.click();document.body.removeChild(el);this.toast('Downloading','info')},
+        mtc(t){return{VIDEO:'rgba(220,38,38,0.82)',AUDIO:'rgba(0,212,170,0.82)',PHOTO:'rgba(212,175,55,0.82)'}[t]||'rgba(80,80,80,0.7)'},
+        mtx(t){return{VIDEO:'#fff',AUDIO:'#000',PHOTO:'#000'}[t]||'#fff'},
 
-            async pollDirectorateSettings() {
-                setInterval(async () => {
-                    try {
-                        if (typeof sb==='undefined'||!sb) return;
-                        const { data } = await sb.from('system_settings')
-                            .select('value').eq('key','ministrySettings').single();
-                        if (!data?.value) return;
-                        const parsed = JSON.parse(data.value);
-                        this.lockdownActive     = parsed.isLocked    || false;
-                        this.directorateMessage = parsed.alertStatus || '';
-                        if (parsed.bannerText) this.directorateBanner = parsed.bannerText;
-                        localStorage.setItem('ministrySettings', data.value);
+        async updateProfile(){
+            this.isLoading=true;
+            try{const{error}=await sb.from('profiles').update({username:this.profile.username,bio:this.profile.bio,department:this.profile.department,updated_at:new Date().toISOString()}).eq('id',this.currentUser.id);if(error)throw error;this.showModal=false;this.toast('Dossier saved','success');this.logActivity('PROFILE_UPDATE','Updated dossier')}
+            catch(e){this.toast('Save failed','error')}
+            finally{this.isLoading=false}
+        },
+        async uploadAvatar(e){
+            const file=e.target.files[0];if(!file)return;
+            if(!['image/jpeg','image/png','image/webp'].includes(file.type)){this.toast('JPG/PNG/WEBP only','error');return}
+            if(file.size>2*1024*1024){this.toast('Max 2 MB','error');return}
+            this.isLoading=true;this.uploadProgress=15;
+            try{
+                const ext=file.name.split('.').pop();const path=`mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
+                this.uploadProgress=35;
+                const{error:ue}=await sb.storage.from('operative-assets').upload(path,file,{cacheControl:'3600',upsert:true});
+                if(ue)throw ue;this.uploadProgress=75;
+                const{data:{publicUrl}}=sb.storage.from('operative-assets').getPublicUrl(path);
+                await sb.from('profiles').update({avatar_url:publicUrl}).eq('id',this.currentUser.id);
+                this.profile.avatar_url=publicUrl;this.uploadProgress=100;this.toast('Photo updated','success');
+            }catch(err){this.toast('Upload failed','error')}
+            finally{this.isLoading=false;setTimeout(()=>this.uploadProgress=0,1600)}
+        },
+        async logActivity(type,desc){try{await sb.from('activity_log').insert({user_id:this.currentUser.id,type,description:desc,network:'M.O.G.',created_at:new Date().toISOString()})}catch(_){}},
 
-                        // Check Protocol Zero
-                        const { data:pz } = await sb.from('system_settings')
-                            .select('value').eq('key','protocolZero').single();
-                        if (pz?.value) {
-                            const pzData = JSON.parse(pz.value);
-                            if (pzData.active) this.lockdownActive = true;
-                        }
+        ricon(r){return{INITIATE:'radio',AGENT:'user',OPERATIVE:'target',SPECIALIST:'star',DIRECTOR:'crown'}[r]||'radio'},
+        rchip(r){return{INITIATE:'border-gray-600 text-gray-500',AGENT:'border-teal-600 text-teal-400',OPERATIVE:'border-cyan-600 text-cyan-400',SPECIALIST:'border-amber-600 text-amber-400',DIRECTOR:'border-yellow-500 text-yellow-300'}[r]||'border-gray-600 text-gray-500'},
+        ostatus(ts){if(!ts)return{label:'OFFLINE',dot:'bg-gray-700'};const m=(Date.now()-new Date(ts))/60000;if(m<5)return{label:'LIVE',dot:'bg-teal-400'};if(m<30)return{label:'RECENT',dot:'bg-amber-400'};return{label:'OFFLINE',dot:'bg-gray-600'}},
+        ago(ts){if(!ts)return'—';const s=(Date.now()-new Date(ts))/1000;if(s<60)return Math.floor(s)+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'},
 
-                        // Check ticker
-                        const { data:tk } = await sb.from('system_settings')
-                            .select('value').eq('key','tickerBroadcast').single();
-                        if (tk?.value) {
-                            const tkData = JSON.parse(tk.value);
-                            if (tkData.message) {
-                                this.tickerMessages = [{ message: tkData.message }];
-                                this.tickerActive = true;
-                            } else {
-                                this.tickerMessages = [];
-                                this.tickerActive = false;
-                            }
-                        }
-                    } catch(_) {}
-                }, 15000); // Poll every 15s (faster than directorate's 30s)
-            },
-
-            async loadTicker() {
-                try {
-                    const { data } = await sb.from('system_settings')
-                        .select('value').eq('key','tickerBroadcast').single();
-                    if (data?.value) {
-                        const parsed = JSON.parse(data.value);
-                        if (parsed.message) {
-                            this.tickerMessages = [{ message: parsed.message }];
-                            this.tickerActive = true;
-                        }
-                    }
-                    // Also check ticker_messages table
-                    const { data: tm } = await sb.from('ticker_messages')
-                        .select('*').eq('active', true).order('created_at', { ascending: false }).limit(5);
-                    if (tm && tm.length) {
-                        this.tickerMessages = tm;
-                        this.tickerActive = true;
-                    }
-                } catch(_) {}
-            },
-
-            /* ── Profile ── */
-            async loadProfile() {
-                try {
-                    let { data, error } = await sb.from('profiles').select('*').eq('id',this.currentUser.id).single();
-                    if (error?.code==='PGRST116') {
-                        const codename = 'MOG-'+Math.random().toString(36).substr(2,6).toUpperCase();
-                        const np = {
-                            id:this.currentUser.id, email:this.currentUser.email,
-                            username:this.currentUser.email.split('@')[0], codename,
-                            rank:'INITIATE', department:'UNASSIGNED', bio:'', avatar_url:null,
-                            stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},
-                            skills:[], achievements:['ENLISTED'],
-                            joined_at:new Date().toISOString(), last_active:new Date().toISOString(), network:'M.O.G.'
-                        };
-                        const { data:c, error:ce } = await sb.from('profiles').insert(np).select().single();
-                        if (ce) throw ce;
-                        data = c;
-                    } else if (error) throw error;
-                    await sb.from('profiles').update({ last_active:new Date().toISOString() }).eq('id',this.currentUser.id);
-                    this.profile = { ...this.profile, ...data };
-                    if (data.rank==='DIRECTOR') {
-                        localStorage.setItem('userRole','director');
-                        localStorage.setItem('clearanceLevel','ALPHA');
-                    }
-                } catch(e) { this.showNotification('Profile sync failed','error'); }
-            },
-
-            async loadOperatives() {
-                try {
-                    const { data, error } = await sb.from('profiles')
-                        .select('id,username,codename,rank,avatar_url,last_active,stats,department')
-                        .order('last_active',{ascending:false}).limit(16);
-                    if (error) throw error;
-                    this.allOperatives = data||[];
-                } catch(_) { this.allOperatives=[]; }
-            },
-
-            async loadActivity() {
-                try {
-                    const { data, error } = await sb.from('activity_log')
-                        .select('*').order('created_at',{ascending:false}).limit(25);
-                    if (error) throw error;
-                    this.recentActivity = data||[];
-                } catch(_) { this.recentActivity=[]; }
-            },
-
-            async loadDirectives() {
-                try {
-                    const { data, error } = await sb.from('directives')
-                        .select('*').order('timestamp',{ascending:false}).limit(3);
-                    if (error) throw error;
-                    this.directives = data||[];
-                } catch(_) { this.directives=[]; }
-            },
-
-            /* ── Media Assets ── */
-            async loadMediaAssets() {
-                try {
-                    const { data, error } = await sb.from('media_assets')
-                        .select('*').order('created_at',{ascending:false}).limit(24);
-                    if (error) throw error;
-                    this.mediaAssets = data || this.getFallbackMedia();
-                    if (!this.mediaAssets.length) this.mediaAssets = this.getFallbackMedia();
-                    // Load like counts
-                    await this.loadLikeCounts();
-                } catch(_) { this.mediaAssets = this.getFallbackMedia(); }
-            },
-
-            getFallbackMedia() {
-                // Fallback tiles if DB table doesn't exist yet
-                return [
-                    { id:'m1', type:'VIDEO', title:'Groove Drop Vol.1', artist:'M.O.G. Collective', src:'/assets/videos/clip1.mp4', thumb:'/assets/images/gallery1.jpg', duration:'3:42', tag:'NEW' },
-                    { id:'m2', type:'AUDIO', title:'Sector 7G Sessions', artist:'DJ Emalahleni', src:'/assets/audio/track1.mp3', thumb:'/assets/images/gallery2.jpg', duration:'5:17', tag:'HOT' },
-                    { id:'m3', type:'PHOTO', title:'Uplink II — Field Ops', artist:'M.O.G. Photography', src:'/assets/images/gallery3.jpg', thumb:'/assets/images/gallery3.jpg', duration:null, tag:null },
-                    { id:'m4', type:'VIDEO', title:'Piano Chronicles Ep.2', artist:'Kabz Collective', src:'/assets/videos/clip2.mp4', thumb:'/assets/images/gallery4.jpg', duration:'4:09', tag:'HOT' },
-                    { id:'m5', type:'AUDIO', title:'104.7 FM — Live Set', artist:'Ministry Broadcast', src:'/assets/audio/track2.mp3', thumb:'/assets/images/gallery1.jpg', duration:'58:00', tag:'LIVE' },
-                    { id:'m6', type:'PHOTO', title:'Directorate Brief', artist:'Intel Division', src:'/assets/images/gallery2.jpg', thumb:'/assets/images/gallery2.jpg', duration:null, tag:null },
-                ];
-            },
-
-            async loadLikeCounts() {
-                try {
-                    const { data } = await sb.from('media_likes')
-                        .select('media_id, count');
-                    if (data) {
-                        const counts = {};
-                        data.forEach(d => { counts[d.media_id] = d.count || 0; });
-                        this.likesCounts = counts;
-                    }
-                } catch(_) {}
-            },
-
-            async loadLikedAssets() {
-                if (!this.currentUser) return;
-                try {
-                    const { data } = await sb.from('media_likes_users')
-                        .select('media_id').eq('user_id', this.currentUser.id);
-                    if (data) {
-                        this.likedAssets = new Set(data.map(d => d.media_id));
-                    }
-                } catch(_) { this.likedAssets = new Set(); }
-            },
-
-            async toggleLike(asset) {
-                if (!this.currentUser) return;
-                const mid = asset.id;
-                const wasLiked = this.likedAssets.has(mid);
-
-                // Optimistic update
-                if (wasLiked) {
-                    this.likedAssets.delete(mid);
-                    this.likesCounts[mid] = Math.max(0, (this.likesCounts[mid]||1) - 1);
-                } else {
-                    this.likedAssets.add(mid);
-                    this.likesCounts[mid] = (this.likesCounts[mid]||0) + 1;
-                }
-                // Force Alpine reactivity for Set
-                this.likedAssets = new Set(this.likedAssets);
-
-                try {
-                    if (wasLiked) {
-                        // Unlike
-                        await sb.from('media_likes_users')
-                            .delete()
-                            .eq('media_id', mid)
-                            .eq('user_id', this.currentUser.id);
-                        // Decrement count
-                        await sb.from('media_likes')
-                            .update({ count: this.likesCounts[mid] })
-                            .eq('media_id', mid);
-                    } else {
-                        // Like — upsert user record
-                        await sb.from('media_likes_users').upsert({
-                            media_id: mid,
-                            user_id:  this.currentUser.id,
-                            created_at: new Date().toISOString()
-                        }, { onConflict: 'media_id,user_id' });
-                        // Upsert count
-                        const { data: existing } = await sb.from('media_likes')
-                            .select('count').eq('media_id', mid).single();
-                        if (existing) {
-                            await sb.from('media_likes').update({ count: (existing.count||0)+1 }).eq('media_id', mid);
-                        } else {
-                            await sb.from('media_likes').insert({ media_id: mid, title: asset.title, count: 1 });
-                        }
-                        this.showNotification('Asset Liked ♥', 'success');
-                    }
-                } catch(e) {
-                    // Revert optimistic update on error
-                    if (wasLiked) {
-                        this.likedAssets.add(mid);
-                        this.likesCounts[mid] = (this.likesCounts[mid]||0) + 1;
-                    } else {
-                        this.likedAssets.delete(mid);
-                        this.likesCounts[mid] = Math.max(0, (this.likesCounts[mid]||1) - 1);
-                    }
-                    this.likedAssets = new Set(this.likedAssets);
-                }
-            },
-
-            isLiked(id) { return this.likedAssets.has(id); },
-            getLikeCount(id) { return this.likesCounts[id] || 0; },
-
-            openMedia(asset) {
-                if (asset.type==='VIDEO' && asset.src) {
-                    window.open(asset.src, '_blank');
-                } else if (asset.type==='PHOTO') {
-                    window.open(asset.src||asset.thumb, '_blank');
-                } else {
-                    window.open(asset.src, '_blank');
-                }
-                this.logActivity('MEDIA_VIEW', `Viewed: ${asset.title}`);
-            },
-
-            listenMedia(asset) {
-                if (asset.src) window.open(asset.src, '_blank');
-                this.logActivity('MEDIA_LISTEN', `Listened: ${asset.title}`);
-            },
-
-            downloadMedia(asset) {
-                const a = document.createElement('a');
-                a.href = asset.src || asset.thumb;
-                a.download = (asset.title||'mog-asset').replace(/\s+/g,'-').toLowerCase();
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                this.showNotification('Download initiated', 'info');
-                this.logActivity('MEDIA_DOWNLOAD', `Downloaded: ${asset.title}`);
-            },
-
-            getMediaTypeColor(type) {
-                return { VIDEO:'rgba(220,38,38,0.75)', AUDIO:'rgba(0,212,170,0.7)', PHOTO:'rgba(212,175,55,0.75)' }[type] || 'rgba(100,100,100,0.7)';
-            },
-
-            getMediaTypeTextColor(type) {
-                return { VIDEO:'#fff', AUDIO:'#000', PHOTO:'#000' }[type] || '#fff';
-            },
-
-            /* ── Profile actions ── */
-            async updateProfile() {
-                this.isLoading = true;
-                try {
-                    const { error } = await sb.from('profiles').update({
-                        username:this.profile.username, bio:this.profile.bio,
-                        department:this.profile.department, updated_at:new Date().toISOString()
-                    }).eq('id',this.currentUser.id);
-                    if (error) throw error;
-                    this.showProfileModal = false;
-                    this.showNotification('Dossier saved','success');
-                    this.logActivity('PROFILE_UPDATE','Updated operative dossier');
-                } catch(e) {
-                    this.showNotification('Save failed — '+(e.message||'retry'),'error');
-                } finally { this.isLoading=false; }
-            },
-
-            async uploadAvatar(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { this.showNotification('JPG, PNG or WEBP only','error'); return; }
-                if (file.size > 2*1024*1024) { this.showNotification('Max 2 MB','error'); return; }
-                this.isLoading=true; this.uploadProgress=15;
-                try {
-                    const ext  = file.name.split('.').pop();
-                    const path = `mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
-                    this.uploadProgress=35;
-                    const { error:ue } = await sb.storage.from('operative-assets').upload(path,file,{cacheControl:'3600',upsert:true});
-                    if (ue) throw ue;
-                    this.uploadProgress=75;
-                    const { data:{publicUrl} } = sb.storage.from('operative-assets').getPublicUrl(path);
-                    const { error:pe } = await sb.from('profiles').update({avatar_url:publicUrl}).eq('id',this.currentUser.id);
-                    if (pe) throw pe;
-                    this.profile.avatar_url=publicUrl;
-                    this.uploadProgress=100;
-                    this.showNotification('Photo updated','success');
-                } catch(err) {
-                    this.showNotification('Upload failed — '+(err.message||'retry'),'error');
-                } finally { this.isLoading=false; setTimeout(()=>this.uploadProgress=0,1800); }
-            },
-
-            async logActivity(type, description) {
-                try {
-                    await sb.from('activity_log').insert({
-                        user_id:this.currentUser.id, type, description,
-                        network:'M.O.G.', created_at:new Date().toISOString()
-                    });
-                } catch(_) {}
-            },
-
-            /* ── Helpers ── */
-            getRankIcon(rank) {
-                return {INITIATE:'radio',AGENT:'user',OPERATIVE:'target',SPECIALIST:'star',DIRECTOR:'crown'}[rank]||'radio';
-            },
-            getRankBadgeClass(rank) {
-                return {INITIATE:'border-gray-600/50 text-gray-400',AGENT:'border-teal-600/50 text-teal-400',OPERATIVE:'border-cyan-600/50 text-cyan-400',SPECIALIST:'border-amber-600/50 text-amber-400',DIRECTOR:'border-yellow-500/60 text-yellow-300'}[rank]||'border-gray-600/50 text-gray-400';
-            },
-            getOnlineStatus(ts) {
-                if (!ts) return {label:'OFFLINE',color:'bg-gray-700'};
-                const m=(Date.now()-new Date(ts))/60000;
-                if (m<5)    return {label:'LIVE',   color:'bg-teal-400'};
-                if (m<30)   return {label:'RECENT', color:'bg-amber-400'};
-                if (m<1440) return {label:'TODAY',  color:'bg-gray-500'};
-                return           {label:'OFFLINE', color:'bg-gray-700'};
-            },
-            timeAgo(ts) {
-                if (!ts) return '—';
-                const s=(Date.now()-new Date(ts))/1000;
-                if (s<60)    return Math.floor(s)+'s ago';
-                if (s<3600)  return Math.floor(s/60)+'m ago';
-                if (s<86400) return Math.floor(s/3600)+'h ago';
-                return Math.floor(s/86400)+'d ago';
-            },
-
-            showNotification(message, type='info') {
-                const cfg={
-                    success:{bg:'bg-teal-800', border:'border-teal-500/50',   icon:'check-circle'},
-                    error:  {bg:'bg-red-900',  border:'border-red-500/50',    icon:'alert-triangle'},
-                    warning:{bg:'bg-yellow-900',border:'border-yellow-500/50',icon:'alert-circle'},
-                    info:   {bg:'bg-zinc-900', border:'border-zinc-500/50',   icon:'info'}
-                }[type]||{bg:'bg-zinc-900',border:'border-zinc-500/50',icon:'info'};
-                const t=document.createElement('div');
-                const isMobile=window.innerWidth<640;
-                t.className=`toast fixed z-[99999] text-white ${cfg.bg} ${cfg.border} ${isMobile?'bottom-24 left-1/2 -translate-x-1/2 translate-y-20':'top-14 right-5 translate-x-[120%]'}`;
-                t.innerHTML=`<i data-lucide="${cfg.icon}" style="width:16px;height:16px;flex-shrink:0;"></i><span>${message.toUpperCase()}</span>`;
-                document.body.appendChild(t); lucide.createIcons();
-                requestAnimationFrame(()=>setTimeout(()=>{ t.style.transform=isMobile?'translate(-50%,0)':'translateX(0)'; },30));
-                setTimeout(()=>{ t.style.opacity='0'; t.style.transform=isMobile?'translate(-50%,20px)':'translateX(120%)'; setTimeout(()=>t.remove(),350); },3600);
-            },
-
-            async logout() {
-                try { await sb.auth.signOut(); } catch(_) {}
-                localStorage.clear(); window.location.href='/login.html';
-            }
-        };
-    }
+        toast(msg,type='info'){
+            const c={success:{bg:'#042010',bd:'rgba(0,212,170,0.35)',cl:'#4aecd4'},error:{bg:'#1a0404',bd:'rgba(220,38,38,0.4)',cl:'#f87171'},warning:{bg:'#1a1000',bd:'rgba(212,175,55,0.36)',cl:'#fcd34d'},info:{bg:'#040806',bd:'rgba(0,212,170,0.16)',cl:'#e8e0cc'}}[type]||{bg:'#040806',bd:'rgba(0,212,170,0.16)',cl:'#e8e0cc'};
+            const t=document.createElement('div'),m=window.innerWidth<640;
+            t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:78px;left:50%;transform:translate(-50%,16px)':'top:12px;right:12px;transform:translateX(115%)'};background:${c.bg};border:1px solid ${c.bd};color:${c.cl};font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:9px;padding:9px 13px;box-shadow:0 6px 24px rgba(0,0,0,0.8);max-width:min(88vw,320px);`;
+            t.textContent=msg;document.body.appendChild(t);
+            requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.26s cubic-bezier(0.34,1.56,0.64,1)';},14));
+            setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,16px)':'translateX(115%)';setTimeout(()=>t.remove(),280);},3600);
+        },
+        async logout(){try{await sb.auth.signOut()}catch(_){}localStorage.clear();window.location.href='/login.html'}
+    }}
     </script>
 </head>
 
-<body x-data="mogNetwork()" x-init="init()" x-cloak class="bg-black min-h-screen">
+<body x-data="hub()" x-init="init()" x-cloak class="bg-black">
 
-    <div class="mog-seal" aria-hidden="true"></div>
-    <div class="circuit-grid" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
-    <div class="scanline" aria-hidden="true"></div>
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vig" aria-hidden="true"></div>
 
-    <!-- ══ PROTOCOL ZERO / LOCKDOWN SCREEN ═══════════════════════ -->
-    <div x-show="lockdownActive" x-transition class="lockdown-screen">
-        <div class="lockdown-border"></div>
-        <div class="relative z-10 flex flex-col items-center gap-6 max-w-lg">
-            <img src="/assets/images/logo.png" alt="M.O.G."
-                 class="w-16 h-16 sm:w-20 sm:h-20 object-contain"
-                 style="filter:drop-shadow(0 0 20px rgba(212,175,55,0.5))">
-            <div class="w-14 h-14 rounded-full border-2 border-red-500/50 flex items-center justify-center pulse-gold"
-                 style="background:rgba(220,38,38,0.08)">
-                <i data-lucide="lock" class="w-7 h-7 text-red-400"></i>
+<!-- LOCKDOWN -->
+<div x-show="lockdownActive" x-transition class="ldover">
+    <div class="ldring"></div>
+    <div class="relative z-10 flex flex-col items-center gap-5 max-w-sm">
+        <img src="/assets/images/logo.png" alt="" style="width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(220,38,38,0.6))" onerror="this.style.display='none'">
+        <h2 class="orbit font-black text-2xl uppercase text-center" style="color:var(--red);text-shadow:0 0 22px var(--red-glow)">SYSTEM LOCKDOWN</h2>
+        <div class="gold-line w-28" style="opacity:0.2"></div>
+        <p class="mono text-sm text-center" style="color:rgba(255,255,255,0.38)" x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
+        <button @click="checkLockdown()" class="btn btn-g px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Refresh Status</button>
+    </div>
+</div>
+
+<!-- LOADING -->
+<template x-if="view==='loading'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black">
+    <div style="position:relative;width:52px;height:52px">
+        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <img src="/assets/images/logo.png" alt="" style="width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 7px var(--gold-glow))" onerror="this.style.display='none'">
+        </div>
+    </div>
+    <div class="text-center space-y-1.5">
+        <p class="orbit text-xs tracking-widest text-gold">Connecting to M.O.G. Network <span class="db"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+    </div>
+</div>
+</template>
+
+<!-- HUB -->
+<template x-if="view==='hub'">
+<div class="relative z-10 min-h-dvh fadeup">
+
+    <!-- Ticker -->
+    <template x-if="tickerActive && tickerMessages.length">
+    <div class="ticker sticky top-0 z-50">
+        <div class="ticker-lbl">LIVE</div>
+        <div style="flex:1;overflow:hidden">
+            <div class="ticker-trk">
+                <template x-for="m in tickerMessages" :key="m.id||m.message"><span><span class="ticker-txt" x-text="m.message||m"></span><span class="ticker-sep">◆</span></span></template>
+                <template x-for="m in tickerMessages" :key="'d'+(m.id||m.message)"><span><span class="ticker-txt" x-text="m.message||m"></span><span class="ticker-sep">◆</span></span></template>
             </div>
-            <p class="mono text-[10px] text-red-700 uppercase tracking-[0.4em]">Protocol Zero Active</p>
-            <h1 class="orbit font-black uppercase tracking-[0.15em] text-center"
-                style="font-size:var(--text-2xl);color:var(--red);text-shadow:0 0 30px rgba(220,38,38,0.5)">
-                SYSTEM LOCKDOWN
-            </h1>
-            <div class="gold-line w-40" style="opacity:0.3"></div>
-            <p class="text-white/50 mono text-center" style="font-size:var(--text-sm)"
-               x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE — ALL TERMINALS FROZEN'"></p>
-            <p class="text-gray-700 uppercase tracking-widest mono" style="font-size:var(--text-xs)">
-                Ministry of Groove // Sector Control
-            </p>
-            <button @click="checkDirectorateControl()"
-                    class="px-6 py-3 border border-yellow-600/35 text-gold rounded-full hover:bg-yellow-500/10 transition-all uppercase tracking-widest font-bold"
-                    style="font-size:var(--text-xs)">
-                Refresh Status
+        </div>
+    </div>
+    </template>
+
+    <!-- NAV -->
+    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+        <div class="max-w-7xl mx-auto px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 flex-shrink-0">
+                <img src="/assets/images/logo.png" alt="M.O.G." class="lspin" style="width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 0 6px var(--gold-glow))" onerror="this.style.display='none'">
+                <div class="hidden sm:block">
+                    <p class="orbit font-black text-gold" style="font-size:0.95rem;letter-spacing:0.05em">M.O.G.</p>
+                    <p class="slogan" style="font-size:0.4rem">Decrypting the Culture. Synchronizing the Grid.</p>
+                </div>
+                <p class="sm:hidden orbit font-black text-gold" style="font-size:0.88rem;letter-spacing:0.1em">M.O.G.</p>
+            </div>
+
+            <div class="hidden lg:flex items-center gap-3 flex-1 justify-center">
+                <template x-if="directorateBanner">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-gold truncate max-w-xs">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold);flex-shrink:0"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+                        <span class="mono text-gold truncate" style="font-size:0.56rem" x-text="directorateBanner"></span>
+                    </div>
+                </template>
+                <span class="opid" x-text="operativeId"></span>
+            </div>
+
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="sm:hidden opid" x-text="operativeId" style="font-size:7px"></span>
+                <a x-show="isDirector" href="/pages/directorate.html" class="btn btn-g hidden sm:inline-flex px-3 py-2" style="font-size:0.56rem;min-height:unset">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    <span class="hidden lg:inline">Directorate</span>
+                </a>
+                <a x-show="isDirector" href="/pages/directorate.html" class="sm:hidden btn btn-g p-2" style="min-height:unset;padding:6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                </a>
+                <button @click="showModal=true" class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.16)">
+                    <div class="aring" style="width:32px;height:32px">
+                        <div>
+                            <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                            <svg x-show="!profile.avatar_url" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <p class="orbit font-bold text-white" style="font-size:0.58rem;line-height:1.2" x-text="profile.codename||'OPERATIVE'"></p>
+                        <p class="orbit" :class="rankColor" style="font-size:0.48rem" x-text="profile.rank"></p>
+                    </div>
+                </button>
+                <div class="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-full" style="background:rgba(0,0,0,0.42);border:1px solid rgba(0,212,170,0.16)">
+                    <span class="w-1.5 h-1.5 rounded-full bg-teal-400 pulse" style="display:inline-block"></span>
+                    <span class="mono text-teal" style="font-size:0.5rem;letter-spacing:0.12em">LIVE</span>
+                </div>
+                <button @click="logout()" class="text-gray-600 hover:text-gold transition-colors rounded-full p-1.5" style="min-height:unset">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="gold-line" style="opacity:0.18"></div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-5 py-4 sm:py-6">
+
+        <!-- IDENTITY STRIP -->
+        <div class="glass rounded-xl px-4 py-3.5 mb-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-5" style="border-color:rgba(212,175,55,0.14)">
+            <div class="aring flex-shrink-0" style="width:56px;height:56px">
+                <div>
+                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                    <svg x-show="!profile.avatar_url" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+            </div>
+            <div class="flex-1 min-w-0 text-center sm:text-left">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <p class="orbit font-black text-white" style="font-size:clamp(0.95rem,3.5vw,1.3rem)" x-text="profile.username||'UNKNOWN'"></p>
+                    <span class="rchip" :class="rchip(profile.rank)" x-text="profile.rank"></span>
+                </div>
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mt-0.5">
+                    <span class="opid" x-text="profile.codename||'—'"></span>
+                    <span class="mono text-gray-500" style="font-size:0.56rem" x-text="profile.department"></span>
+                    <span class="mono text-gray-600" style="font-size:0.54rem">CLR L<span x-text="clearanceLevel"></span></span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 sm:gap-5 flex-shrink-0">
+                <div class="text-center">
+                    <p class="orbit font-black text-gold" style="font-size:1rem" x-text="profile.stats.missions"></p>
+                    <p class="cap" style="font-size:0.46rem">MISSIONS</p>
+                </div>
+                <div class="text-center">
+                    <p class="orbit font-black text-teal" style="font-size:1rem" x-text="profile.stats.groove+'%'"></p>
+                    <p class="cap" style="font-size:0.46rem">GROOVE</p>
+                </div>
+                <div class="text-center">
+                    <p class="orbit font-black text-gold" style="font-size:1rem" x-text="profile.stats.influence+'%'"></p>
+                    <p class="cap" style="font-size:0.46rem">INFLUENCE</p>
+                </div>
+                <button @click="showModal=true" class="btn btn-g p-2.5" style="min-height:unset">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- DIRECTIVES -->
+        <template x-if="directives.length">
+        <div class="space-y-2 mb-4">
+            <template x-for="d in directives" :key="d.id">
+                <div class="dir flex items-center gap-3">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+                    <div class="flex-1 min-w-0">
+                        <p class="orbit text-gold" style="font-size:0.52rem;letter-spacing:0.14em">Directorate Directive</p>
+                        <p class="text-white truncate" style="font-size:0.8rem" x-text="d.content"></p>
+                    </div>
+                    <span class="mono text-gray-600 flex-shrink-0" style="font-size:0.54rem" x-text="ago(d.timestamp)"></span>
+                </div>
+            </template>
+        </div>
+        </template>
+
+        <!-- TABS -->
+        <div class="hidden sm:flex gap-1.5 mb-4 overflow-x-auto pb-px">
+            <template x-for="t in [{id:'grid',label:'Media Grid'},{id:'overview',label:'Overview'},{id:'network',label:'Network'},{id:'activity',label:'Activity'}]" :key="t.id">
+                <button @click="activeTab=t.id;$nextTick(()=>{if(typeof lucide!=='undefined')lucide.createIcons()})" class="tab" :class="activeTab===t.id?'on':''" x-text="t.label"></button>
+            </template>
+        </div>
+
+        <!-- PANEL -->
+        <div class="glass rounded-xl overflow-hidden" style="min-height:500px">
+
+            <!-- MEDIA GRID -->
+            <div x-show="activeTab==='grid'" class="p-4">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                    <div>
+                        <p class="orbit font-black text-white" style="font-size:1.05rem">Asset Grid</p>
+                        <p class="slogan mt-0.5">Decrypting the Culture. Synchronizing the Grid.</p>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <template x-for="f in ['ALL','VIDEO','AUDIO','PHOTO']" :key="f">
+                            <button @click="mediaFilter=f" class="orbit font-bold uppercase rounded-full px-3 py-1.5 transition-all" style="font-size:0.5rem;min-height:unset" :style="mediaFilter===f?'background:rgba(212,175,55,0.14);border:1px solid rgba(212,175,55,0.38);color:var(--gold)':'background:rgba(0,0,0,0.38);border:1px solid rgba(255,255,255,0.07);color:#6b7280'" x-text="f"></button>
+                        </template>
+                    </div>
+                </div>
+                <template x-if="!filteredMedia.length">
+                <div class="flex flex-col items-center justify-center py-16 gap-3" style="opacity:0.18">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <p class="orbit text-sm uppercase tracking-widest text-gold">No assets</p>
+                </div>
+                </template>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    <template x-for="a in filteredMedia" :key="a.id">
+                    <div class="mtile">
+                        <div style="position:relative;overflow:hidden;aspect-ratio:16/9">
+                            <template x-if="a.type==='VIDEO'"><video :src="a.src" :poster="a.thumb" class="mthumb" muted loop preload="none" @mouseenter="$el.play()" @mouseleave="$el.pause();$el.currentTime=0"></video></template>
+                            <template x-if="a.type!=='VIDEO'"><img :src="a.thumb||a.src" :alt="a.title" class="mthumb" loading="lazy" @error="$el.src='/assets/images/logo.png'"></template>
+                            <span class="mtype" x-text="a.type"></span>
+                            <template x-if="a.tag"><span class="mtag" :style="a.tag==='LIVE'?'background:rgba(220,38,38,0.88);color:#fff':a.tag==='HOT'?'background:rgba(212,175,55,0.88);color:#000':'background:rgba(0,212,170,0.88);color:#000'" x-text="a.tag"></span></template>
+                            <template x-if="a.duration"><span class="mdur" x-text="a.duration"></span></template>
+                        </div>
+                        <div class="px-2.5 pt-2 pb-1">
+                            <p class="font-bold text-white truncate" style="font-size:0.78rem" x-text="a.title"></p>
+                            <p class="text-gray-500 uppercase truncate" style="font-size:0.54rem" x-text="a.artist||'M.O.G. Network'"></p>
+                        </div>
+                        <div class="flex gap-1 px-2.5 pb-2.5">
+                            <button @click="openMedia(a)" class="ma v"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>View</button>
+                            <template x-if="a.type!=='PHOTO'"><button @click="listenMedia(a)" class="ma ls"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/></svg>Listen</button></template>
+                            <button @click="toggleLike(a)" class="ma lk" :class="isLiked(a.id)?'on':''"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :style="isLiked(a.id)?'fill:#f87171;stroke:#f87171':''"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span x-text="lcount(a.id)||'Like'"></span></button>
+                            <button @click="dlMedia(a)" class="ma dl"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>DL</button>
+                        </div>
+                    </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- OVERVIEW -->
+            <div x-show="activeTab==='overview'" class="p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <p class="orbit font-black text-white" style="font-size:1.05rem">Mission Control</p>
+                    <span class="cap" style="font-size:0.5rem">Clearance Level <span x-text="clearanceLevel"></span></span>
+                </div>
+                <!-- Stat bars -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <template x-for="s in [
+                        {l:'Missions',      v:profile.stats.missions,       cl:'text-gold', bar:'sb-g', pct:Math.min(profile.stats.missions*10,100)},
+                        {l:'Contributions', v:profile.stats.contributions,  cl:'text-teal', bar:'sb-t', pct:Math.min(profile.stats.contributions*5,100)},
+                        {l:'Influence',     v:profile.stats.influence+'%',  cl:'text-gold', bar:'sb-g', pct:profile.stats.influence},
+                        {l:'Groove Factor', v:profile.stats.groove+'%',     cl:'text-cyan-400', bar:'sb-c', pct:profile.stats.groove},
+                        {l:'Loyalty',       v:profile.stats.loyalty+'%',    cl:'text-red-400',  bar:'sb-r', pct:profile.stats.loyalty}
+                    ]" :key="s.l">
+                    <div>
+                        <div class="flex justify-between mb-0.5">
+                            <span class="cap" style="font-size:0.54rem" x-text="s.l"></span>
+                            <span class="mono font-bold" :class="s.cl" style="font-size:0.6rem" x-text="s.v"></span>
+                        </div>
+                        <div class="sb"><div :class="s.bar" :style="'width:'+s.pct+'%'"></div></div>
+                    </div>
+                    </template>
+                </div>
+                <!-- Bio -->
+                <div style="background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.1);border-radius:0.75rem;padding:0.9rem">
+                    <p class="cap mb-1.5">Operative Bio</p>
+                    <p class="text-gray-400 leading-relaxed" style="font-size:0.82rem" x-text="profile.bio||'No bio on file — open your dossier to add notes.'"></p>
+                </div>
+                <!-- Skills + achievements inline -->
+                <div x-show="profile.skills&&profile.skills.length" class="flex flex-wrap gap-1.5">
+                    <template x-for="s in (profile.skills||[])" :key="s"><span style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);color:var(--teal);border-radius:5px;padding:2px 9px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em" x-text="s"></span></template>
+                </div>
+                <div x-show="profile.achievements&&profile.achievements.length" class="flex flex-wrap gap-1.5">
+                    <template x-for="a in (profile.achievements||[])" :key="a"><span style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);color:var(--gold);border-radius:5px;padding:2px 9px;font-family:'Orbitron',sans-serif;font-size:0.5rem;text-transform:uppercase;letter-spacing:0.07em" x-text="a"></span></template>
+                </div>
+                <!-- Page links -->
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+                    <template x-for="page in [
+                        {l:'Gallery',  u:'/pages/gallery.html',   i:'camera'},
+                        {l:'Frequency',u:'/pages/frequency.html', i:'activity'},
+                        {l:'Dispatch', u:'/pages/dispatch.html',  i:'radio'},
+                        {l:'Vault',    u:'/pages/archives.html',  i:'archive'},
+                        {l:'Dossier',  u:'/pages/dossier.html',   i:'shield-check'},
+                        {l:'Privacy',  u:'/pages/privacy.html',   i:'lock'}
+                    ]" :key="page.u">
+                    <a :href="page.u" class="flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all text-center" style="background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.26)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
+                        <i :data-lucide="page.i" class="text-gold" style="width:17px;height:17px"></i>
+                        <span class="orbit font-bold text-white uppercase" style="font-size:0.48rem" x-text="page.l"></span>
+                    </a>
+                    </template>
+                </div>
+            </div>
+
+            <!-- NETWORK -->
+            <div x-show="activeTab==='network'" class="p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <p class="orbit font-black text-white" style="font-size:1.05rem">Network Nodes</p>
+                    <span class="mono text-teal" style="font-size:0.58rem" x-text="allOperatives.length+' operatives'"></span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <template x-if="!allOperatives.length">
+                    <div class="col-span-2 text-center py-12" style="opacity:0.18">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2" style="color:var(--gold)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                        <p class="orbit text-sm uppercase tracking-widest text-gold">No operatives</p>
+                    </div>
+                    </template>
+                    <template x-for="op in allOperatives" :key="op.id">
+                    <div class="opc p-3 flex items-center gap-3">
+                        <div style="position:relative;flex-shrink:0;width:38px;height:38px">
+                            <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:rgba(0,212,170,0.06);border:1px solid rgba(212,175,55,0.16);display:flex;align-items:center;justify-content:center">
+                                <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
+                                <i x-show="!op.avatar_url" :data-lucide="ricon(op.rank)" style="width:15px;height:15px;color:var(--gold)"></i>
+                            </div>
+                            <span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #000" :class="ostatus(op.last_active).dot"></span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-white truncate" style="font-size:0.82rem" x-text="op.codename||op.username"></p>
+                            <p class="cap" style="font-size:0.48rem" x-text="op.rank+' · '+ostatus(op.last_active).label"></p>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            <p class="orbit font-bold text-gold" style="font-size:0.65rem" x-text="op.stats?.influence||0"></p>
+                            <p class="cap" style="font-size:0.45rem">INF</p>
+                        </div>
+                    </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- ACTIVITY -->
+            <div x-show="activeTab==='activity'" class="p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <p class="orbit font-black text-white" style="font-size:1.05rem">Transmission Log</p>
+                    <button @click="loadActivity()" class="mono text-gray-600 hover:text-gold transition-colors" style="font-size:0.58rem;background:none;border:none;cursor:pointer;min-height:unset">Refresh</button>
+                </div>
+                <template x-if="!recentActivity.length">
+                <div class="text-center py-12" style="opacity:0.18">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2" style="color:var(--gold)"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <p class="orbit text-sm uppercase tracking-widest text-gold">No transmissions</p>
+                </div>
+                </template>
+                <div class="space-y-1.5 max-h-[440px] overflow-y-auto pr-0.5">
+                    <template x-for="act in recentActivity" :key="act.id">
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg transition-colors" style="background:rgba(0,0,0,0.35);border:1px solid rgba(0,212,170,0.06)" onmouseover="this.style.borderColor='rgba(212,175,55,0.18)'" onmouseout="this.style.borderColor='rgba(0,212,170,0.06)'">
+                        <span style="width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0"></span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white truncate" style="font-size:0.8rem" x-text="act.description"></p>
+                            <p class="mono text-gray-600" style="font-size:0.54rem" x-text="ago(act.created_at)"></p>
+                        </div>
+                        <span class="mono text-gold flex-shrink-0" style="font-size:0.5rem;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.14);border-radius:4px;padding:1px 6px" x-text="(act.type||'').replace(/_/g,' ')"></span>
+                    </div>
+                    </template>
+                </div>
+            </div>
+
+        </div><!-- /panel -->
+
+        <footer class="text-center py-4 mt-4">
+            <div class="gold-line mb-3" style="opacity:0.1"></div>
+            <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
+            <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase">Ministry of Groove // Emalahleni Uplink II // Est. 2026</p>
+        </footer>
+    </main>
+
+    <!-- MOBILE BOTTOM NAV -->
+    <nav class="bnav">
+        <template x-for="t in [{id:'grid',l:'Grid',i:'grid'},{id:'network',l:'Network',i:'users'},{id:'overview',l:'Hub',i:'layout-dashboard'},{id:'activity',l:'Activity',i:'activity'}]" :key="t.id">
+        <button @click="activeTab=t.id" class="flex-1 flex flex-col items-center py-2 gap-1 transition-colors" :style="activeTab===t.id?'color:var(--gold)':'color:#4b5563'" style="background:none;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:0.08em;text-transform:uppercase;min-height:unset">
+            <i :data-lucide="t.i" style="width:19px;height:19px"></i>
+            <span x-text="t.l"></span>
+        </button>
+        </template>
+    </nav>
+</div>
+</template>
+
+<!-- PROFILE MODAL -->
+<div x-show="showModal"
+     x-transition:enter="transition ease-out duration-160" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-130" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="mbg" @click.self="showModal=false">
+    <div class="msheet" @click.stop
+         x-transition:enter="transition ease-out duration-180" x-transition:enter-start="opacity-0 translate-y-5" x-transition:enter-end="opacity-100 translate-y-0">
+
+        <!-- Header -->
+        <div class="sticky top-0 z-10 px-5 py-3.5 flex items-center justify-between" style="background:rgba(2,4,2,0.98);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,0.1)">
+            <div>
+                <p class="orbit font-black text-white" style="font-size:0.95rem">Operative Dossier</p>
+                <p class="slogan">M.O.G. Classified // Level <span x-text="clearanceLevel"></span></p>
+            </div>
+            <button @click="showModal=false" class="btn btn-g p-2" style="min-height:unset;padding:6px">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="gold-line" style="opacity:0.2"></div>
+
+        <div class="p-5 space-y-4">
+            <!-- Avatar -->
+            <div class="flex flex-col items-center gap-2.5">
+                <div style="position:relative" class="group">
+                    <div class="aring" style="width:72px;height:72px">
+                        <div>
+                            <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                            <svg x-show="!profile.avatar_url" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                    <label style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.78);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.2s;border:2px solid rgba(212,175,55,0.38)" class="group-hover:opacity-100">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span class="orbit font-bold text-gold mt-1" style="font-size:0.44rem;letter-spacing:0.1em">UPLOAD</span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
+                    </label>
+                    <label style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-radius:50%;background:rgba(212,175,55,0.9);border:2px solid #000;display:flex;align-items:center;justify-content:center;cursor:pointer" class="sm:hidden">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
+                    </label>
+                </div>
+                <template x-if="uploadProgress>0">
+                    <div style="width:160px;height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden"><div class="sb-g" :style="'width:'+uploadProgress+'%'"></div></div>
+                </template>
+                <p class="mono text-gray-700" style="font-size:0.52rem">MAX 2 MB · JPG PNG WEBP</p>
+            </div>
+
+            <!-- Form -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><p class="cap mb-1">Operative Name</p><input type="text" x-model="profile.username" class="inp" placeholder="Enter designation"></div>
+                <div><p class="cap mb-1">Codename</p><input type="text" :value="profile.codename" class="inp mono text-teal font-bold" readonly disabled><p class="mono text-gray-700 mt-1" style="font-size:0.5rem">AUTO-GENERATED</p></div>
+                <div>
+                    <p class="cap mb-1">Department</p>
+                    <select x-model="profile.department" class="inp">
+                        <option value="UNASSIGNED">Unassigned</option><option value="OPERATIONS">Field Operations</option><option value="INTELLIGENCE">Intelligence</option><option value="COMMUNICATIONS">Communications</option><option value="LOGISTICS">Logistics</option><option value="RESEARCH">R&amp;D Division</option><option value="SOUND">Audio Engineering</option>
+                    </select>
+                </div>
+                <div><p class="cap mb-1">Rank</p><input type="text" :value="profile.rank" class="inp font-bold uppercase" :class="isDirector?'text-yellow-300':'text-teal'" readonly disabled><p class="mono text-gray-700 mt-1" style="font-size:0.5rem">DIRECTORATE ONLY</p></div>
+            </div>
+            <div><p class="cap mb-1">Operational Notes</p><textarea x-model="profile.bio" rows="3" class="inp resize-none" placeholder="Operative background and specializations..."></textarea></div>
+
+            <!-- Stats -->
+            <div style="background:rgba(0,0,0,0.45);border:1px solid rgba(212,175,55,0.09);border-radius:0.75rem;padding:0.9rem">
+                <p class="cap mb-2.5">Performance Summary</p>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
+                    <template x-for="s in [{l:'Missions',v:profile.stats.missions,c:'text-gold'},{l:'Posts',v:profile.stats.contributions,c:'text-teal'},{l:'Influence',v:profile.stats.influence+'%',c:'text-gold'},{l:'Groove',v:profile.stats.groove+'%',c:'text-cyan-400'},{l:'Loyalty',v:profile.stats.loyalty+'%',c:'text-red-400'}]" :key="s.l">
+                    <div style="background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.08);border-radius:7px;padding:0.55rem 0.2rem">
+                        <p class="orbit font-black" :class="s.c" style="font-size:0.85rem" x-text="s.v"></p>
+                        <p class="cap" style="font-size:0.44rem" x-text="s.l"></p>
+                    </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <div class="gold-line" style="opacity:0.18"></div>
+        <div class="sticky bottom-0 px-5 py-3.5 flex justify-end gap-2.5" style="background:rgba(2,4,2,0.98);backdrop-filter:blur(20px)">
+            <button @click="showModal=false" class="btn btn-r px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Cancel</button>
+            <button @click="updateProfile()" :disabled="isLoading" class="btn btn-g px-6 py-2.5" style="font-size:0.58rem;min-height:unset">
+                <svg x-show="isLoading" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <span x-text="isLoading?'Syncing...':'Save Dossier'"></span>
             </button>
         </div>
     </div>
-
-    <!-- ══ LOADING ════════════════════════════════════════════════ -->
-    <template x-if="view==='loading'">
-        <div class="h-screen h-dvh flex flex-col items-center justify-center gap-6 relative z-10 px-4">
-            <div class="relative">
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-yellow-800/30 border-t-yellow-500 animate-spin absolute inset-0"></div>
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-teal-800/20 border-b-teal-400 absolute inset-0" style="animation:spin 1.8s linear infinite reverse"></div>
-                <div class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center relative z-10">
-                    <img src="/assets/images/logo.png" alt="M.O.G." class="w-12 h-12 sm:w-14 sm:h-14 object-contain" style="filter:drop-shadow(0 0 12px rgba(212,175,55,0.4))">
-                </div>
-            </div>
-            <div class="text-center space-y-2">
-                <p class="mono uppercase tracking-[0.35em] text-gold" style="font-size:var(--text-xs)">
-                    Connecting to M.O.G. Network
-                    <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span>
-                </p>
-                <p class="slogan-text">Decrypting the Culture. Synchronizing the Grid.</p>
-                <p class="text-gray-700 uppercase tracking-widest mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Ministry of Groove // Est. 2026</p>
-            </div>
-        </div>
-    </template>
-
-    <!-- ══ HUB ════════════════════════════════════════════════════ -->
-    <template x-if="view==='hub'">
-        <div class="min-h-screen min-h-dvh relative z-10 fade-up">
-
-            <!-- GLOBAL ALERT TICKER -->
-            <template x-if="tickerActive && tickerMessages.length">
-                <div class="ticker-bar sticky top-0 z-50">
-                    <div class="ticker-label">LIVE</div>
-                    <div class="flex-1 overflow-hidden">
-                        <div class="ticker-track">
-                            <template x-for="m in tickerMessages" :key="m.id||m.message">
-                                <span>
-                                    <span class="ticker-text" x-text="m.message||m"></span>
-                                    <span class="ticker-sep"> ◆ </span>
-                                </span>
-                            </template>
-                            <!-- Duplicate for seamless loop -->
-                            <template x-for="m in tickerMessages" :key="'d-'+(m.id||m.message)">
-                                <span>
-                                    <span class="ticker-text" x-text="m.message||m"></span>
-                                    <span class="ticker-sep"> ◆ </span>
-                                </span>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-            </template>
-
-            <!-- NAV -->
-            <nav class="glass sticky top-0 z-40 safe-top" :class="tickerActive&&tickerMessages.length?'':''" style="border-bottom:1px solid rgba(212,175,55,0.12)">
-                <div class="max-w-7xl mx-auto px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3">
-
-                    <!-- Logo + wordmark -->
-                    <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                        <img src="/assets/images/logo.png" alt="M.O.G." class="w-10 h-10 sm:w-12 sm:h-12 object-contain opacity-95 spin-slow" style="filter:drop-shadow(0 0 8px rgba(212,175,55,0.3))">
-                        <div class="hidden sm:block">
-                            <p class="orbit font-black uppercase tracking-tight leading-none text-gold glow-gold" style="font-size:var(--text-lg)">M.O.G.</p>
-                            <p class="slogan-text" style="font-size:clamp(0.48rem,1.2vw,0.58rem)">Decrypting the Culture. Synchronizing the Grid.</p>
-                        </div>
-                        <p class="sm:hidden orbit font-black uppercase text-gold glow-gold" style="font-size:var(--text-base);letter-spacing:0.1em">M.O.G.</p>
-                    </div>
-
-                    <!-- Banner + Operative ID — tablet+ -->
-                    <div class="hidden lg:flex items-center gap-3 flex-1 justify-center max-w-sm">
-                        <template x-if="directorateBanner">
-                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full glass-gold truncate">
-                                <i data-lucide="radio" class="w-3 h-3 text-gold flex-shrink-0"></i>
-                                <span class="mono uppercase tracking-wider truncate text-gold" style="font-size:var(--text-xs)" x-text="directorateBanner"></span>
-                            </div>
-                        </template>
-                        <span class="operative-id" x-text="operativeId"></span>
-                    </div>
-
-                    <div class="flex items-center gap-1.5 sm:gap-2">
-                        <!-- Operative ID — mobile -->
-                        <span class="sm:hidden operative-id text-[8px] px-2 py-1" x-text="operativeId" style="font-size:8px;letter-spacing:0.2em"></span>
-
-                        <!-- Director portal -->
-                        <a x-show="isDirector" href="/pages/directorate.html"
-                           class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-full uppercase font-bold tracking-wider transition-all border border-yellow-600/40 text-gold hover:border-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.2)]"
-                           style="background:rgba(212,175,55,0.08);font-size:var(--text-xs)">
-                            <i data-lucide="crown" class="w-3.5 h-3.5"></i>
-                            <span class="hidden lg:inline">Directorate</span>
-                        </a>
-                        <a x-show="isDirector" href="/pages/directorate.html"
-                           class="md:hidden p-2.5 rounded-full border border-yellow-600/40 text-gold hover:bg-yellow-500/10 transition-all">
-                            <i data-lucide="crown" class="w-4 h-4"></i>
-                        </a>
-
-                        <!-- Profile button -->
-                        <button @click="showProfileModal=true" class="flex items-center gap-2 pl-1 pr-3 sm:pr-4 py-1 rounded-full border border-yellow-700/25 hover:border-yellow-500/50 transition-all" style="background:rgba(0,0,0,0.6)">
-                            <div class="avatar-ring w-9 h-9 sm:w-10 sm:h-10">
-                                <div>
-                                    <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                    <i x-show="!profile.avatar_url" data-lucide="user" class="w-4 h-4 text-gold"></i>
-                                </div>
-                            </div>
-                            <div class="hidden sm:block text-left leading-tight">
-                                <p class="font-bold text-white uppercase tracking-wider" style="font-size:var(--text-xs)" x-text="profile.codename||'OPERATIVE'"></p>
-                                <p class="uppercase" :class="rankColor" style="font-size:clamp(0.55rem,1.5vw,0.65rem)" x-text="profile.rank"></p>
-                            </div>
-                        </button>
-
-                        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-teal-700/25" style="background:rgba(0,0,0,0.5)">
-                            <span class="w-1.5 h-1.5 rounded-full bg-teal-400 pulse-dot"></span>
-                            <span class="mono uppercase text-teal" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">LIVE</span>
-                        </div>
-
-                        <button @click="logout()" class="p-2 sm:p-2.5 text-gray-600 hover:text-gold hover:bg-yellow-500/8 rounded-full transition-all" title="Sign Out">
-                            <i data-lucide="log-out" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="gold-line" style="opacity:0.3"></div>
-            </nav>
-
-            <main class="max-w-7xl mx-auto px-4 sm:px-5 py-4 sm:py-6 space-y-4 sm:space-y-5">
-
-                <!-- Hero banner -->
-                <div class="glass p-4 sm:p-6 md:p-8 rounded-[2rem] sm:rounded-[2.5rem] bracket overflow-hidden relative" style="border-color:rgba(212,175,55,0.18)">
-                    <div class="absolute inset-0 bg-gradient-to-br from-yellow-900/8 via-transparent to-teal-900/5 pointer-events-none"></div>
-                    <div class="relative z-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-                        <div class="avatar-ring w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
-                            <div>
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-9 h-9 sm:w-10 sm:h-10 text-gold"></i>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0 text-center sm:text-left">
-                            <p class="text-teal uppercase tracking-[0.35em] mono mb-1" style="font-size:var(--text-xs)">Operative Online</p>
-                            <h2 class="orbit font-black uppercase tracking-tight text-white mb-2 truncate" style="font-size:var(--text-3xl)" x-text="profile.username||'UNKNOWN'"></h2>
-                            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                                <span class="mog-badge px-3 sm:px-4 py-1 font-black uppercase tracking-wider text-gold mono" style="font-size:var(--text-xs)" x-text="profile.codename"></span>
-                                <span class="rank-chip border" :class="getRankBadgeClass(profile.rank)" x-text="profile.rank"></span>
-                                <span class="operative-id" x-text="operativeId"></span>
-                            </div>
-                            <p class="slogan-text mt-2">Decrypting the Culture. Synchronizing the Grid.</p>
-                        </div>
-                        <div class="flex-shrink-0 text-center space-y-1.5">
-                            <div class="flex items-center gap-2 justify-center">
-                                <span class="w-2 h-2 rounded-full bg-teal-400 pulse-dot"></span>
-                                <span class="font-bold uppercase tracking-wider text-teal" style="font-size:var(--text-xs)" x-text="networkStatus"></span>
-                            </div>
-                            <p class="text-gray-600 mono uppercase" style="font-size:var(--text-xs)">Clearance L<span x-text="clearanceLevel"></span></p>
-                            <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)" x-show="profile.joined_at">
-                                Enlisted <span x-text="profile.joined_at?new Date(profile.joined_at).toLocaleDateString('en-ZA'):''"></span>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="gold-line mt-4 sm:mt-5" style="opacity:0.25"></div>
-                </div>
-
-                <!-- Active directives -->
-                <template x-if="directives.length>0">
-                    <div class="space-y-2">
-                        <template x-for="d in directives" :key="d.id">
-                            <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl dir-pulse flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25)">
-                                    <i data-lucide="radio" class="w-4 h-4 text-gold"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-gold uppercase tracking-widest font-bold mb-0.5 mono" style="font-size:var(--text-xs)">Directorate Directive</p>
-                                    <p class="text-white/90 truncate" style="font-size:var(--text-sm)" x-text="d.content"></p>
-                                </div>
-                                <span class="text-gray-600 mono flex-shrink-0" style="font-size:var(--text-xs)" x-text="timeAgo(d.timestamp)"></span>
-                            </div>
-                        </template>
-                    </div>
-                </template>
-
-                <!-- MAIN GRID -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
-
-                    <!-- LEFT SIDEBAR -->
-                    <div class="space-y-4 sm:space-y-5">
-
-                        <!-- Stats -->
-                        <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-4 sm:mb-5 flex items-center gap-2" style="font-size:var(--text-xs)">
-                                <i data-lucide="activity" class="w-3.5 h-3.5"></i>Performance Metrics
-                            </h3>
-                            <div class="space-y-3 sm:space-y-4">
-                                <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
-                                        <span class="text-gray-500">Missions</span>
-                                        <span class="font-bold mono text-gold" x-text="profile.stats.missions"></span>
-                                    </div>
-                                    <div class="stat-track"><div class="bar-gold" :style="`width:${Math.min(profile.stats.missions*10,100)}%`"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
-                                        <span class="text-gray-500">Contributions</span>
-                                        <span class="font-bold mono text-teal" x-text="profile.stats.contributions"></span>
-                                    </div>
-                                    <div class="stat-track"><div class="bar-teal" :style="`width:${Math.min(profile.stats.contributions*5,100)}%`"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
-                                        <span class="text-gray-500">Influence</span>
-                                        <span class="font-bold mono text-gold" x-text="profile.stats.influence+'%'"></span>
-                                    </div>
-                                    <div class="stat-track"><div class="bar-gold" :style="`width:${profile.stats.influence}%`"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
-                                        <span class="text-gray-500">Groove Factor</span>
-                                        <span class="font-bold mono" style="color:var(--teal-bright)" x-text="profile.stats.groove+'%'"></span>
-                                    </div>
-                                    <div class="stat-track"><div class="bar-cyan" :style="`width:${profile.stats.groove}%`"></div></div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between uppercase tracking-wider mb-1.5" style="font-size:var(--text-xs)">
-                                        <span class="text-gray-500">Loyalty</span>
-                                        <span class="font-bold mono text-red-400" x-text="profile.stats.loyalty+'%'"></span>
-                                    </div>
-                                    <div class="stat-track"><div class="bar-red" :style="`width:${profile.stats.loyalty}%`"></div></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick actions -->
-                        <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4" style="font-size:var(--text-xs)">Quick Actions</h3>
-                            <div class="grid grid-cols-2 gap-2 sm:gap-2.5">
-                                <button @click="showProfileModal=true" class="btn-gold p-3 sm:p-4 rounded-xl text-center">
-                                    <i data-lucide="user-cog" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Dossier</span>
-                                </button>
-                                <button @click="activeTab='operatives'" class="btn-teal p-3 sm:p-4 rounded-xl text-center">
-                                    <i data-lucide="users" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Network</span>
-                                </button>
-                                <button @click="activeTab='grid'" class="btn-gold p-3 sm:p-4 rounded-xl text-center">
-                                    <i data-lucide="grid" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Grid</span>
-                                </button>
-                                <button @click="activeTab='activity'" class="btn-teal p-3 sm:p-4 rounded-xl text-center">
-                                    <i data-lucide="activity" class="w-5 h-5 mx-auto mb-1.5"></i>
-                                    <span class="uppercase tracking-wider" style="font-size:var(--text-xs)">Log</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Achievements -->
-                        <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem]">
-                            <h3 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4 flex items-center gap-2" style="font-size:var(--text-xs)">
-                                <i data-lucide="award" class="w-3.5 h-3.5"></i>Achievements
-                                <span class="ml-auto mono text-gray-600" x-text="(profile.achievements||[]).length"></span>
-                            </h3>
-                            <div class="flex flex-wrap gap-2">
-                                <template x-if="!profile.achievements||profile.achievements.length===0">
-                                    <p class="text-gray-700 italic mono" style="font-size:var(--text-xs)">No achievements unlocked</p>
-                                </template>
-                                <template x-for="a in (profile.achievements||[])" :key="a">
-                                    <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-full uppercase tracking-wider"
-                                          style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.25);color:var(--gold);font-size:var(--text-xs)">
-                                        <i data-lucide="star" class="w-2.5 h-2.5"></i>
-                                        <span x-text="a"></span>
-                                    </span>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- MAIN PANEL -->
-                    <div class="lg:col-span-2 space-y-3 sm:space-y-4">
-
-                        <!-- Desktop tabs -->
-                        <div class="hidden sm:flex gap-1.5 overflow-x-auto pb-px">
-                            <template x-for="tab in [
-                                {id:'grid',       label:'Media Grid',  icon:'grid'},
-                                {id:'overview',   label:'Overview',    icon:'layout-dashboard'},
-                                {id:'operatives', label:'Network',     icon:'users'},
-                                {id:'activity',   label:'Activity',    icon:'activity'}
-                            ]" :key="tab.id">
-                                <button @click="activeTab=tab.id; $nextTick(()=>lucide.createIcons())"
-                                        :class="activeTab===tab.id?'tab-active text-gold border-yellow-600/50':'border-yellow-800/20 text-gray-600'"
-                                        class="px-4 sm:px-5 py-2.5 rounded-full border uppercase font-bold tracking-wider transition-all whitespace-nowrap relative flex items-center gap-1.5"
-                                        style="font-size:var(--text-xs)"
-                                        :style="activeTab===tab.id?'background:rgba(212,175,55,0.1)':''">
-                                    <i :data-lucide="tab.icon" class="w-3.5 h-3.5"></i>
-                                    <span x-text="tab.label"></span>
-                                </button>
-                            </template>
-                        </div>
-
-                        <!-- Panel body -->
-                        <div class="glass-dark p-4 sm:p-6 rounded-[1.75rem] sm:rounded-[2rem] min-h-[400px] sm:min-h-[480px]">
-
-                            <!-- ▸ MEDIA GRID TAB -->
-                            <div x-show="activeTab==='grid'" class="space-y-4">
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                    <div>
-                                        <h3 class="orbit font-black uppercase tracking-tight text-white" style="font-size:var(--text-xl)">Asset Grid</h3>
-                                        <p class="slogan-text mt-0.5">Decrypting the Culture. Synchronizing the Grid.</p>
-                                    </div>
-                                    <!-- Filter chips -->
-                                    <div class="flex gap-1.5 flex-wrap">
-                                        <template x-for="f in mediaTypes" :key="f">
-                                            <button @click="mediaFilter=f"
-                                                    class="px-3 py-1.5 rounded-full border uppercase font-bold tracking-wider transition-all"
-                                                    style="font-size:0.6rem;font-family:'Orbitron',sans-serif"
-                                                    :class="mediaFilter===f
-                                                        ? 'bg-yellow-500/15 border-yellow-500/50 text-gold'
-                                                        : 'border-yellow-800/20 text-gray-600 hover:text-gray-400'"
-                                                    x-text="f">
-                                            </button>
-                                        </template>
-                                    </div>
-                                </div>
-
-                                <!-- Media tiles grid -->
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <template x-if="filteredMedia.length===0">
-                                        <div class="col-span-2 text-center py-12 text-gray-700">
-                                            <i data-lucide="grid" class="w-10 h-10 mx-auto mb-3 opacity-25"></i>
-                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No assets in this category</p>
-                                        </div>
-                                    </template>
-                                    <template x-for="asset in filteredMedia" :key="asset.id">
-                                        <div class="glass-media rounded-2xl overflow-hidden">
-
-                                            <!-- Thumbnail / preview -->
-                                            <div class="media-thumb">
-                                                <template x-if="asset.type==='VIDEO'">
-                                                    <video :src="asset.src" :poster="asset.thumb" class="w-full h-full object-cover" muted loop preload="none"
-                                                           @mouseenter="$el.play()" @mouseleave="$el.pause(); $el.currentTime=0">
-                                                    </video>
-                                                </template>
-                                                <template x-if="asset.type!=='VIDEO'">
-                                                    <img :src="asset.thumb||asset.src" :alt="asset.title"
-                                                         class="w-full h-full object-cover"
-                                                         @error="$el.src='/assets/images/logo.png'">
-                                                </template>
-                                                <div class="media-glow-overlay"></div>
-
-                                                <!-- Type badge -->
-                                                <span class="media-type-badge text-xs font-black"
-                                                      :style="`background:${getMediaTypeColor(asset.type)};color:${getMediaTypeTextColor(asset.type)}`"
-                                                      x-text="asset.type"></span>
-
-                                                <!-- HOT/NEW/LIVE tag -->
-                                                <template x-if="asset.tag">
-                                                    <span class="absolute top-2 right-2 orbit font-black text-[8px] uppercase tracking-widest px-2 py-1 rounded-full"
-                                                          :style="asset.tag==='LIVE'?'background:rgba(220,38,38,0.9);color:#fff':asset.tag==='HOT'?'background:rgba(212,175,55,0.85);color:#000':'background:rgba(0,212,170,0.85);color:#000'"
-                                                          x-text="asset.tag">
-                                                    </span>
-                                                </template>
-
-                                                <!-- Duration badge -->
-                                                <template x-if="asset.duration">
-                                                    <span class="absolute bottom-2 right-2 mono text-[9px] text-white px-2 py-0.5 rounded" style="background:rgba(0,0,0,0.75)" x-text="asset.duration"></span>
-                                                </template>
-                                            </div>
-
-                                            <!-- Info row -->
-                                            <div class="px-3 pt-3 pb-2">
-                                                <p class="font-bold text-white leading-tight truncate" style="font-size:var(--text-sm)" x-text="asset.title"></p>
-                                                <p class="text-gray-500 uppercase tracking-wider truncate mt-0.5" style="font-size:var(--text-xs)" x-text="asset.artist||'M.O.G. Network'"></p>
-                                            </div>
-
-                                            <!-- Action control bar -->
-                                            <div class="flex gap-1.5 px-3 pb-3">
-                                                <!-- VIEW -->
-                                                <button @click="openMedia(asset)" class="media-action-btn view">
-                                                    <i data-lucide="play" style="width:10px;height:10px;flex-shrink:0"></i>
-                                                    <span>View</span>
-                                                </button>
-                                                <!-- LISTEN (audio/video only) -->
-                                                <template x-if="asset.type!=='PHOTO'">
-                                                    <button @click="listenMedia(asset)" class="media-action-btn listen">
-                                                        <i data-lucide="headphones" style="width:10px;height:10px;flex-shrink:0"></i>
-                                                        <span>Listen</span>
-                                                    </button>
-                                                </template>
-                                                <!-- LIKE -->
-                                                <button @click="toggleLike(asset)"
-                                                        class="media-action-btn like"
-                                                        :class="isLiked(asset.id)?'liked':''">
-                                                    <i :data-lucide="isLiked(asset.id)?'heart':'heart'" style="width:10px;height:10px;flex-shrink:0" :style="isLiked(asset.id)?'fill:#f87171':''"></i>
-                                                    <span x-text="getLikeCount(asset.id)||'Like'" class="like-count" :class="isLiked(asset.id)?'liked-count':''"></span>
-                                                </button>
-                                                <!-- DL -->
-                                                <button @click="downloadMedia(asset)" class="media-action-btn dl">
-                                                    <i data-lucide="download" style="width:10px;height:10px;flex-shrink:0"></i>
-                                                    <span>DL</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <!-- ▸ OVERVIEW TAB -->
-                            <div x-show="activeTab==='overview'" class="space-y-4 sm:space-y-6">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Mission Control</h3>
-                                    <span class="text-gray-600 mono uppercase" style="font-size:var(--text-xs)">L<span x-text="clearanceLevel"></span> Access</span>
-                                </div>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                                    <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
-                                        <i data-lucide="target" class="w-4 h-4 sm:w-5 sm:h-5 text-gold mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)" x-text="profile.stats.missions"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Missions</p>
-                                    </div>
-                                    <div class="glass p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
-                                        <i data-lucide="message-circle" class="w-4 h-4 sm:w-5 sm:h-5 text-teal mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)" x-text="profile.stats.contributions"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Posts</p>
-                                    </div>
-                                    <div class="glass-gold p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
-                                        <i data-lucide="zap" class="w-4 h-4 sm:w-5 sm:h-5 text-gold mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-gold" style="font-size:var(--text-xl)" x-text="clearanceLevel"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Level</p>
-                                    </div>
-                                    <div class="glass p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center stat-card">
-                                        <i data-lucide="music" class="w-4 h-4 sm:w-5 sm:h-5 text-teal mx-auto mb-1.5 sm:mb-2"></i>
-                                        <p class="font-black mono text-teal" style="font-size:var(--text-xl)" x-text="profile.stats.groove+'%'"></p>
-                                        <p class="text-gray-600 uppercase tracking-wider mt-0.5" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">Groove</p>
-                                    </div>
-                                </div>
-                                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
-                                    <h4 class="text-gold uppercase tracking-widest font-bold mb-2 sm:mb-3 flex items-center gap-2" style="font-size:var(--text-xs)">
-                                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>Operative Bio
-                                    </h4>
-                                    <p class="text-gray-400 leading-relaxed" style="font-size:var(--text-sm)"
-                                       x-text="profile.bio||'No bio on file — open your dossier to add operational notes.'"></p>
-                                </div>
-                                <div>
-                                    <h4 class="text-teal uppercase tracking-widest font-bold mb-2 sm:mb-3 flex items-center gap-2" style="font-size:var(--text-xs)">
-                                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i>Skill Matrix
-                                    </h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        <template x-if="!profile.skills||profile.skills.length===0">
-                                            <span class="text-gray-700 italic mono" style="font-size:var(--text-xs)">No skills on record</span>
-                                        </template>
-                                        <template x-for="s in (profile.skills||[])" :key="s">
-                                            <span class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg uppercase tracking-wider"
-                                                  style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.22);color:var(--teal);font-size:var(--text-xs)">
-                                                <i data-lucide="check-circle" class="w-3 h-3"></i>
-                                                <span x-text="s"></span>
-                                            </span>
-                                        </template>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- ▸ NETWORK TAB -->
-                            <div x-show="activeTab==='operatives'" class="space-y-3 sm:space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Network Nodes</h3>
-                                    <span class="text-teal mono uppercase" style="font-size:var(--text-xs)" x-text="allOperatives.length+' operatives'"></span>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                                    <template x-if="allOperatives.length===0">
-                                        <div class="col-span-2 text-center py-12 text-gray-700">
-                                            <i data-lucide="users" class="w-10 h-10 mx-auto mb-3 opacity-25"></i>
-                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No operatives found</p>
-                                        </div>
-                                    </template>
-                                    <template x-for="op in allOperatives" :key="op.id">
-                                        <div class="glass p-3 sm:p-3.5 rounded-xl sm:rounded-2xl flex items-center gap-3 op-card" style="border-color:rgba(0,212,170,0.12)">
-                                            <div class="relative flex-shrink-0">
-                                                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full overflow-hidden flex items-center justify-center" style="background:rgba(0,212,170,0.08);border:1px solid rgba(212,175,55,0.2)">
-                                                    <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
-                                                    <i x-show="!op.avatar_url" :data-lucide="getRankIcon(op.rank)" class="w-4 h-4 text-gold"></i>
-                                                </div>
-                                                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-black" :class="getOnlineStatus(op.last_active).color"></span>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="font-bold text-white truncate leading-tight" style="font-size:var(--text-sm)" x-text="op.codename||op.username"></p>
-                                                <p class="text-gray-600 uppercase tracking-wider" style="font-size:var(--text-xs)" x-text="op.rank+' · '+getOnlineStatus(op.last_active).label"></p>
-                                            </div>
-                                            <div class="text-right flex-shrink-0">
-                                                <p class="text-gold font-bold mono" style="font-size:var(--text-xs)" x-text="op.stats?.influence||0"></p>
-                                                <p class="text-gray-700 uppercase" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">INF</p>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <!-- ▸ ACTIVITY TAB -->
-                            <div x-show="activeTab==='activity'" class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-xl)">Transmission Log</h3>
-                                    <button @click="loadActivity()" class="flex items-center gap-1.5 text-gray-600 hover:text-teal transition-colors mono uppercase" style="font-size:var(--text-xs)">
-                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i>Refresh
-                                    </button>
-                                </div>
-                                <div class="space-y-2">
-                                    <template x-if="recentActivity.length===0">
-                                        <div class="text-center py-12 text-gray-700">
-                                            <i data-lucide="radio" class="w-10 h-10 mx-auto mb-3 opacity-20"></i>
-                                            <p class="uppercase tracking-widest mono" style="font-size:var(--text-xs)">No transmissions on record</p>
-                                        </div>
-                                    </template>
-                                    <template x-for="act in recentActivity" :key="act.id">
-                                        <div class="flex items-start gap-3 p-3 sm:p-3.5 rounded-xl transition-colors"
-                                             style="background:rgba(0,0,0,0.4);border:1px solid rgba(0,212,170,0.07)"
-                                             @mouseover="$el.style.borderColor='rgba(212,175,55,0.2)'"
-                                             @mouseout="$el.style.borderColor='rgba(0,212,170,0.07)'">
-                                            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.15)">
-                                                <i data-lucide="activity" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-teal"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-white/90 truncate" style="font-size:var(--text-sm)" x-text="act.description"></p>
-                                                <p class="text-gray-600 mt-0.5 mono" style="font-size:var(--text-xs)" x-text="timeAgo(act.created_at)"></p>
-                                            </div>
-                                            <span class="px-2 py-1 rounded-lg flex-shrink-0 mono uppercase tracking-wider"
-                                                  style="background:rgba(212,175,55,0.07);color:var(--gold);border:1px solid rgba(212,175,55,0.2);font-size:clamp(0.5rem,1.5vw,0.6rem)"
-                                                  x-text="(act.type||'').replace(/_/g,' ')"></span>
-                                        </div>
-                                    </template>
-                                </div>
-                            </div>
-
-                        </div><!-- /panel body -->
-                    </div><!-- /main panel -->
-                </div><!-- /grid -->
-            </main>
-
-            <!-- ── MOBILE BOTTOM NAV ── -->
-            <nav class="bottom-nav safe-bottom">
-                <button @click="activeTab='grid'"
-                        :style="activeTab==='grid'?'color:var(--gold)':'color:#4b5563'"
-                        class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
-                        style="font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="grid" class="w-5 h-5"></i><span>Grid</span>
-                </button>
-                <button @click="activeTab='operatives'"
-                        :style="activeTab==='operatives'?'color:var(--teal)':'color:#4b5563'"
-                        class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
-                        style="font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="users" class="w-5 h-5"></i><span>Network</span>
-                </button>
-                <button @click="activeTab='overview'"
-                        :style="activeTab==='overview'?'color:var(--gold)':'color:#4b5563'"
-                        class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
-                        style="font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i><span>Hub</span>
-                </button>
-                <button @click="showProfileModal=true"
-                        class="flex-1 flex flex-col items-center py-2.5 gap-1 uppercase tracking-wider transition-colors"
-                        style="color:#4b5563;font-size:clamp(0.55rem,2vw,0.65rem)">
-                    <i data-lucide="user-cog" class="w-5 h-5"></i><span>Dossier</span>
-                </button>
-            </nav>
-
-            <!-- Footer — desktop only -->
-            <footer class="hidden lg:block mt-10 py-8 text-center" style="border-top:1px solid rgba(212,175,55,0.08)">
-                <div class="flex items-center justify-center gap-3 mb-2">
-                    <img src="/assets/images/logo.png" alt="M.O.G." class="w-8 h-8 opacity-25">
-                    <span class="orbit font-black uppercase tracking-[0.2em] text-gold" style="opacity:0.4;font-size:var(--text-sm)">M.O.G.</span>
-                </div>
-                <div class="gold-line w-48 mx-auto mb-3" style="opacity:0.2"></div>
-                <p class="slogan-text mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
-                <p class="text-gray-700 uppercase tracking-[0.3em] mono" style="font-size:var(--text-xs)">Ministry of Groove // Emalahleni Uplink II // Est. 2026</p>
-                <p class="mono mt-1.5" style="color:var(--teal-dim);font-size:clamp(0.5rem,1.5vw,0.6rem)" x-text="'NODE: '+profile.codename"></p>
-            </footer>
-
-        </div>
-    </template>
-
-    <!-- ══ PROFILE / DOSSIER MODAL ════════════════════════════════ -->
-    <div x-show="showProfileModal"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9998] flex items-end sm:items-center justify-center sm:p-4"
-         style="background:rgba(0,0,0,0.95);backdrop-filter:blur(20px)"
-         @click.self="showProfileModal=false">
-
-        <div class="glass modal-sheet" style="border-color:rgba(212,175,55,0.3)" @click.stop>
-
-            <!-- Modal header -->
-            <div class="sticky top-0 z-10 p-4 sm:p-6 flex items-center justify-between"
-                 style="background:rgba(4,8,6,0.97);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,0.12)">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center" style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3)">
-                        <i data-lucide="file-text" class="w-4 h-4 sm:w-5 sm:h-5 text-gold"></i>
-                    </div>
-                    <div>
-                        <h2 class="orbit font-black uppercase italic tracking-tight text-white" style="font-size:var(--text-lg)">Operative Dossier</h2>
-                        <p class="text-teal mono uppercase tracking-widest" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">M.O.G. CLASSIFIED // L<span x-text="clearanceLevel"></span></p>
-                    </div>
-                </div>
-                <button @click="showProfileModal=false" class="p-2 rounded-full text-gray-600 hover:text-gold hover:bg-yellow-500/8 transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <div class="gold-line" style="opacity:0.3"></div>
-
-            <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
-
-                <!-- Avatar upload -->
-                <div class="flex flex-col items-center gap-3">
-                    <div class="relative group">
-                        <div class="avatar-ring w-24 h-24 sm:w-28 sm:h-28">
-                            <div>
-                                <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
-                                <i x-show="!profile.avatar_url" data-lucide="user" class="w-10 h-10 sm:w-12 sm:h-12 text-gold"></i>
-                            </div>
-                        </div>
-                        <label class="absolute inset-0 rounded-full flex flex-col items-center justify-center cursor-pointer transition-opacity opacity-0 group-hover:opacity-100"
-                               style="background:rgba(0,0,0,0.8);border:2px solid rgba(212,175,55,0.4)">
-                            <i data-lucide="camera" class="w-6 h-6 mb-1 text-gold"></i>
-                            <span class="mono uppercase font-bold tracking-widest text-gold" style="font-size:var(--text-xs)">Upload</span>
-                            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
-                        </label>
-                        <label class="sm:hidden absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer" style="background:rgba(212,175,55,0.9);border:2px solid black">
-                            <i data-lucide="camera" class="w-4 h-4 text-black"></i>
-                            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
-                        </label>
-                    </div>
-                    <div x-show="uploadProgress>0" class="w-full max-w-[220px]">
-                        <div class="h-1 rounded-full overflow-hidden" style="background:rgba(0,0,0,0.7);border:1px solid rgba(212,175,55,0.15)">
-                            <div class="h-full rounded-full transition-all duration-300 bar-gold" :style="`width:${uploadProgress}%`"></div>
-                        </div>
-                        <p class="text-center text-gold mt-1 mono" style="font-size:var(--text-xs)" x-text="uploadProgress+'%'"></p>
-                    </div>
-                    <p class="text-gray-700 mono" style="font-size:var(--text-xs)">MAX 2 MB · JPG PNG WEBP</p>
-                </div>
-
-                <!-- Form fields: 1 col phone, 2 col sm+ -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
-                            <i data-lucide="user" class="w-3 h-3"></i>Operative Name
-                        </label>
-                        <input type="text" x-model="profile.username" class="input-field px-4 py-3 rounded-xl" placeholder="Enter designation">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
-                            <i data-lucide="hash" class="w-3 h-3"></i>Codename
-                        </label>
-                        <input type="text" x-model="profile.codename" class="input-field px-4 py-3 rounded-xl text-teal font-bold mono" readonly disabled>
-                        <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">AUTO-GENERATED</p>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
-                            <i data-lucide="building" class="w-3 h-3"></i>Department
-                        </label>
-                        <select x-model="profile.department" class="input-field px-4 py-3 rounded-xl">
-                            <option value="UNASSIGNED">Unassigned</option>
-                            <option value="OPERATIONS">Field Operations</option>
-                            <option value="INTELLIGENCE">Intelligence</option>
-                            <option value="COMMUNICATIONS">Communications</option>
-                            <option value="LOGISTICS">Logistics</option>
-                            <option value="RESEARCH">R&amp;D Division</option>
-                            <option value="SOUND">Audio Engineering</option>
-                        </select>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-gold uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
-                            <i data-lucide="award" class="w-3 h-3"></i>Rank
-                        </label>
-                        <input type="text" :value="profile.rank" class="input-field px-4 py-3 rounded-xl font-bold uppercase tracking-wider" :class="isDirector?'text-yellow-300':'text-teal'" readonly disabled>
-                        <p class="text-gray-700 mono" style="font-size:clamp(0.55rem,1.5vw,0.65rem)">DIRECTORATE ONLY</p>
-                    </div>
-                </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-teal uppercase tracking-widest font-bold flex items-center gap-1.5" style="font-size:var(--text-xs)">
-                        <i data-lucide="align-left" class="w-3 h-3"></i>Operational Notes
-                    </label>
-                    <textarea x-model="profile.bio" rows="3" class="input-field px-4 py-3 rounded-xl resize-none" placeholder="Enter operative background and specializations..."></textarea>
-                </div>
-
-                <!-- Stats summary -->
-                <div class="p-4 sm:p-5 rounded-xl sm:rounded-2xl" style="background:rgba(0,0,0,0.55);border:1px solid rgba(212,175,55,0.12)">
-                    <h4 class="text-gold uppercase tracking-widest font-bold mb-3 sm:mb-4 flex items-center gap-2" style="font-size:var(--text-xs)">
-                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>Performance Summary
-                    </h4>
-                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center">
-                        <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.15)">
-                            <p class="font-black mono text-gold" style="font-size:var(--text-base)" x-text="profile.stats.missions"></p>
-                            <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Missions</p>
-                        </div>
-                        <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15)">
-                            <p class="font-black mono text-teal" style="font-size:var(--text-base)" x-text="profile.stats.contributions"></p>
-                            <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Posts</p>
-                        </div>
-                        <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.15)">
-                            <p class="font-black mono text-gold" style="font-size:var(--text-base)" x-text="profile.stats.influence+'%'"></p>
-                            <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Influence</p>
-                        </div>
-                        <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.15)">
-                            <p class="font-black mono text-teal" style="font-size:var(--text-base)" x-text="profile.stats.groove+'%'"></p>
-                            <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Groove</p>
-                        </div>
-                        <div class="p-2.5 sm:p-3 rounded-xl" style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.15)">
-                            <p class="font-black mono text-red-400" style="font-size:var(--text-base)" x-text="profile.stats.loyalty+'%'"></p>
-                            <p class="text-gray-600 uppercase tracking-wider" style="font-size:clamp(0.5rem,1.5vw,0.6rem)">Loyalty</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Modal footer -->
-            <div class="gold-line" style="opacity:0.3"></div>
-            <div class="sticky bottom-0 p-4 sm:p-5 flex justify-end gap-3 safe-bottom" style="background:rgba(2,6,4,0.97);backdrop-filter:blur(20px)">
-                <button @click="showProfileModal=false" class="px-5 sm:px-6 py-2.5 rounded-full uppercase font-bold tracking-wider transition-all text-gray-500 hover:text-gold" style="border:1px solid rgba(212,175,55,0.15);font-size:var(--text-xs)">Cancel</button>
-                <button @click="updateProfile()" :disabled="isLoading" class="px-6 sm:px-7 py-2.5 rounded-full uppercase font-bold tracking-wider transition-all disabled:opacity-35 flex items-center gap-2 text-black" style="background:linear-gradient(135deg,var(--gold-dark),var(--gold-bright),var(--teal-dim));box-shadow:0 4px 20px rgba(212,175,55,0.3);font-size:var(--text-xs)">
-                    <i x-show="isLoading" data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
-                    <span x-text="isLoading?'Syncing...':'Save Dossier'"></span>
-                </button>
-            </div>
-        </div>
-    </div>
+</div>
 
 </body>
 </html>
