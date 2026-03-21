@@ -14,69 +14,17 @@
   "dir": "ltr",
 
   "icons": [
-    {
-      "src": "assets/images/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "assets/images/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "assets/images/icon-72.png",          "sizes": "72x72",   "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-96.png",          "sizes": "96x96",   "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-128.png",         "sizes": "128x128", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-144.png",         "sizes": "144x144", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-152.png",         "sizes": "152x152", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-192.png",         "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-384.png",         "sizes": "384x384", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-512.png",         "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/images/icon-maskable-192.png","sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/images/icon-maskable-512.png","sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-
-  "categories": ["music", "entertainment", "lifestyle", "social"],
 
   "shortcuts": [
     {
@@ -91,6 +39,20 @@
       "short_name": "Login",
       "description": "Access Terminal",
       "url": "/login.html",
+      "icons": [{ "src": "assets/images/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Gallery",
+      "short_name": "Gallery",
+      "description": "M.O.G. Media Curator",
+      "url": "/pages/gallery.html",
+      "icons": [{ "src": "assets/images/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Frequency",
+      "short_name": "Freq",
+      "description": "M.O.G. Amapiano Chart",
+      "url": "/pages/frequency.html",
       "icons": [{ "src": "assets/images/icon-96.png", "sizes": "96x96" }]
     }
   ],
@@ -112,10 +74,9 @@
     }
   ],
 
-  "related_applications": [],
+  "categories": ["music", "entertainment", "lifestyle", "social"],
   "prefer_related_applications": false,
-
-  "protocol_handlers": [],
+  "related_applications": [],
 
   "share_target": {
     "action": "/index.html",
