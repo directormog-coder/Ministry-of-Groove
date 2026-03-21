@@ -169,7 +169,7 @@
         profile:{username:'',codename:'',rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,
                  stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:[],joined_at:null},
         isLoading:false,uploadProgress:0,
-        lockdownActive:false,lockdownVerified:false,directorateMessage:'',directorateBanner:'',
+        lockdownActive:false,directorateMessage:'',directorateBanner:'',
         tickerMessages:[],tickerActive:false,
         activeTab:'grid',showModal:false,
         allOperatives:[],recentActivity:[],directives:[],
@@ -181,19 +181,8 @@
         get filteredMedia(){return this.mediaFilter==='ALL'?this.mediaAssets:this.mediaAssets.filter(a=>(a.type||'').toUpperCase()===this.mediaFilter)},
 
         async init(){
-            // ── IMPORTANT: do NOT read localStorage for lockdown on init.
-            // Always verify against the database first to avoid stale lock state.
-            // localStorage is only used as a real-time cross-tab signal, not as truth.
-            window.addEventListener('storage',e=>{
-                if(e.key==='ministrySettings') this.verifyLockdown();
-            });
-
             let t=0;while(typeof sb==='undefined'&&t<20){await new Promise(r=>setTimeout(r,100));t++}
             if(typeof sb==='undefined'||!sb)return;
-
-            // Verify real lockdown state from DB before showing anything
-            await this.verifyLockdown();
-
             try{
                 const{data:{session}}=await sb.auth.getSession();
                 if(!session){window.location.href='/login.html';return}
@@ -205,79 +194,34 @@
             await Promise.all([this.loadOperatives(),this.loadActivity(),this.loadDirectives(),this.loadMedia(),this.loadLiked(),this.loadTicker()]);
             this.view='hub';
             this.$nextTick(()=>{if(typeof lucide!=='undefined')lucide.createIcons()});
+            // Only check lockdown AFTER hub is visible — can never block loading
+            await this.verifyLockdown();
             this.poll();
         },
 
-        // ── Single source of truth for lockdown state: the database ──
-        // Called on init AND when the "Refresh Status" button is pressed.
-        // Also clears stale localStorage so it can never cause a phantom lock.
         async verifyLockdown(){
+            // Only called AFTER hub loads — DB is always the source of truth
+            if(!window.sb){ this.lockdownActive=false; return; }
             try{
-                if(!window.sb){
-                    // No DB yet — clear any stale lock from localStorage
-                    localStorage.removeItem('ministrySettings');
-                    this.lockdownActive=false;
-                    return;
-                }
-                // Check Protocol Zero first (highest priority)
-                const{data:pz}=await sb.from('system_settings').select('value').eq('key','protocolZero').single();
-                const pzActive=pz?.value?JSON.parse(pz.value).active===true:false;
-
-                // Check ministry-wide settings
-                const{data:ms}=await sb.from('system_settings').select('value').eq('key','ministrySettings').single();
-                const msLocked=ms?.value?JSON.parse(ms.value).isLocked===true:false;
-
-                // Lockdown ONLY if DB explicitly says so
-                this.lockdownActive=pzActive||msLocked;
-                this.lockdownVerified=true;
-
-                if(ms?.value){
-                    const p=JSON.parse(ms.value);
+                const[pzRes,msRes]=await Promise.all([
+                    sb.from('system_settings').select('value').eq('key','protocolZero').single(),
+                    sb.from('system_settings').select('value').eq('key','ministrySettings').single()
+                ]);
+                const pzActive = pzRes.data?.value ? JSON.parse(pzRes.data.value).active===true : false;
+                const msLocked = msRes.data?.value ? (JSON.parse(msRes.data.value).isLocked===true || JSON.parse(msRes.data.value).locked===true) : false;
+                this.lockdownActive = pzActive || msLocked;
+                if(msRes.data?.value){
+                    const p=JSON.parse(msRes.data.value);
                     this.directorateMessage=p.alertStatus||'';
                     if(p.bannerText)this.directorateBanner=p.bannerText;
-                    // Sync localStorage with fresh DB value
-                    localStorage.setItem('ministrySettings',ms.value);
-                }else{
-                    // No record in DB = no lockdown. Clear stale localStorage.
-                    this.directorateMessage='';
-                    localStorage.removeItem('ministrySettings');
                 }
             }catch(_){
-                // DB unreachable — default to unlocked, never block on network failure
+                // Any error = not locked. Never block the app on a DB failure.
                 this.lockdownActive=false;
-                this.lockdownVerified=true;
-                localStorage.removeItem('ministrySettings');
             }
         },
 
-        // ── Periodic poll — fully symmetric: sets true AND false ────
-        poll(){setInterval(async()=>{
-            try{
-                if(!window.sb)return;
-                const{data:ms}=await sb.from('system_settings').select('value').eq('key','ministrySettings').single();
-                if(ms?.value){
-                    const p=JSON.parse(ms.value);
-                    this.lockdownActive=p.isLocked===true;
-                    this.directorateMessage=p.alertStatus||'';
-                    if(p.bannerText)this.directorateBanner=p.bannerText;
-                    localStorage.setItem('ministrySettings',ms.value);
-                }else{
-                    this.lockdownActive=false;
-                    localStorage.removeItem('ministrySettings');
-                }
-                // Protocol Zero overrides everything — but also clears when inactive
-                const{data:pz}=await sb.from('system_settings').select('value').eq('key','protocolZero').single();
-                if(pz?.value){
-                    const d=JSON.parse(pz.value);
-                    if(d.active===true)this.lockdownActive=true;
-                    // active===false explicitly released by Directorate — honour it
-                    if(d.active===false&&!this.lockdownActive)this.lockdownActive=false;
-                }
-                // Ticker
-                const{data:tk}=await sb.from('system_settings').select('value').eq('key','tickerBroadcast').single();
-                if(tk?.value){const d=JSON.parse(tk.value);this.tickerActive=!!d.message;this.tickerMessages=d.message?[{message:d.message}]:[]}
-            }catch(_){}
-        },15000)},
+        poll(){setInterval(()=>this.verifyLockdown(),15000)},
 
         async loadTicker(){try{const{data}=await sb.from('system_settings').select('value').eq('key','tickerBroadcast').single();if(data?.value){const p=JSON.parse(data.value);if(p.message){this.tickerMessages=[{message:p.message}];this.tickerActive=true;return}}const{data:tm}=await sb.from('ticker_messages').select('*').eq('active',true).order('created_at',{ascending:false}).limit(5);if(tm&&tm.length){this.tickerMessages=tm;this.tickerActive=true}}catch(_){}},
 
@@ -375,18 +319,6 @@
 <div class="bg-grid" aria-hidden="true"></div>
 <div class="bg-vig" aria-hidden="true"></div>
 
-<!-- LOCKDOWN -->
-<div x-show="lockdownActive && lockdownVerified" x-transition class="ldover">
-    <div class="ldring"></div>
-    <div class="relative z-10 flex flex-col items-center gap-5 max-w-sm">
-        <img src="/assets/images/logo.png" alt="" style="width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(220,38,38,0.6))" onerror="this.style.display='none'">
-        <h2 class="orbit font-black text-2xl uppercase text-center" style="color:var(--red);text-shadow:0 0 22px var(--red-glow)">SYSTEM LOCKDOWN</h2>
-        <div class="gold-line w-28" style="opacity:0.2"></div>
-        <p class="mono text-sm text-center" style="color:rgba(255,255,255,0.38)" x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
-        <button @click="verifyLockdown()" class="btn btn-g px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Refresh Status</button>
-    </div>
-</div>
-
 <!-- LOADING -->
 <template x-if="view==='loading'">
 <div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black">
@@ -407,6 +339,20 @@
 <!-- HUB -->
 <template x-if="view==='hub'">
 <div class="relative z-10 min-h-dvh fadeup">
+
+    <!-- LOCKDOWN — only renders after hub loads, only shows when DB confirms it -->
+    <div x-show="lockdownActive" x-transition
+         style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.98);backdrop-filter:blur(24px);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem"
+         :style="lockdownActive ? 'display:flex' : 'display:none'">
+        <div style="position:absolute;inset:12px;border-radius:20px;border:2px solid var(--red);pointer-events:none;animation:lp 1.4s ease-in-out infinite"></div>
+        <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;gap:20px;max-width:360px">
+            <img src="/assets/images/logo.png" alt="" style="width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(220,38,38,0.6))" onerror="this.style.display='none'">
+            <h2 class="orbit font-black text-2xl uppercase text-center" style="color:var(--red);text-shadow:0 0 22px var(--red-glow)">SYSTEM LOCKDOWN</h2>
+            <div class="gold-line w-28" style="opacity:0.2"></div>
+            <p class="mono text-sm text-center" style="color:rgba(255,255,255,0.38)" x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
+            <button @click="verifyLockdown()" class="btn btn-g px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Refresh Status</button>
+        </div>
+    </div>
 
     <!-- Ticker -->
     <template x-if="tickerActive && tickerMessages.length">
