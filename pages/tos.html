@@ -2,92 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol TOS | Ministry of Groove</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>M.O.G. | PROTOCOL TOS</title>
+
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <link rel="stylesheet" href="../css/style.css">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        .glass-tos { 
-            background: rgba(10, 10, 15, 0.98); 
-            backdrop-filter: blur(40px); 
-            border: 1px solid rgba(212, 175, 55, 0.2); 
+        :root{
+            --black:#000;--gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;
+            --gold-glow:rgba(212,175,55,0.38);--teal:#00d4aa;--teal-dim:#006e59;
+            --teal-glow:rgba(0,212,170,0.3);--red:#dc2626;--text:#e8e0cc;
         }
-        .tos-section {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 1.5rem;
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth}
+        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'Share Tech Mono',monospace}.orbit{font-family:'Orbitron',sans-serif}
+
+        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(260px,68vmin,520px);height:clamp(260px,68vmin,520px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.035;pointer-events:none;z-index:0}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(220,38,38,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(220,38,38,0.018) 1px,transparent 1px);background-size:56px 56px}
+        @media(max-width:480px){.bg-grid{display:none}}
+        .bg-vig{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.85) 100%)}
+
+        .glass{background:rgba(6,9,6,0.95);border:1px solid rgba(212,175,55,0.14);box-shadow:0 2px 20px rgba(0,0,0,0.4)}
+        @media(min-width:641px){.glass{backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}}
+
+        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent)}
+        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.42rem,1vw,0.52rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+        .cap{font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#4b5563}
+
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.2s ease;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border-radius:0.75rem}
+        .btn:active{transform:scale(0.97)!important}
+        .btn-g{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
+        .btn-g:hover{background:rgba(212,175,55,0.2);border-color:var(--gold-bright);box-shadow:0 0 14px var(--gold-glow);transform:translateY(-1px)}
+
+        .fadeup{animation:fu 0.45s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+        /* TOS clause cards */
+        .clause{
+            border-radius:0.875rem;padding:1.1rem 1.2rem;
+            border-bottom:1px solid rgba(255,255,255,0.05);
         }
-        .tos-section:last-child { border-bottom: none; }
+        .clause:last-child{border-bottom:none}
+        .clause-num{
+            font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:900;
+            color:var(--gold);letter-spacing:0.1em;margin-bottom:0.4rem;
+        }
+
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+        ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:rgba(0,0,0,0.5)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px}
     </style>
 </head>
-<body class="bg-black text-white min-h-screen relative overflow-x-hidden">
 
-    <div class="bg-circuit-pattern" aria-hidden="true"></div>
-    <div class="circuit-vignette" aria-hidden="true"></div>
+<body class="bg-black min-h-screen">
 
-    <div class="max-w-2xl mx-auto p-6 relative z-10 animate-fade-in">
-        <header class="flex items-center gap-4 mb-8 mt-6">
-            <button onclick="window.location.href='../index.html'" class="p-3 bg-white/5 border border-white/10 rounded-full hover:border-gold transition-all">
-                <i data-lucide="arrow-left" class="w-5 h-5 text-gold"></i>
-            </button>
-            <div class="flex items-center gap-3">
-                <img src="../assets/images/logo.png" alt="MOG" class="w-8 h-8">
-                <h1 class="terminal-font text-lg font-black uppercase italic tracking-widest text-gold">Protocol TOS</h1>
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vig" aria-hidden="true"></div>
+
+<div class="relative z-10 max-w-2xl mx-auto px-4 sm:px-5 py-6 sm:py-8 fadeup">
+
+    <!-- Header -->
+    <header class="flex items-center gap-4 mb-7">
+        <a href="../index.html" class="btn btn-g p-2 rounded-full" style="min-height:unset;padding:8px" title="Back to Hub">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <div class="flex items-center gap-3">
+            <img src="../assets/images/logo.png" alt="M.O.G." style="width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 0 6px var(--gold-glow))" onerror="this.style.display='none'">
+            <div>
+                <p class="orbit font-black text-gold" style="font-size:0.95rem;letter-spacing:0.06em">Protocol TOS</p>
+                <p class="slogan" style="font-size:0.4rem">M.O.G. Terms of Service</p>
             </div>
-        </header>
+        </div>
+    </header>
 
-        <div class="glass-tos rounded-[2.5rem] p-8 space-y-6 shadow-2xl">
-            <div class="flex items-center gap-4 mb-6 border-b border-white/5 pb-6">
-                <div class="p-4 bg-gold/10 rounded-2xl">
-                    <i data-lucide="shield-alert" class="w-8 h-8 text-gold"></i>
-                </div>
-                <div>
-                    <h2 class="text-sm font-black uppercase tracking-tighter">Terms of Service</h2>
-                    <p class="text-[10px] text-electric uppercase font-black tracking-widest">Effective Date: 2026.03.15</p>
-                </div>
+    <!-- Main card -->
+    <div class="glass rounded-2xl overflow-hidden">
+
+        <!-- Card header -->
+        <div class="px-6 py-5 flex items-center gap-4" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+            <div style="width:46px;height:46px;border-radius:0.875rem;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <i data-lucide="shield-alert" style="width:22px;height:22px;color:var(--gold)"></i>
             </div>
-
-            <div class="space-y-6 text-[12px] text-zinc-300 leading-relaxed terminal-font">
-                <section class="tos-section">
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">1. Grid Access</h3>
-                    <p>All operatives must maintain active clearance status. Access to the Grid is granted on a need-to-know basis and remains at the sole discretion of the Directorate.</p>
-                </section>
-
-                <section class="tos-section">
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">2. Communication Protocol</h3>
-                    <p>Transmissions are encrypted but monitored for sector safety. Operatives are strictly forbidden from sharing Ministry-exclusive frequencies with unverified external channels.</p>
-                </section>
-
-                <section class="tos-section">
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">3. Asset Sovereignty</h3>
-                    <p>Any visual data, audio logs, or intelligence metadata processed by the Grid becomes the sovereign property of the Ministry. Unauthorized extraction or duplication is a breach of contract.</p>
-                </section>
-
-                <section class="tos-section">
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">4. Directorate Override</h3>
-                    <p>System hierarchy is absolute. Directorate maintains override authority (Level 5 Clearance) over all operative interfaces. Attempting to bypass these gates will trigger an auto-redaction of the operative's profile.</p>
-                </section>
-
-                <section class="tos-section">
-                    <h3 class="text-gold font-black uppercase mb-2 text-sm">5. Termination</h3>
-                    <p>Breach of protocol results in immediate grid-blackout for the offending operative. The Ministry reserves the right to modify these tactical terms at any time to preserve grid integrity.</p>
-                </section>
+            <div>
+                <p class="orbit font-black text-white" style="font-size:0.9rem">Terms of Service</p>
+                <p class="mono mt-0.5" style="font-size:0.56rem;color:var(--teal);letter-spacing:0.15em">EFFECTIVE DATE: 2026.03.15</p>
             </div>
-
-            <div class="pt-6">
-                <button onclick="window.location.href='../index.html'" class="btn-command w-full py-5 text-xs">
-                    ACKNOWLEDGE & RETURN
-                </button>
+            <div class="ml-auto hidden sm:block text-right">
+                <p class="cap" style="font-size:0.46rem">Version</p>
+                <p class="mono text-gold mt-0.5" style="font-size:0.62rem">v5.0</p>
             </div>
         </div>
 
-        <footer class="mt-12 text-center opacity-20">
-            <p class="text-[9px] uppercase tracking-[0.5em] italic">NCC Legal Protocol v5.0 // Sector 7G</p>
-        </footer>
+        <div class="gold-line" style="opacity:0.2"></div>
+
+        <!-- Clauses -->
+        <div class="px-5 sm:px-6 py-2">
+
+            <div class="clause">
+                <p class="clause-num">1. Grid Access</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">All operatives must maintain active clearance status. Access to the Grid is granted on a need-to-know basis and remains at the sole discretion of the Directorate. Clearance levels are subject to review and may be revoked at any time.</p>
+            </div>
+
+            <div class="clause">
+                <p class="clause-num">2. Communication Protocol</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">Transmissions are encrypted but monitored for sector safety. Operatives are strictly forbidden from sharing Ministry-exclusive frequencies with unverified external channels. Unauthorized dissemination constitutes a breach of this agreement.</p>
+            </div>
+
+            <div class="clause">
+                <p class="clause-num">3. Asset Sovereignty</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">Any visual data, audio logs, or intelligence metadata processed by the Grid becomes the sovereign property of the Ministry. Unauthorized extraction, duplication, or redistribution is a breach of contract and may result in immediate grid-blackout.</p>
+            </div>
+
+            <div class="clause">
+                <p class="clause-num">4. Directorate Override</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">System hierarchy is absolute. The Directorate maintains override authority (Level 5 Clearance) over all operative interfaces. Attempting to bypass security gates will trigger automated redaction of the offending operative's profile.</p>
+            </div>
+
+            <div class="clause">
+                <p class="clause-num">5. Conduct Standards</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">All operatives are expected to conduct themselves with professionalism befitting the Ministry. Harassment, impersonation, or conduct that undermines the integrity of the network will result in immediate suspension pending Directorate review.</p>
+            </div>
+
+            <div class="clause">
+                <p class="clause-num">6. Termination</p>
+                <p class="text-gray-300 leading-relaxed" style="font-size:0.85rem">Breach of protocol results in immediate grid-blackout for the offending operative. The Ministry reserves the right to modify these tactical terms at any time to preserve grid integrity. Continued use of the system constitutes acceptance of the current terms.</p>
+            </div>
+
+        </div>
+
+        <div class="gold-line" style="opacity:0.15"></div>
+
+        <!-- Actions -->
+        <div class="px-5 sm:px-6 py-5">
+            <div class="flex flex-col sm:flex-row gap-2">
+                <a href="../index.html" class="btn btn-g flex-1 py-3 rounded-xl" style="font-size:0.6rem;min-height:unset">
+                    <i data-lucide="check" style="width:13px;height:13px"></i>
+                    Acknowledge &amp; Return
+                </a>
+                <a href="privacy.html" class="btn btn-g flex-1 py-3 rounded-xl" style="font-size:0.6rem;min-height:unset;background:rgba(0,0,0,0.4);border-color:rgba(212,175,55,0.2)">
+                    <i data-lucide="shield-check" style="width:13px;height:13px"></i>
+                    Privacy Shield
+                </a>
+            </div>
+        </div>
+
     </div>
-    <script>lucide.createIcons();</script>
+
+    <!-- Footer -->
+    <footer class="text-center py-5 mt-4">
+        <div class="gold-line mb-3" style="opacity:0.1"></div>
+        <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
+        <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase">NCC Legal Protocol v5.0 // Sector 7G</p>
+    </footer>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+});
+</script>
 </body>
 </html>
