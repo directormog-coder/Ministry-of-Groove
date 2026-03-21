@@ -6,33 +6,64 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control",               "value": "no-store, no-cache, must-revalidate" },
-        { "key": "X-Content-Type-Options",       "value": "nosniff" },
-        { "key": "X-Frame-Options",              "value": "DENY" },
-        { "key": "Referrer-Policy",              "value": "strict-origin-when-cross-origin" }
+        { "key": "Cache-Control",         "value": "no-store, no-cache, must-revalidate" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "DENY" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/js/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }
+      ]
+    },
+    {
+      "source": "/css/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options",       "value": "nosniff" },
-        { "key": "X-Frame-Options",              "value": "SAMEORIGIN" },
-        { "key": "X-XSS-Protection",             "value": "1; mode=block" },
-        { "key": "Referrer-Policy",              "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy",           "value": "camera=(), microphone=(), geolocation=()" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options",        "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection",       "value": "1; mode=block" },
+        { "key": "Referrer-Policy",        "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",     "value": "camera=(), microphone=(), geolocation=()" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co https://*.supabase.in; connect-src 'self' https://*.supabase.co https://*.supabase.in wss://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+        }
       ]
     }
   ],
 
   "rewrites": [
-    { "source": "/api/config",      "destination": "/api/config.js" },
-    { "source": "/login",           "destination": "/login.html" },
-    { "source": "/directorate",     "destination": "/pages/directorate.html" },
-    { "source": "/pages/(.*)",      "destination": "/pages/$1" },
-    { "source": "/js/(.*)",         "destination": "/js/$1" },
-    { "source": "/css/(.*)",        "destination": "/css/$1" },
-    { "source": "/assets/(.*)",     "destination": "/assets/$1" },
-    { "source": "/(.*)\\.html",     "destination": "/$1.html" },
-    { "source": "/((?!api).*)",     "destination": "/index.html" }
+    { "source": "/api/config",              "destination": "/api/config.js" },
+    { "source": "/login",                   "destination": "/login.html" },
+    { "source": "/hub",                     "destination": "/index.html" },
+    { "source": "/directorate",             "destination": "/pages/directorate.html" },
+    { "source": "/gallery",                 "destination": "/pages/gallery.html" },
+    { "source": "/frequency",               "destination": "/pages/frequency.html" },
+    { "source": "/dispatch",                "destination": "/pages/dispatch.html" },
+    { "source": "/archives",                "destination": "/pages/archives.html" },
+    { "source": "/vault",                   "destination": "/pages/archives.html" },
+    { "source": "/dossier",                 "destination": "/pages/dossier.html" },
+    { "source": "/privacy",                 "destination": "/pages/privacy.html" },
+    { "source": "/tos",                     "destination": "/pages/tos.html" },
+    { "source": "/pages/(.*)",              "destination": "/pages/$1" },
+    { "source": "/js/(.*)",                 "destination": "/js/$1" },
+    { "source": "/css/(.*)",                "destination": "/css/$1" },
+    { "source": "/assets/(.*)",             "destination": "/assets/$1" },
+    { "source": "/(.*)\\.html",             "destination": "/$1.html" },
+    { "source": "/((?!api)(?!_next).*)",   "destination": "/index.html" }
   ]
 }
