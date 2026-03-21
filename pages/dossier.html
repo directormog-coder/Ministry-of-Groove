@@ -1,1 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>M.O.G. | OPERATIVE DOSSIER</title>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase-client.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        [x-cloak]{display:none!important}
+        :root{
+            --black:#000;--gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;
+            --gold-glow:rgba(212,175,55,0.38);--teal:#00d4aa;--teal-dim:#006e59;
+            --teal-glow:rgba(0,212,170,0.3);--red:#dc2626;--red-glow:rgba(220,38,38,0.4);
+            --text:#e8e0cc;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'Share Tech Mono',monospace}.orbit{font-family:'Orbitron',sans-serif}
+        button,a{touch-action:manipulation}
+
+        /* bg */
+        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,70vmin,560px);height:clamp(280px,70vmin,560px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(0,212,170,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.02) 1px,transparent 1px);background-size:56px 56px}
+        @media(max-width:480px){.bg-grid{display:none}}
+        .bg-vig{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.82) 100%)}
+
+        /* glass */
+        .glass{background:rgba(6,9,6,0.94);border:1px solid rgba(0,212,170,0.11);box-shadow:0 2px 20px rgba(0,0,0,0.4)}
+        .glass-gold{background:rgba(10,8,2,0.95);border:1px solid rgba(212,175,55,0.16)}
+        @media(min-width:641px){.glass,.glass-gold{backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}}
+
+        /* type */
+        .text-gold{color:var(--gold);text-shadow:0 0 10px var(--gold-glow)}
+        .text-teal{color:var(--teal);text-shadow:0 0 10px var(--teal-glow)}
+        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.42rem,1vw,0.52rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+        .cap{font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#4b5563}
+        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent)}
+
+        /* buttons */
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.2s ease;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border-radius:0.75rem}
+        .btn:active{transform:scale(0.97)!important}
+        .btn:disabled{opacity:0.38;cursor:not-allowed;transform:none!important}
+        .btn-g{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
+        .btn-g:hover{background:rgba(212,175,55,0.2);border-color:var(--gold-bright);box-shadow:0 0 14px var(--gold-glow);transform:translateY(-1px)}
+        .btn-t{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.26);color:var(--teal)}
+        .btn-t:hover{background:rgba(0,212,170,0.18);border-color:var(--teal);box-shadow:0 0 14px var(--teal-glow);transform:translateY(-1px)}
+        .btn-r{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.28);color:#fca5a5}
+        .btn-r:hover{background:rgba(220,38,38,0.2);border-color:var(--red);box-shadow:0 0 14px var(--red-glow);color:#fff;transform:translateY(-1px)}
+
+        /* avatar ring */
+        .aring{position:relative;border-radius:50%;padding:2px;flex-shrink:0;background:conic-gradient(from 0deg,var(--gold-bright),var(--teal),var(--gold-dark),var(--teal),var(--gold-bright));animation:rspin 20s linear infinite}
+        .aring>div{border-radius:50%;border:2px solid #000;overflow:hidden;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+        @keyframes rspin{to{transform:rotate(360deg)}}
+
+        /* stat bars */
+        .sb{height:4px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden;margin-top:5px}
+        .sb-g{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 5px var(--gold-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-t{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dim),var(--teal));box-shadow:0 0 5px var(--teal-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-c{height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+        .sb-r{height:100%;border-radius:99px;background:linear-gradient(90deg,#991b1b,#ef4444);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+
+        /* rank chip */
+        .rchip{border-radius:999px;padding:2px 10px;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid}
+
+        /* inp */
+        .inp{width:100%;background:rgba(0,3,1,0.88);border:1px solid rgba(0,212,170,0.15);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:max(16px,0.875rem);border-radius:0.75rem;padding:0.7rem 0.9rem;transition:border-color 0.2s,box-shadow 0.2s}
+        .inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,0.05);outline:none}
+        .inp::placeholder{color:rgba(255,255,255,0.18)}
+        .inp:disabled{opacity:0.42;cursor:not-allowed}
+        select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.8rem center;padding-right:2.2rem}
+        select.inp option{background:#060906;color:var(--text)}
+
+        /* upload progress */
+        .upbar{height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden}
+        .upfill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 6px var(--gold-glow);transition:width 0.3s ease}
+
+        /* op card */
+        .opc{border:1px solid rgba(0,212,170,0.1);border-radius:0.9rem;background:rgba(0,0,0,0.42);transition:all 0.18s ease}
+        @media(hover:hover){.opc:hover{border-color:rgba(212,175,55,0.28);transform:translateY(-1px)}}
+
+        /* animations */
+        .fadeup{animation:fu 0.42s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .db span{animation:db 1.3s infinite}
+        .db span:nth-child(2){animation-delay:.2s}.db span:nth-child(3){animation-delay:.4s}
+        @keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .pulse{animation:pd 2.2s ease-in-out infinite}
+        @keyframes pd{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.45)}50%{box-shadow:0 0 0 4px rgba(0,212,170,0)}}
+
+        ::-webkit-scrollbar{width:3px;height:3px}
+        ::-webkit-scrollbar-track{background:rgba(0,0,0,0.5)}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px}
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
+    </style>
+
+    <script>
+    function dossierPage() {
+        return {
+            view: 'loading',
+            currentUser: null,
+            isDirector: false,
+            profile: {
+                username:'', codename:'', rank:'INITIATE', department:'UNASSIGNED',
+                bio:'', avatar_url:null,
+                stats:{ missions:0, contributions:0, influence:0, loyalty:100, groove:50 },
+                skills:[], achievements:[], joined_at:null, last_active:null
+            },
+            isLoading: false,
+            uploadProgress: 0,
+            editMode: false,
+            allOperatives: [],
+            activeSection: 'profile',
+
+            get sb() { return window.sb || window.supabaseClient; },
+            get clearanceLevel() { return {INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1; },
+            get rankColor() { return {INITIATE:'text-gray-400',AGENT:'text-teal-400',OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400'; },
+
+            async init() {
+                const role = localStorage.getItem('userRole');
+                if (!role) { window.location.href = '../login.html'; return; }
+                this.isDirector = role === 'director';
+
+                let t = 0;
+                while (!this.sb && t < 30) { await new Promise(r => setTimeout(r, 100)); t++; }
+                if (!this.sb) { this.toast('Connection failed', 'error'); return; }
+
+                try {
+                    const { data:{ session } } = await this.sb.auth.getSession();
+                    if (!session) { window.location.href = '../login.html'; return; }
+                    this.currentUser = session.user;
+                    await this.loadProfile();
+                    await this.loadOperatives();
+                    this.view = 'active';
+                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+                } catch(e) {
+                    this.toast('Authentication failed', 'error');
+                }
+            },
+
+            async loadProfile() {
+                try {
+                    const { data, error } = await this.sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
+                    if (error && error.code !== 'PGRST116') throw error;
+                    if (data) this.profile = { ...this.profile, ...data };
+                } catch(e) { this.toast('Profile load failed', 'error'); }
+            },
+
+            async loadOperatives() {
+                try {
+                    const { data } = await this.sb.from('profiles')
+                        .select('id,username,codename,rank,avatar_url,last_active,department,stats')
+                        .order('last_active', { ascending:false }).limit(20);
+                    this.allOperatives = data || [];
+                } catch(_) { this.allOperatives = []; }
+            },
+
+            async saveProfile() {
+                this.isLoading = true;
+                try {
+                    const { error } = await this.sb.from('profiles').update({
+                        username:   this.profile.username,
+                        bio:        this.profile.bio,
+                        department: this.profile.department,
+                        updated_at: new Date().toISOString()
+                    }).eq('id', this.currentUser.id);
+                    if (error) throw error;
+                    this.editMode = false;
+                    this.toast('Dossier saved', 'success');
+                    await this.sb.from('activity_log').insert({ user_id:this.currentUser.id, type:'PROFILE_UPDATE', description:'Updated operative dossier', network:'M.O.G.', created_at:new Date().toISOString() }).catch(()=>{});
+                } catch(e) { this.toast('Save failed — ' + (e.message||'retry'), 'error'); }
+                finally { this.isLoading = false; }
+            },
+
+            async uploadAvatar(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { this.toast('JPG/PNG/WEBP only', 'error'); return; }
+                if (file.size > 2*1024*1024) { this.toast('Max 2 MB', 'error'); return; }
+                this.isLoading = true; this.uploadProgress = 15;
+                try {
+                    const ext  = file.name.split('.').pop();
+                    const path = `mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
+                    this.uploadProgress = 35;
+                    const { error:ue } = await this.sb.storage.from('operative-assets').upload(path, file, { cacheControl:'3600', upsert:true });
+                    if (ue) throw ue;
+                    this.uploadProgress = 75;
+                    const { data:{ publicUrl } } = this.sb.storage.from('operative-assets').getPublicUrl(path);
+                    await this.sb.from('profiles').update({ avatar_url:publicUrl }).eq('id', this.currentUser.id);
+                    this.profile.avatar_url = publicUrl;
+                    this.uploadProgress = 100;
+                    this.toast('Photo updated', 'success');
+                } catch(err) { this.toast('Upload failed', 'error'); }
+                finally { this.isLoading = false; setTimeout(()=>this.uploadProgress=0, 1600); }
+            },
+
+            rankChipClass(rank) {
+                return { INITIATE:'border-gray-600 text-gray-500', AGENT:'border-teal-600 text-teal-400', OPERATIVE:'border-cyan-600 text-cyan-400', SPECIALIST:'border-amber-600 text-amber-400', DIRECTOR:'border-yellow-500 text-yellow-300', BANNED:'border-red-700 text-red-400' }[rank]||'border-gray-600 text-gray-500';
+            },
+            rankIcon(rank) {
+                return { INITIATE:'radio', AGENT:'user', OPERATIVE:'target', SPECIALIST:'star', DIRECTOR:'crown' }[rank]||'radio';
+            },
+            onlineStatus(ts) {
+                if (!ts) return { label:'OFFLINE', dot:'bg-gray-700' };
+                const m = (Date.now()-new Date(ts))/60000;
+                if (m<5)  return { label:'LIVE',    dot:'bg-teal-400' };
+                if (m<30) return { label:'RECENT',  dot:'bg-amber-400' };
+                return         { label:'OFFLINE', dot:'bg-gray-600' };
+            },
+            timeAgo(ts) {
+                if (!ts) return '—';
+                const s=(Date.now()-new Date(ts))/1000;
+                if (s<60) return Math.floor(s)+'s ago';
+                if (s<3600) return Math.floor(s/60)+'m ago';
+                if (s<86400) return Math.floor(s/3600)+'h ago';
+                return Math.floor(s/86400)+'d ago';
+            },
+
+            logout() {
+                try { this.sb?.auth?.signOut(); } catch(_) {}
+                localStorage.removeItem('userRole');
+                window.location.href = '../login.html';
+            },
+
+            toast(message, type='info') {
+                const c={success:{bg:'#042010',bd:'rgba(0,212,170,0.35)',cl:'#4aecd4'},error:{bg:'#1a0404',bd:'rgba(220,38,38,0.4)',cl:'#f87171'},warning:{bg:'#1a1000',bd:'rgba(212,175,55,0.36)',cl:'#fcd34d'},info:{bg:'#040806',bd:'rgba(0,212,170,0.16)',cl:'#e8e0cc'}}[type]||{bg:'#040806',bd:'rgba(0,212,170,0.16)',cl:'#e8e0cc'};
+                const t=document.createElement('div'),m=window.innerWidth<640;
+                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:14px;right:14px;transform:translateX(120%)'};background:${c.bg};border:1px solid ${c.bd};color:${c.cl};font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:9px;padding:9px 13px;box-shadow:0 6px 24px rgba(0,0,0,0.8);max-width:min(88vw,320px);`;
+                t.textContent=message;document.body.appendChild(t);
+                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.26s cubic-bezier(0.34,1.56,0.64,1)';},14));
+                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),280);},3800);
+            }
+        };
+    }
+    </script>
+</head>
+
+<body x-data="dossierPage()" x-init="init()" x-cloak class="bg-black min-h-screen">
+
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vig" aria-hidden="true"></div>
+
+<!-- LOADING -->
+<template x-if="view==='loading'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black">
+    <div style="position:relative;width:52px;height:52px">
+        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <img src="../assets/images/logo.png" alt="" style="width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 7px var(--gold-glow))" onerror="this.style.display='none'">
+        </div>
+    </div>
+    <div class="text-center space-y-1.5">
+        <p class="orbit text-xs tracking-widest text-gold">Loading Dossier <span class="db"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+    </div>
+</div>
+</template>
+
+<!-- ACTIVE -->
+<template x-if="view==='active'">
+<div class="relative z-10 min-h-dvh fadeup">
+
+    <!-- NAV -->
+    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.1)">
+        <div class="max-w-5xl mx-auto px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="btn btn-g p-2" style="min-height:unset;padding:7px" title="Back to Hub">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </a>
+                <img src="../assets/images/logo.png" alt="M.O.G." style="width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 0 6px var(--gold-glow))" onerror="this.style.display='none'">
+                <div>
+                    <p class="orbit font-black text-gold" style="font-size:0.92rem;letter-spacing:0.05em">Personnel Dossier</p>
+                    <p class="slogan" style="font-size:0.4rem">M.O.G. Classified // Sector 7G</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Director badge -->
+                <template x-if="isDirector">
+                    <a href="directorate.html" class="btn btn-g hidden sm:inline-flex px-3 py-2" style="font-size:0.56rem;min-height:unset">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        Directorate
+                    </a>
+                </template>
+                <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style="background:rgba(0,0,0,0.42);border:1px solid rgba(0,212,170,0.16)">
+                    <span class="w-1.5 h-1.5 rounded-full bg-teal-400 pulse" style="display:inline-block"></span>
+                    <span class="mono text-teal" style="font-size:0.5rem;letter-spacing:0.12em">LIVE</span>
+                </div>
+                <button @click="logout()" class="text-gray-600 hover:text-gold transition-colors rounded-full p-1.5" style="min-height:unset" title="Sign Out">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="gold-line" style="opacity:0.18"></div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-5 py-5 sm:py-7 space-y-5">
+
+        <!-- PROFILE HEADER CARD -->
+        <div class="glass rounded-xl px-5 py-5" style="border-color:rgba(212,175,55,0.14)">
+            <div class="flex flex-col sm:flex-row items-center gap-5">
+                <!-- Avatar + upload -->
+                <div style="position:relative;flex-shrink:0" class="group">
+                    <div class="aring" style="width:88px;height:88px">
+                        <div>
+                            <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null">
+                            <svg x-show="!profile.avatar_url" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                    </div>
+                    <label style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.78);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.2s;border:2px solid rgba(212,175,55,0.38)" class="group-hover:opacity-100">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <span class="orbit font-bold text-gold mt-1" style="font-size:0.44rem;letter-spacing:0.1em">CHANGE</span>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
+                    </label>
+                    <!-- Mobile tap button -->
+                    <label style="position:absolute;bottom:-2px;right:-2px;width:26px;height:26px;border-radius:50%;background:rgba(212,175,55,0.9);border:2px solid #000;display:flex;align-items:center;justify-content:center;cursor:pointer" class="sm:hidden">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
+                    </label>
+                </div>
+
+                <!-- Identity -->
+                <div class="flex-1 min-w-0 text-center sm:text-left">
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1.5">
+                        <p class="orbit font-black text-white" style="font-size:clamp(1.1rem,4vw,1.5rem)" x-text="profile.username||'UNKNOWN'"></p>
+                        <span class="rchip" :class="rankChipClass(profile.rank)" x-text="profile.rank"></span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-2">
+                        <span class="mono text-teal" style="font-size:0.62rem" x-text="profile.codename||'—'"></span>
+                        <span class="cap" style="font-size:0.5rem;color:#6b7280" x-text="profile.department"></span>
+                        <span class="cap" style="font-size:0.5rem;color:#6b7280">CLR L<span x-text="clearanceLevel"></span></span>
+                    </div>
+                    <p class="slogan" style="font-size:0.44rem">Decrypting the Culture. Synchronizing the Grid.</p>
+                </div>
+
+                <!-- Stat numbers -->
+                <div class="flex items-center gap-5 flex-shrink-0">
+                    <div class="text-center">
+                        <p class="orbit font-black text-gold" style="font-size:1.2rem" x-text="profile.stats.missions"></p>
+                        <p class="cap" style="font-size:0.44rem">MISSIONS</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="orbit font-black text-teal" style="font-size:1.2rem" x-text="profile.stats.groove+'%'"></p>
+                        <p class="cap" style="font-size:0.44rem">GROOVE</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="orbit font-black text-gold" style="font-size:1.2rem" x-text="profile.stats.loyalty+'%'"></p>
+                        <p class="cap" style="font-size:0.44rem">LOYALTY</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload progress -->
+            <template x-if="uploadProgress>0">
+                <div class="mt-3 upbar"><div class="upfill" :style="'width:'+uploadProgress+'%'"></div></div>
+            </template>
+        </div>
+
+        <!-- SECTION TABS -->
+        <div class="flex gap-1.5 overflow-x-auto pb-px">
+            <template x-for="s in [{id:'profile',label:'Profile'},{id:'stats',label:'Performance'},{id:'network',label:'Network'}]" :key="s.id">
+                <button @click="activeSection=s.id" class="orbit font-bold uppercase rounded-full px-4 py-2 transition-all whitespace-nowrap" style="font-size:0.58rem;min-height:unset;letter-spacing:0.08em" :style="activeSection===s.id?'background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.38);color:var(--gold)':'background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.1);color:#4b5563'" x-text="s.label"></button>
+            </template>
+        </div>
+
+        <!-- PROFILE SECTION -->
+        <div x-show="activeSection==='profile'" class="glass rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <p class="orbit font-black text-white" style="font-size:1rem">Operative Profile</p>
+                <button @click="editMode=!editMode" class="btn" :class="editMode?'btn-r':'btn-g'" style="font-size:0.58rem;min-height:unset;padding:7px 14px">
+                    <svg x-show="!editMode" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    <svg x-show="editMode" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <span x-text="editMode?'Cancel':'Edit'"></span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Operative Name -->
+                <div>
+                    <p class="cap mb-1.5">Operative Name</p>
+                    <template x-if="editMode">
+                        <input type="text" x-model="profile.username" class="inp" placeholder="Enter designation">
+                    </template>
+                    <template x-if="!editMode">
+                        <p class="orbit font-bold text-white" style="font-size:0.9rem" x-text="profile.username||'—'"></p>
+                    </template>
+                </div>
+                <!-- Codename -->
+                <div>
+                    <p class="cap mb-1.5">Codename</p>
+                    <p class="mono font-bold text-teal" style="font-size:0.9rem" x-text="profile.codename||'—'"></p>
+                    <p class="mono text-gray-700 mt-0.5" style="font-size:0.5rem">AUTO-GENERATED · READ ONLY</p>
+                </div>
+                <!-- Department -->
+                <div>
+                    <p class="cap mb-1.5">Department</p>
+                    <template x-if="editMode">
+                        <select x-model="profile.department" class="inp">
+                            <option value="UNASSIGNED">Unassigned</option>
+                            <option value="OPERATIONS">Field Operations</option>
+                            <option value="INTELLIGENCE">Intelligence</option>
+                            <option value="COMMUNICATIONS">Communications</option>
+                            <option value="LOGISTICS">Logistics</option>
+                            <option value="RESEARCH">R&amp;D Division</option>
+                            <option value="SOUND">Audio Engineering</option>
+                        </select>
+                    </template>
+                    <template x-if="!editMode">
+                        <p class="orbit font-bold text-white" style="font-size:0.9rem" x-text="profile.department||'UNASSIGNED'"></p>
+                    </template>
+                </div>
+                <!-- Rank -->
+                <div>
+                    <p class="cap mb-1.5">Rank</p>
+                    <div class="flex items-center gap-2">
+                        <span class="rchip" :class="rankChipClass(profile.rank)" x-text="profile.rank"></span>
+                        <span class="mono text-gray-600" style="font-size:0.52rem">DIRECTORATE ONLY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio -->
+            <div>
+                <p class="cap mb-1.5">Operational Notes</p>
+                <template x-if="editMode">
+                    <textarea x-model="profile.bio" rows="4" class="inp resize-none" placeholder="Operative background, skills, notes..."></textarea>
+                </template>
+                <template x-if="!editMode">
+                    <p class="text-gray-400 leading-relaxed" style="font-size:0.85rem" x-text="profile.bio||'No bio on file.'"></p>
+                </template>
+            </div>
+
+            <!-- Skills -->
+            <div x-show="profile.skills&&profile.skills.length">
+                <p class="cap mb-2">Skill Matrix</p>
+                <div class="flex flex-wrap gap-1.5">
+                    <template x-for="s in (profile.skills||[])" :key="s">
+                        <span style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);color:var(--teal);border-radius:5px;padding:2px 9px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em" x-text="s"></span>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div x-show="profile.achievements&&profile.achievements.length">
+                <p class="cap mb-2">Achievements</p>
+                <div class="flex flex-wrap gap-1.5">
+                    <template x-for="a in (profile.achievements||[])" :key="a">
+                        <span style="background:rgba(212,175,55,0.07);border:1px solid rgba(212,175,55,0.2);color:var(--gold);border-radius:5px;padding:2px 9px;font-family:'Orbitron',sans-serif;font-size:0.5rem;text-transform:uppercase;letter-spacing:0.07em" x-text="a"></span>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Save button -->
+            <template x-if="editMode">
+                <div class="flex justify-end gap-2 pt-1">
+                    <button @click="editMode=false" class="btn btn-r px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Cancel</button>
+                    <button @click="saveProfile()" :disabled="isLoading" class="btn btn-g px-6 py-2.5" style="font-size:0.58rem;min-height:unset">
+                        <svg x-show="isLoading" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        <span x-text="isLoading?'Saving...':'Save Dossier'"></span>
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <!-- PERFORMANCE SECTION -->
+        <div x-show="activeSection==='stats'" class="glass rounded-xl p-5 space-y-5">
+            <p class="orbit font-black text-white" style="font-size:1rem">Performance Metrics</p>
+
+            <!-- Stat grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+                <template x-for="s in [
+                    {l:'Missions',    v:profile.stats.missions,       c:'text-gold',     bc:'rgba(212,175,55,0.08)', bb:'rgba(212,175,55,0.16)'},
+                    {l:'Posts',       v:profile.stats.contributions,  c:'text-teal',     bc:'rgba(0,212,170,0.06)',  bb:'rgba(0,212,170,0.14)'},
+                    {l:'Influence',   v:profile.stats.influence+'%',  c:'text-gold',     bc:'rgba(212,175,55,0.08)', bb:'rgba(212,175,55,0.16)'},
+                    {l:'Groove',      v:profile.stats.groove+'%',     c:'text-cyan-400', bc:'rgba(34,211,238,0.06)', bb:'rgba(34,211,238,0.14)'},
+                    {l:'Loyalty',     v:profile.stats.loyalty+'%',    c:'text-red-400',  bc:'rgba(220,38,38,0.06)',  bb:'rgba(220,38,38,0.14)'}
+                ]" :key="s.l">
+                <div :style="'background:'+s.bc+';border:1px solid '+s.bb+';border-radius:0.75rem;padding:0.85rem 0.5rem'">
+                    <p class="orbit font-black" :class="s.c" style="font-size:1.2rem" x-text="s.v"></p>
+                    <p class="cap" style="font-size:0.44rem" x-text="s.l"></p>
+                </div>
+                </template>
+            </div>
+
+            <!-- Stat bars -->
+            <div class="space-y-3.5">
+                <template x-for="s in [
+                    {l:'Missions',      v:profile.stats.missions,       bar:'sb-g', pct:Math.min(profile.stats.missions*10,100), color:'text-gold'},
+                    {l:'Contributions', v:profile.stats.contributions,  bar:'sb-t', pct:Math.min(profile.stats.contributions*5,100), color:'text-teal'},
+                    {l:'Influence',     v:profile.stats.influence+'%',  bar:'sb-g', pct:profile.stats.influence, color:'text-gold'},
+                    {l:'Groove Factor', v:profile.stats.groove+'%',     bar:'sb-c', pct:profile.stats.groove, color:'text-cyan-400'},
+                    {l:'Loyalty',       v:profile.stats.loyalty+'%',    bar:'sb-r', pct:profile.stats.loyalty, color:'text-red-400'}
+                ]" :key="s.l">
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <span class="cap" style="font-size:0.54rem" x-text="s.l"></span>
+                        <span class="mono font-bold" :class="s.color" style="font-size:0.6rem" x-text="s.v"></span>
+                    </div>
+                    <div class="sb"><div :class="s.bar" :style="'width:'+s.pct+'%'"></div></div>
+                </div>
+                </template>
+            </div>
+
+            <!-- Enlistment date -->
+            <div style="background:rgba(0,0,0,0.35);border:1px solid rgba(212,175,55,0.09);border-radius:0.75rem;padding:0.85rem 1rem">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="cap" style="font-size:0.5rem">Enlisted</p>
+                        <p class="orbit font-bold text-gold mt-0.5" style="font-size:0.8rem" x-text="profile.joined_at ? new Date(profile.joined_at).toLocaleDateString('en-ZA',{year:'numeric',month:'long',day:'numeric'}) : '—'"></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="cap" style="font-size:0.5rem">Last Active</p>
+                        <p class="mono text-teal mt-0.5" style="font-size:0.7rem" x-text="timeAgo(profile.last_active)"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NETWORK SECTION -->
+        <div x-show="activeSection==='network'" class="glass rounded-xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <p class="orbit font-black text-white" style="font-size:1rem">Network Nodes</p>
+                <span class="mono text-teal" style="font-size:0.6rem" x-text="allOperatives.length+' operatives'"></span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <template x-if="!allOperatives.length">
+                <div class="col-span-2 text-center py-12" style="opacity:0.18">
+                    <p class="orbit text-sm uppercase tracking-widest text-gold">No operatives on record</p>
+                </div>
+                </template>
+                <template x-for="op in allOperatives" :key="op.id">
+                <div class="opc p-3 flex items-center gap-3">
+                    <div style="position:relative;flex-shrink:0;width:38px;height:38px">
+                        <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:rgba(0,212,170,0.06);border:1px solid rgba(212,175,55,0.16);display:flex;align-items:center;justify-content:center">
+                            <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null">
+                            <i x-show="!op.avatar_url" :data-lucide="rankIcon(op.rank)" style="width:15px;height:15px;color:var(--gold)"></i>
+                        </div>
+                        <span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #000" :class="onlineStatus(op.last_active).dot"></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-white truncate" style="font-size:0.82rem" x-text="op.codename||op.username"></p>
+                        <p class="cap" style="font-size:0.48rem;color:#6b7280" x-text="op.rank+' · '+onlineStatus(op.last_active).label"></p>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <p class="orbit font-bold text-gold" style="font-size:0.65rem" x-text="op.stats?.influence||0"></p>
+                        <p class="cap" style="font-size:0.44rem">INF</p>
+                    </div>
+                </div>
+                </template>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-4 mt-4 max-w-5xl mx-auto px-4">
+        <div class="gold-line mb-3" style="opacity:0.1"></div>
+        <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
+        <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase">Ministry of Groove // Operative Dossier // Sector 7G</p>
+    </footer>
+</div>
+</template>
+
+</body>
+</html>
