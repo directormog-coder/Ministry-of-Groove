@@ -169,7 +169,7 @@
         profile:{username:'',codename:'',rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,
                  stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:[],joined_at:null},
         isLoading:false,uploadProgress:0,
-        lockdownActive:false,directorateMessage:'',directorateBanner:'',
+        lockdownActive:false,lockdownVerified:false,directorateMessage:'',directorateBanner:'',
         tickerMessages:[],tickerActive:false,
         activeTab:'grid',showModal:false,
         allOperatives:[],recentActivity:[],directives:[],
@@ -229,6 +229,7 @@
 
                 // Lockdown ONLY if DB explicitly says so
                 this.lockdownActive=pzActive||msLocked;
+                this.lockdownVerified=true;
 
                 if(ms?.value){
                     const p=JSON.parse(ms.value);
@@ -244,6 +245,7 @@
             }catch(_){
                 // DB unreachable — default to unlocked, never block on network failure
                 this.lockdownActive=false;
+                this.lockdownVerified=true;
                 localStorage.removeItem('ministrySettings');
             }
         },
@@ -374,7 +376,7 @@
 <div class="bg-vig" aria-hidden="true"></div>
 
 <!-- LOCKDOWN -->
-<div x-show="lockdownActive" x-transition class="ldover">
+<div x-show="lockdownActive && lockdownVerified" x-transition class="ldover">
     <div class="ldring"></div>
     <div class="relative z-10 flex flex-col items-center gap-5 max-w-sm">
         <img src="/assets/images/logo.png" alt="" style="width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(220,38,38,0.6))" onerror="this.style.display='none'">
