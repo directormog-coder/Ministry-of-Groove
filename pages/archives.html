@@ -2,381 +2,394 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    <title>MOG | CLASSIFIED VAULT</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>M.O.G. | CLASSIFIED VAULT</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script src="../js/supabase-client.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <link rel="stylesheet" href="../css/style.css">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        [x-cloak] { display: none !important; }
-        .bg-grid-gold { background-image: radial-gradient(circle, var(--gold) 1px, transparent 1px); background-size: 40px 40px; }
-        .glass-vault { background: rgba(5, 5, 8, 0.98); backdrop-filter: blur(40px); border: 1px solid rgba(212, 175, 55, 0.2); }
-        
-        .loader-gold { width: 35px; height: 35px; border: 4px solid var(--gold); border-bottom-color: transparent; border-radius: 50%; animation: rotation 1s linear infinite; }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .file-row { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-left: 0px solid var(--gold); }
-        .file-row:hover { border-left-width: 6px; background: rgba(212, 175, 55, 0.05); transform: translateX(5px); border-color: var(--electric); }
-        
-        .redact-btn:hover { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        [x-cloak]{display:none!important}
+        :root{--black:#000;--gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;--gold-glow:rgba(212,175,55,0.4);--teal:#00d4aa;--teal-glow:rgba(0,212,170,0.3);--red:#dc2626;--red-glow:rgba(220,38,38,0.4);}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:#e8e0cc;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+        .mono{font-family:'Share Tech Mono',monospace}.orbit{font-family:'Orbitron',sans-serif}
+
+        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,75vmin,600px);height:clamp(280px,75vmin,600px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0}
+        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(212,175,55,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,0.022) 1px,transparent 1px);background-size:52px 52px}
+        @media (max-width:480px){.bg-grid{display:none}}
+        .bg-vignette{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%)}
+
+        .glass{background:rgba(6,8,5,0.95);border:1px solid rgba(212,175,55,0.16);box-shadow:0 4px 40px rgba(0,0,0,0.5)}
+        @media (min-width:641px){.glass{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}}
+
+        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal),transparent)}
+        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.44rem,1.1vw,0.54rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.24s ease;font-family:'Orbitron',sans-serif;font-weight:700;text-transform:uppercase}
+        .btn-gold{background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22));border:1px solid rgba(212,175,55,0.38);color:var(--gold)}
+        .btn-gold:hover{background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(139,105,20,0.38));box-shadow:0 0 20px var(--gold-glow);border-color:var(--gold-bright);transform:translateY(-1px)}
+        .btn-red{background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(153,27,27,0.22));border:1px solid rgba(220,38,38,0.38);color:#fca5a5}
+        .btn-red:hover{box-shadow:0 0 20px var(--red-glow);border-color:var(--red);color:#fff;transform:translateY(-1px)}
+        .btn-teal{background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,110,89,0.2));border:1px solid rgba(0,212,170,0.35);color:var(--teal)}
+        .btn-teal:hover{background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));box-shadow:0 0 18px var(--teal-glow);border-color:var(--teal);transform:translateY(-1px)}
+        .btn:active{transform:scale(0.97)!important}
+        .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+
+        /* File row */
+        .file-row{border-left:4px solid rgba(212,175,55,0.1);border-radius:1rem;transition:all 0.3s ease}
+        .file-row:hover{border-left-color:var(--gold);background:rgba(212,175,55,0.03)!important}
+
+        /* Classification badge */
+        .class-top-secret{background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.35);color:#f87171}
+        .class-secret{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);color:#fb923c}
+        .class-confidential{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
+        .class-unclassified{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.22);color:var(--teal)}
+
+        /* Upload progress */
+        .upload-bar{height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden}
+        .upload-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 8px var(--gold-glow);transition:width 0.3s ease}
+
+        /* File type icon colours */
+        .ft-pdf{color:#ef4444}.ft-img{color:var(--gold)}.ft-vid{color:var(--teal)}.ft-doc{color:#60a5fa}.ft-gen{color:#9ca3af}
+
+        .fade-up{animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .dot-blink span{animation:blink 1.3s infinite}
+        .dot-blink span:nth-child(2){animation-delay:.2s}.dot-blink span:nth-child(3){animation-delay:.4s}
+        @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:rgba(0,0,0,0.6)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal));border-radius:4px}
+        @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
     </style>
 
     <script>
-        // Configuration loaded from environment or config file
-        const CONFIG = {
-            SUPABASE_URL: window.MOG_CONFIG?.SUPABASE_URL || 'YOUR_SUPABASE_URL',
-            SUPABASE_ANON_KEY: window.MOG_CONFIG?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY'
-        };
-        
-        let sb = null;
+    function vaultEngine() {
+        return {
+            view: 'gate',
+            isDirector: false,
+            isLoading: false,
+            isUploading: false,
+            uploadProgress: 0,
+            vaultStatus: 'ENCRYPTED',
+            files: [],
+            currentUserId: null,
 
-        function vaultEngine() {
-            return {
-                view: 'gate',
-                files: [],
-                isDirector: false,
-                isLoading: false,
-                vaultStatus: 'ENCRYPTED',
-                authError: null,
+            get sb() { return window.sb || window.supabaseClient; },
 
-                async init() {
-                    // Security Gate Check
-                    const role = localStorage.getItem('userRole');
-                    if (!role) {
-                        window.location.href = '../login.html';
-                        return;
-                    }
+            async init() {
+                const role = localStorage.getItem('userRole');
+                if (!role) { window.location.href = '../login.html'; return; }
 
-                    // Validate Supabase configuration
-                    if (!this.isSupabaseConfigured()) {
-                        this.authError = 'Vault systems offline - configuration required';
-                        console.error('[VAULT] Supabase not configured');
-                        return;
-                    }
+                let tries = 0;
+                while (!this.sb && tries < 30) { await new Promise(r=>setTimeout(r,100)); tries++; }
+                if (!this.sb) { this.toast('Connection failed','error'); return; }
 
-                    sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-                    
-                    try {
-                        const { data: { session } } = await sb.auth.getSession();
-                        
-                        if (!session) {
-                            window.location.href = '../index.html';
-                            return;
-                        }
-
-                        this.isDirector = role === 'director';
-                        this.view = 'active';
-                        await this.loadVaultData();
-                        this.vaultStatus = 'DECRYPTED';
-                        this.$nextTick(() => lucide.createIcons());
-                    } catch (error) {
-                        console.error('[VAULT] Initialization error:', error);
-                        this.authError = 'Vault access denied';
-                    }
-                },
-
-                isSupabaseConfigured() {
-                    return CONFIG.SUPABASE_URL && 
-                           !CONFIG.SUPABASE_URL.includes('YOUR_') &&
-                           CONFIG.SUPABASE_ANON_KEY && 
-                           !CONFIG.SUPABASE_ANON_KEY.includes('YOUR_');
-                },
-
-                async loadVaultData() {
-                    try {
-                        const { data, error } = await sb
-                            .from('archives')
-                            .select('*')
-                            .order('created_at', { ascending: false });
-                        
-                        if (error) throw error;
-                        if (data) this.files = data;
-                    } catch (error) {
-                        console.error('[VAULT] Load failed:', error);
-                        this.authError = 'Failed to decrypt vault contents';
-                    }
-                },
-
-                async handleUpload(e) {
-                    if (!this.isDirector) {
-                        alert('ACCESS DENIED: Director clearance required');
-                        return;
-                    }
-                    
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // Validate file size (max 50MB)
-                    if (file.size > 50 * 1024 * 1024) {
-                        alert('FILE TOO LARGE: Maximum 50MB allowed');
-                        return;
-                    }
-
-                    this.isLoading = true;
-                    
-                    try {
-                        const timestamp = Date.now();
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `CLASSIFIED-${timestamp}-${MogCrypto?.generateSecureToken(8) || Math.random().toString(36).substring(2, 10)}.${fileExt}`;
-                        
-                        const { data: uploadData, error: uploadError } = await sb
-                            .storage
-                            .from('vault')
-                            .upload(fileName, file, {
-                                cacheControl: '3600',
-                                upsert: false
-                            });
-
-                        if (uploadError) throw uploadError;
-
-                        const { data: { publicUrl } } = sb
-                            .storage
-                            .from('vault')
-                            .getPublicUrl(fileName);
-
-                        const { error: dbError } = await sb
-                            .from('archives')
-                            .insert({ 
-                                name: file.name.toUpperCase(),
-                                url: publicUrl,
-                                size: this.formatFileSize(file.size),
-                                classification: 'CONFIDENTIAL',
-                                uploaded_by: (await sb.auth.getUser()).data.user?.id,
-                                created_at: new Date().toISOString()
-                            });
-
-                        if (dbError) throw dbError;
-
-                        await this.loadVaultData();
-                        this.showNotification('VAULT UPDATED: DOCUMENT ARCHIVED', 'success');
-                        
-                    } catch (error) {
-                        console.error('[VAULT] Upload failed:', error);
-                        this.showNotification('ARCHIVE FAILED: ' + error.message, 'error');
-                    } finally {
-                        this.isLoading = false;
-                        e.target.value = ''; // Reset input
-                    }
-                },
-
-                async redactFile(id) {
-                    if (!this.isDirector) {
-                        alert('ACCESS DENIED: Director clearance required');
-                        return;
-                    }
-
-                    if (!confirm("REDACT THIS DOCUMENT? THIS ACTION IS IRREVERSIBLE.")) {
-                        return;
-                    }
-
-                    try {
-                        // Get file info first to delete from storage
-                        const { data: fileData } = await sb
-                            .from('archives')
-                            .select('url')
-                            .eq('id', id)
-                            .single();
-
-                        const { error: deleteError } = await sb
-                            .from('archives')
-                            .delete()
-                            .eq('id', id);
-
-                        if (deleteError) throw deleteError;
-
-                        // Attempt to delete from storage if URL exists
-                        if (fileData?.url) {
-                            const path = fileData.url.split('/').pop();
-                            if (path) {
-                                await sb.storage.from('vault').remove([path]);
-                            }
-                        }
-
-                        await this.loadVaultData();
-                        this.showNotification('DOCUMENT REDACTED PERMANENTLY', 'success');
-                        
-                    } catch (error) {
-                        console.error('[VAULT] Redaction failed:', error);
-                        this.showNotification('REDACTION FAILED', 'error');
-                    }
-                },
-
-                formatFileSize(bytes) {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + sizes[i];
-                },
-
-                showNotification(message, type = 'info') {
-                    // Create toast notification
-                    const toast = document.createElement('div');
-                    const colors = {
-                        success: 'border-green-500 text-green-400',
-                        error: 'border-red-500 text-red-400',
-                        info: 'border-electric text-electric'
-                    };
-                    
-                    toast.className = `fixed top-4 right-4 z-50 glass-vault px-6 py-4 rounded-xl border-l-4 ${colors[type]} animate-slide-in`;
-                    toast.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <span class="text-[10px] font-black uppercase tracking-wider">${type}</span>
-                            <p class="text-xs text-white">${message}</p>
-                        </div>
-                    `;
-                    
-                    document.body.appendChild(toast);
-                    
-                    setTimeout(() => {
-                        toast.classList.add('animate-fade-out');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 5000);
-                },
-
-                terminateSession() {
-                    sb?.auth?.signOut();
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('userData');
-                    window.location.href = '../index.html';
+                try {
+                    const { data:{ session } } = await this.sb.auth.getSession();
+                    if (!session) { window.location.href = '../login.html'; return; }
+                    this.currentUserId = session.user.id;
+                    this.isDirector = role === 'director';
+                    this.view = 'active';
+                    await this.loadFiles();
+                    this.vaultStatus = 'DECRYPTED';
+                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
+                } catch(e) {
+                    console.error('[VAULT]', e);
+                    this.toast('Authentication failed','error');
                 }
+            },
+
+            async loadFiles() {
+                this.isLoading = true;
+                try {
+                    const { data, error } = await this.sb.from('archives')
+                        .select('*').order('created_at', { ascending:false });
+                    if (error) throw error;
+                    this.files = data || [];
+                } catch(e) {
+                    console.error('[VAULT] load:', e);
+                    this.files = [];
+                } finally { this.isLoading = false; }
+            },
+
+            async handleUpload(e) {
+                if (!this.isDirector) { this.toast('Director clearance required','error'); return; }
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 50 * 1024 * 1024) { this.toast('Max 50MB','error'); e.target.value=''; return; }
+
+                this.isUploading = true;
+                this.uploadProgress = 10;
+                try {
+                    const ext  = file.name.split('.').pop();
+                    const name = `CLASSIFIED-${Date.now()}-${Math.random().toString(36).substr(2,8)}.${ext}`;
+                    this.uploadProgress = 35;
+                    const { error:ue } = await this.sb.storage.from('vault').upload(name, file, { cacheControl:'3600', upsert:false });
+                    if (ue) throw ue;
+                    this.uploadProgress = 70;
+                    const { data:{ publicUrl } } = this.sb.storage.from('vault').getPublicUrl(name);
+                    const { error:de } = await this.sb.from('archives').insert({
+                        name:       file.name.toUpperCase(),
+                        url:        publicUrl,
+                        size:       this.formatSize(file.size),
+                        type:       ext.toUpperCase(),
+                        classification: 'CONFIDENTIAL',
+                        uploaded_by: this.currentUserId,
+                        created_at: new Date().toISOString()
+                    });
+                    if (de) throw de;
+                    this.uploadProgress = 100;
+                    this.toast('Document archived successfully','success');
+                    await this.loadFiles();
+                } catch(err) {
+                    console.error('[VAULT] upload:', err);
+                    this.toast('Archive failed: '+(err.message||'retry'),'error');
+                } finally {
+                    this.isUploading = false;
+                    setTimeout(() => this.uploadProgress = 0, 1500);
+                    e.target.value = '';
+                }
+            },
+
+            async redactFile(id) {
+                if (!this.isDirector) { this.toast('Director clearance required','error'); return; }
+                if (!confirm('REDACT THIS DOCUMENT? IRREVERSIBLE.')) return;
+                try {
+                    const { data:f } = await this.sb.from('archives').select('url').eq('id',id).single();
+                    const { error } = await this.sb.from('archives').delete().eq('id',id);
+                    if (error) throw error;
+                    if (f?.url) {
+                        const path = f.url.split('/').pop();
+                        if (path) await this.sb.storage.from('vault').remove([path]).catch(()=>{});
+                    }
+                    this.files = this.files.filter(x => x.id !== id);
+                    this.toast('Document redacted permanently','success');
+                } catch(e) { this.toast('Redaction failed','error'); }
+            },
+
+            fileIconClass(type) {
+                const t = (type||'').toLowerCase();
+                if (['pdf'].includes(t)) return 'ft-pdf';
+                if (['jpg','jpeg','png','webp','gif','svg'].includes(t)) return 'ft-img';
+                if (['mp4','mov','avi','webm'].includes(t)) return 'ft-vid';
+                if (['doc','docx','txt','md'].includes(t)) return 'ft-doc';
+                return 'ft-gen';
+            },
+
+            fileIcon(type) {
+                const t = (type||'').toLowerCase();
+                if (['pdf'].includes(t)) return 'file-text';
+                if (['jpg','jpeg','png','webp','gif','svg'].includes(t)) return 'image';
+                if (['mp4','mov','avi','webm'].includes(t)) return 'video';
+                if (['doc','docx','txt','md'].includes(t)) return 'file-text';
+                return 'file';
+            },
+
+            classificationClass(c) {
+                return { 'TOP SECRET':'class-top-secret', 'SECRET':'class-secret', 'CONFIDENTIAL':'class-confidential', 'UNCLASSIFIED':'class-unclassified' }[c] || 'class-confidential';
+            },
+
+            formatSize(bytes) {
+                if (!bytes) return '—';
+                const k=1024, sizes=['B','KB','MB','GB'];
+                const i=Math.floor(Math.log(bytes)/Math.log(k));
+                return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
+            },
+
+            timeAgo(ts) {
+                if (!ts) return '—';
+                const s=(Date.now()-new Date(ts))/1000;
+                if (s<60) return Math.floor(s)+'s ago';
+                if (s<3600) return Math.floor(s/60)+'m ago';
+                if (s<86400) return Math.floor(s/3600)+'h ago';
+                return Math.floor(s/86400)+'d ago';
+            },
+
+            logout() {
+                try { this.sb?.auth?.signOut(); } catch(_) {}
+                localStorage.removeItem('userRole');
+                window.location.href = '../login.html';
+            },
+
+            toast(message, type='info') {
+                const cfg={success:{bg:'#052010',border:'rgba(0,212,170,0.4)',color:'#4aecd4'},error:{bg:'#1a0404',border:'rgba(220,38,38,0.45)',color:'#f87171'},warning:{bg:'#1a1000',border:'rgba(212,175,55,0.4)',color:'#fcd34d'},info:{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'}}[type]||{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'};
+                const t=document.createElement('div');const m=window.innerWidth<640;
+                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:16px;right:16px;transform:translateX(120%)'};background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:12px;padding:11px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.8);display:flex;align-items:center;gap:8px;max-width:min(90vw,360px);`;
+                t.textContent=message;document.body.appendChild(t);
+                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';},20));
+                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),350);},4000);
             }
-        }
+        };
+    }
     </script>
 </head>
-<body x-data="vaultEngine()" x-init="init()" x-cloak class="bg-black text-white min-h-screen relative overflow-x-hidden selection:bg-gold/30">
 
-    <div class="bg-circuit-pattern"></div>
-    <div class="bg-grid-gold fixed inset-0 z-0 opacity-10"></div>
-    <div class="circuit-vignette"></div>
+<body x-data="vaultEngine()" x-init="init()" x-cloak class="bg-black min-h-screen">
 
-    <!-- Error Display -->
-    <div x-show="authError" x-cloak class="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500/10 border border-red-500/30 px-6 py-3 rounded-lg">
-        <p class="text-xs text-red-400 uppercase tracking-wider" x-text="authError"></p>
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vignette" aria-hidden="true"></div>
+
+<!-- Gate -->
+<template x-if="view==='gate'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black">
+    <div style="width:52px;height:52px;position:relative">
+        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
     </div>
+    <div class="text-center space-y-2">
+        <p class="orbit text-xs tracking-widest" style="color:var(--gold)">Bypassing Vault Encryption <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+    </div>
+</div>
+</template>
 
-    <template x-if="view === 'gate'">
-        <div class="h-screen flex flex-col items-center justify-center space-y-6 relative z-50">
-            <div class="loader-gold"></div>
-            <p class="terminal-font text-[11px] text-gold animate-pulse uppercase tracking-[0.5em]">Bypassing Vault Encryption...</p>
-            <p x-show="authError" class="text-[10px] text-red-500 uppercase tracking-wider" x-text="authError"></p>
+<!-- Active -->
+<template x-if="view==='active'">
+<div class="relative z-10 min-h-screen fade-up">
+
+    <!-- Nav -->
+    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.12)">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px;font-size:0.6rem">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </a>
+                <img src="../assets/images/logo.png" alt="M.O.G." style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px var(--gold-glow))" onerror="this.style.display='none'">
+                <div>
+                    <p class="orbit font-black text-base sm:text-lg uppercase" style="color:var(--gold);line-height:1.1">Classified Vault</p>
+                    <p class="slogan">Archive Repository // Sector 7G</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Vault status -->
+                <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.12)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--teal)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                    <p class="orbit font-bold text-teal" style="font-size:0.58rem;letter-spacing:0.1em" x-text="vaultStatus"></p>
+                </div>
+                <!-- Upload director only -->
+                <template x-if="isDirector">
+                    <label class="btn btn-gold px-3 py-2 rounded-xl cursor-pointer" style="font-size:0.6rem;min-height:unset" :class="isUploading?'opacity-50':''">
+                        <svg x-show="!isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <svg x-show="isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                        <span x-text="isUploading?'Archiving...':'Archive Data'"></span>
+                        <input type="file" @change="handleUpload($event)" class="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.mov,.zip" :disabled="isUploading">
+                    </label>
+                </template>
+                <button @click="logout()" class="btn btn-red p-2 rounded-xl" style="min-height:unset;padding:7px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
         </div>
-    </template>
 
-    <template x-if="view === 'active'">
-        <div class="max-w-6xl mx-auto p-6 md:p-12 z-10 relative animate-fade-in">
-            
-            <header class="p-8 glass-vault rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center gap-8 mb-16 shadow-2xl">
-                <div class="flex items-center gap-6">
-                    <button onclick="window.location.href='../index.html'" class="p-4 bg-white/5 rounded-2xl border border-white/10 hover:border-gold transition-all group">
-                        <i data-lucide="chevron-left" class="text-gold group-hover:scale-110"></i>
-                    </button>
-                    <div>
-                        <h1 class="text-3xl font-black uppercase italic tracking-tighter text-gold leading-none">Classified Vault</h1>
-                        <p class="text-[10px] text-zinc-600 font-black uppercase tracking-[0.4em] mt-2 italic">Archive Repository // Sector 7G</p>
+        <!-- Upload progress -->
+        <template x-if="uploadProgress>0">
+            <div class="upload-bar mx-4 sm:mx-6 mb-2">
+                <div class="upload-fill" :style="'width:'+uploadProgress+'%'"></div>
+            </div>
+        </template>
+        <div class="gold-line" style="opacity:0.2"></div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <p class="orbit font-bold text-gold uppercase" style="font-size:0.65rem;letter-spacing:0.15em">Secure Directory</p>
+            </div>
+            <p class="mono text-gray-600" style="font-size:0.58rem" x-text="files.length+' documents found'"></p>
+        </div>
+
+        <!-- Loading -->
+        <template x-if="isLoading">
+            <div class="flex items-center justify-center py-16 gap-3">
+                <div style="width:28px;height:28px;border:3px solid transparent;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite"></div>
+                <p class="orbit text-xs text-gold tracking-widest">Decrypting Contents...</p>
+            </div>
+        </template>
+
+        <!-- Files -->
+        <template x-if="!isLoading">
+            <div class="space-y-3">
+                <!-- Empty state -->
+                <template x-if="!files.length">
+                    <div class="flex flex-col items-center justify-center py-24 gap-4 rounded-3xl" style="opacity:0.2;border:2px dashed rgba(212,175,55,0.2)">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <p class="orbit text-sm uppercase tracking-widest" style="color:var(--gold)">Vault Records Purged or Encrypted</p>
+                        <p class="mono text-gray-600" style="font-size:0.58rem" x-show="isDirector">Use Archive Data to add documents to the vault</p>
                     </div>
-                </div>
+                </template>
 
-                <div class="flex items-center gap-8">
-                    <div class="hidden sm:block text-right">
-                        <p class="text-[9px] text-zinc-700 font-black uppercase tracking-widest">Vault Status</p>
-                        <p class="text-xs font-black terminal-font text-electric" x-text="vaultStatus"></p>
-                    </div>
-                    
-                    <!-- Session Controls -->
-                    <button @click="terminateSession()" class="p-3 bg-white/5 rounded-xl border border-white/10 hover:border-red-500 hover:text-red-400 transition-all" title="Terminate Session">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
-
-                    <template x-if="isDirector">
-                        <label class="cursor-pointer bg-gold text-black px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3">
-                            <i data-lucide="file-plus" class="w-4 h-4"></i>
-                            <span x-text="isLoading ? 'Archiving...' : 'Archive Data'"></span>
-                            <input type="file" @change="handleUpload" class="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.mov">
-                        </label>
-                    </template>
-                </div>
-            </header>
-
-            <div class="grid grid-cols-1 gap-6">
-                <div class="flex items-center justify-between px-6 mb-4">
-                    <h3 class="text-xs font-black uppercase text-gold tracking-[0.3em] italic flex items-center gap-3">
-                        <i data-lucide="folder-lock" class="w-4 h-4 text-electric"></i> Secure Directory
-                    </h3>
-                    <span class="terminal-font text-[9px] text-zinc-500 uppercase" x-text="files.length + ' Documents Found'"></span>
-                </div>
-
-                <div class="space-y-4">
-                    <template x-for="file in files" :key="file.id">
-                        <div class="file-row glass-vault p-8 rounded-[2.5rem] border border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg">
-                            <div class="flex items-center gap-8">
-                                <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
-                                    <i data-lucide="file-text" class="text-gold"></i>
-                                </div>
-                                <div>
-                                    <p class="text-[11px] font-black uppercase text-white tracking-widest" x-text="file.name"></p>
-                                    <div class="flex gap-4 mt-1">
-                                        <span class="text-[8px] text-zinc-600 font-black uppercase" x-text="file.size"></span>
-                                        <span class="text-[8px] text-electric font-black uppercase tracking-tighter" x-text="'Level: ' + (file.classification || 'CONFIDENTIAL')"></span>
-                                    </div>
-                                </div>
+                <template x-for="file in files" :key="file.id">
+                    <div class="file-row glass p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <!-- File info -->
+                        <div class="flex items-center gap-4 flex-1 min-w-0">
+                            <!-- Icon -->
+                            <div class="p-3 rounded-xl flex-shrink-0" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
+                                <i :data-lucide="fileIcon(file.type)" class="w-5 h-5" :class="fileIconClass(file.type)"></i>
                             </div>
-
-                            <div class="flex items-center gap-4">
-                                <a :href="file.url" download class="p-4 bg-white/5 text-zinc-400 rounded-xl border border-white/5 hover:text-white hover:bg-white/10 transition-all" title="Download">
-                                    <i data-lucide="download" class="w-5 h-5"></i>
-                                </a>
-                                <template x-if="isDirector">
-                                    <button @click="redactFile(file.id)" class="redact-btn p-4 bg-white/5 text-red-500 border border-red-900/20 rounded-xl transition-all" title="Redact Document">
-                                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                    </button>
-                                </template>
+                            <!-- Details -->
+                            <div class="flex-1 min-w-0">
+                                <p class="orbit font-bold text-white uppercase truncate" style="font-size:0.75rem" x-text="file.name"></p>
+                                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                                    <span class="orbit font-bold px-2 py-0.5 rounded" style="font-size:0.52rem" :class="classificationClass(file.classification)" x-text="file.classification||'CONFIDENTIAL'"></span>
+                                    <span class="mono text-gray-600" style="font-size:0.56rem" x-text="file.size||'—'"></span>
+                                    <span class="mono text-gray-700" style="font-size:0.54rem" x-text="timeAgo(file.created_at)"></span>
+                                    <span x-show="file.type" class="mono text-gray-700 uppercase" style="font-size:0.52rem" x-text="'.'+file.type"></span>
+                                </div>
                             </div>
                         </div>
-                    </template>
-                    
-                    <div x-show="files.length === 0" class="py-32 text-center opacity-20 bg-white/[0.01] rounded-[4rem] border border-dashed border-gold/20">
-                        <i data-lucide="lock" class="mx-auto mb-6 w-16 h-16 text-gold"></i>
-                        <p class="terminal-font text-xs uppercase tracking-[0.5em]">Vault Records Purged or Encrypted</p>
+                        <!-- Actions -->
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <a :href="file.url" :download="file.name" class="btn btn-gold p-2.5 rounded-xl" style="min-height:unset" title="Download">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            </a>
+                            <a :href="file.url" target="_blank" class="btn btn-teal p-2.5 rounded-xl" style="min-height:unset" title="Preview">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </a>
+                            <template x-if="isDirector">
+                                <button @click="redactFile(file.id)" class="btn btn-red p-2.5 rounded-xl" style="min-height:unset" title="Redact Document">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                </button>
+                            </template>
+                        </div>
                     </div>
-                </div>
+                </template>
             </div>
+        </template>
 
-            <div class="mt-20 grid grid-cols-2 md:grid-cols-5 gap-4">
-                <button onclick="window.location.href='../index.html'" class="p-6 glass-vault rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center group">
-                    <i data-lucide="layout-grid" class="mx-auto mb-2 text-zinc-500 group-hover:text-gold w-5 h-5"></i>
-                    <span class="text-[8px] font-black uppercase">Hub</span>
-                </button>
-                <button onclick="window.location.href='dossier.html'" class="p-6 glass-vault rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center group">
-                    <i data-lucide="shield-check" class="mx-auto mb-2 text-zinc-500 group-hover:text-gold w-5 h-5"></i>
-                    <span class="text-[8px] font-black uppercase">Dossier</span>
-                </button>
-                <button onclick="window.location.href='gallery.html'" class="p-6 glass-vault rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center group">
-                    <i data-lucide="camera" class="mx-auto mb-2 text-zinc-500 group-hover:text-gold w-5 h-5"></i>
-                    <span class="text-[8px] font-black uppercase">Gallery</span>
-                </button>
-                <button onclick="window.location.href='frequency.html'" class="p-6 glass-vault rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center group">
-                    <i data-lucide="activity" class="mx-auto mb-2 text-zinc-500 group-hover:text-gold w-5 h-5"></i>
-                    <span class="text-[8px] font-black uppercase">Freq</span>
-                </button>
-                <button onclick="window.location.href='dispatch.html'" class="p-6 glass-vault rounded-[2rem] border border-white/5 hover:border-gold transition-all text-center group">
-                    <i data-lucide="radio" class="mx-auto mb-2 text-zinc-500 group-hover:text-gold w-5 h-5"></i>
-                    <span class="text-[8px] font-black uppercase">Dispatch</span>
-                </button>
-            </div>
-
-            <footer class="mt-32 pt-10 border-t border-white/5 text-center text-zinc-800">
-                <p class="terminal-font text-[10px] uppercase tracking-[0.6em] italic">
-                    DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID. © 2026
-                </p>
-            </footer>
+        <!-- Quick nav -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-8">
+            <template x-for="node in [
+                {label:'Hub',       url:'../index.html',  icon:'layout-grid'},
+                {label:'Dossier',   url:'dossier.html',   icon:'shield-check'},
+                {label:'Gallery',   url:'gallery.html',   icon:'camera'},
+                {label:'Frequency', url:'frequency.html', icon:'activity'},
+                {label:'Dispatch',  url:'dispatch.html',  icon:'radio'}
+            ]" :key="node.url">
+                <a :href="node.url" class="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.3)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
+                    <i :data-lucide="node.icon" class="text-gold" style="width:20px;height:20px"></i>
+                    <span class="orbit font-bold text-white uppercase" style="font-size:0.56rem" x-text="node.label"></span>
+                </a>
+            </template>
         </div>
-    </template>
+    </main>
+
+    <footer class="text-center py-6 mt-4" style="border-top:1px solid rgba(212,175,55,0.06)">
+        <p class="slogan">Decrypting the Culture. Synchronizing the Grid. © 2026</p>
+        <p class="mono text-gray-800 mt-1" style="font-size:0.52rem;letter-spacing:0.2em">MINISTRY OF GROOVE // CLASSIFIED VAULT // SECTOR 7G</p>
+    </footer>
+</div>
+</template>
 
 </body>
 </html>
