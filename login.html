@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/js/config.js"></script>
     <script src="/js/supabase-client.js"></script>
-    <script src="/js/auth.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
@@ -34,7 +33,6 @@
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         html { height: 100%; }
 
         body {
@@ -108,7 +106,6 @@
             90%{transform:translateX(3px)}
         }
 
-        /* Top flowing line */
         .card::before {
             content: ''; position: absolute; top: 0; left: -100%; height: 2px; width: 100%;
             background: linear-gradient(90deg, transparent, var(--teal), var(--gold-bright), var(--teal), transparent);
@@ -116,7 +113,6 @@
         }
         @keyframes cardFlow { to { left: 100%; } }
 
-        /* Corner brackets */
         .card::after {
             content: ''; position: absolute;
             bottom: 20px; right: 20px;
@@ -136,13 +132,11 @@
         /* ── Logo ring ── */
         .logo-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
 
-        /* Outer decorative ring — slow counter-rotate */
         .logo-ring-outer {
             position: relative;
             width: 128px; height: 128px;
             margin-bottom: 0.9rem;
         }
-        /* Spinning conic gradient ring */
         .logo-spin {
             position: absolute; inset: 0; border-radius: 50%; padding: 3px;
             background: conic-gradient(from 0deg,
@@ -154,14 +148,12 @@
                 0 0 48px rgba(0,212,170,0.15),
                 inset 0 0 16px rgba(0,0,0,0.8);
         }
-        /* Inner black background ring */
         .logo-spin > div {
             width: 100%; height: 100%; border-radius: 50%;
             background: #000;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
-        /* The actual seal image — show it big and crisp */
         .logo-spin img {
             width: 92%; height: 92%;
             object-fit: contain;
@@ -176,23 +168,16 @@
                 drop-shadow(0 0 18px rgba(212,175,55,0.75))
                 drop-shadow(0 0 36px rgba(0,212,170,0.35));
         }
-
-        /* Slow outer dashed ring (decorative) */
         .logo-ring-outer::before {
             content: '';
-            position: absolute;
-            inset: -6px;
-            border-radius: 50%;
+            position: absolute; inset: -6px; border-radius: 50%;
             border: 1px dashed rgba(212,175,55,0.2);
             animation: ringRotate 40s linear infinite reverse;
             pointer-events: none;
         }
-        /* Pulsing glow ring */
         .logo-ring-outer::after {
             content: '';
-            position: absolute;
-            inset: -3px;
-            border-radius: 50%;
+            position: absolute; inset: -3px; border-radius: 50%;
             border: 1px solid rgba(0,212,170,0.12);
             animation: sealPulse 3s ease-in-out infinite;
             pointer-events: none;
@@ -288,7 +273,7 @@
             padding: 0.9rem 1rem 0.9rem 2.6rem;
             color: #e8f0ee;
             font-family: 'Share Tech Mono', monospace;
-            font-size: max(16px, var(--text-sm)); /* prevent iOS zoom */
+            font-size: max(16px, var(--text-sm));
             outline: none;
             transition: border-color 0.25s, box-shadow 0.25s;
         }
@@ -314,14 +299,11 @@
             cursor: pointer; opacity: 0.4; transition: opacity 0.2s;
             background: none; border: none; padding: 4px;
             color: var(--teal); display: flex; align-items: center; justify-content: center;
-            min-height: unset; /* override global 44px for this specific small icon */
+            min-height: unset;
         }
         .eye-toggle:hover { opacity: 0.9; }
         .eye-toggle svg { width: 16px; height: 16px; }
-        /* When password is visible, colour the eye gold */
         .eye-toggle.active { opacity: 0.9; color: var(--gold); }
-
-        /* Reticle SVG style */
         .reticle-svg { width: 16px; height: 16px; }
 
         /* ── Primary button ── */
@@ -363,18 +345,14 @@
         .bio-section.verified { border-color: var(--gold); }
         .bio-section.failed   { border-color: var(--red); }
 
-        .bio-fp {
-            width: 48px; height: 56px; position: relative;
-        }
-        /* Fingerprint SVG lines */
+        .bio-fp { width: 48px; height: 56px; position: relative; }
         .bio-fp svg { width: 100%; height: 100%; }
 
         .bio-laser {
             position: absolute; left: 0; right: 0; height: 2px; top: 0;
             background: linear-gradient(90deg, transparent, var(--teal), rgba(0,212,170,0.5), var(--teal), transparent);
             box-shadow: 0 0 8px var(--teal), 0 0 20px rgba(0,212,170,0.4);
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.2s;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
         }
         .bio-section.scanning .bio-laser {
             opacity: 1;
@@ -389,8 +367,7 @@
         .bio-label {
             font-family: 'Orbitron', sans-serif; font-size: 0.6rem;
             letter-spacing: 0.25em; text-transform: uppercase;
-            color: var(--teal); opacity: 0.6;
-            transition: color 0.3s, opacity 0.3s;
+            color: var(--teal); opacity: 0.6; transition: color 0.3s, opacity 0.3s;
         }
         .bio-section.scanning .bio-label { color: var(--teal); opacity: 1; }
         .bio-section.verified .bio-label { color: var(--gold); opacity: 1; }
@@ -414,8 +391,7 @@
             margin-bottom: 0.75rem;
             font-family: 'Orbitron', sans-serif; font-size: 0.58rem;
             letter-spacing: 0.15em; text-transform: uppercase;
-            color: #f87171;
-            text-align: center; line-height: 1.5;
+            color: #f87171; text-align: center; line-height: 1.5;
         }
         .intruder-banner.show { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
@@ -464,19 +440,15 @@
         }
         .loading-overlay.show { display: flex; }
 
-        .loader-rings {
-            position: relative; width: 64px; height: 64px;
-        }
+        .loader-rings { position: relative; width: 64px; height: 64px; }
         .loader-ring-1 {
             position: absolute; inset: 0; border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: var(--gold);
+            border: 2px solid transparent; border-top-color: var(--gold);
             animation: spin 1s linear infinite;
         }
         .loader-ring-2 {
             position: absolute; inset: 8px; border-radius: 50%;
-            border: 2px solid transparent;
-            border-bottom-color: var(--teal);
+            border: 2px solid transparent; border-bottom-color: var(--teal);
             animation: spin 1.4s linear infinite reverse;
         }
         .loader-center {
@@ -501,22 +473,14 @@
         }
 
         /* ── Attempt counter pips ── */
-        .attempt-pips {
-            display: flex; gap: 5px; justify-content: center;
-            margin-bottom: 0.6rem;
-        }
+        .attempt-pips { display: flex; gap: 5px; justify-content: center; margin-bottom: 0.6rem; }
         .pip {
             width: 7px; height: 7px; border-radius: 50%;
             border: 1px solid rgba(220,38,38,0.4);
-            background: transparent;
-            transition: background 0.3s, box-shadow 0.3s;
+            background: transparent; transition: background 0.3s, box-shadow 0.3s;
         }
-        .pip.filled {
-            background: var(--red);
-            box-shadow: 0 0 8px var(--red);
-        }
+        .pip.filled { background: var(--red); box-shadow: 0 0 8px var(--red); }
 
-        /* misc */
         button, a { touch-action: manipulation; }
         ::-webkit-scrollbar { display: none; }
     </style>
@@ -618,10 +582,7 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
             <input type="password" id="passwordInput" class="field-input" placeholder="ACCESS CODE" autocomplete="current-password" required style="padding-right:2.8rem">
-
-            <!-- Cyber-Eye / Reticle toggle -->
             <button type="button" class="eye-toggle" id="eyeToggle" onclick="togglePassword()" title="Reveal access code">
-                <!-- Reticle icon (scope crosshair) — eye-closed by default -->
                 <svg class="reticle-svg" id="eyeIconClosed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                     <circle cx="12" cy="12" r="7"></circle>
                     <line x1="12" y1="1"  x2="12" y2="5"></line>
@@ -629,7 +590,6 @@
                     <line x1="1"  y1="12" x2="5"  y2="12"></line>
                     <line x1="19" y1="12" x2="23" y2="12"></line>
                     <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
-                    <line x1="3" y1="3" x2="21" y2="21" stroke-width="1.5" style="display:none" id="eyeSlash"></line>
                 </svg>
                 <svg class="reticle-svg" id="eyeIconOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none">
                     <circle cx="12" cy="12" r="7"></circle>
@@ -651,7 +611,6 @@
         <!-- Biometric Scanner -->
         <div class="bio-section" id="bioSection" onclick="runBioScan()" role="button" tabindex="0" aria-label="Biometric scan">
             <div class="bio-fp">
-                <!-- Fingerprint SVG -->
                 <svg viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M24 4C13 4 4 13 4 24c0 6 2 11 5 15" stroke="rgba(0,212,170,0.5)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
                     <path d="M24 9c-8.3 0-15 6.7-15 15 0 4.5 1.5 8.5 4 11.5" stroke="rgba(0,212,170,0.45)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
@@ -662,7 +621,6 @@
                     <path d="M39 24c0 8.3-6.7 15-15 15" stroke="rgba(0,212,170,0.45)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
                     <path d="M34 24c0 5.5-4.5 10-10 10" stroke="rgba(0,212,170,0.4)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
                     <path d="M29 24c0 2.8-2.2 5-5 5" stroke="rgba(0,212,170,0.45)" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-                    <!-- center dot -->
                     <circle cx="24" cy="24" r="1.5" fill="rgba(0,212,170,0.6)"/>
                 </svg>
                 <div class="bio-laser" id="bioLaser"></div>
@@ -699,7 +657,8 @@
 
     <script>
     /* ═══════════════════════════════════════════════════════════════
-       M.O.G. LOGIN — FULL SYSTEM v2.0
+       M.O.G. LOGIN — FULL SYSTEM v2.1
+       Rank-based routing: DIRECTOR → directorate.html | OPERATIVE → index.html
        Features: Google OAuth, Password Auth, Magic Link, Biometric UI,
                  Intruder Alert, Haptics, Grid Status, Cyber-Eye, SFX
     ═══════════════════════════════════════════════════════════════ */
@@ -707,23 +666,51 @@
     /* ── Supabase getter ── */
     function getSb() { return window.sb || window.supabaseClient; }
 
-    async function waitForAuth() {
-        let n = 0;
-        while (typeof window.MOGAuth === 'undefined' && n < 50) {
-            await new Promise(r => setTimeout(r, 100)); n++;
+    /* ── State ── */
+    let failedAttempts  = 0;
+    const MAX_ATTEMPTS  = 3;
+    let soundEnabled    = false;
+    let passwordVisible = false;
+    let bioState        = 'idle';
+    let audioCtx        = null;
+
+    /* ══════════════════════════════════════════════════════
+       RANK-BASED ROUTING — Director vs. Operative
+       Called after every successful authentication.
+    ══════════════════════════════════════════════════════ */
+    async function routeByRank(userId) {
+        try {
+            const client = getSb();
+            if (!client) throw new Error('client unavailable');
+
+            const { data: profile } = await client
+                .from('profiles')
+                .select('rank')
+                .eq('id', userId)
+                .single();
+
+            if (profile?.rank === 'DIRECTOR') {
+                // Store role in localStorage so directorate.html boot check passes
+                localStorage.setItem('userRole', 'director');
+                localStorage.setItem('clearanceLevel', 'ALPHA');
+                setLoading(true, 'DIRECTOR CLEARANCE CONFIRMED', 'Routing to Command Center...');
+                window.location.href = '/pages/directorate.html';
+            } else {
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('clearanceLevel');
+                setLoading(true, 'ACCESS GRANTED', 'Synchronizing operative profile...');
+                window.location.href = '/index.html';
+            }
+        } catch(_) {
+            // If profile fetch fails, default to operative hub — never block login
+            setLoading(true, 'ACCESS GRANTED', 'Synchronizing operative profile...');
+            window.location.href = '/index.html';
         }
-        return window.MOGAuth || null;
     }
 
-    /* ── State ── */
-    let failedAttempts   = 0;
-    const MAX_ATTEMPTS   = 3;
-    let soundEnabled     = false;
-    let passwordVisible  = false;
-    let bioState         = 'idle'; // idle | scanning | verified | failed
-    let audioCtx         = null;
-
-    /* ══════════════ AUDIO ENGINE ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       AUDIO ENGINE
+    ══════════════════════════════════════════════════════ */
     function getAudioCtx() {
         if (!audioCtx) {
             try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(_) {}
@@ -738,9 +725,8 @@
             if (!ctx) return;
             const osc  = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type      = type;
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = type;
             osc.frequency.setValueAtTime(freq, ctx.currentTime);
             gain.gain.setValueAtTime(volume, ctx.currentTime);
             if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
@@ -749,7 +735,7 @@
         } catch(_) {}
     }
 
-    function sfxClick()   { playTone(880, 'sine',   0.08, 0.08); }
+    function sfxClick()   { playTone(880, 'sine', 0.08, 0.08); }
     function sfxSuccess() {
         playTone(523, 'sine', 0.15, 0.1);
         setTimeout(() => playTone(659, 'sine', 0.15, 0.1), 120);
@@ -760,7 +746,6 @@
         setTimeout(() => playTone(150, 'sawtooth', 0.2, 0.1), 150);
     }
     function sfxScan() {
-        // Ascending sweep for biometric scan
         try {
             if (!soundEnabled) return;
             const ctx = getAudioCtx();
@@ -777,46 +762,26 @@
             osc.stop(ctx.currentTime + 1.3);
         } catch(_) {}
     }
-    function sfxHum() {
-        // Background hum (very quiet)
-        playTone(60, 'sine', 0.5, 0.03, false);
-    }
 
     function toggleSound() {
         soundEnabled = !soundEnabled;
         const btn = document.getElementById('soundToggle');
         const lbl = document.getElementById('soundLabel');
-        if (soundEnabled) {
-            btn.classList.add('on');
-            lbl.textContent = 'ON';
-            // Init audio context on user gesture
-            getAudioCtx();
-            sfxClick();
-        } else {
-            btn.classList.remove('on');
-            lbl.textContent = 'SFX';
-        }
+        if (soundEnabled) { btn.classList.add('on'); lbl.textContent = 'ON'; getAudioCtx(); sfxClick(); }
+        else { btn.classList.remove('on'); lbl.textContent = 'SFX'; }
         haptic(10);
     }
 
-    /* ══════════════ HAPTICS ══════════════ */
-    function haptic(ms = 20) {
-        try {
-            if (navigator.vibrate) navigator.vibrate(ms);
-        } catch(_) {}
-    }
-    function hapticError() {
-        try {
-            if (navigator.vibrate) navigator.vibrate([40, 30, 40, 30, 80]);
-        } catch(_) {}
-    }
-    function hapticSuccess() {
-        try {
-            if (navigator.vibrate) navigator.vibrate([30, 20, 60]);
-        } catch(_) {}
-    }
+    /* ══════════════════════════════════════════════════════
+       HAPTICS
+    ══════════════════════════════════════════════════════ */
+    function haptic(ms = 20)  { try { if (navigator.vibrate) navigator.vibrate(ms); } catch(_) {} }
+    function hapticError()    { try { if (navigator.vibrate) navigator.vibrate([40,30,40,30,80]); } catch(_) {} }
+    function hapticSuccess()  { try { if (navigator.vibrate) navigator.vibrate([30,20,60]); } catch(_) {} }
 
-    /* ══════════════ GRID STATUS FEED ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       GRID STATUS FEED
+    ══════════════════════════════════════════════════════ */
     const statusItems = [
         () => `[NODES_ONLINE: ${Math.floor(Math.random()*8)+10}]`,
         () => `[UPLINK: STABLE]`,
@@ -844,30 +809,31 @@
         track.innerHTML = html;
     }
 
-    // Refresh status every 15s with new random values
     buildStatusTrack();
     setInterval(buildStatusTrack, 15000);
 
-    /* ══════════════ CYBER-EYE PASSWORD TOGGLE ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       CYBER-EYE PASSWORD TOGGLE
+    ══════════════════════════════════════════════════════ */
     function togglePassword() {
-        const input    = document.getElementById('passwordInput');
-        const eyeOpen  = document.getElementById('eyeIconOpen');
-        const eyeClosed= document.getElementById('eyeIconClosed');
-        const toggle   = document.getElementById('eyeToggle');
+        const input     = document.getElementById('passwordInput');
+        const eyeOpen   = document.getElementById('eyeIconOpen');
+        const eyeClosed = document.getElementById('eyeIconClosed');
+        const toggle    = document.getElementById('eyeToggle');
         passwordVisible = !passwordVisible;
         input.type = passwordVisible ? 'text' : 'password';
-        eyeOpen.style.display  = passwordVisible ? 'block' : 'none';
-        eyeClosed.style.display= passwordVisible ? 'none'  : 'block';
+        eyeOpen.style.display   = passwordVisible ? 'block' : 'none';
+        eyeClosed.style.display = passwordVisible ? 'none'  : 'block';
         toggle.classList.toggle('active', passwordVisible);
-        haptic(10);
-        sfxClick();
+        haptic(10); sfxClick();
     }
 
-    /* ══════════════ BIOMETRIC SCANNER ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       BIOMETRIC SCANNER
+    ══════════════════════════════════════════════════════ */
     function runBioScan() {
         if (bioState === 'scanning') return;
-        haptic(25);
-        sfxScan();
+        haptic(25); sfxScan();
 
         const section = document.getElementById('bioSection');
         const label   = document.getElementById('bioLabel');
@@ -879,24 +845,20 @@
         status.textContent = 'Hold still';
 
         setTimeout(() => {
-            // Check if email is filled — if so, "verify" as a UX hint
             const email = document.getElementById('emailInput').value.trim();
             if (email) {
                 bioState = 'verified';
                 section.className = 'bio-section verified';
                 label.textContent  = 'Print Verified';
                 status.textContent = 'Identity confirmed';
-                hapticSuccess();
-                sfxSuccess();
-                // Auto-focus password
+                hapticSuccess(); sfxSuccess();
                 setTimeout(() => document.getElementById('passwordInput').focus(), 300);
             } else {
                 bioState = 'failed';
                 section.className = 'bio-section failed';
                 label.textContent  = 'No Identity';
                 status.textContent = 'Enter Operative ID first';
-                hapticError();
-                sfxError();
+                hapticError(); sfxError();
                 document.getElementById('emailInput').focus();
                 setTimeout(() => {
                     bioState = 'idle';
@@ -908,18 +870,17 @@
         }, 1400);
     }
 
-    // Keyboard support for bio section
     document.getElementById('bioSection')?.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); runBioScan(); }
     });
 
-    /* ══════════════ INTRUDER ALERT ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       INTRUDER ALERT
+    ══════════════════════════════════════════════════════ */
     function recordFailedAttempt() {
         failedAttempts++;
-        hapticError();
-        sfxError();
+        hapticError(); sfxError();
 
-        // Show pips after first fail
         const pipsEl = document.getElementById('attemptPips');
         if (pipsEl) {
             pipsEl.style.display = 'flex';
@@ -930,28 +891,23 @@
         }
 
         if (failedAttempts >= MAX_ATTEMPTS) {
-            // Trigger full intruder alert
             const card   = document.getElementById('mainCard');
             const banner = document.getElementById('intruderBanner');
-            const attemptNumEl = document.getElementById('attemptNum');
-            if (attemptNumEl) attemptNumEl.textContent = failedAttempts;
+            const numEl  = document.getElementById('attemptNum');
+            if (numEl)  numEl.textContent = failedAttempts;
             if (card)   card.classList.add('intruder');
             if (banner) banner.classList.add('show');
-
-            // Log to Supabase
             logIntrusionAttempt();
 
-            // Disable login button temporarily
             const btn = document.getElementById('loginBtn');
             if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'LOCKED — 30s';
+                btn.disabled = true; btn.textContent = 'LOCKED — 30s';
                 let t = 30;
-                const countdown = setInterval(() => {
+                const cd = setInterval(() => {
                     t--;
                     if (btn) btn.textContent = `LOCKED — ${t}s`;
                     if (t <= 0) {
-                        clearInterval(countdown);
+                        clearInterval(cd);
                         failedAttempts = 0;
                         if (btn) { btn.disabled = false; btn.textContent = 'Initialize'; }
                         if (card)   card.classList.remove('intruder');
@@ -970,24 +926,22 @@
         try {
             const client = getSb();
             if (!client) return;
-            const ua = navigator.userAgent.substring(0, 120);
             await client.from('activity_log').insert({
-                type:        'INTRUSION_ATTEMPT',
-                description: `FAILED LOGIN x${failedAttempts} — UA: ${ua}`,
-                network:     'M.O.G.',
-                created_at:  new Date().toISOString()
+                type: 'INTRUSION_ATTEMPT',
+                description: `FAILED LOGIN x${failedAttempts} — UA: ${navigator.userAgent.substring(0,120)}`,
+                network: 'M.O.G.', created_at: new Date().toISOString()
             });
         } catch(_) {}
     }
 
-    /* ══════════════ MAGIC LINK ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       MAGIC LINK
+    ══════════════════════════════════════════════════════ */
     function sendMagicLink() {
-        haptic(15);
-        sfxClick();
+        haptic(15); sfxClick();
         const modal = document.getElementById('magicModal');
         if (modal) {
             modal.style.display = 'flex';
-            // Pre-fill email if already typed
             const email = document.getElementById('emailInput').value.trim();
             const magicEmail = document.getElementById('magicEmail');
             if (email && magicEmail) magicEmail.value = email;
@@ -1003,8 +957,7 @@
         const emailEl = document.getElementById('magicEmail');
         const email = emailEl?.value?.trim();
         if (!email) { emailEl?.classList.add('error'); setTimeout(() => emailEl?.classList.remove('error'), 800); return; }
-        haptic(20);
-        sfxClick();
+        haptic(20); sfxClick();
         setLoading(true, 'TRANSMITTING LINK...', 'Dispatching secure access token');
         closeMagicModal();
         try {
@@ -1012,7 +965,7 @@
             if (!client) throw new Error('Client unavailable');
             const { error } = await client.auth.signInWithOtp({
                 email,
-                options: { emailRedirectTo: window.location.origin + '/index.html' }
+                options: { emailRedirectTo: window.location.origin + '/login.html' }
             });
             if (error) throw error;
             setLoading(false);
@@ -1023,10 +976,11 @@
         }
     }
 
-    /* ══════════════ GOOGLE SIGN-IN ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       GOOGLE SIGN-IN
+    ══════════════════════════════════════════════════════ */
     async function signInWithGoogle() {
-        haptic(15);
-        sfxClick();
+        haptic(15); sfxClick();
         setLoading(true, 'REDIRECTING...', 'Connecting to Google Auth');
         try {
             const client = getSb();
@@ -1045,29 +999,27 @@
         }
     }
 
-    /* ══════════════ EMAIL + PASSWORD LOGIN ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       EMAIL + PASSWORD LOGIN  ← RANK-BASED ROUTING ADDED
+    ══════════════════════════════════════════════════════ */
     async function handleLogin(e) {
         if (e) e.preventDefault();
-        haptic(20);
-        sfxClick();
+        haptic(20); sfxClick();
 
         const emailEl = document.getElementById('emailInput');
         const passEl  = document.getElementById('passwordInput');
         const email   = emailEl?.value?.trim();
         const pass    = passEl?.value;
 
-        // Client-side validation
         if (!email) {
             emailEl?.classList.add('error');
             setTimeout(() => emailEl?.classList.remove('error'), 800);
-            hapticError(); sfxError();
-            return;
+            hapticError(); sfxError(); return;
         }
         if (!pass) {
             passEl?.classList.add('error');
             setTimeout(() => passEl?.classList.remove('error'), 800);
-            hapticError(); sfxError();
-            return;
+            hapticError(); sfxError(); return;
         }
 
         setLoading(true, 'AUTHENTICATING...', 'Verifying access credentials');
@@ -1075,31 +1027,25 @@
         try {
             const client = getSb();
             if (!client) throw new Error('Security module offline');
-            const { error } = await client.auth.signInWithPassword({ email, password: pass });
+
+            const { data, error } = await client.auth.signInWithPassword({ email, password: pass });
             if (error) throw error;
 
-            // Success
-            hapticSuccess();
-            sfxSuccess();
-            setLoading(true, 'ACCESS GRANTED', 'Synchronizing operative profile...');
+            // ── SUCCESS — check rank and route ──
+            hapticSuccess(); sfxSuccess();
+            setLoading(true, 'CREDENTIALS VERIFIED', 'Checking clearance level...');
+            await routeByRank(data.user.id);
 
-            const auth = await waitForAuth();
-            if (auth) {
-                await auth.handleLoginRedirect();
-            } else {
-                // Fallback redirect
-                window.location.href = '/index.html';
-            }
         } catch(err) {
             setLoading(false);
             recordFailedAttempt();
             passEl?.classList.add('error');
             setTimeout(() => passEl?.classList.remove('error'), 800);
-            showToast('Access denied: ' + (err.message || 'invalid credentials'), 'error');
+            showToast('ACCESS DENIED: ' + (err.message || 'Invalid credentials'), 'error');
         }
     }
 
-    // Also handle Enter key in fields
+    // Enter key support
     document.getElementById('emailInput')?.addEventListener('keydown', e => {
         if (e.key === 'Enter') document.getElementById('passwordInput')?.focus();
     });
@@ -1107,22 +1053,29 @@
         if (e.key === 'Enter') handleLogin(e);
     });
 
-    /* ══════════════ SESSION RESUME ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       SESSION RESUME  ← RANK-BASED ROUTING ADDED
+       Handles returning users and OAuth (Google) callbacks.
+    ══════════════════════════════════════════════════════ */
     window.addEventListener('load', async () => {
+        // Brief wait for Supabase to initialise
+        let tries = 0;
+        while (!getSb() && tries < 40) { await new Promise(r => setTimeout(r, 100)); tries++; }
         const client = getSb();
         if (!client) return;
+
         try {
-            const { data:{ session } } = await client.auth.getSession();
+            const { data: { session } } = await client.auth.getSession();
             if (session) {
                 setLoading(true, 'RESUMING SESSION...', 'Restoring operative access');
-                const auth = await waitForAuth();
-                if (auth) await auth.handleLoginRedirect();
-                else window.location.href = '/index.html';
+                await routeByRank(session.user.id);
             }
         } catch(_) {}
     });
 
-    /* ══════════════ LOADING + TOAST ══════════════ */
+    /* ══════════════════════════════════════════════════════
+       LOADING + TOAST HELPERS
+    ══════════════════════════════════════════════════════ */
     function setLoading(show, text = 'PROCESSING...', sub = '') {
         const overlay = document.getElementById('loadingOverlay');
         const textEl  = document.getElementById('loadingText');
