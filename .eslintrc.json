@@ -20,13 +20,17 @@
     "no-unreachable":    "error"
   },
   "globals": {
-    "Alpine":      "readonly",
-    "supabase":    "readonly",
-    "lucide":      "readonly",
-    "sb":          "readonly",
-    "MOGAuth":     "readonly",
-    "CONFIG":      "readonly",
-    "mogNetwork":  "readonly",
-    "commandCenter": "readonly"
+    "Alpine":              "readonly",
+    "supabase":            "readonly",
+    "lucide":              "readonly",
+    "sb":                  "readonly",
+    "MOGAuth":             "readonly",
+    "MOGCrypto":           "readonly",
+    "MOG_FALLBACK_CONFIG": "readonly",
+    "MOG_ENV":             "readonly",
+    "CONFIG":              "readonly",
+    "hub":                 "readonly",
+    "dossierPage":         "readonly",
+    "commandCenter":       "readonly"
   }
 }
