@@ -1,161 +1,138 @@
-/**
- * M.O.G. SERVICE WORKER — v4.0
- * ==============================
- * Cache strategy:
- *   - App shell (HTML/JS/CSS)  → Network first, cache fallback
- *   - Static assets (images)   → Cache first, network fallback
- *   - /api/*                   → Network only (never cache credentials)
- *   - External CDN scripts     → Cache first, stale-while-revalidate
- */
+/* ═══════════════════════════════════════════════════
+   M.O.G. SERVICE WORKER v3.0
+   Cache-first for assets, network-first for API
+   Background sync, push notifications
+═══════════════════════════════════════════════════ */
 
-const CACHE_VERSION  = 'mog-v4';
-const SHELL_CACHE    = `${CACHE_VERSION}-shell`;
-const ASSET_CACHE    = `${CACHE_VERSION}-assets`;
-const CDN_CACHE      = `${CACHE_VERSION}-cdn`;
+const CACHE_VERSION = 'mog-v3';
+const STATIC_CACHE  = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
-// App shell — always network-first, cached for offline fallback
-const SHELL_URLS = [
-    '/',
-    '/index.html',
-    '/login.html',
-    '/pages/gallery.html',
-    '/pages/frequency.html',
-    '/pages/dispatch.html',
-    '/pages/archives.html',
-    '/pages/dossier.html',
-    '/pages/privacy.html',
-    '/pages/tos.html',
-    '/js/config.js',
-    '/js/supabase-client.js',
-    '/js/auth.js',
-    '/js/crypto-utils.js',
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/login.html',
+  '/pages/directorate.html',
+  '/assets/images/logo.png',
+  '/js/config.js',
+  '/js/supabase-client.js',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js',
+  'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap',
 ];
 
-// CDN scripts — cache aggressively, they rarely change
-const CDN_URLS = [
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-    'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js',
-    'https://unpkg.com/lucide@latest',
-];
+/* ── Install ── */
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS).catch(() => {}))
+  );
+});
 
-// ── INSTALL ────────────────────────────────────────────────────────
-self.addEventListener('install', (event) => {
-    console.log(`[MOG SW] Installing ${CACHE_VERSION}`);
-    event.waitUntil(
-        Promise.all([
-            // Shell: cache as many as possible, ignore individual failures
-            caches.open(SHELL_CACHE).then(cache =>
-                Promise.allSettled(SHELL_URLS.map(url => cache.add(url)))
-            ),
-            // CDN: cache external scripts
-            caches.open(CDN_CACHE).then(cache =>
-                Promise.allSettled(CDN_URLS.map(url => cache.add(url)))
-            ),
-        ]).then(() => {
-            console.log('[MOG SW] Install complete — assets archived');
-            self.skipWaiting(); // Activate immediately
+/* ── Activate: clean old caches ── */
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== STATIC_CACHE && k !== DYNAMIC_CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+/* ── Fetch strategy ── */
+self.addEventListener('fetch', e => {
+  const { request } = e;
+  const url = new URL(request.url);
+
+  // Skip non-GET and Supabase API calls (always network)
+  if (request.method !== 'GET') return;
+  if (url.hostname.includes('supabase.co')) return;
+
+  // Static assets: cache-first
+  if (STATIC_ASSETS.some(a => request.url.includes(a)) || url.pathname.match(/\.(png|jpg|webp|svg|ico|woff2?|css)$/)) {
+    e.respondWith(
+      caches.match(request).then(cached => cached || fetch(request).then(res => {
+        const clone = res.clone();
+        caches.open(STATIC_CACHE).then(c => c.put(request, clone));
+        return res;
+      }))
+    );
+    return;
+  }
+
+  // HTML pages: network-first with cache fallback
+  if (request.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      fetch(request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(DYNAMIC_CACHE).then(c => c.put(request, clone));
+          return res;
         })
+        .catch(() => caches.match(request))
     );
+    return;
+  }
+
+  // Default: stale-while-revalidate
+  e.respondWith(
+    caches.match(request).then(cached => {
+      const networkFetch = fetch(request).then(res => {
+        caches.open(DYNAMIC_CACHE).then(c => c.put(request, res.clone()));
+        return res;
+      });
+      return cached || networkFetch;
+    })
+  );
 });
 
-// ── ACTIVATE & PURGE OLD CACHES ────────────────────────────────────
-self.addEventListener('activate', (event) => {
-    const KNOWN_CACHES = [SHELL_CACHE, ASSET_CACHE, CDN_CACHE];
-    event.waitUntil(
-        caches.keys().then(keys =>
-            Promise.all(
-                keys
-                    .filter(key => !KNOWN_CACHES.includes(key))
-                    .map(key => {
-                        console.log(`[MOG SW] Purging deprecated cache: ${key}`);
-                        return caches.delete(key);
-                    })
-            )
-        ).then(() => self.clients.claim()) // Take control of all tabs immediately
-    );
+/* ── Push Notifications ── */
+self.addEventListener('push', e => {
+  const data = e.data?.json() || { title: 'M.O.G. Network', body: 'New transmission received.' };
+  e.waitUntil(
+    self.registration.showNotification(data.title || 'M.O.G. Network', {
+      body: data.body || 'New transmission',
+      icon: '/assets/images/logo.png',
+      badge: '/assets/images/logo.png',
+      tag: data.tag || 'mog-push',
+      renotify: true,
+      vibrate: [100, 50, 100],
+      data: { url: data.url || '/index.html' },
+      actions: [
+        { action: 'open',    title: 'Open Hub' },
+        { action: 'dismiss', title: 'Dismiss'  },
+      ]
+    })
+  );
 });
 
-// ── FETCH ──────────────────────────────────────────────────────────
-self.addEventListener('fetch', (event) => {
-    const { request } = event;
-    const url = new URL(request.url);
-
-    // 1. Never cache API calls — always go to network
-    if (url.pathname.startsWith('/api/')) {
-        event.respondWith(fetch(request));
-        return;
-    }
-
-    // 2. Never cache Supabase requests
-    if (url.hostname.includes('supabase.co') || url.hostname.includes('supabase.in')) {
-        event.respondWith(fetch(request));
-        return;
-    }
-
-    // 3. CDN scripts — cache first, network fallback
-    if (CDN_URLS.some(cdn => request.url.startsWith(cdn.split('@')[0]))) {
-        event.respondWith(
-            caches.open(CDN_CACHE).then(cache =>
-                cache.match(request).then(cached => {
-                    if (cached) return cached;
-                    return fetch(request).then(response => {
-                        if (response.ok) cache.put(request, response.clone());
-                        return response;
-                    });
-                })
-            )
-        );
-        return;
-    }
-
-    // 4. Static assets (images, fonts) — cache first
-    if (
-        url.pathname.startsWith('/assets/') ||
-        url.pathname.startsWith('/css/') ||
-        request.destination === 'image' ||
-        request.destination === 'font'
-    ) {
-        event.respondWith(
-            caches.open(ASSET_CACHE).then(cache =>
-                cache.match(request).then(cached => {
-                    if (cached) return cached;
-                    return fetch(request).then(response => {
-                        if (response.ok) cache.put(request, response.clone());
-                        return response;
-                    }).catch(() => cached); // Return stale if network fails
-                })
-            )
-        );
-        return;
-    }
-
-    // 5. App shell — network first, cache fallback
-    event.respondWith(
-        fetch(request)
-            .then(response => {
-                if (response.ok && request.method === 'GET') {
-                    const clone = response.clone();
-                    caches.open(SHELL_CACHE).then(cache => cache.put(request, clone));
-                }
-                return response;
-            })
-            .catch(() =>
-                caches.match(request).then(cached => {
-                    if (cached) return cached;
-                    // Final fallback — serve index.html for navigation requests
-                    if (request.destination === 'document') {
-                        return caches.match('/index.html');
-                    }
-                    return new Response('Offline', { status: 503 });
-                })
-            )
-    );
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  if (e.action === 'dismiss') return;
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+      const url = e.notification.data?.url || '/index.html';
+      const existing = cs.find(c => c.url.includes(url));
+      if (existing) return existing.focus();
+      return clients.openWindow(url);
+    })
+  );
 });
 
-// ── MESSAGE HANDLER ────────────────────────────────────────────────
-// Allow pages to send 'SKIP_WAITING' to force SW update
-self.addEventListener('message', (event) => {
-    if (event.data === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
+/* ── Background Sync ── */
+self.addEventListener('sync', e => {
+  if (e.tag === 'mog-activity-sync') {
+    e.waitUntil(syncOfflineActivity());
+  }
 });
+
+async function syncOfflineActivity() {
+  // Flush any queued offline actions when connectivity returns
+  try {
+    const cache = await caches.open('mog-offline-queue');
+    const keys  = await cache.keys();
+    for (const req of keys) {
+      await fetch(req);
+      await cache.delete(req);
+    }
+  } catch(_) {}
+}
