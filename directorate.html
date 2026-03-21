@@ -8,21 +8,7 @@
 
     <!-- Supabase — loaded first, before Alpine -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Inline Supabase init (guaranteed before any other script) -->
-    <script>
-    (function(){
-        const URL = 'https://fgkljjgxecjmiiaptiug.supabase.co';
-        const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE';
-        if (typeof supabase !== 'undefined' && !window.sb) {
-            window.sb = supabase.createClient(URL, KEY, {
-                auth: { autoRefreshToken:true, persistSession:true, detectSessionInUrl:true }
-            });
-            window.supabaseClient = window.sb;
-        }
-    })();
-    </script>
-
+    <script src="/js/config.js"></script>
     <script src="/js/supabase-client.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
