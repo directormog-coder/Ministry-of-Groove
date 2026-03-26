@@ -3,927 +3,829 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#000000">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="M.O.G.">
-  <meta name="description" content="Ministry of Groove — Secure Access Terminal">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/logo.png">
-  <title>M.O.G. | SECURE ACCESS</title>
+  <title>M.O.G. | OPERATIVE HUB</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
   <script src="/js/supabase-client.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    @layer base, layout, components, animations, utilities;
+    @layer base, layout, components, utilities;
 
     @layer base {
       :root {
-        --black: #000;
-        --gold: #d4af37; --gold-bright: #f0c040; --gold-dark: #8b6914;
-        --gold-glow: rgba(212,175,55,0.4);
-        --teal: #00d4aa; --teal-dim: #006e59; --teal-glow: rgba(0,212,170,0.3);
-        --red: #dc2626; --red-glow: rgba(220,38,38,0.4);
-        --surface: rgba(5,9,7,0.96);
-        --border: rgba(0,212,170,0.15);
-        --text: #e8f0ee;
-        --safe-bottom: env(safe-area-inset-bottom, 0px);
-        --safe-top: env(safe-area-inset-top, 0px);
+        --black:#000; --surface:rgba(6,9,6,0.96);
+        --gold:#d4af37; --gold-bright:#f0c040; --gold-dark:#8b6914; --gold-glow:rgba(212,175,55,0.38);
+        --teal:#00d4aa; --teal-dim:#006e59; --teal-glow:rgba(0,212,170,0.3);
+        --red:#dc2626; --red-glow:rgba(220,38,38,0.4);
+        --text:#e8e0cc; --border:rgba(0,212,170,0.11);
+        --safe-bottom:env(safe-area-inset-bottom,0px);
+        --safe-top:env(safe-area-inset-top,0px);
       }
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { height: 100%; color-scheme: dark; }
-      body {
-        font-family: 'Rajdhani', sans-serif;
-        background: var(--black); color: var(--text);
-        min-height: 100dvh;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        overflow-x: hidden; overflow-y: auto;
-        -webkit-tap-highlight-color: transparent;
-        padding: max(1rem, var(--safe-top)) 1rem max(1rem, var(--safe-bottom));
-        padding-top: calc(max(1rem, var(--safe-top)) + 20px);
-      }
-      ::selection { background: rgba(212,175,55,0.3); color: #fff; }
-      :focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 6px; }
-      button, a { touch-action: manipulation; cursor: pointer; }
-      img { display: block; }
+      *,*::before,*::after{box-sizing:border-box}
+      html{scroll-behavior:smooth;color-scheme:dark}
+      body{font-family:'Rajdhani',sans-serif;background:var(--black);color:var(--text);min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+      ::selection{background:rgba(212,175,55,0.3);color:#fff}
+      :focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
+      img{display:block}
+      button,a{touch-action:manipulation}
+      [x-cloak]{display:none!important}
     }
 
     @layer layout {
-      .page-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-      .bg-watermark {
-        position: absolute; inset: 0;
-        background: url('/assets/images/logo.png') center/clamp(260px,70vmin,520px) no-repeat;
-        opacity: 0.05; filter: drop-shadow(0 0 60px rgba(212,175,55,0.1));
-      }
-      .bg-grid {
-        position: absolute; inset: 0;
-        background-image: linear-gradient(rgba(0,212,170,0.018) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(0,212,170,0.018) 1px, transparent 1px);
-        background-size: 48px 48px;
-      }
-      @media (max-width:480px) { .bg-grid { display: none; } }
-      .bg-vignette {
-        position: absolute; inset: 0;
-        background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.88) 100%);
-      }
-      .bg-scanline {
-        position: absolute; top: -80px; left: 0; width: 100%; height: 80px;
-        background: linear-gradient(transparent, rgba(212,175,55,0.018) 50%, transparent);
-        animation: scanline 16s linear infinite;
-      }
-      @media (max-width:640px) { .bg-scanline { display: none; } }
-      @keyframes scanline { to { top: 100dvh; } }
-
-      .card {
-        position: relative; z-index: 10;
-        width: 100%; max-width: 420px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 2rem;
-        padding: clamp(1.5rem, 5vw, 2.25rem);
-        backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-        box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 32px 80px rgba(0,0,0,0.6);
-        transition: border-color 0.4s, box-shadow 0.4s;
-        contain: layout style;
-      }
-      .card.shake {
-        border-color: var(--red) !important;
-        box-shadow: 0 0 40px rgba(220,38,38,0.2), 0 0 80px rgba(220,38,38,0.08) !important;
-        animation: cardShake 0.5s ease;
-      }
-      @keyframes cardShake {
-        0%,100%{transform:translateX(0)}
-        15%{transform:translateX(-7px)} 30%{transform:translateX(7px)}
-        45%{transform:translateX(-5px)} 60%{transform:translateX(5px)}
-        75%{transform:translateX(-2px)} 90%{transform:translateX(2px)}
-      }
+      .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,70vmin,560px);height:clamp(280px,70vmin,560px);background:url('/assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0;filter:drop-shadow(0 0 60px rgba(212,175,55,0.08))}
+      .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(0,212,170,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,0.018) 1px,transparent 1px);background-size:56px 56px}
+      @media(max-width:480px){.bg-grid{display:none}}
+      .bg-vig{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 38%,rgba(0,0,0,0.82) 100%)}
     }
 
     @layer components {
-      /* ── Card flow line ── */
-      .card::before {
-        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--teal), var(--gold-bright), var(--teal), transparent);
-        animation: cardFlow 5s linear infinite;
-      }
-      @keyframes cardFlow { to { left: 100%; } }
-      .card::after {
-        content: ''; position: absolute; bottom: 18px; right: 18px;
-        width: 16px; height: 16px;
-        border-bottom: 1.5px solid rgba(0,212,170,0.25);
-        border-right: 1.5px solid rgba(0,212,170,0.25);
-      }
-      .corner-tl {
-        position: absolute; top: 18px; left: 18px; width: 16px; height: 16px;
-        border-top: 1.5px solid rgba(212,175,55,0.25);
-        border-left: 1.5px solid rgba(212,175,55,0.25);
+      /* glass */
+      .glass{background:var(--surface);border:1px solid var(--border);box-shadow:0 2px 20px rgba(0,0,0,0.4)}
+      .glass-gold{background:rgba(10,8,2,0.96);border:1px solid rgba(212,175,55,0.16)}
+      @media(min-width:641px){.glass,.glass-gold{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}}
+
+      /* type */
+      .mono{font-family:'Share Tech Mono',monospace}
+      .orbit{font-family:'Orbitron',sans-serif}
+      .text-gold{color:var(--gold);text-shadow:0 0 10px var(--gold-glow)}
+      .text-teal{color:var(--teal);text-shadow:0 0 10px var(--teal-glow)}
+      .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.4rem,1vw,0.5rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+      .cap{font-family:'Orbitron',sans-serif;font-size:0.56rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#4b5563}
+      .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal-dim),transparent)}
+
+      /* buttons */
+      .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;transition:all 0.2s ease;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border-radius:0.75rem;position:relative;overflow:hidden}
+      .btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);transform:translateX(-100%);transition:transform 0.4s}
+      @media(hover:hover){.btn:hover::after{transform:translateX(100%)}.btn:hover{transform:translateY(-1px)}}
+      .btn:active{transform:scale(0.97)!important}
+      .btn:disabled{opacity:0.38;cursor:not-allowed;transform:none!important}
+      .btn-g{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
+      @media(hover:hover){.btn-g:hover{background:rgba(212,175,55,0.2);border-color:var(--gold-bright);box-shadow:0 0 14px var(--gold-glow)}}
+      .btn-t{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.26);color:var(--teal)}
+      @media(hover:hover){.btn-t:hover{background:rgba(0,212,170,0.18);border-color:var(--teal);box-shadow:0 0 14px var(--teal-glow)}}
+      .btn-r{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.28);color:#fca5a5}
+      @media(hover:hover){.btn-r:hover{background:rgba(220,38,38,0.2);border-color:var(--red);box-shadow:0 0 14px var(--red-glow);color:#fff}}
+
+      /* avatar ring */
+      .aring{position:relative;border-radius:50%;padding:2px;flex-shrink:0;background:conic-gradient(from 0deg,var(--gold-bright),var(--teal),var(--gold-dark),var(--teal),var(--gold-bright))}
+      .aring>div{border-radius:50%;border:2px solid #000;overflow:hidden;width:100%;height:100%;background:#000;display:flex;align-items:center;justify-content:center}
+
+      /* ticker */
+      .ticker{height:26px;overflow:hidden;background:linear-gradient(90deg,rgba(153,27,27,0.88),rgba(0,0,0,0.92),rgba(153,27,27,0.88));border-bottom:1px solid rgba(220,38,38,0.25);display:flex;align-items:center}
+      .ticker-lbl{width:50px;height:100%;flex-shrink:0;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;color:#fff;letter-spacing:0.2em;border-right:1px solid rgba(255,255,255,0.08)}
+      .ticker-trk{display:flex;white-space:nowrap;animation:tmove 28s linear infinite}
+      @keyframes tmove{0%{transform:translateX(100vw)}100%{transform:translateX(-100%)}}
+      .ticker-txt{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:0.22em;color:var(--gold);text-transform:uppercase}
+      .ticker-sep{color:rgba(220,38,38,0.5);margin:0 14px}
+
+      /* stat bars */
+      .sb{height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden;margin-top:4px}
+      .sb-g{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 5px var(--gold-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+      .sb-t{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal-dim),var(--teal));box-shadow:0 0 5px var(--teal-glow);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+      .sb-c{height:100%;border-radius:99px;background:linear-gradient(90deg,#0891b2,#22d3ee);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+      .sb-r{height:100%;border-radius:99px;background:linear-gradient(90deg,#991b1b,#ef4444);transition:width 1.3s cubic-bezier(0.34,1.56,0.64,1)}
+
+      /* tabs */
+      .tab{padding:0.48rem 0.85rem;border-radius:999px;font-family:'Orbitron',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.18s;background:transparent;border:1px solid rgba(212,175,55,0.1);color:#4b5563}
+      .tab.on{background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.35);color:var(--gold)}
+      @media(hover:hover){.tab:not(.on):hover{border-color:rgba(212,175,55,0.2);color:#9ca3af}}
+
+      /* media tile */
+      .mtile{border-radius:0.9rem;overflow:hidden;border:1px solid rgba(212,175,55,0.1);background:rgba(3,5,3,0.96);transition:all 0.28s ease;contain:layout style}
+      @media(hover:hover){.mtile:hover{border-color:rgba(212,175,55,0.3);transform:translateY(-3px);box-shadow:0 10px 32px rgba(0,0,0,0.5)}.mtile:hover .mthumb{transform:scale(1.04)}}
+      .mtile:active{transform:scale(0.99)}
+      .mthumb{width:100%;aspect-ratio:16/9;object-fit:cover;transition:transform 0.35s ease;display:block}
+      .mtype{position:absolute;top:7px;left:7px;font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 6px;border-radius:5px;background:rgba(0,0,0,0.72);color:rgba(255,255,255,0.78)}
+      .mtag{position:absolute;top:7px;right:7px;font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;padding:2px 6px;border-radius:5px}
+      .mdur{position:absolute;bottom:7px;right:7px;font-family:'Share Tech Mono',monospace;font-size:0.54rem;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,0.75);color:rgba(255,255,255,0.7)}
+
+      /* tile actions */
+      .ma{flex:1;display:flex;align-items:center;justify-content:center;gap:3px;padding:6px 3px;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all 0.16s}
+      .ma.v{background:rgba(0,212,170,0.07);border-color:rgba(0,212,170,0.2);color:var(--teal)}
+      .ma.v:hover{background:rgba(0,212,170,0.18)}
+      .ma.ls{background:rgba(212,175,55,0.07);border-color:rgba(212,175,55,0.2);color:var(--gold)}
+      .ma.ls:hover{background:rgba(212,175,55,0.18)}
+      .ma.lk{background:rgba(220,38,38,0.06);border-color:rgba(220,38,38,0.18);color:#f87171;transition:all 0.16s}
+      .ma.lk.on{background:rgba(220,38,38,0.18);border-color:rgba(220,38,38,0.42)}
+      .ma.sh{background:rgba(139,105,20,0.07);border-color:rgba(139,105,20,0.22);color:var(--gold-dark)}
+      .ma.sh:hover{background:rgba(212,175,55,0.14);color:var(--gold)}
+
+      /* op card */
+      .opc{border:1px solid rgba(0,212,170,0.1);border-radius:0.9rem;background:rgba(0,0,0,0.42);transition:all 0.18s;cursor:pointer}
+      @media(hover:hover){.opc:hover{border-color:rgba(212,175,55,0.28);transform:translateY(-1px)}}
+      .opc:active{transform:scale(0.98)}
+
+      /* rank chip */
+      .rchip{border-radius:999px;padding:1px 8px;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border:1px solid}
+
+      /* directive */
+      .dir{border-radius:0.75rem;padding:0.6rem 0.9rem;background:rgba(10,8,2,0.9);border-left:3px solid var(--gold);border-top:1px solid rgba(212,175,55,0.12);border-right:1px solid rgba(212,175,55,0.06);border-bottom:1px solid rgba(212,175,55,0.06)}
+
+      /* op id badge */
+      .opid{font-family:'Orbitron',sans-serif;font-size:7.5px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--teal);background:rgba(0,212,170,0.06);border:1px solid rgba(0,212,170,0.16);border-radius:5px;padding:2px 8px}
+
+      /* pulse */
+      .pulse{animation:pd 2.2s ease-in-out infinite}
+      @keyframes pd{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,0.45)}50%{box-shadow:0 0 0 4px rgba(0,212,170,0)}}
+
+      /* skeleton shimmer */
+      @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+      .skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.02) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.02) 75%);background-size:800px 100%;animation:shimmer 1.5s infinite;border-radius:8px;min-height:1rem}
+
+      /* lockdown */
+      @keyframes lp{0%,100%{border-color:rgba(220,38,38,0.35)}50%{border-color:rgba(220,38,38,0.9);box-shadow:0 0 22px var(--red-glow)}}
+
+      /* modal */
+      .mbg{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.93);backdrop-filter:blur(20px);display:flex;align-items:flex-end;justify-content:center}
+      @media(min-width:640px){.mbg{align-items:center;padding:1rem}}
+      .msheet{width:100%;max-width:580px;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:rgba(3,5,3,0.98);border:1px solid rgba(212,175,55,0.18)}
+      @media(max-width:639px){.msheet{border-radius:1.4rem 1.4rem 0 0}}
+      @media(min-width:640px){.msheet{border-radius:1.4rem}}
+
+      /* input */
+      .inp{width:100%;background:rgba(0,3,1,0.88);border:1px solid rgba(0,212,170,0.15);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:max(16px,0.875rem);border-radius:0.75rem;padding:0.7rem 0.9rem;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none;appearance:none}
+      .inp:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,212,170,0.05);outline:none}
+      .inp::placeholder{color:rgba(255,255,255,0.18)}
+      .inp:disabled{opacity:0.42;cursor:not-allowed}
+      select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0.8rem center;padding-right:2.2rem}
+      select.inp option{background:#060906;color:var(--text)}
+
+      /* bottom nav */
+      .bnav{display:none}
+      @media(max-width:767px){
+        .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:40;background:rgba(0,0,0,0.97);border-top:1px solid rgba(212,175,55,0.1);padding-bottom:var(--safe-bottom)}
+        main{padding-bottom:calc(70px + var(--safe-bottom))!important}
       }
 
-      /* ── Network status badge ── */
-      .net-badge {
-        position: absolute; top: 18px; right: 18px;
-        display: flex; align-items: center; gap: 5px;
-        padding: 4px 9px; border-radius: 99px;
-        background: rgba(0,0,0,0.5); border: 1px solid rgba(0,212,170,0.2);
-        font-family: 'Share Tech Mono', monospace; font-size: 0.55rem;
-        letter-spacing: 0.15em; color: rgba(0,212,170,0.7);
-        transition: all 0.3s;
-      }
-      .net-badge.offline { border-color: rgba(220,38,38,0.3); color: rgba(220,38,38,0.7); }
-      .net-dot {
-        width: 5px; height: 5px; border-radius: 50%;
-        background: var(--teal); animation: netPulse 2s ease-in-out infinite;
-      }
-      .net-badge.offline .net-dot { background: var(--red); animation: none; }
-      @keyframes netPulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+      /* pull to refresh indicator */
+      .ptr{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:center;height:50px;background:rgba(0,0,0,0.8);transform:translateY(-100%);transition:transform 0.3s;font-family:'Orbitron',sans-serif;font-size:0.58rem;color:var(--teal);letter-spacing:0.2em}
+      .ptr.show{transform:translateY(0)}
 
-      /* ── Logo section ── */
-      .logo-wrap { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.5rem; }
-      .logo-ring {
-        position: relative; width: 112px; height: 112px; margin-bottom: 0.75rem;
-        flex-shrink: 0;
-      }
-      .logo-ring-spin {
-        position: absolute; inset: 0; border-radius: 50%; padding: 2.5px;
-        background: conic-gradient(from 0deg, var(--gold-bright), var(--teal), var(--gold), var(--teal-dim), var(--gold-bright));
-        box-shadow: 0 0 20px rgba(212,175,55,0.3), 0 0 40px rgba(0,212,170,0.1);
-      }
-      .logo-ring-spin > div {
-        width: 100%; height: 100%; border-radius: 50%; background: #000;
-        display: flex; align-items: center; justify-content: center; overflow: hidden;
-      }
-      .logo-ring-spin img {
-        width: 88%; height: 88%; object-fit: contain;
-        filter: drop-shadow(0 0 8px rgba(212,175,55,0.5));
-        transition: filter 0.4s;
-      }
-      .logo-ring::before {
-        content: ''; position: absolute; inset: -8px; border-radius: 50%;
-        border: 1px dashed rgba(212,175,55,0.15);
-      }
+      /* toast */
+      .tc{position:fixed;z-index:99999;pointer-events:none}
+      @media(max-width:639px){.tc{bottom:calc(78px + var(--safe-bottom));left:1rem;right:1rem}}
+      @media(min-width:640px){.tc{top:1rem;right:1rem;width:300px}}
+      .toast{pointer-events:auto;display:flex;align-items:center;gap:8px;padding:9px 13px;border-radius:9px;font-family:'Orbitron',sans-serif;font-size:0.56rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;box-shadow:0 6px 24px rgba(0,0,0,0.8);margin-top:6px;animation:toastIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both}
+      .toast.out{animation:toastOut 0.22s ease forwards}
+      @keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(0.96)}to{opacity:1;transform:none}}
+      @keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(0.96)}}
+      .toast.success{background:#042010;border:1px solid rgba(0,212,170,0.35);color:#4aecd4}
+      .toast.error{background:#1a0404;border:1px solid rgba(220,38,38,0.4);color:#f87171}
+      .toast.info{background:#040806;border:1px solid rgba(0,212,170,0.16);color:#e8e0cc}
+      .toast.warning{background:#1a1000;border:1px solid rgba(212,175,55,0.36);color:#fcd34d}
 
-      .brand-name {
-        font-family: 'Orbitron', sans-serif; font-weight: 900;
-        font-size: clamp(1rem, 4vw, 1.35rem); letter-spacing: 0.1em;
-        background: linear-gradient(135deg, var(--gold-bright), var(--teal));
-        -webkit-background-clip: text; background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .brand-sub {
-        font-family: 'Share Tech Mono', monospace;
-        font-size: clamp(0.55rem, 1.5vw, 0.65rem);
-        color: var(--teal); opacity: 0.55; letter-spacing: 0.3em;
-        text-transform: uppercase; margin-top: 0.2rem; text-align: center;
-      }
+      /* animations */
+      .fadeup{animation:fu 0.42s cubic-bezier(0.22,1,0.36,1) both}
+      @keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+      .db span{animation:db 1.3s infinite}
+      .db span:nth-child(2){animation-delay:.2s}.db span:nth-child(3){animation-delay:.4s}
+      @keyframes db{0%,80%,100%{opacity:0}40%{opacity:1}}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .lspin{}
 
-      /* ── Attempt pips ── */
-      .pips { display: none; justify-content: center; gap: 6px; margin-bottom: 0.6rem; }
-      .pips.show { display: flex; }
-      .pip {
-        width: 8px; height: 8px; border-radius: 50%;
-        border: 1px solid rgba(220,38,38,0.35); background: transparent;
-        transition: background 0.3s, box-shadow 0.3s;
-      }
-      .pip.on { background: var(--red); box-shadow: 0 0 6px var(--red); }
+      /* loading bar (WhatsApp-style) */
+      .load-bar{position:fixed;top:0;left:0;right:0;z-index:9999;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright),var(--teal));transform-origin:left;transform:scaleX(0);transition:transform 0.3s ease}
+      .load-bar.active{animation:loadBar 1.5s ease infinite alternate}
+      @keyframes loadBar{0%{transform:scaleX(0.1)}100%{transform:scaleX(0.9)}}
+      .load-bar.done{transform:scaleX(1);transition:transform 0.2s ease,opacity 0.3s 0.3s;opacity:0}
 
-      /* ── Alert banner ── */
-      .alert-banner {
-        display: none; padding: 0.65rem 0.9rem;
-        background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.35);
-        border-radius: 0.75rem; margin-bottom: 0.75rem;
-        font-family: 'Orbitron', sans-serif; font-size: 0.56rem;
-        letter-spacing: 0.12em; text-transform: uppercase; color: #f87171;
-        text-align: center; line-height: 1.6;
-      }
-      .alert-banner.show { display: block; animation: fadeDown 0.3s ease; }
-      @keyframes fadeDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
-
-      /* ── Divider ── */
-      .divider {
-        display: flex; align-items: center; gap: 0.6rem; margin: 0.9rem 0;
-      }
-      .divider::before, .divider::after {
-        content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.07);
-      }
-      .divider span {
-        font-family: 'Share Tech Mono', monospace; font-size: 0.6rem;
-        color: rgba(255,255,255,0.25); letter-spacing: 0.1em; white-space: nowrap;
-      }
-
-      /* ── Social auth button ── */
-      .btn-social {
-        width: 100%; height: 46px; border-radius: 0.85rem;
-        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-        color: var(--text); font-family: 'Rajdhani', sans-serif; font-weight: 600;
-        font-size: clamp(0.8rem, 2.5vw, 0.9rem);
-        display: flex; align-items: center; justify-content: center; gap: 10px;
-        transition: all 0.22s ease; position: relative; overflow: hidden;
-        margin-bottom: 0.6rem;
-      }
-      .btn-social::after {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
-        transform: translateX(-100%); transition: transform 0.5s ease;
-      }
-      @media (hover:hover) {
-        .btn-social:hover::after { transform: translateX(100%); }
-        .btn-social:hover { background: rgba(255,255,255,0.09); border-color: rgba(212,175,55,0.3); }
-      }
-      .btn-social:active { transform: scale(0.98); }
-      .btn-social svg { width: 18px; height: 18px; flex-shrink: 0; }
-
-      /* ── OTP button ── */
-      .btn-otp {
-        width: 100%; padding: 0.7rem;
-        background: rgba(0,212,170,0.06); border: 1px solid rgba(0,212,170,0.2);
-        border-radius: 0.85rem; color: var(--teal);
-        font-family: 'Orbitron', sans-serif; font-size: 0.58rem; letter-spacing: 0.1em;
-        display: flex; align-items: center; justify-content: center; gap: 7px;
-        transition: all 0.22s;
-      }
-      @media (hover:hover) { .btn-otp:hover { background: rgba(0,212,170,0.13); border-color: var(--teal); box-shadow: 0 0 14px rgba(0,212,170,0.15); } }
-      .btn-otp:active { transform: scale(0.98); }
-
-      /* ── Field ── */
-      .field { position: relative; margin-bottom: 0.6rem; }
-      .field-icon {
-        position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
-        width: 14px; height: 14px; color: var(--teal); opacity: 0.35; pointer-events: none;
-      }
-      .field-input {
-        width: 100%;
-        background: rgba(0,6,4,0.88); border: 1px solid rgba(0,212,170,0.14);
-        border-radius: 0.85rem; padding: 0.85rem 0.9rem 0.85rem 2.4rem;
-        color: var(--text); font-family: 'Share Tech Mono', monospace;
-        font-size: max(16px, 0.85rem); /* prevent iOS zoom */
-        outline: none; transition: border-color 0.22s, box-shadow 0.22s;
-        -webkit-appearance: none; appearance: none;
-      }
-      .field-input:focus {
-        border-color: var(--teal);
-        box-shadow: 0 0 0 3px rgba(0,212,170,0.07);
-      }
-      .field-input.err {
-        border-color: var(--red);
-        box-shadow: 0 0 0 3px rgba(220,38,38,0.06);
-        animation: fieldShake 0.35s ease;
-      }
-      @keyframes fieldShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-      .field-input::placeholder { color: rgba(255,255,255,0.18); }
-
-      .eye-btn {
-        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-        background: none; border: none; color: var(--teal); opacity: 0.4;
-        display: flex; align-items: center; padding: 6px;
-        transition: opacity 0.2s; min-height: 0;
-      }
-      .eye-btn:hover, .eye-btn.on { opacity: 0.9; color: var(--gold); }
-      .eye-btn svg { width: 15px; height: 15px; }
-
-      /* ── Primary button ── */
-      .btn-primary {
-        width: 100%; padding: 0.9rem;
-        background: linear-gradient(135deg, var(--gold-dark), var(--gold-bright));
-        border: none; border-radius: 0.85rem;
-        color: #000; font-family: 'Orbitron', sans-serif; font-weight: 900;
-        font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.2em;
-        position: relative; overflow: hidden;
-        transition: box-shadow 0.22s, transform 0.15s;
-        margin-top: 0.2rem;
-      }
-      .btn-primary::after {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-        transform: translateX(-100%); transition: transform 0.5s;
-      }
-      @media (hover:hover) {
-        .btn-primary:hover::after { transform: translateX(100%); }
-        .btn-primary:hover { box-shadow: 0 0 24px rgba(212,175,55,0.4); transform: translateY(-1px); }
-      }
-      .btn-primary:active { transform: scale(0.98); }
-      .btn-primary:disabled { opacity: 0.38; cursor: not-allowed; transform: none !important; }
-
-      /* ── Loading overlay ── */
-      .loading-overlay {
-        position: fixed; inset: 0; z-index: 9999;
-        background: rgba(0,0,0,0.96); backdrop-filter: blur(12px);
-        display: none; flex-direction: column;
-        align-items: center; justify-content: center; gap: 1.25rem;
-      }
-      .loading-overlay.show { display: flex; }
-      .loader { position: relative; width: 60px; height: 60px; }
-      .loader-r1 {
-        position: absolute; inset: 0; border-radius: 50%;
-        border: 2px solid transparent; border-top-color: var(--gold);
-        animation: spin 0.9s linear infinite;
-      }
-      .loader-r2 {
-        position: absolute; inset: 8px; border-radius: 50%;
-        border: 2px solid transparent; border-bottom-color: var(--teal);
-        animation: spin 1.3s linear infinite reverse;
-      }
-      .loader-img {
-        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      }
-      .loader-img img { width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(212,175,55,0.5)); }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .loading-text {
-        font-family: 'Orbitron', sans-serif; font-size: 0.65rem;
-        letter-spacing: 0.35em; color: var(--gold); text-transform: uppercase; text-align: center;
-      }
-      .loading-sub {
-        font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
-        letter-spacing: 0.15em; color: rgba(0,212,170,0.5); text-transform: uppercase; text-align: center;
-      }
-
-      /* ── Install banner (PWA) ── */
-      .install-banner {
-        display: none; position: fixed;
-        bottom: calc(1rem + var(--safe-bottom)); left: 1rem; right: 1rem;
-        z-index: 800; max-width: 420px; margin: 0 auto;
-        background: rgba(5,9,7,0.98); border: 1px solid rgba(212,175,55,0.3);
-        border-radius: 1.25rem; padding: 0.9rem 1.1rem;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.7);
-        backdrop-filter: blur(20px);
-        align-items: center; gap: 0.75rem;
-        animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-      }
-      .install-banner.show { display: flex; }
-      @keyframes slideUp { from{transform:translateY(80px);opacity:0} to{transform:none;opacity:1} }
-      .install-banner img { width: 36px; height: 36px; border-radius: 8px; object-fit: contain; background: rgba(212,175,55,0.1); padding: 4px; }
-      .install-info { flex: 1; }
-      .install-info p { font-family: 'Orbitron', sans-serif; font-size: 0.62rem; font-weight: 700; color: var(--gold); letter-spacing: 0.1em; }
-      .install-info span { font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; }
-      .btn-install {
-        padding: 0.5rem 0.9rem; border-radius: 0.6rem;
-        background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.35);
-        color: var(--gold); font-family: 'Orbitron', sans-serif; font-size: 0.58rem;
-        font-weight: 700; letter-spacing: 0.1em; white-space: nowrap;
-        transition: all 0.2s;
-      }
-      .btn-install:hover { background: rgba(212,175,55,0.25); }
-      .btn-dismiss { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 1.2rem; line-height: 1; padding: 4px; }
-
-      /* ── Status ticker ── */
-      .status-bar {
-        margin-top: 1rem; padding-top: 0.6rem;
-        border-top: 1px solid rgba(0,212,170,0.07);
-        overflow: hidden; height: 18px;
-      }
-      .status-track {
-        display: inline-flex; white-space: nowrap;
-        animation: tickerMove 30s linear infinite;
-        font-family: 'Share Tech Mono', monospace; font-size: 0.55rem;
-        color: rgba(0,212,170,0.35); letter-spacing: 0.12em;
-      }
-      @keyframes tickerMove { 0%{transform:translateX(100vw)} 100%{transform:translateX(-100%)} }
-
-      /* ── Toast ── */
-      .toast-container { position: fixed; z-index: 99999; pointer-events: none; }
-      @media (max-width:639px) { .toast-container { bottom: calc(1.5rem + var(--safe-bottom)); left: 1rem; right: 1rem; } }
-      @media (min-width:640px) { .toast-container { top: 1.5rem; right: 1.5rem; width: 320px; } }
-      .toast {
-        pointer-events: auto; display: flex; align-items: center; gap: 8px;
-        padding: 10px 14px; border-radius: 10px; margin-top: 8px;
-        font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 700;
-        letter-spacing: 0.1em; text-transform: uppercase;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.7);
-        animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
-      }
-      .toast.out { animation: toastOut 0.25s ease forwards; }
-      @keyframes toastIn { from{opacity:0;transform:translateY(12px) scale(0.96)} to{opacity:1;transform:none} }
-      @keyframes toastOut { to{opacity:0;transform:translateY(8px) scale(0.96)} }
-      .toast.success { background: #052010; border: 1px solid rgba(0,212,170,0.35); color: #4aecd4; }
-      .toast.error   { background: #1a0404; border: 1px solid rgba(220,38,38,0.4);  color: #f87171; }
-      .toast.info    { background: #050a08; border: 1px solid rgba(0,212,170,0.18); color: #e8f0ee; }
-      .toast-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-      .toast.success .toast-dot { background: #4aecd4; }
-      .toast.error   .toast-dot { background: #f87171; }
-      .toast.info    .toast-dot { background: var(--teal); }
-
-            /* ── Magic link modal ── */
-      .modal-bg {
-        display: none; position: fixed; inset: 0; z-index: 9000;
-        background: rgba(0,0,0,0.9); backdrop-filter: blur(16px);
-        align-items: flex-end; justify-content: center;
-        padding-bottom: var(--safe-bottom);
-      }
-      @media (min-width:640px) { .modal-bg { align-items: center; } }
-      .modal-bg.show { display: flex; animation: fadeIn 0.2s ease; }
-      @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-      .modal-sheet {
-        width: 100%; max-width: 400px;
-        background: rgba(5,9,7,0.98); border: 1px solid rgba(0,212,170,0.2);
-        border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem;
-        animation: sheetUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-      }
-      @media (min-width:640px) { .modal-sheet { border-radius: 1.5rem; } }
-      @keyframes sheetUp { from{transform:translateY(60px);opacity:0} to{transform:none;opacity:1} }
-
-      /* ── Skeleton ── */
-      @keyframes shimmer {
-        0% { background-position: -400px 0; }
-        100% { background-position: 400px 0; }
-      }
-      .skeleton {
-        background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
-        background-size: 800px 100%;
-        animation: shimmer 1.5s infinite;
-        border-radius: 6px;
-      }
-    }
-
-    @layer animations {
-      .fade-up { animation: fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; }
-      @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
-
-      .stagger-1 { animation-delay: 0.05s; }
-      .stagger-2 { animation-delay: 0.1s; }
-      .stagger-3 { animation-delay: 0.15s; }
-      .stagger-4 { animation-delay: 0.2s; }
-      .stagger-5 { animation-delay: 0.25s; }
-      .stagger-6 { animation-delay: 0.3s; }
-      .stagger-7 { animation-delay: 0.35s; }
-      .stagger-8 { animation-delay: 0.4s; }
-    }
-
-    @layer utilities {
-      .mono { font-family: 'Share Tech Mono', monospace; }
-      .orbit { font-family: 'Orbitron', sans-serif; }
-      .text-gold { color: var(--gold); }
-      .text-teal { color: var(--teal); }
+      ::-webkit-scrollbar{width:3px;height:3px}
+      ::-webkit-scrollbar-track{background:rgba(0,0,0,0.5)}
+      ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal-dim));border-radius:4px}
+      @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
     }
   </style>
-</head>
-
-<body>
-  <!-- Background -->
-  <div class="page-bg" aria-hidden="true">
-    <div class="bg-watermark"></div>
-    <div class="bg-grid"></div>
-    <div class="bg-vignette"></div>
-    <div class="bg-scanline"></div>
-  </div>
-
-  <!-- Loading overlay -->
-  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite" aria-label="Loading">
-    <div class="loader">
-      <div class="loader-r1"></div>
-      <div class="loader-r2"></div>
-      <div class="loader-img"><img src="/assets/images/logo.png" alt="M.O.G."></div>
-    </div>
-    <div>
-      <p class="loading-text" id="loadingText">AUTHENTICATING</p>
-      <p class="loading-sub" id="loadingSub" style="margin-top:0.3rem"></p>
-    </div>
-  </div>
-  
-  <!-- Toast container -->
-  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="false"></div>
-
-  <!-- PWA Install banner -->
-  <div class="install-banner" id="installBanner" role="complementary" aria-label="Install app">
-    <img src="/assets/images/logo.png" alt="M.O.G.">
-    <div class="install-info">
-      <p>Install M.O.G.</p>
-      <span>Add to home screen for the full experience</span>
-    </div>
-    <button class="btn-install" id="installBtn" onclick="installApp()">Install</button>
-    <button class="btn-dismiss" onclick="dismissInstall()" aria-label="Dismiss">×</button>
-  </div>
-
-  <!-- Main login card -->
-  <main class="card fade-up" id="mainCard" role="main">
-    <div class="corner-tl" aria-hidden="true"></div>
-
-    <!-- Network status -->
-    <div class="net-badge" id="netBadge" aria-live="polite">
-      <div class="net-dot"></div>
-      <span id="netLabel">ONLINE</span>
-    </div>
-
-    <!-- Logo -->
-    <div class="logo-wrap">
-      <div class="logo-ring" aria-hidden="true">
-        <div class="logo-ring-spin">
-          <div><img src="/assets/images/logo.png" alt="Ministry of Groove seal" width="99" height="99"></div>
-        </div>
-      </div>
-      <p class="brand-name fade-up stagger-1">M.O.G.</p>
-      <p class="brand-sub fade-up stagger-2">Secure Access Terminal v3.0</p>
-      <p class="mono fade-up stagger-2" style="font-size:0.48rem;color:var(--teal);opacity:0.4;letter-spacing:0.25em;text-transform:uppercase;margin-top:0.2rem">Decrypting the Culture. Synchronizing the Grid.</p>
-    </div>
-
-    <!-- Intruder alert -->
-    <div class="alert-banner" id="alertBanner" role="alert" aria-live="assertive">
-      ⚠ INTRUSION DETECTED — ATTEMPT <span id="attemptNum">3</span>/3<br>
-      <span style="opacity:0.7">Incident logged to the Directorate</span>
-    </div>
-
-    <!-- Attempt pips -->
-    <div class="pips" id="pips" aria-hidden="true">
-      <div class="pip" id="pip1"></div>
-      <div class="pip" id="pip2"></div>
-      <div class="pip" id="pip3"></div>
-    </div>
-
-    <!-- Google -->
-    <button class="btn-social fade-up stagger-3" id="googleBtn" onclick="signInGoogle()" aria-label="Continue with Google">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      Continue with Google
-    </button>
-
-    <!-- Magic link -->
-    <button class="btn-otp fade-up stagger-4" onclick="openMagicModal()" aria-label="Sign in with magic link">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path>
-      </svg>
-      Magic Link / OTP Access
-    </button>
-
-    <div class="divider fade-up stagger-4"><span>Or authorize via credentials</span></div>
-
-    <!-- Email -->
-    <div class="field fade-up stagger-5">
-      <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-      <input type="email" id="emailInput" class="field-input"
-        placeholder="OPERATIVE ID (email)"
-        autocomplete="email" inputmode="email"
-        aria-label="Email address" required>
-    </div>
-
-    <!-- Password -->
-    <div class="field fade-up stagger-6">
-      <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-      </svg>
-      <input type="password" id="passwordInput" class="field-input"
-        placeholder="ACCESS CODE"
-        autocomplete="current-password"
-        aria-label="Password" required
-        style="padding-right:2.6rem">
-      <button class="eye-btn" id="eyeBtn" onclick="togglePw()" type="button" aria-label="Toggle password visibility">
-        <svg id="eyeOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-          <circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="1" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="23" y2="12"/>
-          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
-        </svg>
-        <svg id="eyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:none" aria-hidden="true">
-          <circle cx="12" cy="12" r="7"/><line x1="12" y1="1" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="1" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="23" y2="12"/>
-          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Submit -->
-    <button class="btn-primary fade-up stagger-7" id="loginBtn" onclick="handleLogin(event)">
-      Initialize Access
-    </button>
-
-    <!-- Footer -->
-    <p class="mono fade-up stagger-8" style="text-align:center;font-size:0.52rem;color:rgba(212,175,55,0.28);margin-top:1rem;letter-spacing:0.15em">
-      Ministry of Groove · Emalahleni · Est. 2026
-    </p>
-
-    <!-- Status ticker -->
-    <div class="status-bar" aria-hidden="true">
-      <div class="status-track" id="statusTrack"></div>
-    </div>
-  </main>
-
-  <!-- Magic link modal -->
-  <div class="modal-bg" id="magicModal" role="dialog" aria-modal="true" aria-label="Magic link access" onclick="if(event.target===this)closeMagicModal()">
-    <div class="modal-sheet">
-      <p class="orbit text-teal" style="font-size:0.7rem;letter-spacing:0.2em;margin-bottom:0.5rem">MAGIC LINK ACCESS</p>
-      <p class="mono" style="font-size:0.62rem;color:rgba(255,255,255,0.4);letter-spacing:0.08em;margin-bottom:1rem">We'll send a secure one-click link to your operative ID</p>
-      <div class="field">
-        <input type="email" id="magicEmail" class="field-input" placeholder="OPERATIVE ID (email)" style="padding-left:1rem" autocomplete="email" inputmode="email">
-      </div>
-      <div style="display:flex;gap:0.6rem;margin-top:0.6rem">
-        <button onclick="closeMagicModal()" style="flex:1;padding:0.75rem;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:0.75rem;color:#666;font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:0.12em">Cancel</button>
-        <button onclick="sendMagicLink()" style="flex:2;padding:0.75rem;background:linear-gradient(135deg,var(--teal-dim),var(--teal));border:none;border-radius:0.75rem;color:#000;font-family:'Orbitron',sans-serif;font-size:0.6rem;font-weight:900;letter-spacing:0.15em">Send Link</button>
-      </div>
-    </div>
-  </div>
 
   <script>
-  /* ═══════════════════════════════════════════════════════════
-     M.O.G. LOGIN v3.0 — World-class PWA gate
-     PWA · Service Worker · Rank routing · Network detection
-     Haptics · SFX · Optimistic UI · Accessibility
-  ═══════════════════════════════════════════════════════════ */
+  function hub(){return{
+    view:'loading', currentUser:null, operativeId:'',
+    profile:{username:'',codename:'',rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,
+             stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:[],joined_at:null},
+    isLoading:false, uploadProgress:0,
+    lockdownActive:false, directorateMessage:'', directorateBanner:'',
+    tickerMessages:[], tickerActive:false,
+    activeTab:'grid', showModal:false,
+    allOperatives:[], recentActivity:[], directives:[],
+    mediaAssets:[], likedAssets:new Set(), likesCounts:{}, mediaFilter:'ALL',
+    _realtimeSubs:[], isOnline:navigator.onLine,
 
-  /* ── Service Worker registration ── */
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
-  }
+    get rankColor(){return{INITIATE:'text-gray-400',AGENT:'text-teal-400',OPERATIVE:'text-cyan-400',SPECIALIST:'text-amber-400',DIRECTOR:'text-yellow-300'}[this.profile.rank]||'text-gray-400'},
+    get clearanceLevel(){return{INITIATE:1,AGENT:2,OPERATIVE:3,SPECIALIST:4,DIRECTOR:5}[this.profile.rank]||1},
+    get isDirector(){return this.profile.rank==='DIRECTOR'},
+    get filteredMedia(){return this.mediaFilter==='ALL'?this.mediaAssets:this.mediaAssets.filter(a=>(a.type||'').toUpperCase()===this.mediaFilter)},
 
-  /* ── Supabase ── */
-  const getSb = () => window.sb || window.supabaseClient;
+    async init(){
+      /* PWA Service Worker */
+      if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-  /* ── State ── */
-  let fails = 0, MAX_FAILS = 3, pwVisible = false, deferredInstall = null;
+      /* Online/offline */
+      window.addEventListener('online', ()=>{ this.isOnline=true; this.toast('Back online','success'); this.loadAll(); });
+      window.addEventListener('offline',()=>{ this.isOnline=false; this.toast('You are offline — cached content shown','warning'); });
 
-  /* ══════════════════════════════════════════════════════
-     RANK-BASED ROUTING
-  ══════════════════════════════════════════════════════ */
-  async function routeByRank(userId) {
-    try {
-      const { data: p } = await getSb().from('profiles').select('rank').eq('id', userId).single();
-      if (p?.rank === 'DIRECTOR') {
-        localStorage.setItem('userRole', 'director');
-        localStorage.setItem('clearanceLevel', 'ALPHA');
-        setLoading(true, 'DIRECTOR CLEARANCE CONFIRMED', 'Routing to Command Center...');
-        // View Transitions API for smooth navigation
-        if (document.startViewTransition) {
-          document.startViewTransition(() => { window.location.href = '/pages/directorate.html'; });
-        } else {
-          window.location.href = '/pages/directorate.html';
-        }
-      } else {
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('clearanceLevel');
-        setLoading(true, 'ACCESS GRANTED', 'Synchronizing operative profile...');
-        if (document.startViewTransition) {
-          document.startViewTransition(() => { window.location.href = '/index.html'; });
-        } else {
-          window.location.href = '/index.html';
-        }
-      }
-    } catch(_) {
-      setLoading(true, 'ACCESS GRANTED', 'Synchronizing...');
-      window.location.href = '/index.html';
-    }
-  }
+      /* Wait for Supabase */
+      let t=0; while(typeof sb==='undefined'&&t<20){await new Promise(r=>setTimeout(r,100));t++}
+      if(typeof sb==='undefined'||!sb)return;
 
-  /* ══════════════════════════════════════════════════════
-     NETWORK DETECTION
-  ══════════════════════════════════════════════════════ */
-  function updateNetBadge() {
-    const badge = document.getElementById('netBadge');
-    const label = document.getElementById('netLabel');
-    const online = navigator.onLine;
-    badge.classList.toggle('offline', !online);
-    label.textContent = online ? 'ONLINE' : 'OFFLINE';
-  }
-  window.addEventListener('online',  updateNetBadge);
-  window.addEventListener('offline', updateNetBadge);
-  updateNetBadge();
+      try{
+        const{data:{session}}=await sb.auth.getSession();
+        if(!session){window.location.href='/login.html';return}
+        this.currentUser=session.user;
+        const pre=(this.currentUser.email||'').split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g,'_');
+        this.operativeId='ID:'+pre;
+      }catch(e){this.toast('Auth failed','error');return}
 
-  /* ══════════════════════════════════════════════════════
-     PWA INSTALL PROMPT
-  ══════════════════════════════════════════════════════ */
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredInstall = e;
-    setTimeout(() => document.getElementById('installBanner').classList.add('show'), 3000);
-  });
-  async function installApp() {
-    if (!deferredInstall) return;
-    deferredInstall.prompt();
-    const { outcome } = await deferredInstall.userChoice;
-    deferredInstall = null;
-    document.getElementById('installBanner').classList.remove('show');
-    if (outcome === 'accepted') toast('App installed successfully!', 'success');
-  }
-  function dismissInstall() {
-    document.getElementById('installBanner').classList.remove('show');
-    sessionStorage.setItem('installDismissed', '1');
-  }
+      /* Request notification permission (like WhatsApp) */
+      this.requestNotificationPermission();
 
-  /* ══════════════════════════════════════════════════════
-     AUTH HANDLERS
-  ══════════════════════════════════════════════════════ */
-  async function signInGoogle() {
-    haptic(15);
-    setLoading(true, 'CONNECTING...', 'Redirecting to Google Auth');
-    try {
-      const { error } = await getSb().auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin + '/login.html', queryParams: { access_type: 'offline', prompt: 'consent' } }
+      await this.loadProfile();
+      this.showLoadBar();
+      await Promise.all([this.loadOperatives(),this.loadActivity(),this.loadDirectives(),this.loadMedia(),this.loadLiked(),this.loadTicker()]);
+      this.doneLoadBar();
+      this.view='hub';
+      this.$nextTick(()=>{if(typeof lucide!=='undefined')lucide.createIcons()});
+      await this.verifyLockdown();
+
+      /* Supabase Realtime subscriptions (replaces polling) */
+      this.subscribeRealtime();
+
+      
+    /* ── Pull to refresh ── */
+    initPullToRefresh(){
+      let startY=0,pulling=false,ptr=document.getElementById('ptr');
+      document.addEventListener('touchstart',e=>{if(window.scrollY===0)startY=e.touches[0].clientY},{passive:true});
+      document.addEventListener('touchmove',e=>{
+        if(!startY)return;
+        const dy=e.touches[0].clientY-startY;
+        if(dy>60&&window.scrollY===0){pulling=true;if(ptr)ptr.classList.add('show')}
+      },{passive:true});
+      document.addEventListener('touchend',async()=>{
+        if(pulling){pulling=false;if(ptr)ptr.classList.remove('show');startY=0;
+          await this.loadAll();this.toast('Content refreshed','success');}
+        startY=0;
       });
-      if (error) throw error;
-    } catch(e) {
-      setLoading(false);
-      toast('Google Auth failed: ' + (e.message || 'retry'), 'error');
-    }
-  }
+    },
 
-  async function handleLogin(e) {
-    if (e) e.preventDefault();
-    haptic(20);
-    const emailEl = document.getElementById('emailInput');
-    const passEl  = document.getElementById('passwordInput');
-    const email   = emailEl?.value?.trim();
-    const pass    = passEl?.value;
+    /* ── Push Notifications ── */
+    async requestNotificationPermission(){
+      if(!('Notification' in window)||Notification.permission==='granted')return;
+      if(Notification.permission==='denied')return;
+      // Ask only after user has interacted (best practice like WhatsApp)
+      setTimeout(async()=>{
+        const perm=await Notification.requestPermission();
+        if(perm==='granted')this.toast('Notifications enabled','success');
+      },5000);
+    },
 
-    if (!email) { shakeField(emailEl); return; }
-    if (!pass)  { shakeField(passEl);  return; }
-
-    const btn = document.getElementById('loginBtn');
-    btn.disabled = true;
-    btn.textContent = 'Authenticating...';
-    setLoading(true, 'AUTHENTICATING', 'Verifying access credentials');
-
-    try {
-      const { data, error } = await getSb().auth.signInWithPassword({ email, password: pass });
-      if (error) throw error;
-      hapticSuccess();
-      setLoading(true, 'CREDENTIALS VERIFIED', 'Checking clearance level...');
-      await routeByRank(data.user.id);
-    } catch(err) {
-      setLoading(false);
-      btn.disabled = false; btn.textContent = 'Initialize Access';
-      shakeField(passEl);
-      recordFail();
-      toast('ACCESS DENIED: ' + (err.message || 'Invalid credentials'), 'error');
-    }
-  }
-
-  /* ══════════════════════════════════════════════════════
-     SESSION RESUME — handles OAuth callbacks + return visits
-  ══════════════════════════════════════════════════════ */
-  window.addEventListener('load', async () => {
-    // Wait for Supabase to initialize
-    let t = 0;
-    while (!getSb() && t < 40) { await new Promise(r => setTimeout(r, 100)); t++; }
-    if (!getSb()) return;
-    try {
-      const { data: { session } } = await getSb().auth.getSession();
-      if (session) {
-        setLoading(true, 'RESUMING SESSION', 'Restoring operative access');
-        await routeByRank(session.user.id);
+    sendNotification(title,body){
+      if(Notification.permission==='granted'&&document.hidden){
+        new Notification(title,{body,icon:'/assets/images/logo.png',badge:'/assets/images/logo.png'});
       }
-    } catch(_) {}
-  });
+    },
 
-  /* ══════════════════════════════════════════════════════
-     MAGIC LINK
-  ══════════════════════════════════════════════════════ */
-  function openMagicModal() {
-    haptic(15);
-    const modal = document.getElementById('magicModal');
-    modal.classList.add('show');
-    const email = document.getElementById('emailInput').value.trim();
-    const me = document.getElementById('magicEmail');
-    if (email && me) me.value = email;
-    me?.focus();
-  }
-  function closeMagicModal() { document.getElementById('magicModal').classList.remove('show'); }
+    /* ── Web Share API ── */
+    async shareAsset(asset){
+      if(navigator.share){
+        try{
+          await navigator.share({title:asset.title,text:'Check this out on M.O.G. Network: '+asset.title,url:asset.src||asset.thumb});
+          this.logActivity('MEDIA_SHARE','Shared: '+asset.title);
+        }catch(_){}
+      }else{
+        // Fallback: clipboard
+        await navigator.clipboard.writeText(asset.src||asset.thumb).catch(()=>{});
+        this.toast('Link copied to clipboard','success');
+      }
+    },
+    
+    /* ── Lockdown ── */
+    async verifyLockdown(){
+      if(!window.sb){this.lockdownActive=false;return}
+      try{
+        const[pzRes,msRes]=await Promise.all([
+          sb.from('system_settings').select('value').eq('key','protocolZero').single(),
+          sb.from('system_settings').select('value').eq('key','ministrySettings').single()
+        ]);
+        const pzActive=pzRes.data?.value?JSON.parse(pzRes.data.value).active===true:false;
+        const msLocked=msRes.data?.value?(JSON.parse(msRes.data.value).isLocked===true||JSON.parse(msRes.data.value).locked===true):false;
+        this.lockdownActive=pzActive||msLocked;
+        if(msRes.data?.value){const p=JSON.parse(msRes.data.value);this.directorateMessage=p.alertStatus||'';if(p.bannerText)this.directorateBanner=p.bannerText}
+      }catch(_){this.lockdownActive=false}
+    },
 
-  async function sendMagicLink() {
-    const emailEl = document.getElementById('magicEmail');
-    const email = emailEl?.value?.trim();
-    if (!email) { shakeField(emailEl); return; }
-    haptic(20);
-    setLoading(true, 'TRANSMITTING LINK', 'Dispatching secure access token');
-    closeMagicModal();
-    try {
-      const { error } = await getSb().auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: window.location.origin + '/login.html' }
-      });
-      if (error) throw error;
-      setLoading(false);
-      toast('Magic link dispatched — check your inbox', 'success');
-    } catch(e) {
-      setLoading(false);
-      toast('Transmission failed: ' + (e.message || 'retry'), 'error');
+    async loadTicker(){try{const{data}=await sb.from('system_settings').select('value').eq('key','tickerBroadcast').single();if(data?.value){const p=JSON.parse(data.value);if(p.message){this.tickerMessages=[{message:p.message}];this.tickerActive=true;return}}const{data:tm}=await sb.from('ticker_messages').select('*').eq('active',true).order('created_at',{ascending:false}).limit(5);if(tm&&tm.length){this.tickerMessages=tm;this.tickerActive=true}}catch(_){}},
+
+    async loadProfile(){
+      try{
+        let{data,error}=await sb.from('profiles').select('*').eq('id',this.currentUser.id).single();
+        if(error?.code==='PGRST116'){
+          const c='MOG-'+Math.random().toString(36).substr(2,6).toUpperCase();
+          const np={id:this.currentUser.id,email:this.currentUser.email,username:this.currentUser.email.split('@')[0],codename:c,rank:'INITIATE',department:'UNASSIGNED',bio:'',avatar_url:null,stats:{missions:0,contributions:0,influence:0,loyalty:100,groove:50},skills:[],achievements:['ENLISTED'],joined_at:new Date().toISOString(),last_active:new Date().toISOString(),network:'M.O.G.'};
+          const{data:cr,error:ce}=await sb.from('profiles').insert(np).select().single();
+          if(ce)throw ce;data=cr;
+          this.sendNotification('Welcome to M.O.G.','Your operative profile has been created.');
+        }else if(error)throw error;
+        await sb.from('profiles').update({last_active:new Date().toISOString()}).eq('id',this.currentUser.id);
+        this.profile={...this.profile,...data};
+        if(data.rank==='DIRECTOR'){localStorage.setItem('userRole','director');localStorage.setItem('clearanceLevel','ALPHA')}
+      }catch(e){this.toast('Profile sync failed','error')}
+    },
+
+    async loadOperatives(){try{const{data}=await sb.from('profiles').select('id,username,codename,rank,avatar_url,last_active,stats,department').order('last_active',{ascending:false}).limit(16);this.allOperatives=data||[]}catch(_){this.allOperatives=[]}},
+    async loadActivity(){try{const{data}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(25);this.recentActivity=data||[]}catch(_){this.recentActivity=[]}},
+    async loadDirectives(){try{const{data}=await sb.from('directives').select('*').order('timestamp',{ascending:false}).limit(3);this.directives=data||[]}catch(_){this.directives=[]}},
+
+    async loadMedia(){try{const{data}=await sb.from('media_assets').select('*').order('created_at',{ascending:false}).limit(24);this.mediaAssets=data&&data.length?data:this.fallback();await this.loadLikeCounts()}catch(_){this.mediaAssets=this.fallback()}},
+    fallback(){return[
+      {id:'m1',type:'VIDEO',title:'Groove Drop Vol.1',artist:'M.O.G. Collective',src:'/assets/videos/clip1.mp4',thumb:'/assets/images/gallery1.jpg',duration:'3:42',tag:'NEW'},
+      {id:'m2',type:'AUDIO',title:'Sector 7G Sessions',artist:'DJ Emalahleni',src:'/assets/audio/track1.mp3',thumb:'/assets/images/gallery2.jpg',duration:'5:17',tag:'HOT'},
+      {id:'m3',type:'PHOTO',title:'Uplink II — Field Ops',artist:'M.O.G. Photography',src:'/assets/images/gallery3.jpg',thumb:'/assets/images/gallery3.jpg',duration:null,tag:null},
+      {id:'m4',type:'VIDEO',title:'Piano Chronicles Ep.2',artist:'Kabz Collective',src:'/assets/videos/clip2.mp4',thumb:'/assets/images/gallery4.jpg',duration:'4:09',tag:'HOT'},
+      {id:'m5',type:'AUDIO',title:'104.7 FM — Live Set',artist:'Ministry Broadcast',src:'/assets/audio/track2.mp3',thumb:'/assets/images/gallery1.jpg',duration:'58:00',tag:'LIVE'},
+      {id:'m6',type:'PHOTO',title:'Directorate Brief',artist:'Intel Division',src:'/assets/images/gallery2.jpg',thumb:'/assets/images/gallery2.jpg',duration:null,tag:null},
+    ]},
+    async loadLikeCounts(){try{const{data}=await sb.from('media_likes').select('media_id,count');if(data){const c={};data.forEach(d=>{c[d.media_id]=d.count||0});this.likesCounts=c}}catch(_){}},
+    async loadLiked(){try{const s=JSON.parse(localStorage.getItem('mog_liked')||'[]');this.likedAssets=new Set(s);if(this.currentUser){const{data}=await sb.from('media_likes_users').select('media_id').eq('user_id',this.currentUser.id);if(data)this.likedAssets=new Set(data.map(d=>d.media_id))}}catch(_){}},
+
+    /* ── Optimistic like toggle ── */
+    async toggleLike(asset){
+      const mid=asset.id,was=this.likedAssets.has(mid);
+      // Optimistic update immediately
+      if(was){this.likedAssets.delete(mid);this.likesCounts[mid]=Math.max(0,(this.likesCounts[mid]||1)-1)}
+      else{this.likedAssets.add(mid);this.likesCounts[mid]=(this.likesCounts[mid]||0)+1}
+      this.likedAssets=new Set(this.likedAssets);
+      localStorage.setItem('mog_liked',JSON.stringify([...this.likedAssets]));
+      // Then sync to DB
+      try{
+        if(was){await sb.from('media_likes_users').delete().eq('media_id',mid).eq('user_id',this.currentUser.id);await sb.from('media_likes').update({count:this.likesCounts[mid]}).eq('media_id',mid)}
+        else{await sb.from('media_likes_users').upsert({media_id:mid,user_id:this.currentUser.id,created_at:new Date().toISOString()},{onConflict:'media_id,user_id'});const{data:ex}=await sb.from('media_likes').select('count').eq('media_id',mid).single();if(ex)await sb.from('media_likes').update({count:(ex.count||0)+1}).eq('media_id',mid);else await sb.from('media_likes').insert({media_id:mid,title:asset.title,count:1});this.toast('Liked ♥','success')}
+      }catch(_){
+        // Revert on failure
+        if(was){this.likedAssets.add(mid)}else{this.likedAssets.delete(mid)}
+        this.likedAssets=new Set(this.likedAssets);
+      }
+    },
+    isLiked(id){return this.likedAssets.has(id)},
+    lcount(id){return this.likesCounts[id]||0},
+    openMedia(a){window.open(a.src||a.thumb,'_blank');this.logActivity('MEDIA_VIEW','Viewed: '+a.title)},
+    listenMedia(a){window.open(a.src,'_blank');this.logActivity('MEDIA_LISTEN','Listened: '+a.title)},
+    mtc(t){return{VIDEO:'rgba(220,38,38,0.82)',AUDIO:'rgba(0,212,170,0.82)',PHOTO:'rgba(212,175,55,0.82)'}[t]||'rgba(80,80,80,0.7)'},
+    mtx(t){return{VIDEO:'#fff',AUDIO:'#000',PHOTO:'#000'}[t]||'#fff'},
+
+    async updateProfile(){
+      this.isLoading=true;
+      try{const{error}=await sb.from('profiles').update({username:this.profile.username,bio:this.profile.bio,department:this.profile.department,updated_at:new Date().toISOString()}).eq('id',this.currentUser.id);if(error)throw error;this.showModal=false;this.toast('Dossier saved','success');this.logActivity('PROFILE_UPDATE','Updated dossier')}
+      catch(e){this.toast('Save failed','error')}
+      finally{this.isLoading=false}
+    },
+    async uploadAvatar(e){
+      const file=e.target.files[0];if(!file)return;
+      if(!['image/jpeg','image/png','image/webp'].includes(file.type)){this.toast('JPG/PNG/WEBP only','error');return}
+      if(file.size>2*1024*1024){this.toast('Max 2 MB','error');return}
+      this.isLoading=true;this.uploadProgress=15;
+      try{
+        const ext=file.name.split('.').pop();const path=`mog-avatars/mog-${this.currentUser.id}-${Date.now()}.${ext}`;
+        this.uploadProgress=35;
+        const{error:ue}=await sb.storage.from('operative-assets').upload(path,file,{cacheControl:'3600',upsert:true});
+        if(ue)throw ue;this.uploadProgress=75;
+        const{data:{publicUrl}}=sb.storage.from('operative-assets').getPublicUrl(path);
+        await sb.from('profiles').update({avatar_url:publicUrl}).eq('id',this.currentUser.id);
+        this.profile.avatar_url=publicUrl;this.uploadProgress=100;this.toast('Photo updated','success');
+      }catch(err){this.toast('Upload failed','error')}
+      finally{this.isLoading=false;setTimeout(()=>this.uploadProgress=0,1600)}
+    },
+    async logActivity(type,desc){try{await sb.from('activity_log').insert({user_id:this.currentUser.id,type,description:desc,network:'M.O.G.',created_at:new Date().toISOString()})}catch(_){}},
+
+    ricon(r){return{INITIATE:'radio',AGENT:'user',OPERATIVE:'target',SPECIALIST:'star',DIRECTOR:'crown'}[r]||'radio'},
+    rchip(r){return{INITIATE:'border-gray-600 text-gray-500',AGENT:'border-teal-600 text-teal-400',OPERATIVE:'border-cyan-600 text-cyan-400',SPECIALIST:'border-amber-600 text-amber-400',DIRECTOR:'border-yellow-500 text-yellow-300'}[r]||'border-gray-600 text-gray-500'},
+    ostatus(ts){if(!ts)return{label:'OFFLINE',dot:'bg-gray-700'};const m=(Date.now()-new Date(ts))/60000;if(m<5)return{label:'LIVE',dot:'bg-teal-400'};if(m<30)return{label:'RECENT',dot:'bg-amber-400'};return{label:'OFFLINE',dot:'bg-gray-600'}},
+    ago(ts){if(!ts)return'—';const s=(Date.now()-new Date(ts))/1000;if(s<60)return Math.floor(s)+'s ago';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago'},
+
+    toast(msg,type='info'){
+      const tc=document.getElementById('toastContainer');if(!tc)return;
+      const el=document.createElement('div');
+      el.className=`toast ${type}`;
+      el.innerHTML=`<span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;background:currentColor"></span>${msg}`;
+      tc.appendChild(el);
+      setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),250)},3600);
+    },
+    async logout(){
+      // Unsubscribe realtime
+      this._realtimeSubs.forEach(ch=>sb.removeChannel(ch));
+      try{await sb.auth.signOut()}catch(_){}
+      localStorage.clear();
+      window.location.href='/login.html';
     }
-  }
-
-  /* ══════════════════════════════════════════════════════
-     INTRUDER DETECTION
-  ══════════════════════════════════════════════════════ */
-  function recordFail() {
-    fails++;
-    hapticError();
-    const pips = document.getElementById('pips');
-    pips.classList.add('show');
-    for (let i = 1; i <= fails; i++) document.getElementById('pip' + i)?.classList.add('on');
-
-    if (fails >= MAX_FAILS) {
-      document.getElementById('mainCard').classList.add('shake');
-      document.getElementById('alertBanner').classList.add('show');
-      document.getElementById('attemptNum').textContent = fails;
-      logIntrusion();
-
-      const btn = document.getElementById('loginBtn');
-      btn.disabled = true; let t = 30;
-      btn.textContent = `LOCKED — ${t}s`;
-      const cd = setInterval(() => {
-        t--;
-        btn.textContent = `LOCKED — ${t}s`;
-        if (t <= 0) {
-          clearInterval(cd);
-          fails = 0;
-          btn.disabled = false; btn.textContent = 'Initialize Access';
-          document.getElementById('mainCard').classList.remove('shake');
-          document.getElementById('alertBanner').classList.remove('show');
-          pips.classList.remove('show');
-          document.querySelectorAll('.pip').forEach(p => p.classList.remove('on'));
-        }
-      }, 1000);
-    }
-  }
-
-  async function logIntrusion() {
-    try { await getSb().from('activity_log').insert({ type: 'INTRUSION_ATTEMPT', description: `FAILED LOGIN x${fails}`, network: 'M.O.G.', created_at: new Date().toISOString() }); } catch(_) {}
-  }
-
-  /* ══════════════════════════════════════════════════════
-     HAPTICS
-  ══════════════════════════════════════════════════════ */
-  const haptic      = (ms=20)  => { try { navigator.vibrate?.(ms); } catch(_) {} };
-  const hapticError   = ()     => { try { navigator.vibrate?.([40,30,40,30,80]); } catch(_) {} };
-  const hapticSuccess = ()     => { try { navigator.vibrate?.([30,20,60]); } catch(_) {} };
-
-  /* ══════════════════════════════════════════════════════
-     PASSWORD TOGGLE
-  ══════════════════════════════════════════════════════ */
-  function togglePw() {
-    pwVisible = !pwVisible;
-    const inp = document.getElementById('passwordInput');
-    inp.type = pwVisible ? 'text' : 'password';
-    document.getElementById('eyeOff').style.display = pwVisible ? 'none' : '';
-    document.getElementById('eyeOn').style.display  = pwVisible ? ''     : 'none';
-    document.getElementById('eyeBtn').classList.toggle('on', pwVisible);
-    haptic(10);
-  }
-
-  /* ══════════════════════════════════════════════════════
-     FIELD SHAKE HELPER
-  ══════════════════════════════════════════════════════ */
-  function shakeField(el) {
-    if (!el) return;
-    hapticError();
-    el.classList.add('err');
-    el.focus();
-    setTimeout(() => el.classList.remove('err'), 800);
-  }
-
-  /* ══════════════════════════════════════════════════════
-     LOADING OVERLAY
-  ══════════════════════════════════════════════════════ */
-  function setLoading(show, text = 'PROCESSING', sub = '') {
-    const ov = document.getElementById('loadingOverlay');
-    document.getElementById('loadingText').textContent = text;
-    document.getElementById('loadingSub').textContent  = sub;
-    ov.classList.toggle('show', show);
-  }
-
-  /* ══════════════════════════════════════════════════════
-     TOAST NOTIFICATIONS
-  ══════════════════════════════════════════════════════ */
-  function toast(msg, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
-    el.innerHTML = `<span class="toast-dot"></span>${msg}`;
-    container.appendChild(el);
-    setTimeout(() => {
-      el.classList.add('out');
-      setTimeout(() => el.remove(), 300);
-    }, 4000);
-  }
-
-  /* ══════════════════════════════════════════════════════
-     STATUS TICKER
-  ══════════════════════════════════════════════════════ */
-  const statusItems = [
-    `NODES: ${Math.floor(Math.random()*8)+10} ONLINE`,
-    'UPLINK: STABLE', `LATENCY: ${Math.floor(Math.random()*15)+12}MS`,
-    'SECTOR 7G: ACTIVE', 'ENCRYPTION: AES-256', 'FREQ: 104.7 FM',
-    'GRID: SYNCHRONIZED', 'EMALAHLENI UPLINK: UP', 'PROTOCOL: ALPHA — CLEAR',
-  ];
-  (function buildTicker() {
-    const track = document.getElementById('statusTrack');
-    if (!track) return;
-    const items = [...statusItems, ...statusItems];
-    track.innerHTML = items.map(s => `<span style="margin-right:2rem">${s}</span><span style="color:rgba(212,175,55,0.3);margin-right:2rem">◆</span>`).join('');
-  })();
-
-  /* ── Keyboard: Enter to submit ── */
-  document.getElementById('emailInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('passwordInput')?.focus(); });
-  document.getElementById('passwordInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(e); });
-  document.getElementById('magicEmail')?.addEventListener('keydown', e => { if (e.key === 'Enter') sendMagicLink(); });
-
-  /* ── Escape to close modal ── */
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMagicModal(); });
+  }}
   </script>
+</head>
+
+<body x-data="hub()" x-init="init()" x-cloak class="bg-black">
+
+<!-- Loading bar (top, WhatsApp-style) -->
+<div id="loadBar" class="load-bar" aria-hidden="true"></div>
+
+<!-- Toast container -->
+<div id="toastContainer" class="tc" aria-live="polite" aria-atomic="false"></div>
+
+<!-- Pull to refresh indicator -->
+<div id="ptr" class="ptr" aria-hidden="true">↓ Release to refresh</div>
+
+<div class="bg-seal" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vig"  aria-hidden="true"></div>
+
+<!-- LOADING STATE -->
+<template x-if="view==='loading'">
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black" role="status" aria-label="Loading operative hub">
+  <div style="position:relative;width:56px;height:56px">
+    <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
+    <div style="position:absolute;inset:8px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+      <img src="/assets/images/logo.png" alt="" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px var(--gold-glow))">
+    </div>
+  </div>
+  <div class="text-center space-y-1.5">
+    <p class="orbit text-xs tracking-widest text-gold">Connecting to M.O.G. Network <span class="db"><span>.</span><span>.</span><span>.</span></span></p>
+    <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+  </div>
+  <!-- Skeleton preview -->
+  <div style="width:min(90vw,360px);display:flex;flex-direction:column;gap:8px;margin-top:1rem;opacity:0.3">
+    <div class="skeleton" style="height:48px;border-radius:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="skeleton" style="height:80px;border-radius:10px"></div>
+      <div class="skeleton" style="height:80px;border-radius:10px"></div>
+    </div>
+    <div class="skeleton" style="height:24px;width:60%;border-radius:6px"></div>
+  </div>
+</div>
+</template>
+
+<!-- HUB -->
+<template x-if="view==='hub'">
+<div class="relative z-10 min-h-dvh fadeup">
+
+  <!-- LOCKDOWN overlay -->
+  <div x-show="lockdownActive" x-transition
+       style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.98);backdrop-filter:blur(24px);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem"
+       :style="lockdownActive?'display:flex':'display:none'"
+       role="alertdialog" aria-live="assertive">
+    <div style="position:absolute;inset:12px;border-radius:20px;border:2px solid var(--red);pointer-events:none;animation:lp 1.4s ease-in-out infinite"></div>
+    <div style="position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;gap:20px;max-width:360px">
+      <img src="/assets/images/logo.png" alt="" style="width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 0 14px rgba(220,38,38,0.6))">
+      <h2 class="orbit font-black text-2xl uppercase text-center" style="color:var(--red);text-shadow:0 0 22px var(--red-glow)">SYSTEM LOCKDOWN</h2>
+      <div class="gold-line w-28" style="opacity:0.2"></div>
+      <p class="mono text-sm text-center" style="color:rgba(255,255,255,0.38)" x-text="directorateMessage||'DIRECTORATE PROTOCOL ACTIVE'"></p>
+      <button @click="verifyLockdown()" class="btn btn-g px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Refresh Status</button>
+    </div>
+  </div>
+
+  <!-- Offline banner -->
+  <div x-show="!isOnline" class="sticky top-0 z-50 flex items-center justify-center gap-2 py-1.5" style="background:rgba(220,38,38,0.9);font-family:'Orbitron',sans-serif;font-size:0.56rem;letter-spacing:0.15em;color:#fff" role="alert" aria-live="polite">
+    <span>⚡</span><span>OFFLINE — CACHED DATA SHOWN</span>
+  </div>
+
+  <!-- TICKER -->
+  <template x-if="tickerActive && tickerMessages.length">
+  <div class="ticker sticky top-0 z-50" aria-live="polite" aria-label="Live broadcast">
+    <div class="ticker-lbl" aria-hidden="true">LIVE</div>
+    <div style="flex:1;overflow:hidden" aria-hidden="true">
+      <div class="ticker-trk">
+        <template x-for="m in tickerMessages" :key="m.id||m.message"><span><span class="ticker-txt" x-text="m.message||m"></span><span class="ticker-sep">◆</span></span></template>
+        <template x-for="m in tickerMessages" :key="'d'+(m.id||m.message)"><span><span class="ticker-txt" x-text="m.message||m"></span><span class="ticker-sep">◆</span></span></template>
+      </div>
+    </div>
+  </div>
+  </template>
+
+  <!-- NAV -->
+  <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.1)" role="navigation" aria-label="Main navigation">
+    <div class="max-w-7xl mx-auto px-4 sm:px-5 py-2.5 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 flex-shrink-0">
+        <img src="/assets/images/logo.png" alt="M.O.G." style="width:36px;height:36px;object-fit:contain;filter:drop-shadow(0 0 6px var(--gold-glow))">
+        <div class="hidden sm:block">
+          <p class="orbit font-black text-gold" style="font-size:0.95rem;letter-spacing:0.05em">M.O.G.</p>
+          <p class="slogan" style="font-size:0.38rem">Decrypting the Culture. Synchronizing the Grid.</p>
+        </div>
+        <p class="sm:hidden orbit font-black text-gold" style="font-size:0.88rem;letter-spacing:0.1em">M.O.G.</p>
+      </div>
+
+      <div class="hidden lg:flex items-center gap-3 flex-1 justify-center">
+        <template x-if="directorateBanner">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-gold truncate max-w-xs">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold);flex-shrink:0" aria-hidden="true"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49"/></svg>
+            <span class="mono text-gold truncate" style="font-size:0.56rem" x-text="directorateBanner"></span>
+          </div>
+        </template>
+        <span class="opid" x-text="operativeId" aria-label="Operative ID"></span>
+      </div>
+
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <span class="sm:hidden opid" x-text="operativeId" style="font-size:7px"></span>
+        <a x-show="isDirector" href="/pages/directorate.html" class="btn btn-g hidden sm:inline-flex px-3 py-2" style="font-size:0.56rem;min-height:unset" aria-label="Directorate command center">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="hidden lg:inline">Directorate</span>
+        </a>
+        <a x-show="isDirector" href="/pages/directorate.html" class="sm:hidden btn btn-g p-2" style="min-height:unset;padding:6px" aria-label="Directorate">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </a>
+        <button @click="showModal=true" class="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.16)" aria-label="Open profile">
+          <div class="aring" style="width:32px;height:32px">
+            <div>
+              <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null" alt="Avatar" loading="lazy">
+              <svg x-show="!profile.avatar_url" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="hidden sm:block text-left">
+            <p class="orbit font-bold text-white" style="font-size:0.58rem;line-height:1.2" x-text="profile.codename||'OPERATIVE'"></p>
+            <p class="orbit" :class="rankColor" style="font-size:0.48rem" x-text="profile.rank"></p>
+          </div>
+        </button>
+        <div class="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-full" style="background:rgba(0,0,0,0.42);border:1px solid rgba(0,212,170,0.16)" aria-label="Connection status">
+          <span class="w-1.5 h-1.5 rounded-full pulse" :class="isOnline?'bg-teal-400':'bg-red-500'" style="display:inline-block"></span>
+          <span class="mono text-teal" style="font-size:0.5rem;letter-spacing:0.12em" x-text="isOnline?'LIVE':'OFFLINE'"></span>
+        </div>
+        <button @click="logout()" class="text-gray-600 hover:text-gold transition-colors rounded-full p-1.5" style="min-height:unset" aria-label="Sign out">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="gold-line" style="opacity:0.18" aria-hidden="true"></div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-5 py-4 sm:py-6">
+
+    <!-- IDENTITY STRIP -->
+    <div class="glass rounded-xl px-4 py-3.5 mb-4 flex flex-col sm:flex-row items-center gap-3 sm:gap-5" style="border-color:rgba(212,175,55,0.14)" role="region" aria-label="Operative identity">
+   
+    <!-- PANEL -->
+    <div class="glass rounded-xl overflow-hidden" style="min-height:500px" role="tabpanel">
+
+      <!-- MEDIA GRID -->
+      <div x-show="activeTab==='grid'" class="p-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <p class="orbit font-black text-white" style="font-size:1.05rem">Asset Grid</p>
+            <p class="slogan mt-0.5">Decrypting the Culture. Synchronizing the Grid.</p>
+          </div>
+          <div class="flex gap-1.5" role="group" aria-label="Media filter">
+            <template x-for="f in ['ALL','VIDEO','AUDIO','PHOTO']" :key="f">
+              <button @click="mediaFilter=f" class="orbit font-bold uppercase rounded-full px-3 py-1.5 transition-all" style="font-size:0.5rem;min-height:unset"
+                :style="mediaFilter===f?'background:rgba(212,175,55,0.14);border:1px solid rgba(212,175,55,0.38);color:var(--gold)':'background:rgba(0,0,0,0.38);border:1px solid rgba(255,255,255,0.07);color:#6b7280'"
+                x-text="f" :aria-pressed="mediaFilter===f"></button>
+            </template>
+          </div>
+        </div>
+        <template x-if="!filteredMedia.length">
+          <div class="flex flex-col items-center justify-center py-16 gap-3" style="opacity:0.18">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p class="orbit text-sm uppercase tracking-widest text-gold">No assets</p>
+          </div>
+        </template>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <template x-for="a in filteredMedia" :key="a.id">
+          <article class="mtile">
+            <div style="position:relative;overflow:hidden;aspect-ratio:16/9">
+              <template x-if="a.type==='VIDEO'"><video :src="a.src" :poster="a.thumb" class="mthumb" muted loop preload="none" @mouseenter="$el.play()" @mouseleave="$el.pause();$el.currentTime=0" :aria-label="a.title"></video></template>
+              <template x-if="a.type!=='VIDEO'"><img :src="a.thumb||a.src" :alt="a.title" class="mthumb" loading="lazy" @error="$el.src='/assets/images/logo.png'"></template>
+              <span class="mtype" x-text="a.type" aria-hidden="true"></span>
+              <template x-if="a.tag"><span class="mtag" :style="a.tag==='LIVE'?'background:rgba(220,38,38,0.88);color:#fff':a.tag==='HOT'?'background:rgba(212,175,55,0.88);color:#000':'background:rgba(0,212,170,0.88);color:#000'" x-text="a.tag"></span></template>
+              <template x-if="a.duration"><span class="mdur" x-text="a.duration" aria-label="Duration"></span></template>
+            </div>
+            <div class="px-2.5 pt-2 pb-1">
+              <p class="font-bold text-white truncate" style="font-size:0.78rem" x-text="a.title"></p>
+              <p class="text-gray-500 uppercase truncate" style="font-size:0.54rem" x-text="a.artist||'M.O.G. Network'"></p>
+            </div>
+            <div class="flex gap-1 px-2.5 pb-2.5">
+              <button @click="openMedia(a)" class="ma v" :aria-label="'View '+a.title"><svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>View</button>
+              <template x-if="a.type!=='PHOTO'"><button @click="listenMedia(a)" class="ma ls" :aria-label="'Listen to '+a.title"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/></svg>Listen</button></template>
+              <button @click="toggleLike(a)" class="ma lk" :class="isLiked(a.id)?'on':''" :aria-label="isLiked(a.id)?'Unlike '+a.title:'Like '+a.title" :aria-pressed="isLiked(a.id)">
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :style="isLiked(a.id)?'fill:#f87171;stroke:#f87171':''" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span x-text="lcount(a.id)||'Like'"></span>
+              </button>
+              <button @click="shareAsset(a)" class="ma sh" :aria-label="'Share '+a.title"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Share</button>
+            </div>
+          </article>
+          </template>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div x-show="activeTab==='overview'" class="p-4 space-y-4" role="region" aria-label="Mission overview">
+        <div class="flex items-center justify-between">
+          <p class="orbit font-black text-white" style="font-size:1.05rem">Mission Control</p>
+          <span class="cap" style="font-size:0.5rem">Clearance Level <span x-text="clearanceLevel"></span></span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <template x-for="s in [
+            {l:'Missions',v:profile.stats.missions,cl:'text-gold',bar:'sb-g',pct:Math.min(profile.stats.missions*10,100)},
+            {l:'Contributions',v:profile.stats.contributions,cl:'text-teal',bar:'sb-t',pct:Math.min(profile.stats.contributions*5,100)},
+            {l:'Influence',v:profile.stats.influence+'%',cl:'text-gold',bar:'sb-g',pct:profile.stats.influence},
+            {l:'Groove Factor',v:profile.stats.groove+'%',cl:'text-cyan-400',bar:'sb-c',pct:profile.stats.groove},
+            {l:'Loyalty',v:profile.stats.loyalty+'%',cl:'text-red-400',bar:'sb-r',pct:profile.stats.loyalty}
+          ]" :key="s.l">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <span class="cap" style="font-size:0.54rem" x-text="s.l"></span>
+              <span class="mono font-bold" :class="s.cl" style="font-size:0.6rem" x-text="s.v"></span>
+            </div>
+            <div class="sb" role="progressbar" :aria-valuenow="s.pct" aria-valuemin="0" aria-valuemax="100" :aria-label="s.l">
+              <div :class="s.bar" :style="'width:'+s.pct+'%'"></div>
+            </div>
+          </div>
+          </template>
+        </div>
+        <div style="background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.1);border-radius:0.75rem;padding:0.9rem">
+          <p class="cap mb-1.5">Operative Bio</p>
+          <p class="text-gray-400 leading-relaxed" style="font-size:0.82rem" x-text="profile.bio||'No bio on file — open your dossier to add notes.'"></p>
+        </div>
+        <div x-show="profile.skills&&profile.skills.length" class="flex flex-wrap gap-1.5" role="list" aria-label="Skills">
+          <template x-for="s in (profile.skills||[])" :key="s"><span style="background:rgba(0,212,170,0.07);border:1px solid rgba(0,212,170,0.2);color:var(--teal);border-radius:5px;padding:2px 9px;font-family:'Share Tech Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.08em" x-text="s" role="listitem"></span></template>
+        </div>
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1">
+          <template x-for="page in [
+            {l:'Gallery',u:'/pages/gallery.html',i:'camera'},
+            {l:'Frequency',u:'/pages/frequency.html',i:'activity'},
+            {l:'Dispatch',u:'/pages/dispatch.html',i:'radio'},
+            {l:'Vault',u:'/pages/archives.html',i:'archive'},
+            {l:'Dossier',u:'/pages/dossier.html',i:'shield-check'},
+            {l:'Privacy',u:'/pages/privacy.html',i:'lock'}
+          ]" :key="page.u">
+          <a :href="page.u" class="flex flex-col items-center gap-1.5 py-3 rounded-xl transition-all text-center" style="background:rgba(0,0,0,0.38);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.26)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
+            <i :data-lucide="page.i" class="text-gold" style="width:17px;height:17px" aria-hidden="true"></i>
+            <span class="orbit font-bold text-white uppercase" style="font-size:0.48rem" x-text="page.l"></span>
+          </a>
+          </template>
+        </div>
+      </div>
+
+      <!-- NETWORK -->
+      <div x-show="activeTab==='network'" class="p-4 space-y-3" role="region" aria-label="Operative network">
+        <div class="flex items-center justify-between">
+          <p class="orbit font-black text-white" style="font-size:1.05rem">Network Nodes</p>
+          <span class="mono text-teal" style="font-size:0.58rem" x-text="allOperatives.length+' operatives'" aria-live="polite"></span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <template x-if="!allOperatives.length">
+          <div class="col-span-2 text-center py-12" style="opacity:0.18">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2" style="color:var(--gold)" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <p class="orbit text-sm uppercase tracking-widest text-gold">No operatives</p>
+          </div>
+          </template>
+          <template x-for="op in allOperatives" :key="op.id">
+          <article class="opc p-3 flex items-center gap-3">
+            <div style="position:relative;flex-shrink:0;width:38px;height:38px">
+              <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:rgba(0,212,170,0.06);border:1px solid rgba(212,175,55,0.16);display:flex;align-items:center;justify-content:center">
+                <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover" @error="op.avatar_url=null" :alt="op.codename" loading="lazy">
+                <i x-show="!op.avatar_url" :data-lucide="ricon(op.rank)" style="width:15px;height:15px;color:var(--gold)" aria-hidden="true"></i>
+              </div>
+              <span style="position:absolute;bottom:-1px;right:-1px;width:9px;height:9px;border-radius:50%;border:2px solid #000" :class="ostatus(op.last_active).dot" :title="ostatus(op.last_active).label"></span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-white truncate" style="font-size:0.82rem" x-text="op.codename||op.username"></p>
+              <p class="cap" style="font-size:0.48rem" x-text="op.rank+' · '+ostatus(op.last_active).label"></p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="orbit font-bold text-gold" style="font-size:0.65rem" x-text="op.stats?.influence||0"></p>
+              <p class="cap" style="font-size:0.45rem">INF</p>
+            </div>
+          </article>
+          </template>
+        </div>
+      </div>
+
+      <!-- ACTIVITY -->
+      <div x-show="activeTab==='activity'" class="p-4 space-y-3" role="region" aria-label="Activity log">
+        <div class="flex items-center justify-between">
+          <p class="orbit font-black text-white" style="font-size:1.05rem">Transmission Log</p>
+          <button @click="loadActivity()" class="mono text-gray-600 hover:text-gold transition-colors" style="font-size:0.58rem;background:none;border:none;cursor:pointer;min-height:unset" aria-label="Refresh activity">Refresh</button>
+        </div>
+        <template x-if="!recentActivity.length">
+        <div class="text-center py-12" style="opacity:0.18">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2" style="color:var(--gold)" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <p class="orbit text-sm uppercase tracking-widest text-gold">No transmissions</p>
+        </div>
+        </template>
+        <div class="space-y-1.5 max-h-[440px] overflow-y-auto pr-0.5" role="log" aria-live="polite">
+          <template x-for="act in recentActivity" :key="act.id">
+          <div class="flex items-center gap-3 p-2.5 rounded-lg transition-colors" style="background:rgba(0,0,0,0.35);border:1px solid rgba(0,212,170,0.06)" onmouseover="this.style.borderColor='rgba(212,175,55,0.18)'" onmouseout="this.style.borderColor='rgba(0,212,170,0.06)'">
+            <span style="width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0" aria-hidden="true"></span>
+            <div class="flex-1 min-w-0">
+              <p class="text-white truncate" style="font-size:0.8rem" x-text="act.description"></p>
+              <p class="mono text-gray-600" style="font-size:0.54rem" x-text="ago(act.created_at)"></p>
+            </div>
+            <span class="mono text-gold flex-shrink-0" style="font-size:0.5rem;background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.14);border-radius:4px;padding:1px 6px" x-text="(act.type||'').replace(/_/g,' ')"></span>
+          </div>
+          </template>
+        </div>
+      </div>
+
+    </div>
+
+    
+    <!-- FOOTER -->
+    <footer class="text-center py-6 mt-4">
+      <div class="gold-line mb-5" style="opacity:0.12"></div>
+      <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+        <a href="https://tiktok.com/@ministryofgroove" target="_blank" rel="noopener noreferrer" aria-label="TikTok" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s;background:rgba(0,0,0,0.4)" onmouseover="this.style.color='#fff';this.style.borderColor='#fff';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
+        <a href="https://www.facebook.com/share/1ELj9aECsQ/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s;background:rgba(0,0,0,0.4)" onmouseover="this.style.color='#1877f2';this.style.borderColor='#1877f2';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+        <a href="https://www.instagram.com/ministryofgroove_hq" target="_blank" rel="noopener noreferrer" aria-label="Instagram" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s;background:rgba(0,0,0,0.4)" onmouseover="this.style.color='#e1306c';this.style.borderColor='#e1306c';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" rel="noopener noreferrer" aria-label="YouTube" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s;background:rgba(0,0,0,0.4)" onmouseover="this.style.color='#ff0000';this.style.borderColor='#ff0000';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+        <a href="https://wa.me/27813874921" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s;background:rgba(0,0,0,0.4)" onmouseover="this.style.color='#25d366';this.style.borderColor='#25d366';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
+      </div>
+      <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
+      <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase">Ministry of Groove // Emalahleni Uplink II // Est. 2026</p>
+    </footer>
+  </main>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bnav" role="navigation" aria-label="Mobile navigation">
+    <template x-for="t in [{id:'grid',l:'Grid',i:'grid'},{id:'network',l:'Network',i:'users'},{id:'overview',l:'Hub',i:'layout-dashboard'},{id:'activity',l:'Activity',i:'activity'}]" :key="t.id">
+    <button @click="activeTab=t.id;$nextTick(()=>{if(typeof lucide!=='undefined')lucide.createIcons()})"
+            class="flex-1 flex flex-col items-center py-2 gap-1 transition-colors"
+            :style="activeTab===t.id?'color:var(--gold)':'color:#4b5563'"
+            style="background:none;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:0.08em;text-transform:uppercase;min-height:unset"
+            role="tab" :aria-selected="activeTab===t.id" :aria-label="t.l">
+      <i :data-lucide="t.i" style="width:19px;height:19px" aria-hidden="true"></i>
+      <span x-text="t.l"></span>
+    </button>
+    </template>
+  </nav>
+</div>
+</template>
+
+<!-- PROFILE MODAL -->
+<div x-show="showModal"
+     x-transition:enter="transition ease-out duration-160" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-130" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+     class="mbg" @click.self="showModal=false"
+     role="dialog" aria-modal="true" aria-label="Operative dossier">
+  <div class="msheet" @click.stop
+       x-transition:enter="transition ease-out duration-180" x-transition:enter-start="opacity-0 translate-y-5" x-transition:enter-end="opacity-100 translate-y-0">
+    <div class="sticky top-0 z-10 px-5 py-3.5 flex items-center justify-between" style="background:rgba(2,4,2,0.98);backdrop-filter:blur(20px);border-bottom:1px solid rgba(212,175,55,0.1)">
+      <div>
+        <p class="orbit font-black text-white" style="font-size:0.95rem">Operative Dossier</p>
+        <p class="slogan">M.O.G. Classified // Level <span x-text="clearanceLevel"></span></p>
+      </div>
+      <button @click="showModal=false" class="btn btn-g p-2" style="min-height:unset;padding:6px" aria-label="Close dossier">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="gold-line" style="opacity:0.2"></div>
+    <div class="p-5 space-y-4">
+      <div class="flex flex-col items-center gap-2.5">
+        <div style="position:relative" class="group">
+          <div class="aring" style="width:72px;height:72px">
+            <div>
+              <img x-show="profile.avatar_url" :src="profile.avatar_url" class="w-full h-full object-cover" @error="profile.avatar_url=null" alt="Avatar" loading="lazy">
+              <svg x-show="!profile.avatar_url" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.5" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <label style="position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,0.78);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity 0.2s;border:2px solid rgba(212,175,55,0.38)" class="group-hover:opacity-100" aria-label="Upload avatar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span class="orbit font-bold text-gold mt-1" style="font-size:0.44rem;letter-spacing:0.1em">UPLOAD</span>
+            <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="uploadAvatar($event)">
+          </label>
+        </div>
+        <template x-if="uploadProgress>0">
+          <div style="width:160px;height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden" role="progressbar" :aria-valuenow="uploadProgress" aria-valuemin="0" aria-valuemax="100">
+            <div class="sb-g" :style="'width:'+uploadProgress+'%'"></div>
+          </div>
+        </template>
+        <p class="mono text-gray-700" style="font-size:0.52rem">MAX 2 MB · JPG PNG WEBP</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><p class="cap mb-1">Operative Name</p><input type="text" x-model="profile.username" class="inp" placeholder="Enter designation" aria-label="Operative name"></div>
+        <div><p class="cap mb-1">Codename</p><input type="text" :value="profile.codename" class="inp mono text-teal font-bold" readonly disabled aria-label="Codename (auto-generated)"><p class="mono text-gray-700 mt-1" style="font-size:0.5rem">AUTO-GENERATED</p></div>
+        <div>
+          <p class="cap mb-1">Department</p>
+          <select x-model="profile.department" class="inp" aria-label="Department">
+            <option value="UNASSIGNED">Unassigned</option><option value="OPERATIONS">Field Operations</option><option value="INTELLIGENCE">Intelligence</option><option value="COMMUNICATIONS">Communications</option><option value="LOGISTICS">Logistics</option><option value="RESEARCH">R&amp;D Division</option><option value="SOUND">Audio Engineering</option>
+          </select>
+        </div>
+        <div><p class="cap mb-1">Rank</p><input type="text" :value="profile.rank" class="inp font-bold uppercase" :class="isDirector?'text-yellow-300':'text-teal'" readonly disabled aria-label="Rank (director access only)"><p class="mono text-gray-700 mt-1" style="font-size:0.5rem">DIRECTORATE ONLY</p></div>
+      </div>
+      <div><p class="cap mb-1">Operational Notes</p><textarea x-model="profile.bio" rows="3" class="inp resize-none" placeholder="Operative background and specializations..." aria-label="Bio"></textarea></div>
+    </div>
+    <div class="gold-line" style="opacity:0.18"></div>
+    <div class="sticky bottom-0 px-5 py-3.5 flex justify-end gap-2.5" style="background:rgba(2,4,2,0.98);backdrop-filter:blur(20px)">
+      <button @click="showModal=false" class="btn btn-r px-5 py-2.5" style="font-size:0.58rem;min-height:unset">Cancel</button>
+      <button @click="updateProfile()" :disabled="isLoading" class="btn btn-g px-6 py-2.5" style="font-size:0.58rem;min-height:unset">
+        <svg x-show="isLoading" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span x-text="isLoading?'Saving...':'Save Dossier'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
