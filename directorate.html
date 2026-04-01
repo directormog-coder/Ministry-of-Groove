@@ -1,386 +1,387 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>M.O.G. | DIRECTORATE COMMAND</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/js/config.js"></script>
-    <script src="/js/supabase-client.js"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>M.O.G. | DIRECTORATE COMMAND</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
-    <style>
-        /* --- DIRECTORATE DESIGN SYSTEM --- */
-        :root {
-            --gold: #d4af37;
-            --red-alert: #ef4444;
-            --bg-black: #050505;
-        }
+  <style>
+    /* =========================================================================
+       DIRECTORATE STYLING ARCHITECTURE
+       =========================================================================
+    */
+    @layer base, layout, components, utilities, animations;
 
-        body {
-            background-color: var(--bg-black);
-            color: var(--gold);
-            font-family: 'Share Tech Mono', monospace;
-            background-image: radial-gradient(circle at center, #111 0%, #050505 100%);
-            -webkit-font-smoothing: antialiased;
-        }
+    @layer base {
+      :root {
+        --gold: #d4af37;
+        --gold-bright: #f0c040;
+        --red-alert: #ef4444;
+        --bg-black: #050505;
+        --surface: rgba(15, 15, 15, 0.95);
+        --border: rgba(212, 175, 55, 0.2);
+      }
 
-        [x-cloak] { display: none !important; }
+      body {
+        background-color: var(--bg-black);
+        color: var(--gold);
+        font-family: 'Share Tech Mono', monospace;
+        background-image: radial-gradient(circle at center, #111 0%, #050505 100%);
+        min-height: 100dvh;
+        overflow-x: hidden;
+      }
 
-        /* --- CLASSIFIED COMPONENTS --- */
-        .border-gold { border: 1px solid rgba(212, 175, 55, 0.2); }
-        .bg-dark-panel { background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(10px); }
+      [x-cloak] { display: none !important; }
+    }
+
+    @layer layout {
+      .bg-grid {
+        position: fixed; inset: 0; z-index: 0;
+        background-image: linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+      }
+      
+      .scanline {
+        width: 100%; height: 2px;
+        background: rgba(212, 175, 55, 0.05);
+        position: absolute; top: 0;
+        animation: scan 8s linear infinite;
+        z-index: 100;
+      }
+      @keyframes scan { from { top: 0; } to { top: 100%; } }
+    }
+
+    @layer components {
+      .border-gold { border: 1px solid var(--border); }
+      .bg-panel { background: var(--surface); backdrop-filter: blur(12px); }
+      
+      .classified-stamp {
+        border: 3px solid var(--red-alert);
+        color: var(--red-alert);
+        transform: rotate(-10deg);
+        font-weight: 900;
+        padding: 4px 12px;
+        display: inline-block;
+        text-transform: uppercase;
+        font-family: 'Orbitron', sans-serif;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+      }
+
+      .btn-master {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.65rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        background: rgba(212, 175, 55, 0.05);
+        color: var(--gold);
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.5rem;
+      }
+
+      .btn-master:hover {
+        background: var(--gold);
+        color: #000;
+        box-shadow: 0 0 20px var(--gold);
+      }
+
+      .btn-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--red-alert);
+        color: var(--red-alert);
+      }
+
+      .btn-danger:hover {
+        background: var(--red-alert);
+        color: #fff;
+        box-shadow: 0 0 25px var(--red-alert);
+      }
+
+      .status-pulse { animation: pulse 1.5s infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    }
+  </style>
+
+  <script>
+    /**
+     * =========================================================================
+     * DIRECTORATE LOGIC ENGINE
+     * =========================================================================
+     */
+    function directorateHub() {
+      return {
+        view: 'loading',
+        isLoading: false,
+        isOnline: navigator.onLine,
         
-        .classified-stamp {
-            border: 2px solid var(--red-alert);
-            color: var(--red-alert);
-            transform: rotate(-10deg);
-            font-weight: 900;
-            padding: 2px 8px;
-            display: inline-block;
-            text-transform: uppercase;
-            font-family: 'Orbitron', sans-serif;
-        }
+        // --- LIVE TELEMETRY ---
+        stats: {
+          viewers: 12842,
+          revenue: 45200,
+          health: 99.8,
+          sessions: 42
+        },
 
-        .btn-control {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.65rem;
-            letter-spacing: 0.1em;
-            border: 1px solid transparent;
-        }
+        // --- COMMAND PROPERTIES ---
+        protocolZero: false,
+        tickerOverride: '',
+        logs: [],
+        operatives: [],
 
-        .btn-control:active { transform: scale(0.95); }
+        async init() {
+          console.log("DIRECTORATE UPLINK INITIATED...");
+          
+          let check = 0;
+          while (typeof sb === 'undefined' && check < 40) {
+            await new Promise(r => setTimeout(r, 100));
+            check++;
+          }
 
-        /* --- MASTER OVERRIDE UI --- */
-        .status-pulse { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+          try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = '/login.html'; return; }
+            
+            await this.refreshDashboard();
+            this.view = 'ready';
+            
+            // Subscribe to real-time events
+            this.subscribeToNetwork();
+          } catch (e) {
+            console.error("Access Denied or System Fault");
+          }
+        },
 
-        .scanline {
-            width: 100%; height: 2px;
-            background: rgba(212, 175, 55, 0.05);
-            position: absolute; top: 0;
-            animation: scan 6s linear infinite;
-        }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
+        async refreshDashboard() {
+            this.isLoading = true;
+            await Promise.all([
+                this.fetchLogs(),
+                this.fetchOperatives(),
+                this.checkProtocolStatus()
+            ]);
+            this.isLoading = false;
+        },
 
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--gold); }
-    </style>
+        async checkProtocolStatus() {
+            const { data } = await sb.from('system_settings').select('*').eq('key', 'protocolZero').single();
+            if (data) this.protocolZero = JSON.parse(data.value).active;
+        },
 
-    <script>
+        async fetchLogs() {
+            const { data } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(15);
+            this.logs = data || [];
+        },
+
+        async fetchOperatives() {
+            const { data } = await sb.from('profiles').select('*').order('last_active', { ascending: false }).limit(6);
+            this.operatives = data || [];
+        },
+
         /**
-         * DIRECTORATE MASTER CONTROLLER
-         * Full Override Authority over M.O.G. Network
+         * MASTER OVERRIDE: PROTOCOL ZERO
          */
-        function directorateHub() {
-            return {
-                view: 'loading',
-                isLoading: false,
-                isOnline: navigator.onLine,
-                showSettings: false,
-                
-                // --- SYSTEM MONITORING ---
-                stats: {
-                    viewers: 0,
-                    revenue: 0,
-                    uplinkHealth: 99.9,
-                    activeSessions: 0
-                },
+        async triggerLockdown() {
+            const mode = !this.protocolZero;
+            const confirm = window.confirm(mode ? "ACTIVATE SYSTEM-WIDE LOCKDOWN?" : "RELEASE SYSTEM LOCKDOWN?");
+            if (!confirm) return;
 
-                // --- MASTER CONTROLS ---
-                protocolZero: false,
-                tickerInput: '',
-                directorateMessage: '',
-                alertStatus: 'NOMINAL',
+            this.isLoading = true;
+            const { error } = await sb.from('system_settings').upsert({
+                key: 'protocolZero',
+                value: JSON.stringify({ active: mode, timestamp: new Date() })
+            });
 
-                // --- DATA ---
-                operatives: [],
-                recentLogs: [],
-
-                async init() {
-                    // Check clearance (simplified for logic)
-                    let t = 0; while (typeof sb === 'undefined' && t < 30) { await new Promise(r => setTimeout(r, 100)); t++; }
-                    if (typeof sb === 'undefined') return;
-
-                    const { data: { session } } = await sb.auth.getSession();
-                    if (!session) { window.location.href = '/login.html'; return; }
-
-                    await this.syncDirectorateData();
-                    this.view = 'active';
-                    
-                    // Realtime Subscription to Logs
-                    this.subscribeToNetwork();
-                },
-
-                async syncDirectorateData() {
-                    this.isLoading = true;
-                    await Promise.all([
-                        this.fetchSystemStats(),
-                        this.fetchOperatives(),
-                        this.fetchLogs(),
-                        this.loadProtocolStatus()
-                    ]);
-                    this.isLoading = false;
-                },
-
-                async loadProtocolStatus() {
-                    const { data } = await sb.from('system_settings').select('*');
-                    if (data) {
-                        const p0 = data.find(s => s.key === 'protocolZero');
-                        if (p0) this.protocolZero = JSON.parse(p0.value).active;
-                    }
-                },
-
-                async fetchSystemStats() {
-                    // Simulating live data fetch from Supabase analytics
-                    this.stats.viewers = Math.floor(Math.random() * (15000 - 12000) + 12000);
-                    this.stats.revenue = 45200;
-                },
-
-                async fetchOperatives() {
-                    const { data } = await sb.from('profiles').select('*').order('last_active', { ascending: false }).limit(10);
-                    this.operatives = data || [];
-                },
-
-                async fetchLogs() {
-                    const { data } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(15);
-                    this.recentLogs = data || [];
-                },
-
-                /**
-                 * MASTER OVERRIDE: PROTOCOL ZERO
-                 * Locks the public index.html and displays a red warning.
-                 */
-                async toggleProtocolZero() {
-                    this.protocolZero = !this.protocolZero;
-                    const { error } = await sb.from('system_settings').upsert({
-                        key: 'protocolZero',
-                        value: JSON.stringify({ active: this.protocolZero, timestamp: new Date() })
-                    });
-                    
-                    if (!error) {
-                        this.logAction("PROTOCOL_ZERO", `Lockdown status: ${this.protocolZero ? 'ENABLED' : 'DISABLED'}`);
-                        this.toast(`PROTOCOL ZERO: ${this.protocolZero ? 'ACTIVE' : 'DEACTIVATED'}`, this.protocolZero ? 'error' : 'success');
-                    }
-                },
-
-                /**
-                 * BROADCAST OVERRIDE
-                 * Updates the ticker for all public users
-                 */
-                async updateGlobalTicker() {
-                    if (!this.tickerInput) return;
-                    const { error } = await sb.from('system_settings').upsert({
-                        key: 'tickerBroadcast',
-                        value: JSON.stringify({ message: this.tickerInput, type: 'emergency' })
-                    });
-                    if (!error) {
-                        this.toast("Ticker Updated Globally", "success");
-                        this.tickerInput = '';
-                    }
-                },
-
-                async logAction(type, desc) {
-                    await sb.from('activity_log').insert({
-                        type: type,
-                        description: `[DIRECTORATE] ${desc}`,
-                        created_at: new Date()
-                    });
-                },
-
-                subscribeToNetwork() {
-                    sb.channel('network-logs')
-                        .on('postgres_changes', { event: 'INSERT', table: 'activity_log' }, payload => {
-                            this.recentLogs.unshift(payload.new);
-                        }).subscribe();
-                },
-
-                toast(msg, type = 'info') {
-                    const tc = document.getElementById('toastRack');
-                    const el = document.createElement('div');
-                    el.className = `p-3 mb-2 border text-[10px] bg-black ${type === 'error' ? 'border-red-600 text-red-500' : 'border-gold text-gold'}`;
-                    el.innerHTML = `[ALERT]: ${msg.toUpperCase()}`;
-                    tc.appendChild(el);
-                    setTimeout(() => el.remove(), 5000);
-                }
+            if (!error) {
+                this.protocolZero = mode;
+                await this.logEvent("PROTOCOL_ZERO", `Lockdown status set to ${mode}`);
             }
+            this.isLoading = false;
+        },
+
+        async pushTicker() {
+            if (!this.tickerOverride) return;
+            await sb.from('system_settings').upsert({
+                key: 'tickerBroadcast',
+                value: JSON.stringify({ message: this.tickerOverride })
+            });
+            this.tickerOverride = '';
+            alert("BROADCAST UPDATED GLOBALLY");
+        },
+
+        async logEvent(type, desc) {
+            await sb.from('activity_log').insert({
+                type: type,
+                description: `[DIRECTORATE_OVERRIDE] ${desc}`,
+                created_at: new Date()
+            });
+        },
+
+        subscribeToNetwork() {
+            sb.channel('realtime-logs').on('postgres_changes', { event: 'INSERT', table: 'activity_log' }, (p) => {
+                this.logs.unshift(p.new);
+            }).subscribe();
         }
-    </script>
+      }
+    }
+  </script>
 </head>
 <body x-data="directorateHub()" x-init="init()" x-cloak>
 
-    <template x-if="view === 'loading'">
-        <div class="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center">
-            <div class="classified-stamp text-2xl mb-8">AUTHENTICATING CLEARANCE</div>
-            <div class="w-48 h-1 bg-gold/10 overflow-hidden">
-                <div class="h-full bg-gold animate-[loading_2s_infinite]"></div>
-            </div>
+  <div class="bg-grid"></div>
+  <div class="scanline"></div>
+
+  <nav class="sticky top-0 z-[200] border-b border-gold/30 bg-black/90 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <img src="assets/images/1000219947.png" alt="Seal" class="w-20 h-20 filter drop-shadow-[0_0_12px_rgba(212,175,55,0.5)]">
+        <div>
+          <h1 class="text-2xl font-black uppercase tracking-tighter italic text-white">Directorate Control</h1>
+          <p class="text-[10px] text-gray-500 mt-1">UPLINK: <span class="text-green-500 status-pulse">SECURE_ENCRYPTED</span></p>
         </div>
-    </template>
-    <style>@keyframes loading { from { transform: translateX(-100%); } to { transform: translateX(100%); } }</style>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="btn-master">Exit to Public Hub</a>
+        <button @click="refreshDashboard()" class="text-gold opacity-50 hover:opacity-100 transition"><i class="fa-solid fa-sync"></i></button>
+      </div>
+    </div>
+  </nav>
 
-    <div id="toastRack" class="fixed top-6 right-6 z-[2000] w-64"></div>
-
-    <nav class="flex justify-between items-center p-6 border-b border-gold/30 bg-black/80 backdrop-blur sticky top-0 z-50">
-        <div class="flex items-center gap-6">
-            <div class="relative">
-                <img src="1000219947.png" alt="Seal" class="w-16 h-16 filter drop-shadow-[0_0_10px_rgba(212,175,55,0.4)]">
-                <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full status-pulse border-2 border-black"></div>
-            </div>
-            <div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter italic">Directorate Command</h1>
-                <div class="flex items-center gap-3 mt-1">
-                    <span class="text-[9px] text-gray-500">UPLINK: <span class="text-green-500">ENCRYPTED</span></span>
-                    <span class="text-[9px] text-gray-500">NODE: EMALAHLENI_PRIME</span>
-                </div>
-            </div>
+  <main class="max-w-7xl mx-auto p-6 relative z-10" x-show="view === 'ready'">
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-panel border-gold p-6 rounded group relative overflow-hidden">
+        <p class="text-[9px] uppercase text-gray-500 mb-2">Global Viewers</p>
+        <p class="text-4xl font-black text-white" x-text="stats.viewers.toLocaleString()"></p>
+        <div class="absolute bottom-2 right-2 text-green-500 text-[10px]"><i class="fa-solid fa-caret-up"></i> 4.1%</div>
+      </div>
+      <div class="bg-panel border-gold p-6 rounded">
+        <p class="text-[9px] uppercase text-gray-500 mb-2">Network Revenue</p>
+        <p class="text-4xl font-black text-gold" x-text="'R' + stats.revenue.toLocaleString()"></p>
+      </div>
+      <div class="bg-panel border-gold p-6 rounded">
+        <p class="text-[9px] uppercase text-gray-500 mb-2">Uplink Health</p>
+        <p class="text-4xl font-black text-green-500" x-text="stats.health + '%'"></p>
+      </div>
+      <div class="bg-panel border-gold p-6 rounded flex items-center justify-center">
+        <div class="classified-stamp text-xs" :class="protocolZero ? 'bg-red-600 text-white' : ''">
+            <span x-text="protocolZero ? 'SYSTEM LOCKED' : 'LEVEL 5 CLEARANCE'"></span>
         </div>
-        <div class="flex items-center gap-4">
-            <a href="index.html" class="btn-control px-4 py-2 border-gold hover:bg-gold/10">Exit to Public Feed</a>
-            <button @click="syncDirectorateData()" class="btn-control p-2 border-gold"><i class="fa-solid fa-rotate"></i></button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-panel border-gold p-8 rounded-xl relative overflow-hidden">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="font-bold text-sm uppercase flex items-center gap-2">
+                <i class="fa-solid fa-tower-broadcast text-red-500 status-pulse"></i> Master Signal Override
+            </h2>
+            <span class="text-[10px] text-gray-500 uppercase">Emalahleni Sector 7G Uplink</span>
+          </div>
+
+          <div class="aspect-video bg-black rounded border border-white/5 relative flex items-center justify-center overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+            <div class="text-center">
+                <i class="fa-solid fa-eye text-5xl text-gray-900 mb-4"></i>
+                <p class="text-[10px] text-gray-700 uppercase italic">Monitoring Signal: MOG_HUB_MAIN_01</p>
+            </div>
+            <div class="absolute top-4 left-4 font-mono text-[9px] text-green-500">
+                <p>REC [●]</p>
+                <p x-text="new Date().toLocaleTimeString()"></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            <button @click="triggerLockdown()" 
+                    class="btn-master btn-danger" 
+                    :class="protocolZero ? 'bg-red-600 text-white' : ''">
+                <i class="fa-solid fa-skull-crossbones mr-2"></i> Protocol Zero
+            </button>
+            <button class="btn-master bg-black hover:border-red-500">Kill Signal</button>
+            <button class="btn-master bg-black">Switch Node</button>
+            <button class="btn-master bg-blue-900/20 border-blue-500 text-blue-400">Emergency Ping</button>
+          </div>
         </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto p-6" x-show="view === 'active'">
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div class="border-gold bg-dark-panel p-5 rounded relative overflow-hidden group">
-                <div class="scanline opacity-20"></div>
-                <p class="text-[9px] uppercase text-gray-500 mb-1">Global Network Viewers</p>
-                <p class="text-3xl font-black text-white" x-text="stats.viewers.toLocaleString()"></p>
-                <div class="absolute bottom-2 right-2 text-[8px] text-green-500"><i class="fa-solid fa-arrow-up mr-1"></i> 4.2%</div>
-            </div>
-            <div class="border-gold bg-dark-panel p-5 rounded group">
-                <p class="text-[9px] uppercase text-gray-500 mb-1">Total Revenue (ZAR)</p>
-                <p class="text-3xl font-black text-gold" x-text="'R ' + stats.revenue.toLocaleString()"></p>
-            </div>
-            <div class="border-gold bg-dark-panel p-5 rounded">
-                <p class="text-[9px] uppercase text-gray-500 mb-1">Infrastructure Health</p>
-                <div class="flex items-end justify-between">
-                    <p class="text-3xl font-black text-green-500" x-text="stats.uplinkHealth + '%'"></p>
-                    <div class="flex gap-1 mb-1">
-                        <div class="w-1 h-3 bg-green-500"></div><div class="w-1 h-4 bg-green-500"></div><div class="w-1 h-5 bg-green-500"></div>
-                    </div>
+        <div class="bg-panel border-gold p-6 rounded-xl">
+          <h3 class="font-bold text-xs uppercase mb-4 text-gold/60">Global News Ticker Broadcast</h3>
+          <div class="flex gap-4">
+            <input type="text" x-model="tickerOverride" 
+                   placeholder="TYPE EMERGENCY TRANSMISSION..." 
+                   class="flex-1 bg-black border border-gold/30 p-4 text-xs font-mono focus:border-gold outline-none">
+            <button @click="pushTicker()" class="btn-master">Push</button>
+          </div>
+          <p class="text-[8px] text-gray-600 mt-2 uppercase tracking-widest">Caution: This overrides the ticker for all active sessions immediately.</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="bg-panel border-gold p-6 rounded-xl">
+          <h3 class="font-bold text-sm uppercase mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-users-gear text-gold"></i> Operative Status
+          </h3>
+          <div class="space-y-4">
+            <template x-for="op in operatives" :key="op.id">
+              <div class="flex items-center justify-between p-3 bg-black/40 rounded border border-white/5 hover:border-gold/30 transition-all group">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full border border-gold/20 overflow-hidden bg-black flex items-center justify-center">
+                    <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover">
+                    <i x-show="!op.avatar_url" class="fa-solid fa-user text-xs"></i>
+                  </div>
+                  <div>
+                    <p class="text-[11px] font-bold text-white uppercase" x-text="op.username"></p>
+                    <p class="text-[8px] text-gold/50 uppercase" x-text="op.rank"></p>
+                  </div>
                 </div>
-            </div>
-            <div class="border-gold bg-dark-panel p-5 rounded flex flex-col justify-center items-center">
-                <div class="classified-stamp text-xs" :style="protocolZero ? 'background: #ef4444; color: white;' : ''">
-                    <span x-text="protocolZero ? 'LOCKED' : 'CLEARANCE L5'"></span>
-                </div>
-            </div>
+                <button class="text-[9px] text-red-500 font-black uppercase opacity-0 group-hover:opacity-100">Revoke</button>
+              </div>
+            </template>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <div class="lg:col-span-2 space-y-6">
-                
-                <div class="border-gold bg-dark-panel p-6 rounded-lg relative overflow-hidden">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-bold text-sm uppercase flex items-center gap-2">
-                            <i class="fa-solid fa-tower-broadcast text-red-500"></i> Broadcast Override
-                        </h2>
-                        <span class="text-[10px] text-red-500 font-bold animate-pulse">MASTER SIGNAL ACTIVE</span>
-                    </div>
-
-                    <div class="aspect-video bg-black rounded border border-white/5 relative group cursor-crosshair">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fa-solid fa-eye text-4xl text-gray-800 mb-2"></i>
-                                <p class="text-[10px] text-gray-600 uppercase font-mono">Live Monitoring: HQ_CAM_01</p>
-                            </div>
-                        </div>
-                        <div class="absolute top-4 left-4 font-mono text-[9px] text-green-500 space-y-1">
-                            <p>REC [●]</p>
-                            <p x-text="new Date().toISOString()"></p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-                        <button @click="toggleProtocolZero()" 
-                                class="btn-control p-3 border rounded text-white" 
-                                :class="protocolZero ? 'bg-red-600 border-red-400' : 'bg-red-900/40 border-red-600 hover:bg-red-600'">
-                            <i class="fa-solid fa-skull-crossbones mr-2"></i> Protocol Zero
-                        </button>
-                        <button class="btn-control p-3 bg-gray-900 border border-gray-700 hover:border-gold rounded">Kill Stream</button>
-                        <button class="btn-control p-3 bg-gray-900 border border-gray-700 hover:border-gold rounded">Bypass CDN</button>
-                        <button class="btn-control p-3 bg-blue-900/40 border border-blue-600 hover:bg-blue-600 rounded">Emergency Msg</button>
-                    </div>
+        <div class="bg-panel border-gold p-6 rounded-xl">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-sm uppercase">Live Transmission Log</h3>
+            <span class="text-[8px] text-green-500 status-pulse">REALTIME</span>
+          </div>
+          <div class="space-y-4 max-h-[350px] overflow-y-auto pr-3 no-scrollbar">
+            <template x-for="log in logs" :key="log.id">
+                <div class="text-[10px] border-l-2 border-gold/10 pl-4 py-1 hover:border-gold transition-colors">
+                    <p class="text-white/80" x-text="log.description"></p>
+                    <p class="text-gray-600 text-[8px] mt-1 uppercase" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
                 </div>
-
-                <div class="border-gold bg-dark-panel p-6 rounded-lg">
-                    <h3 class="font-bold text-xs uppercase mb-4 text-gold">Global Ticker Broadcast</h3>
-                    <div class="flex gap-3">
-                        <input type="text" x-model="tickerInput" 
-                               placeholder="ENTER EMERGENCY BROADCAST TEXT..." 
-                               class="flex-1 bg-black border border-gold/30 p-3 text-xs font-mono focus:border-gold outline-none">
-                        <button @click="updateGlobalTicker()" class="bg-gold text-black px-6 font-black text-xs uppercase hover:bg-white transition">Push</button>
-                    </div>
-                    <p class="text-[8px] text-gray-600 mt-2 uppercase tracking-widest">Note: This will override the public news ticker for all connected users.</p>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                
-                <div class="border-gold bg-dark-panel p-6 rounded-lg">
-                    <h3 class="font-bold text-sm uppercase mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-users-gear text-gold"></i> Operatives
-                    </h3>
-                    <div class="space-y-3">
-                        <template x-for="op in operatives" :key="op.id">
-                            <div class="flex items-center justify-between group p-2 hover:bg-white/5 rounded transition-colors">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full border border-gold/30 bg-black flex items-center justify-center overflow-hidden">
-                                        <img x-show="op.avatar_url" :src="op.avatar_url" class="w-full h-full object-cover">
-                                        <i x-show="!op.avatar_url" class="fa-solid fa-user text-[10px]"></i>
-                                    </div>
-                                    <div class="leading-none">
-                                        <p class="text-[10px] font-bold text-white uppercase" x-text="op.username"></p>
-                                        <p class="text-[8px] text-gray-500 uppercase" x-text="op.rank"></p>
-                                    </div>
-                                </div>
-                                <button class="text-[8px] opacity-0 group-hover:opacity-100 text-red-500 uppercase font-black">Revoke</button>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-                <div class="border-gold bg-dark-panel p-6 rounded-lg">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-sm uppercase">Network Logs</h3>
-                        <span class="text-[8px] text-green-500 status-pulse">REALTIME</span>
-                    </div>
-                    <div class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-                        <template x-for="log in recentLogs" :key="log.id">
-                            <div class="text-[9px] border-l border-gold/10 pl-3">
-                                <p class="text-white opacity-80" x-text="log.description"></p>
-                                <p class="text-gray-600 mt-0.5" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
-                            </div>
-                        </template>
-                    </div>
-                </div>
-
-            </div>
+            </template>
+          </div>
         </div>
-    </main>
+      </div>
 
-    <footer class="mt-20 p-10 border-t border-gold/10 text-center">
-        <div class="flex justify-center gap-6 mb-4 opacity-50">
-            <i class="fa-solid fa-shield-halved text-xl"></i>
-            <i class="fa-solid fa-fingerprint text-xl"></i>
-            <i class="fa-solid fa-satellite-dish text-xl"></i>
-        </div>
-        <p class="text-[9px] tracking-[0.4em] text-gray-700 uppercase">Directorate Command Infrastructure // Restricted Access Area 51-B</p>
-        <p class="font-mono text-[10px] text-red-900 mt-2">© 2026 M.O.G. ALL OVERRIDE PROTOCOLS LOGGED</p>
-    </footer>
+    </div>
+  </main>
+  
+  <footer class="mt-20 p-12 border-t border-gold/10 text-center relative overflow-hidden">
+    <div class="flex justify-center gap-8 mb-6 opacity-30">
+        <i class="fa-solid fa-shield-halved text-2xl"></i>
+        <i class="fa-solid fa-satellite text-2xl"></i>
+        <i class="fa-solid fa-fingerprint text-2xl"></i>
+    </div>
+    <p class="text-[9px] tracking-[0.5em] text-gray-700 uppercase">Ministry of Groove | Directorate Prime Command Center</p>
+    <p class="text-[8px] text-red-900 font-black mt-2">© 2026 M.O.G. ALL DIRECTORATE ACTIONS ARE LOGGED TO OMEGA-VAULT</p>
+  </footer>
 
-    <script> document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); }); </script>
+  <script> document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); }); </script>
 </body>
 </html>
