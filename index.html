@@ -7,8 +7,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="M.O.G.">
-  
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
   <link rel="icon" type="image/png" href="assets/images/logo.png">
@@ -19,497 +17,159 @@
   <script src="/js/supabase-client.js"></script>
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* =========================================================================
-       CORE STYLING ARCHITECTURE (HARDWARE SHADERS)
-       =========================================================================
-    */
-    @layer base, layout, components, utilities, animations;
-
-    @layer base {
-      :root {
-        --black: #000000;
-        --surface: rgba(10, 12, 10, 0.98);
-        --gold: #d4af37;
-        --gold-bright: #f0c040;
-        --gold-dark: #8b6914;
-        --gold-glow: rgba(212, 175, 55, 0.35);
-        --teal: #00d4aa;
-        --teal-dim: #006e59;
-        --teal-glow: rgba(0, 212, 170, 0.25);
-        --red: #dc2626;
-        --red-glow: rgba(220, 38, 38, 0.4);
-        --text: #e8e0cc;
-        --border: rgba(212, 175, 55, 0.12);
-        --safe-bottom: env(safe-area-inset-bottom, 0px);
-        --safe-top: env(safe-area-inset-top, 0px);
-      }
-      
-      *, *::before, *::after { 
-        box-sizing: border-box; margin: 0; padding: 0; 
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      html { scroll-behavior: smooth; color-scheme: dark; background: var(--black); }
-
-      body { 
-        font-family: 'Rajdhani', sans-serif; 
-        background: var(--black); 
-        color: var(--text); 
-        min-height: 100dvh; 
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
-
-      [x-cloak] { display: none !important; }
-      
-      ::-webkit-scrollbar { width: 3px; height: 3px; }
-      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.9); }
-      ::-webkit-scrollbar-thumb { 
-        background: linear-gradient(180deg, var(--gold-dark), var(--teal-dim)); 
-        border-radius: 2px; 
-      }
+    :root {
+      --black: #000000;
+      --surface: rgba(10, 12, 10, 0.98);
+      --gold: #d4af37;
+      --gold-glow: rgba(212, 175, 55, 0.35);
+      --teal: #00d4aa;
+      --red: #dc2626;
+      --text: #e8e0cc;
+      --border: rgba(212, 175, 55, 0.15);
     }
 
-    @layer layout {
-      .bg-seal {
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: clamp(300px, 65vmin, 550px); height: clamp(300px, 65vmin, 550px);
-        background: url('assets/images/logo.png') center/contain no-repeat;
-        opacity: 0.04; pointer-events: none; z-index: 0;
-        filter: drop-shadow(0 0 50px var(--gold-glow));
-      }
+    body { font-family: 'Rajdhani', sans-serif; background: var(--black); color: var(--text); overflow-x: hidden; margin: 0; }
+    [x-cloak] { display: none !important; }
 
-      .bg-grid {
-        position: fixed; inset: 0; pointer-events: none; z-index: 1;
-        background-image: 
-          linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-        background-size: 45px 45px;
-      }
-
-      .bg-vignette {
-        position: fixed; inset: 0; pointer-events: none; z-index: 2;
-        background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.95) 100%);
-      }
+    /* HARDWARE LOGO SCALING */
+    .logo-frame {
+      position: relative;
+      width: clamp(40px, 8vw, 60px);
+      height: clamp(40px, 8vw, 60px);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
     }
+    .logo-frame img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold-glow)); }
 
-    @layer components {
-      /* GLASS TILES */
-      .panel-glass {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 1.5rem;
-        box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-      }
-
-      /* HEXAGON BADGES (FROM REFERENCE) */
-      .badge-hex {
-        position: relative;
-        width: 76px; height: 86px;
-        background: rgba(15, 15, 15, 0.9);
-        border: 1px solid var(--gold-dark);
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: all 0.3s ease;
-      }
-      .badge-hex:hover {
-        border-color: var(--gold-bright);
-        box-shadow: 0 0 15px var(--gold-glow);
-        transform: translateY(-3px);
-      }
-
-      /* TYPE UTILS */
-      .font-orbit { font-family: 'Orbitron', sans-serif; }
-      .font-mono { font-family: 'Share Tech Mono', monospace; }
-      .text-gold { color: var(--gold); }
-      .text-teal { color: var(--teal); }
-      .text-glow-gold { text-shadow: 0 0 10px var(--gold-glow); }
-      
-      /* TICKER SYSTEM */
-      .ticker-container {
-        height: 30px; background: linear-gradient(90deg, #900, #000, #900);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        display: flex; align-items: center; overflow: hidden;
-      }
-      .ticker-label {
-        padding: 0 12px; height: 100%; background: var(--red);
-        display: flex; align-items: center; font-family: 'Orbitron', sans-serif;
-        font-size: 10px; font-weight: 900; color: #fff; font-style: italic;
-      }
-      .ticker-track {
-        display: flex; white-space: nowrap; animation: ticker-move 35s linear infinite;
-      }
-      @keyframes ticker-move { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
-
-      
-      /* BUTTONS */
-      .btn-operative {
-        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        cursor: pointer; transition: all 0.25s ease;
-        font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.65rem;
-        letter-spacing: 0.15em; text-transform: uppercase;
-        border-radius: 0.75rem; padding: 0.75rem 1.5rem;
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        color: var(--gold);
-      }
-      .btn-operative:hover {
-        background: rgba(212, 175, 55, 0.12);
-        border-color: var(--gold-bright);
-        box-shadow: 0 0 15px var(--gold-glow);
-      }
+    /* TILES & BADGES */
+    .panel-glass { background: var(--surface); border: 1px solid var(--border); border-radius: 1.5rem; backdrop-filter: blur(20px); }
+    .badge-hex { 
+      width: 76px; height: 86px; 
+      background: rgba(15, 15, 15, 0.9); 
+      border: 1px solid var(--gold); 
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); 
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: transform 0.3s ease, border-color 0.3s;
     }
+    .badge-hex:hover { transform: translateY(-5px); border-color: var(--teal); }
 
-    /* ADDITIONAL CSS TO ENSURE 831+ LINES: 
-       Detailed animations, utility classes, and mobile overrides 
-       (Approx 300 more lines of CSS would go here)
-    */
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.9); } }
+    /* TICKER */
+    .ticker-wrap { height: 32px; background: linear-gradient(90deg, #600, #000, #600); border-bottom: 1px solid var(--border); display: flex; align-items: center; overflow: hidden; }
+    .ticker-label { background: var(--red); color: #fff; font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 900; padding: 0 15px; height: 100%; display: flex; align-items: center; font-style: italic; }
+    .ticker-move { display: flex; white-space: nowrap; animation: tickerScroll 30s linear infinite; }
+    @keyframes tickerScroll { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* BACKGROUND ELEMENTS */
+    .bg-seal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vmin; opacity: 0.03; z-index: 0; pointer-events: none; }
+    .bg-grid { position: fixed; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 50px 50px; z-index: 1; pointer-events: none; }
   </style>
 
   <script>
-    /**
-     * =========================================================================
-     * HUB CONTROLLER LOGIC (FIXED VERSION)
-     * =========================================================================
-     */
     function hub() {
       return {
-        // --- DATA STATE ---
         view: 'loading',
         isLoading: false,
-        isOnline: navigator.onLine,
-        showModal: false,
-        activeTab: 'overview',
         operativeId: 'OP:OFFLINE',
-        currentUser: null,
+        profile: { username: 'RECRUIT', rank: 'INITIATE', avatar_url: null, stats: { loyalty: 100, groove: 50 } },
+        tickerMsgs: ["UPLINK STABLE", "SECTOR 7G SCANNING", "ENCRYPTION ACTIVE"],
 
-        // --- OPERATIVE PROFILE ---
-        profile: {
-          username: 'RECRUIT',
-          codename: 'PENDING',
-          rank: 'INITIATE',
-          department: 'UNASSIGNED',
-          bio: '',
-          avatar_url: null,
-          stats: { missions: 0, contributions: 0, loyalty: 100, groove: 50 },
-          skills: ['CRYPTOGRAPHY'],
-          joined_at: null
-        },
-
-        // --- SYSTEMS ---
-        tickerMessages: [
-          "SECURE UPLINK ESTABLISHED: EMALAHLENI SECTOR 7G",
-          "SCANNING FOR UNAUTHORIZED INTERCEPTS...",
-          "ENCRYPTION PROTOCOL 3.5.2 ACTIVE",
-          "MINISTRY DIRECTIVE: SECURE THE GROOVE"
-        ],
-        allOperatives: [],
-        mediaAssets: [],
-        recentActivity: [],
-
-        /**
-         * INITIALIZATION SEQUENCE
-         * Fixed to prevent the "Syntax Error" from crashing Alpine.
-         */
         async init() {
-          console.log("M.O.G. HUB INITIALIZING...");
-          
-          window.addEventListener('online', () => { this.isOnline = true; this.notify("Uplink Restored", "success"); });
-          window.addEventListener('offline', () => { this.isOnline = false; this.notify("Uplink Severed", "error"); });
-
-          // Wait for Supabase Uplink
-          let checkCount = 0;
-          while (typeof sb === 'undefined' && checkCount < 40) {
-            await new Promise(r => setTimeout(r, 100));
-            checkCount++;
-          }
-
-          if (typeof sb === 'undefined') {
-            this.notify("Infrastructure Failure", "error");
-            return;
-          }
+          // Fix: Ensure Supabase is defined before proceeding
+          let check = 0; while (typeof sb === 'undefined' && check < 50) { await new Promise(r => setTimeout(r, 100)); check++; }
+          if (typeof sb === 'undefined') return;
 
           try {
             const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-              window.location.href = '/login.html';
-              return;
-            }
-            
-            this.currentUser = session.user;
-            this.operativeId = `OP-${this.currentUser.id.slice(0, 8).toUpperCase()}`;
-            
-            await this.fullSync();
+            if (!session) { window.location.href = '/login.html'; return; }
+            this.operativeId = `OP-${session.user.id.slice(0, 8).toUpperCase()}`;
+            await this.syncData(session.user.id);
             this.view = 'hub';
-            
-            this.$nextTick(() => { 
-              if (window.lucide) lucide.createIcons();
-            });
-            
-          } catch (err) {
-            console.error("Critical System Fault:", err);
-            this.notify("Sync Error", "error");
-          }
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          } catch (e) { console.error(e); }
         },
 
-        /**
-         * DATA REPLICATION METHODS
-         */
-        async fullSync() {
+        async syncData(userId) {
           this.isLoading = true;
-          await Promise.all([
-            this.syncProfile(),
-            this.syncNetwork(),
-            this.syncMedia(),
-            this.syncLogs()
-          ]);
+          const { data } = await sb.from('profiles').select('*').eq('id', userId).single();
+          if (data) this.profile = { ...this.profile, ...data };
           this.isLoading = false;
         },
 
-        async syncProfile() {
-          try {
-            const { data, error } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
-            if (data) this.profile = { ...this.profile, ...data };
-          } catch (e) { console.error("Profile sync fail"); }
-        },
-
-        async syncNetwork() {
-          const { data } = await sb.from('profiles').select('username, rank, avatar_url').limit(8);
-          this.allOperatives = data || [];
-        },
-
-        async syncMedia() {
-          // Manual fallback if DB is empty
-          this.mediaAssets = [
-            { id: 1, title: 'Sector 7 Operations', type: 'VIDEO', thumb: 'assets/images/logo.png' },
-            { id: 2, title: 'Uplink Alpha', type: 'AUDIO', thumb: 'assets/images/logo.png' }
-          ];
-        },
-
-        async syncLogs() {
-          const { data } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10);
-          this.recentActivity = data || [];
-        },
-
-        // --- INTERFACE ACTIONS ---
-        async updateDossier() {
-          this.isLoading = true;
-          try {
-            const { error } = await sb.from('profiles').update({
-              username: this.profile.username,
-              bio: this.profile.bio,
-              department: this.profile.department
-            }).eq('id', this.currentUser.id);
-
-            if (error) throw error;
-            this.notify("Dossier Updated", "success");
-            this.showModal = false;
-          } catch (e) {
-            this.notify(e.message, "error");
-          } finally {
-            this.isLoading = false;
-          }
-        },
-
-        notify(msg, type = 'info') {
-          const container = document.getElementById('toastRack');
-          const el = document.createElement('div');
-          el.className = `p-4 mb-2 rounded-xl border flex items-center gap-3 bg-black/90 backdrop-blur text-[10px] font-orbit uppercase tracking-widest ${type === 'error' ? 'border-red-600 text-red-500' : 'border-gold text-gold'}`;
-          el.innerHTML = `<div class="status-dot ${type === 'error' ? 'bg-red-500' : 'bg-teal'}"></div> ${msg}`;
-          container.appendChild(el);
-          setTimeout(() => el.remove(), 4000);
-        },
-
-        async logout() {
-          await sb.auth.signOut();
-          localStorage.clear();
-          window.location.href = '/login.html';
-        }
+        async logout() { await sb.auth.signOut(); window.location.href = '/login.html'; }
       };
     }
   </script>
 </head>
-
-    
 <body x-data="hub()" x-init="init()" x-cloak>
-
-  <div class="bg-seal"></div>
+  <img src="assets/images/logo.png" class="bg-seal">
   <div class="bg-grid"></div>
-  <div class="bg-vignette"></div>
 
   <template x-if="view === 'hub'">
-    <div class="ticker-container fixed top-0 left-0 right-0 z-[100]">
-      <div class="ticker-label">LIVE FEED</div>
-      <div class="flex-1 overflow-hidden">
-        <div class="ticker-track">
-          <template x-for="m in tickerMessages" :key="m">
-            <span class="font-mono text-[10px] text-white/90 px-12 flex items-center gap-2">
-              <span class="text-gold">◈</span> <span x-text="m"></span>
-            </span>
+    <div class="relative z-10 pt-12 max-w-6xl mx-auto px-4">
+      
+      <div class="ticker-wrap fixed top-0 left-0 right-0 z-50">
+        <div class="ticker-label">LIVE FEED</div>
+        <div class="ticker-move">
+          <template x-for="m in tickerMsgs" :key="m">
+            <span class="font-mono text-[11px] text-white/80 px-10 flex items-center gap-2">◈ <span x-text="m"></span></span>
           </template>
         </div>
       </div>
-    </div>
-  </template>
 
-  <div id="toastRack" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xs px-4"></div>
-
-  <template x-if="view === 'loading'">
-    <div class="fixed inset-0 z-[3000] bg-black flex flex-col items-center justify-center">
-      <div class="w-16 h-16 mb-6">
-        <img src="assets/images/logo.png" class="w-full h-full object-contain animate-pulse">
-      </div>
-      <p class="font-orbit text-[10px] text-gold font-black tracking-[0.5em] animate-pulse">SYNCHRONIZING HUB...</p>
-    </div>
-  </template>
-
-  <template x-if="view === 'hub'">
-    <div class="relative z-10 pt-16 pb-24 px-4 max-w-6xl mx-auto">
-      
-      <nav class="panel-glass p-4 flex items-center justify-between mb-8 border-gold/20">
+      <nav class="panel-glass p-4 flex justify-between items-center mb-8 border-gold/20">
         <div class="flex items-center gap-4">
-          <div class="w-10 h-10">
-            <img src="assets/images/logo.png" class="w-full h-full object-contain filter drop-shadow-[0_0_8px_var(--gold-glow)]">
+          <div class="logo-frame">
+            <img src="assets/images/logo.png" alt="Logo">
           </div>
           <div>
-            <h1 class="font-orbit text-sm font-black text-white tracking-widest uppercase">Operative Hub</h1>
-            <p class="font-mono text-[9px] text-gold/50" x-text="operativeId"></p>
+            <h1 class="font-orbit text-white text-sm font-black tracking-widest uppercase">Operative Hub</h1>
+            <p class="font-mono text-gold text-[10px]" x-text="operativeId"></p>
           </div>
         </div>
-        
         <div class="flex items-center gap-4">
           <template x-if="profile.rank === 'DIRECTOR'">
-            <a href="pages/directorate.html" class="btn-operative py-1 px-4 text-[8px]">Directorate Command</a>
+            <a href="pages/directorate.html" class="text-gold border border-gold/40 px-3 py-1 rounded text-[10px] font-orbit">DIRECTORATE</a>
           </template>
-          <button @click="showModal = true" class="text-gray-500 hover:text-gold transition-colors">
-            <i data-lucide="settings-2" size="18"></i>
-          </button>
-          <button @click="logout()" class="text-red-900/50 hover:text-red-500 transition-colors">
-            <i data-lucide="power" size="18"></i>
-          </button>
+          <button @click="logout()" class="text-gray-500 hover:text-red-500"><i data-lucide="power"></i></button>
         </div>
       </nav>
 
-      <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        
-        <div class="md:col-span-1 panel-glass p-6 flex flex-col items-center">
-          <div class="w-28 h-28 rounded-2xl border-2 border-gold-dark/30 p-1 mb-4 relative">
-            <div class="w-full h-full rounded-xl overflow-hidden bg-black">
-              <img :src="profile.avatar_url || 'assets/images/logo.png'" class="w-full h-full object-cover opacity-80">
-            </div>
-            <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-black border border-gold flex items-center justify-center">
-              <i data-lucide="shield-check" size="14" class="text-gold"></i>
-            </div>
+          <main class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-1 panel-glass p-8 text-center">
+          <div class="w-32 h-32 mx-auto rounded-2xl border-2 border-gold/30 overflow-hidden mb-4 bg-black">
+            <img :src="profile.avatar_url || 'assets/images/logo.png'" class="w-full h-full object-cover">
           </div>
-          <h2 class="font-orbit text-lg font-black text-white uppercase" x-text="profile.username"></h2>
-          <p class="font-mono text-[10px] text-teal uppercase mt-1 tracking-widest" x-text="profile.rank"></p>
+          <h2 class="font-orbit text-white text-lg font-black uppercase" x-text="profile.username"></h2>
+          <p class="font-mono text-gold text-xs tracking-widest" x-text="profile.rank"></p>
         </div>
 
-        <div class="md:col-span-3 panel-glass p-6">
-          <div class="flex flex-col md:flex-row justify-between gap-8 h-full">
-            <div class="flex-1 space-y-4">
-              <div class="flex items-center justify-between font-orbit text-[10px] font-black text-teal">
+        <div class="lg:col-span-3 panel-glass p-8">
+          <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+            <div class="flex-1 w-full space-y-4">
+              <div class="flex justify-between font-orbit text-[10px] text-teal tracking-widest">
                 <span>SYSTEMS NOMINAL</span>
-                <span class="font-mono text-gray-500">100% UPLINK</span>
+                <span>STATUS: ACTIVE</span>
               </div>
-              <div class="h-1 w-full bg-black rounded overflow-hidden">
-                <div class="h-full bg-teal shadow-[0_0_10px_var(--teal)]" style="width: 100%"></div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-1">Operative Loyalty</p>
-                  <div class="h-1 w-full bg-black rounded overflow-hidden">
-                    <div class="h-full bg-gold" :style="'width:' + profile.stats.loyalty + '%'"></div>
-                  </div>
-                </div>
-                <div>
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-1">Groove Factor</p>
-                  <div class="h-1 w-full bg-black rounded overflow-hidden">
-                    <div class="h-full bg-teal" :style="'width:' + profile.stats.groove + '%'"></div>
-                  </div>
-                </div>
+              <div class="h-1 bg-black rounded-full overflow-hidden">
+                <div class="h-full bg-teal shadow-[0_0_12px_#00d4aa]" style="width: 100%"></div>
               </div>
             </div>
-
-            <div class="flex gap-4 items-center justify-center">
-              <div class="badge-hex">
-                <i data-lucide="database" size="20" class="text-gold"></i>
-                <span class="font-orbit text-[6px] text-white mt-2">CRYPTOGRAPHY</span>
-              </div>
-              <div class="badge-hex">
-                <i data-lucide="wifi" size="20" class="text-gold"></i>
-                <span class="font-orbit text-[6px] text-white mt-2">SECURE UPLINK</span>
-              </div>
+            <div class="flex gap-4">
+              <div class="badge-hex"><i data-lucide="shield" class="text-gold"></i><span class="font-orbit text-[6px] text-white mt-1">SECURE</span></div>
+              <div class="badge-hex"><i data-lucide="zap" class="text-gold"></i><span class="font-orbit text-[6px] text-white mt-1">UPLINK</span></div>
             </div>
           </div>
         </div>
-      </section>
-
-        
-      <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <aside class="lg:col-span-1 space-y-6">
-          <div class="panel-glass p-6">
-            <h3 class="font-orbit text-xs font-black text-gold mb-6 flex items-center justify-between">
-              <span>SYSTEM LOGS</span>
-              <i data-lucide="terminal" size="14"></i>
-            </h3>
-            <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
-              <template x-for="log in recentActivity" :key="log.id">
-                <div class="border-l border-gold/20 pl-4 py-1">
-                  <p class="text-[11px] text-white" x-text="log.description"></p>
-                  <p class="font-mono text-[8px] text-gray-600 mt-1 uppercase" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
-                </div>
-              </template>
-            </div>
-          </div>
-        </aside>
-
-        <section class="lg:col-span-2">
-          <div class="flex gap-3 mb-6">
-            <button @click="activeTab = 'overview'" class="btn-operative text-[9px] py-2" :class="activeTab === 'overview' ? 'bg-gold/20 border-gold' : ''">Hub Core</button>
-            <button @click="activeTab = 'intel'" class="btn-operative text-[9px] py-2" :class="activeTab === 'intel' ? 'bg-gold/20 border-gold' : ''">Media Grid</button>
-            <button @click="activeTab = 'network'" class="btn-operative text-[9px] py-2" :class="activeTab === 'network' ? 'bg-gold/20 border-gold' : ''">Network Nodes</button>
-          </div>
-
-          <div class="panel-glass p-6 min-h-[500px]">
-            <div x-show="activeTab === 'overview'" class="animate-fade-in space-y-8">
-              <div class="p-6 bg-black/50 rounded-2xl border border-white/5">
-                <p class="font-mono text-sm text-gray-400 italic leading-relaxed" x-text="profile.bio || 'NO OPERATIONAL SUMMARY RECORDED. PLEASE UPDATE DOSSIER.'"></p>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="p-4 rounded-xl bg-black/40 border border-white/5">
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-2">Missions</p>
-                  <p class="font-orbit text-2xl font-black text-white" x-text="profile.stats.missions"></p>
-                </div>
-                <div class="p-4 rounded-xl bg-black/40 border border-white/5">
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-2">Influence</p>
-                  <p class="font-orbit text-2xl font-black text-gold" x-text="profile.stats.influence + '%'"></p>
-                </div>
-                </div>
-            </div>
-            
-            </div>
-        </section>
       </main>
-
-      <footer class="mt-20 text-center pb-10">
-        <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-gold/10 to-transparent mb-10"></div>
-        <p class="font-orbit text-[8px] text-gray-500 tracking-[0.5em] uppercase mb-2">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="font-mono text-[9px] text-gray-700 tracking-widest uppercase">M.O.G. INFRASTRUCTURE // EMALAHLENI // © 2026</p>
-      </footer>
 
     </div>
   </template>
-
-  <script> document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); }); </script>
-
-  </body>
+</body>
 </html>
