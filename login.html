@@ -6,9 +6,11 @@
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <title>M.O.G. | DUAL-GATE ACCESS</title>
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+  <title>M.O.G. | SECURE ACCESS</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -17,16 +19,17 @@
 
   <style>
     /* =========================================================================
-       HARDWARE STYLING ENGINE
+       HARDWARE UI SHADERS
        =========================================================================
     */
-    @layer base, layout, components, animations, utilities;
+    @layer base, layout, components, animations;
 
     @layer base {
       :root {
         --black: #000;
         --gold: #d4af37;
-        --gold-glow: rgba(212,175,55,0.4);
+        --gold-bright: #f0c040;
+        --gold-glow: rgba(212,175,55,0.35);
         --teal: #00d4aa;
         --red: #dc2626;
         --surface: rgba(5,7,6,0.98);
@@ -38,215 +41,269 @@
         font-family: 'Rajdhani', sans-serif;
         background: var(--black); color: var(--text);
         min-height: 100dvh; display: flex; align-items: center; justify-content: center;
-        overflow: hidden; padding: 1.5rem;
+        overflow: hidden; padding: 1.5rem; -webkit-font-smoothing: antialiased;
       }
     }
 
     @layer layout {
+      .bg-watermark {
+        position: fixed; inset: 0; pointer-events: none;
+        background: url('assets/images/logo.png') center/clamp(280px, 60vw, 500px) no-repeat;
+        opacity: 0.04; filter: blur(1px); z-index: 0;
+      }
       .bg-grid {
-        position: fixed; inset: 0; z-index: 0;
+        position: fixed; inset: 0; z-index: 1;
         background-image: linear-gradient(rgba(212,175,55,0.02) 1px, transparent 1px),
                           linear-gradient(90deg, rgba(212,175,55,0.02) 1px, transparent 1px);
         background-size: 50px 50px;
-        pointer-events: none;
       }
       
-      .gate-card {
+      .terminal-card {
         position: relative; z-index: 10;
         width: 100%; max-width: 420px;
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 2.5rem; padding: 3rem 2.5rem;
-        backdrop-filter: blur(25px);
+        backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
         box-shadow: 0 25px 60px rgba(0,0,0,0.9);
         transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
       
-      .gate-card.director-mode {
+      /* DIRECTORATE OVERRIDE VISUALS */
+      .terminal-card.directorate-gate {
         border-color: var(--teal);
-        box-shadow: 0 0 40px rgba(0, 212, 170, 0.1);
+        box-shadow: 0 0 50px rgba(0, 212, 170, 0.15);
       }
 
-      .card-shake { animation: shake 0.4s both; }
+      .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
       @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-6px); }
-        75% { transform: translateX(6px); }
+        10%, 90% { transform: translateX(-1px); }
+        20%, 80% { transform: translateX(2px); }
+        30%, 50%, 70% { transform: translateX(-4px); }
+        40%, 60% { transform: translateX(4px); }
       }
     }
 
     @layer components {
       .access-ring {
-        width: 100px; height: 100px; margin: 0 auto 2rem;
-        border-radius: 50%; padding: 4px;
+        width: clamp(80px, 15vw, 100px); height: clamp(80px, 15vw, 100px);
+        margin: 0 auto 2.5rem; border-radius: 50%; padding: 4px;
         background: conic-gradient(from 0deg, var(--gold), var(--teal), var(--gold));
-        animation: spin-slow 12s linear infinite;
-        position: relative;
+        animation: rotate-ring 15s linear infinite;
+        flex-shrink: 0;
       }
       .access-ring div {
         width: 100%; height: 100%; background: #000; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
       }
-      .access-ring img { width: 65%; filter: drop-shadow(0 0 12px var(--gold-glow)); }
-      @keyframes spin-slow { to { transform: rotate(360deg); } }
+      .access-ring img { width: 65%; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold-glow)); }
+      @keyframes rotate-ring { to { transform: rotate(360deg); } }
 
-      .input-field {
-        width: 100%; background: rgba(0,0,0,0.6);
+      .input-terminal {
+        width: 100%; background: rgba(0,0,0,0.5);
         border: 1px solid rgba(212,175,55,0.2);
-        border-radius: 1.2rem; padding: 1.1rem;
+        border-radius: 1.25rem; padding: 1.15rem;
         color: #fff; font-family: 'Share Tech Mono', monospace;
         margin-bottom: 1.25rem; transition: 0.3s;
-        text-align: center; font-size: 0.9rem;
+        text-align: center; font-size: 0.9rem; outline: none;
       }
-      .input-field:focus { border-color: var(--gold); box-shadow: 0 0 20px var(--gold-glow); outline: none; }
-      .input-field.director-active { border-color: var(--teal); color: var(--teal); }
+      .input-terminal:focus { border-color: var(--gold); box-shadow: 0 0 20px var(--gold-glow); }
+      .input-terminal.directorate-focus { border-color: var(--teal); color: var(--teal); }
 
       .btn-auth {
-        width: 100%; padding: 1.1rem;
-        background: var(--gold); border: none; border-radius: 1.2rem;
+        width: 100%; padding: 1.15rem;
+        background: var(--gold); border: none; border-radius: 1.25rem;
         color: #000; font-family: 'Orbitron', sans-serif; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem;
+        text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.7rem;
         cursor: pointer; transition: 0.4s;
       }
       .btn-auth:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 30px var(--gold-glow); }
-      .btn-auth:disabled { opacity: 0.4; cursor: not-allowed; }
-      
-      .btn-auth.director-btn { background: var(--teal); }
+      .btn-auth:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
+      .btn-auth.directorate-btn { background: var(--teal); color: #000; }
 
-      .auth-label {
-        font-family: 'Orbitron', sans-serif; font-size: 0.55rem;
-        letter-spacing: 0.4em; text-transform: uppercase; color: #555;
-        margin-bottom: 0.5rem; display: block;
+      .alert-strip {
+        display: none; background: rgba(220,38,38,0.2);
+        border: 1px solid var(--red); border-radius: 0.75rem;
+        padding: 0.8rem; margin-bottom: 1.5rem;
+        color: #fca5a5; font-size: 0.65rem; text-align: center;
+        font-family: 'Orbitron', sans-serif; letter-spacing: 0.1em;
       }
+      .alert-strip.active { display: block; animation: pulse-red 2s infinite; }
+      @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     }
 
-    .loader-overlay {
+    .system-loader {
       position: fixed; inset: 0; z-index: 1000; background: #000;
       display: none; flex-direction: column; align-items: center; justify-content: center;
     }
-    .loader-overlay.active { display: flex; }
+    .system-loader.active { display: flex; }
   </style>
-</head>
-<body>
-
-  <div class="bg-grid"></div>
-
-  <div class="loader-overlay" id="sysLoader">
-    <div class="access-ring"><div><img src="assets/images/logo.png"></div></div>
-    <p class="font-orbit text-gold text-[10px] tracking-[0.5em] animate-pulse" id="loadStatus">AUTHENTICATING...</p>
-  </div>
-
-  <main class="gate-card" id="authCard">
-    <div class="access-ring" id="gateRing">
-      <div><img src="assets/images/logo.png" alt="MOG SEAL"></div>
-    </div>
-    
-    <div class="text-center mb-10">
-      <h1 class="font-orbit text-2xl font-black text-white tracking-widest" id="gateTitle">M.O.G. HUB</h1>
-      <p class="font-mono text-[9px] text-gold/50 uppercase tracking-[0.4em] mt-2" id="gateSub">Secure Gateway Terminal</p>
-    </div>
-
-    <div class="space-y-2">
-      <label class="auth-label">Personnel ID</label>
-      <input type="email" id="email" class="input-field" placeholder="OPERATIVE@EMAIL.COM" oninput="checkGate(this.value)">
-      
-      <label class="auth-label">Access Code</label>
-      <input type="password" id="password" class="input-field" placeholder="••••••••">
-      
-      <button class="btn-auth mt-4" id="authBtn" onclick="initiateGate()">
-        Initialize Uplink
-      </button>
-
-      <div class="flex justify-center mt-8">
-        <div class="flex items-center gap-2">
-            <span class="w-1 h-1 rounded-full bg-teal animate-pulse"></span>
-            <span class="font-mono text-[8px] text-gray-700 uppercase tracking-widest">Dual-Gate Protocol v4.0</span>
-        </div>
-      </div>
-    </div>
-
-    </main>
 
   <script>
-    const getSb = () => window.sb || window.supabaseClient;
+    /**
+     * =========================================================================
+     * BIFROST GATE CONTROLLER
+     * =========================================================================
+     */
     const DIRECTOR_EMAIL = 'director.mog@gmail.com';
+    let failedAttempts = 0;
+
+    const getSb = () => window.sb || window.supabaseClient;
 
     /**
-     * DUAL GATE DETECTION
-     * Visually changes the UI when the Directorate email is typed.
+     * DUAL GATE MONITOR
+     * Visually transforms the gate when Directorate ID is entered.
      */
-    function checkGate(val) {
+    function monitorGateInput(val) {
         const card = document.getElementById('authCard');
-        const ring = document.getElementById('gateRing');
         const title = document.getElementById('gateTitle');
         const btn = document.getElementById('authBtn');
-        const emailInput = document.getElementById('email');
+        const inputs = document.querySelectorAll('.input-terminal');
 
         if (val.trim().toLowerCase() === DIRECTOR_EMAIL) {
-            card.classList.add('director-mode');
-            title.textContent = "DIRECTORATE";
+            card.classList.add('directorate-gate');
+            title.textContent = "DIRECTORATE PRIME";
             title.style.color = "#00d4aa";
-            btn.classList.add('director-btn');
-            emailInput.classList.add('director-active');
-            navigator.vibrate?.(50); // Subtle haptic notification
+            btn.classList.add('directorate-btn');
+            inputs.forEach(i => i.classList.add('directorate-focus'));
+            navigator.vibrate?.(40);
         } else {
-            card.classList.remove('director-mode');
+            card.classList.remove('directorate-gate');
             title.textContent = "M.O.G. HUB";
             title.style.color = "#fff";
-            btn.classList.remove('director-btn');
-            emailInput.classList.remove('director-active');
+            btn.classList.remove('directorate-btn');
+            inputs.forEach(i => i.classList.remove('directorate-focus'));
         }
     }
 
     /**
-     * INITIATE GATE
-     * Logic for routing to the correct file based on email.
+     * INITIALIZE GATE UPLINK
      */
-    async function initiateGate() {
-        const email = document.getElementById('email').value;
+    async function initializeAccess() {
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
         const loader = document.getElementById('sysLoader');
         const status = document.getElementById('loadStatus');
+        const card = document.getElementById('authCard');
+        const alertBox = document.getElementById('alertStrip');
 
         if (!email || !password) {
-            document.getElementById('authCard').classList.add('card-shake');
-            setTimeout(() => document.getElementById('authCard').classList.remove('card-shake'), 500);
+            triggerShake();
             return;
         }
 
         loader.classList.add('active');
-        status.textContent = "SYNCHRONIZING...";
+        status.textContent = "ESTABLISHING SECURE TUNNEL...";
 
         try {
             const { data, error } = await getSb().auth.signInWithPassword({ email, password });
             
             if (error) throw error;
 
-            status.textContent = "CLEARANCE VERIFIED";
+            status.textContent = "CLEARANCE VERIFIED.";
             
-            // GATE ROUTING
+            // DUAL-GATE REDIRECT LOGIC
             setTimeout(() => {
                 if (email.toLowerCase() === DIRECTOR_EMAIL) {
-                    status.textContent = "OPENING DIRECTORATE GATE...";
+                    status.textContent = "REDIRECTING TO COMMAND CENTER...";
                     window.location.href = 'pages/directorate.html';
                 } else {
-                    status.textContent = "OPENING OPERATIVE GATE...";
+                    status.textContent = "REDIRECTING TO OPERATIVE HUB...";
                     window.location.href = 'index.html';
                 }
-            }, 1000);
+            }, 1200);
 
         } catch (err) {
+            failedAttempts++;
             loader.classList.remove('active');
-            alert("ACCESS DENIED: " + err.message);
-            navigator.vibrate?.([100, 50, 100]);
+            triggerShake();
+            
+            alertBox.classList.add('active');
+            alertBox.textContent = `⚠ ACCESS DENIED: ATTEMPT ${failedAttempts}/3`;
+
+            if (failedAttempts >= 3) {
+                lockdownTerminal();
+            }
         }
     }
 
-    /* SYSTEM FOOTER DATA
-      - NODE: EMALAHLENI_7G
-      - SECTOR: MPUMALANGA
-      - STATUS: PROTECTED
-    */
+    function triggerShake() {
+        const card = document.getElementById('authCard');
+        card.classList.add('shake-anim');
+        navigator.vibrate?.([50, 50, 50]);
+        setTimeout(() => card.classList.remove('shake-anim'), 500);
+    }
+
+    function lockdownTerminal() {
+        const btn = document.getElementById('authBtn');
+        const alertBox = document.getElementById('alertStrip');
+        alertBox.textContent = "⚠ TERMINAL LOCKED: INTRUSION LOGGED";
+        btn.disabled = true;
+        
+        // Log intrusion to Directorate
+        getSb().from('activity_log').insert({ 
+            type: 'INTRUSION_ALERT', 
+            description: `Multiple failed attempts for operative ID: ${document.getElementById('email').value}`
+        });
+    }
+
+    async function requestMagicLink() {
+        const email = document.getElementById('email').value;
+        if (!email) { alert("Enter Personnel ID first."); return; }
+        const { error } = await getSb().auth.signInWithOtp({ email });
+        if (!error) alert("Magic link transmitted to secure inbox.");
+    }
   </script>
+</head>
+<body>
+
+  <div class="bg-watermark"></div>
+  <div class="bg-grid"></div>
+
+  <div class="system-loader" id="sysLoader">
+    <div class="access-ring"><div><img src="assets/images/logo.png" alt="MOG"></div></div>
+    <p class="font-orbit text-gold text-[10px] tracking-[0.6em] animate-pulse" id="loadStatus">AUTHENTICATING</p>
+  </div>
+
+  <main class="terminal-card" id="authCard">
+    <div class="access-ring">
+      <div><img src="assets/images/logo.png" alt="MOG SEAL"></div>
+    </div>
+    
+    <div class="text-center mb-10">
+      <h1 class="font-orbit text-2xl font-black text-white tracking-[0.2em]" id="gateTitle">M.O.G. HUB</h1>
+      <p class="font-mono text-[9px] text-gold/40 uppercase tracking-[0.4em] mt-2">Secure Access Terminal</p>
+    </div>
+
+    <div class="alert-strip" id="alertStrip"></div>
+
+    <div class="space-y-1">
+      <p class="font-orbit text-[8px] text-gray-700 uppercase tracking-widest mb-2 px-1">Personnel ID</p>
+      <input type="email" id="email" class="input-terminal" placeholder="ID@MINISTRY.COM" oninput="monitorGateInput(this.value)">
+      
+      <p class="font-orbit text-[8px] text-gray-700 uppercase tracking-widest mb-2 px-1">Access Code</p>
+      <input type="password" id="password" class="input-terminal" placeholder="••••••••">
+      
+      <button class="btn-auth mt-6" id="authBtn" onclick="initializeAccess()">
+        Initialize Uplink
+      </button>
+
+      <div class="flex flex-col items-center gap-4 mt-10">
+        <button onclick="requestMagicLink()" class="font-mono text-[9px] text-gray-600 hover:text-gold transition-colors uppercase tracking-widest">
+            Request Magic Link Access
+        </button>
+        <div class="flex items-center gap-2">
+            <span class="w-1 h-1 rounded-full bg-teal animate-pulse"></span>
+            <span class="font-mono text-[8px] text-gray-800 uppercase tracking-widest">Dual-Gate Protocol Active</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="fixed bottom-8 w-full text-center pointer-events-none">
+    <p class="font-mono text-[9px] text-gray-800 uppercase tracking-[0.5em]">Ministry of Groove // Emalahleni // 2026</p>
+  </footer>
+
 </body>
 </html>
