@@ -11,6 +11,8 @@
   
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/logo.png">
+  <link rel="icon" type="image/png" href="/assets/images/logo.png">
+  
   <title>M.O.G. | OPERATIVE HUB</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,262 +21,445 @@
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    @layer base, layout, components, utilities;
+    /* =========================================================================
+       CORE STYLING ARCHITECTURE
+       =========================================================================
+    */
+    @layer base, layout, components, utilities, animations;
 
     @layer base {
       :root {
-        --black: #000;
-        --surface: rgba(6, 9, 6, 0.96);
+        --black: #000000;
+        --surface: rgba(10, 12, 10, 0.98);
         --gold: #d4af37;
         --gold-bright: #f0c040;
         --gold-dark: #8b6914;
-        --gold-glow: rgba(212, 175, 55, 0.38);
+        --gold-glow: rgba(212, 175, 55, 0.35);
         --teal: #00d4aa;
         --teal-dim: #006e59;
-        --teal-glow: rgba(0, 212, 170, 0.3);
+        --teal-glow: rgba(0, 212, 170, 0.25);
         --red: #dc2626;
         --red-glow: rgba(220, 38, 38, 0.4);
         --text: #e8e0cc;
-        --border: rgba(0, 212, 170, 0.11);
+        --border: rgba(212, 175, 55, 0.12);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
         --safe-top: env(safe-area-inset-top, 0px);
       }
       
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; color-scheme: dark; -webkit-font-smoothing: antialiased; }
+      *, *::before, *::after { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html { 
+        scroll-behavior: smooth; 
+        color-scheme: dark; 
+        background: var(--black);
+      }
+
       body { 
         font-family: 'Rajdhani', sans-serif; 
         background: var(--black); 
         color: var(--text); 
         min-height: 100dvh; 
         overflow-x: hidden;
-        -webkit-tap-highlight-color: transparent;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
       }
       
-      /* SCROLLBAR STYLING */
-      ::-webkit-scrollbar { width: 4px; height: 4px; }
-      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); }
-      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--gold-dark), var(--teal-dim)); border-radius: 4px; }
+      /* THE TERMINAL SCROLLBAR */
+      ::-webkit-scrollbar { width: 3px; height: 3px; }
+      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.9); }
+      ::-webkit-scrollbar-thumb { 
+        background: linear-gradient(180deg, var(--gold-dark), var(--teal-dim)); 
+        border-radius: 2px; 
+      }
 
       [x-cloak] { display: none !important; }
     }
 
     @layer layout {
+      /* AMBIENT LAYERS */
       .bg-seal {
         position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: clamp(280px, 70vmin, 560px); height: clamp(280px, 70vmin, 560px);
+        width: clamp(300px, 65vmin, 550px); height: clamp(300px, 65vmin, 550px);
         background: url('/assets/images/logo.png') center/contain no-repeat;
         opacity: 0.04; pointer-events: none; z-index: 0;
-        filter: drop-shadow(0 0 60px rgba(212, 175, 55, 0.08));
+        filter: drop-shadow(0 0 50px var(--gold-glow));
       }
+
       .bg-grid {
         position: fixed; inset: 0; pointer-events: none; z-index: 1;
-        background-image: linear-gradient(rgba(0, 212, 170, 0.018) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(0, 212, 170, 0.018) 1px, transparent 1px);
-        background-size: 56px 56px;
+        background-image: 
+          linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
+        background-size: 45px 45px;
       }
-      .bg-vig {
+
+      .bg-vignette {
         position: fixed; inset: 0; pointer-events: none; z-index: 2;
-        background: radial-gradient(ellipse at center, transparent 38%, rgba(0,0,0,0.82) 100%);
+        background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.95) 100%);
+      }
+
+      .main-viewport {
+        position: relative;
+        z-index: 10;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 1.5rem;
+        padding-top: 5rem; /* Space for ticker + header */
       }
     }
 
     @layer components {
-      /* INTERFACE PANELS */
-      .glass { background: var(--surface); border: 1px solid var(--border); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-      .glass-gold { background: rgba(10, 8, 2, 0.92); border: 1px solid rgba(212, 175, 55, 0.16); }
-      
-      /* TYPOGRAPHY COMPONENTS */
-      .mono { font-family: 'Share Tech Mono', monospace; }
-      .orbit { font-family: 'Orbitron', sans-serif; }
-      .text-gold { color: var(--gold); text-shadow: 0 0 10px var(--gold-glow); }
-      .text-teal { color: var(--teal); text-shadow: 0 0 10px var(--teal-glow); }
-      .slogan { font-family: 'Orbitron', sans-serif; font-size: 0.5rem; letter-spacing: 0.3em; color: var(--teal); opacity: 0.4; text-transform: uppercase; }
-      .gold-line { height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dark), var(--gold), var(--teal-dim), transparent); }
-
-      /* BUTTON PROTOCOLS */
-      .btn {
-        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        font-family: 'Orbitron', sans-serif; font-weight: 700; letter-spacing: 0.1em;
-        text-transform: uppercase; border-radius: 0.75rem; position: relative; overflow: hidden;
+      /* =======================================================================
+         COMPONENT: HEADER & LOGO (FIXED SIZING)
+         ======================================================================= */
+      .nav-shell {
+        position: fixed;
+        top: 30px; /* Below Ticker */
+        left: 0; right: 0;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-bottom: 1px solid var(--border);
+        transition: transform 0.3s ease;
       }
-      .btn:active { transform: scale(0.96); }
-      .btn-g { background: rgba(212, 175, 55, 0.1); border: 1px solid rgba(212, 175, 55, 0.3); color: var(--gold); }
-      .btn-g:hover { background: rgba(212, 175, 55, 0.2); border-color: var(--gold-bright); box-shadow: 0 0 15px var(--gold-glow); }
       
-      /* TICKER SYSTEM */
-      .ticker { height: 28px; background: linear-gradient(90deg, #991b1b, #000, #991b1b); border-bottom: 1px solid rgba(220, 38, 38, 0.3); display: flex; align-items: center; }
-      .ticker-lbl { padding: 0 10px; height: 100%; background: var(--red); display: flex; align-items: center; font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 900; color: #fff; }
-      .ticker-trk { display: flex; white-space: nowrap; animation: ticker-scroll 30s linear infinite; }
-      @keyframes ticker-scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+      .nav-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0.6rem 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-block {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-frame {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
+      }
+
+      .logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 8px var(--gold-glow));
+      }
+
+      /* =======================================================================
+         COMPONENT: SYSTEM STATUS (THE ENCRYPTOR LAYOUT)
+         ======================================================================= */
+      .panel-glass {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1.5rem;
+        box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+
+      .status-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.3) 100%);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+      }
+
+      /* HEXAGON BADGES */
+      .badge-hex {
+        position: relative;
+        width: 76px; height: 86px;
+        background: rgba(15, 15, 15, 0.9);
+        border: 1px solid var(--gold-dark);
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+      .badge-hex:hover {
+        border-color: var(--gold-bright);
+        box-shadow: 0 0 15px var(--gold-glow);
+        transform: translateY(-3px);
+      }
+      .badge-label {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 6px;
+        letter-spacing: 0.1em;
+        color: #fff;
+        margin-top: 4px;
+        text-align: center;
+      }
+
+      /* PROGRESS INDICATORS */
+      .status-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .status-indicator {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .indicator-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        animation: pulse-dot 2s infinite;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.9); }
+      }
 
       /* DATA BARS */
-      .sb { height: 4px; background: rgba(0,0,0,0.6); border-radius: 4px; overflow: hidden; margin-top: 6px; }
-      .sb-fill { height: 100%; transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-
-      /* LOADING BAR (WhatsApp Style) */
-      .load-bar {
-        position: fixed; top: 0; left: 0; right: 0; z-index: 10000; height: 3px;
-        background: linear-gradient(90deg, var(--gold-dark), var(--teal), var(--gold-bright));
-        transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease;
+      .data-bar {
+        height: 4px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 2px;
+        width: 100%;
+        overflow: hidden;
       }
-      .load-bar.active { transform: scaleX(0.7); animation: load-pulse 2s infinite linear; }
-      @keyframes load-pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-      /* MOBILE NAVIGATION */
-      .bnav {
-        display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-        background: rgba(0, 0, 0, 0.95); border-top: 1px solid rgba(212, 175, 55, 0.15);
-        padding-bottom: var(--safe-bottom); backdrop-filter: blur(10px);
+      .data-fill {
+        height: 100%;
+        transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1);
       }
-      @media(max-width: 768px) { .bnav { display: flex; } main { padding-bottom: 80px; } }
-
-      /* TOAST SYSTEM */
-      .tc { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 90%; max-width: 400px; }
-      .toast { 
-        padding: 12px 16px; border-radius: 12px; font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700;
-        background: #000; border: 1px solid var(--gold); color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        animation: toast-in 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+      
+      /* =======================================================================
+         COMPONENT: BUTTONS & TABS
+         ======================================================================= */
+      .btn-mog {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        cursor: pointer; transition: all 0.25s ease;
+        font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.65rem;
+        letter-spacing: 0.15em; text-transform: uppercase;
+        border-radius: 0.75rem; padding: 0.75rem 1.5rem;
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        color: var(--gold);
+        position: relative;
+        overflow: hidden;
       }
-      @keyframes toast-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      .btn-mog::before {
+        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        transition: 0.5s;
+      }
+      .btn-mog:hover::before { left: 100%; }
+      .btn-mog:hover {
+        background: rgba(212, 175, 55, 0.12);
+        border-color: var(--gold-bright);
+        box-shadow: 0 0 15px var(--gold-glow);
+      }
+
+      /* TABS */
+      .tab-link {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        padding: 0.6rem 1.4rem;
+        border-radius: 0.5rem;
+        color: #4b5563;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+      }
+      .tab-link.active {
+        color: var(--gold);
+        background: rgba(212, 175, 55, 0.1);
+        border-color: rgba(212, 175, 55, 0.3);
+      }
+    }
+
+    @layer utilities {
+      .font-orbit { font-family: 'Orbitron', sans-serif; }
+      .font-mono { font-family: 'Share Tech Mono', monospace; }
+      .text-gold { color: var(--gold); }
+      .text-teal { color: var(--teal); }
+      .text-glow-gold { text-shadow: 0 0 10px var(--gold-glow); }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
     }
   </style>
 
   <script>
     /**
-     * HUB CONTROLLER
-     * Manages state, authentication, and realtime synchronization.
+     * =========================================================================
+     * HUB CONTROLLER LOGIC
+     * Manages reactive state, Supabase persistence, and UI synchronization.
+     * =========================================================================
      */
     function hub() {
       return {
-        // STATE PROPERTIES
+        // APPLICATION STATE
         view: 'loading',
         isLoading: false,
         isOnline: navigator.onLine,
         showModal: false,
         activeTab: 'overview',
+        operativeId: 'OP:OFFLINE',
         currentUser: null,
-        operativeId: 'OFFLINE',
-        
-        // PROFILE DATA STRUCTURE
+
+        // OPERATIVE PROFILE DATA
         profile: {
           username: 'RECRUIT',
-          codename: '---',
+          codename: 'PENDING',
           rank: 'INITIATE',
           department: 'UNASSIGNED',
           bio: '',
           avatar_url: null,
-          stats: { missions: 0, contributions: 0, influence: 0, loyalty: 100, groove: 50 },
-          skills: [],
+          stats: { 
+            missions: 0, 
+            contributions: 0, 
+            influence: 15, 
+            loyalty: 85, 
+            groove: 40 
+          },
+          skills: ['CRYPTOGRAPHY', 'ENCRYPTION'],
           joined_at: null
         },
 
-        // INTERFACE STATE
-        lockdownActive: false,
-        tickerMessages: ["ESTABLISHING SECURE UPLINK...", "SCANNING FOR THREATS...", "PROTOCOL ZERO READY"],
-        mediaAssets: [],
-        allOperatives: [],
+        // SYSTEM ARTIFACTS
+        tickerMessages: [
+          "UPLINK ESTABLISHED: EMALAHLENI SECTOR 7G",
+          "SCANNING FOR UNAUTHORIZED INTERCEPTS...",
+          "ENCRYPTION PROTOCOL 3.5.2 ACTIVE",
+          "MINISTRY DIRECTIVE: SECURE THE GROOVE"
+        ],
         recentActivity: [],
+        mediaAssets: [],
+        networkNodes: [],
 
-        // INITIALIZATION SEQUENCE
+        /**
+         * HUB INITIALIZATION
+         * Authenticates user and fetches primary data bundles.
+         */
         async init() {
-          console.log("M.O.G. Hub Initializing...");
+          console.log("M.O.G. HUB INITIALIZING...");
           
-          // Network Listeners
-          window.addEventListener('online', () => { this.isOnline = true; this.notify("Uplink Restored", "success"); });
-          window.addEventListener('offline', () => { this.isOnline = false; this.notify("Uplink Severed", "error"); });
+          // Network State Listeners
+          window.addEventListener('online', () => { 
+            this.isOnline = true; 
+            this.notify("Uplink Restored", "success"); 
+            this.fullSync();
+          });
+          window.addEventListener('offline', () => { 
+            this.isOnline = false; 
+            this.notify("Uplink Severed", "error"); 
+          });
 
-          // Supabase Connection Check
-          let attempts = 0;
-          while (typeof sb === 'undefined' && attempts < 30) {
+          // Dependency Check
+          let checks = 0;
+          while (typeof sb === 'undefined' && checks < 50) {
             await new Promise(r => setTimeout(r, 100));
-            attempts++;
+            checks++;
           }
 
           if (typeof sb === 'undefined') {
-            console.error("Critical: Supabase failed to load.");
+            this.notify("Infrastructure Failure: Check Client", "error");
             return;
           }
 
+          // Auth Validation
           try {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) {
               window.location.href = '/login.html';
               return;
             }
-            this.currentUser = session.user;
-            this.operativeId = `OP-${this.currentUser.id.slice(0, 5).toUpperCase()}`;
             
-            await this.syncAllData();
+            this.currentUser = session.user;
+            this.operativeId = `OP-${this.currentUser.id.slice(0, 8).toUpperCase()}`;
+            
+            await this.fullSync();
             this.view = 'hub';
             
-            // Post-load UI adjustments
-            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+            // Re-initialize Icons
+            this.$nextTick(() => { 
+              if (window.lucide) lucide.createIcons(); 
+            });
             
           } catch (err) {
-            this.notify("Sync Error: " + err.message, "error");
+            console.error(err);
+            this.notify("Synchronization Fault", "error");
           }
         },
 
-        // DATA SYNCHRONIZATION
-        async syncAllData() {
+        /**
+         * DATA REPLICATION
+         * Fetches all required operative and network data.
+         */
+        async fullSync() {
           this.isLoading = true;
-          const bar = document.getElementById('loadBar');
-          if(bar) bar.classList.add('active');
-
-          await Promise.all([
-            this.loadProfile(),
-            this.loadOperatives(),
-            this.loadMedia(),
-            this.loadActivity()
-          ]);
-
-          if(bar) {
-            bar.classList.remove('active');
-            bar.style.transform = 'scaleX(1)';
-            setTimeout(() => bar.style.opacity = '0', 500);
-          }
-          this.isLoading = false;
-        },
-
-        async loadProfile() {
           try {
-            let { data, error } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
-            if (error) throw error;
-            this.profile = { ...this.profile, ...data };
+            await Promise.all([
+              this.syncProfile(),
+              this.syncActivity(),
+              this.syncMedia(),
+              this.syncNetwork()
+            ]);
           } catch (e) {
-            this.notify("Profile Sync Failed", "error");
+            console.error("Sync partial failure", e);
+          } finally {
+            this.isLoading = false;
           }
         },
 
-        async loadOperatives() {
-          try {
-            const { data } = await sb.from('profiles').select('username, codename, rank, avatar_url').limit(10);
-            this.allOperatives = data || [];
-          } catch (e) { /* silent fail */ }
+        async syncProfile() {
+          const { data, error } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
+          if (data) this.profile = { ...this.profile, ...data };
         },
 
-        async loadMedia() {
-          // Fallback static data if DB is empty
+        async syncActivity() {
+          const { data } = await sb.from('activity_log')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+          this.recentActivity = data || [];
+        },
+
+        async syncMedia() {
+          // Placeholder for development
           this.mediaAssets = [
             { id: 1, title: 'Sector 7 Operations', type: 'VIDEO', thumb: '/assets/images/gallery1.jpg' },
-            { id: 2, title: 'Frequency Uplink', type: 'AUDIO', thumb: '/assets/images/gallery2.jpg' }
+            { id: 2, title: 'Uplink Alpha', type: 'AUDIO', thumb: '/assets/images/gallery2.jpg' },
+            { id: 3, title: 'Ministry Protocol', type: 'PHOTO', thumb: '/assets/images/gallery3.jpg' }
           ];
         },
 
-        async loadActivity() {
-          try {
-            const { data } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(5);
-            this.recentActivity = data || [];
-          } catch (e) { /* silent fail */ }
+        async syncNetwork() {
+          const { data } = await sb.from('profiles').select('username, rank, avatar_url').limit(6);
+          this.networkNodes = data || [];
         },
 
-        // ACTIONS
-        async updateProfile() {
+        /**
+         * INTERFACE ACTIONS
+         */
+        async updateDossier() {
           this.isLoading = true;
           try {
             const { error } = await sb.from('profiles').update({
@@ -284,245 +469,397 @@
             }).eq('id', this.currentUser.id);
 
             if (error) throw error;
-            this.notify("Dossier Updated", "success");
+            
+            this.notify("Dossier Synced", "success");
             this.showModal = false;
-          } catch (e) {
-            this.notify(e.message, "error");
+            await this.syncProfile();
+            
+          } catch (err) {
+            this.notify(err.message, "error");
           } finally {
             this.isLoading = false;
           }
         },
 
         notify(msg, type = 'info') {
-          const container = document.getElementById('toastContainer');
-          const el = document.createElement('div');
-          el.className = `toast ${type}`;
-          el.innerText = msg.toUpperCase();
-          container.appendChild(el);
-          setTimeout(() => el.remove(), 4000);
+          const container = document.getElementById('toast-rack');
+          if (!container) return;
+          
+          const toast = document.createElement('div');
+          toast.className = `p-4 mb-3 rounded-xl border flex items-center gap-3 bg-black shadow-2xl animate-bounce-in`;
+          
+          const colors = {
+            success: 'border-teal text-teal',
+            error: 'border-red text-red',
+            info: 'border-gold text-gold'
+          };
+          
+          toast.className += ` ${colors[type] || colors.info}`;
+          toast.innerHTML = `
+            <div class="w-2 h-2 rounded-full bg-current"></div>
+            <span class="font-orbit text-[10px] font-black uppercase tracking-widest">${msg}</span>
+          `;
+          
+          container.appendChild(toast);
+          setTimeout(() => toast.remove(), 4000);
         },
 
         async logout() {
+          this.notify("Terminating Session...", "info");
           await sb.auth.signOut();
           localStorage.clear();
           window.location.href = '/login.html';
         },
 
-        // UTILITIES
-        getRankStyle(rank) {
-          return {
+        getRankColor(rank) {
+          const colors = {
             'INITIATE': 'text-gray-500',
-            'AGENT': 'text-teal-400',
+            'AGENT': 'text-teal',
             'OPERATIVE': 'text-gold',
-            'DIRECTOR': 'text-red-500 font-bold'
-          }[rank] || 'text-white';
+            'DIRECTOR': 'text-red-500 font-black'
+          };
+          return colors[rank] || 'text-white';
         }
       };
     }
   </script>
 </head>
-
 <body x-data="hub()" x-init="init()" x-cloak>
 
   <div class="bg-seal"></div>
   <div class="bg-grid"></div>
-  <div class="bg-vig"></div>
+  <div class="bg-vignette"></div>
 
-  <div id="loadBar" class="load-bar"></div>
-  <div id="toastContainer" class="tc"></div>
-
-  <div class="ticker" x-show="view === 'hub'">
-    <div class="ticker-lbl">NEWS UPDATE</div>
-    <div class="ticker-trk">
-      <template x-for="msg in tickerMessages" :key="msg">
-        <span class="mono" style="margin-right: 40px; font-size: 10px; color: #fff;">
-          <span style="color: var(--gold);">◆</span> <span x-text="msg"></span>
-        </span>
-      </template>
-    </div>
-  </div>
+  <div id="toast-rack" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xs px-4"></div>
 
   <template x-if="view === 'hub'">
-    <div class="relative z-10 p-4 max-w-5xl mx-auto">
-      
-      <header class="glass rounded-2xl p-4 flex items-center justify-between mb-6">
-        <div class="flex items-center gap-4">
-          <div class="relative w-12 h-12 rounded-full border-2 border-gold p-1">
-            <img src="/assets/images/logo.png" class="w-full h-full object-contain" alt="MOG">
-          </div>
-          <div>
-            <h1 class="orbit text-lg font-black text-gold">OPERATIVE HUB</h1>
-            <p class="slogan" x-text="operativeId"></p>
-          </div>
+    <div class="fixed top-0 left-0 right-0 z-[110] h-[30px] flex items-center overflow-hidden border-b border-white/5" style="background: linear-gradient(90deg, #900, #000, #900);">
+      <div class="px-3 h-full bg-red flex items-center font-orbit text-[9px] font-black text-white italic tracking-tighter">LIVE FEED</div>
+      <div class="flex-1 overflow-hidden relative">
+        <div class="flex whitespace-nowrap animate-ticker">
+          <template x-for="msg in tickerMessages" :key="msg">
+            <span class="font-mono text-[10px] text-white/90 px-12 flex items-center gap-3">
+              <span class="text-gold">◈</span> <span x-text="msg"></span>
+            </span>
+          </template>
         </div>
-        
-        <div class="flex items-center gap-2">
-          <button @click="showModal = true" class="btn btn-g p-2 rounded-full">
-            <i data-lucide="user-cog"></i>
-          </button>
-          <button @click="logout()" class="btn btn-g p-2 rounded-full border-red-900 text-red-500">
-            <i data-lucide="log-out"></i>
-          </button>
-        </div>
-      </header>
-
-      <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <section class="lg:col-span-1 space-y-6">
-          <div class="glass rounded-2xl p-6">
-            <div class="flex flex-col items-center text-center mb-6">
-              <div class="w-24 h-24 rounded-full border-4 border-gold-dark overflow-hidden mb-4 bg-black">
-                <template x-if="profile.avatar_url">
-                  <img :src="profile.avatar_url" class="w-full h-full object-cover" alt="Profile">
-                </template>
-                <template x-if="!profile.avatar_url">
-                  <div class="flex items-center justify-center h-full text-gold-dark">
-                    <i data-lucide="user" size="48"></i>
-                  </div>
-                </template>
-              </div>
-              <h2 class="orbit text-xl font-bold" x-text="profile.username"></h2>
-              <span class="mono text-xs uppercase" :class="getRankStyle(profile.rank)" x-text="profile.rank"></span>
-            </div>
-            
-            <div class="space-y-4">
-              <div>
-                <div class="flex justify-between text-[10px] mono uppercase text-teal">
-                  <span>Loyalty Level</span>
-                  <span x-text="profile.stats.loyalty + '%'"></span>
-                </div>
-                <div class="sb"><div class="sb-fill bg-teal-500" :style="'width:' + profile.stats.loyalty + '%'"></div></div>
-              </div>
-              <div>
-                <div class="flex justify-between text-[10px] mono uppercase text-gold">
-                  <span>Influence</span>
-                  <span x-text="profile.stats.influence + '%'"></span>
-                </div>
-                <div class="sb"><div class="sb-fill bg-gold" :style="'width:' + profile.stats.influence + '%'"></div></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="glass rounded-2xl p-6">
-            <h3 class="orbit text-xs font-bold mb-4 flex items-center gap-2">
-              <i data-lucide="activity" size="14"></i> RECENT LOGS
-            </h3>
-            <div class="space-y-3">
-              <template x-for="log in recentActivity" :key="log.id">
-                <div class="border-l-2 border-gold-dark pl-3 py-1">
-                  <p class="text-[11px] text-white" x-text="log.description"></p>
-                  <p class="text-[9px] mono text-gray-500" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
-                </div>
-              </template>
-            </div>
-          </div>
-        </section>
-
-        <section class="lg:col-span-2">
-          <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-            <button @click="activeTab = 'overview'" class="btn text-[10px] px-6 py-2" :class="activeTab === 'overview' ? 'btn-g' : 'bg-black/40 border border-white/5 text-gray-500'">HUB</button>
-            <button @click="activeTab = 'media'" class="btn text-[10px] px-6 py-2" :class="activeTab === 'media' ? 'btn-g' : 'bg-black/40 border border-white/5 text-gray-500'">INTEL</button>
-            <button @click="activeTab = 'network'" class="btn text-[10px] px-6 py-2" :class="activeTab === 'network' ? 'btn-g' : 'bg-black/40 border border-white/5 text-gray-500'">NETWORK</button>
-          </div>
-
-          <div class="glass rounded-2xl p-6 min-h-[400px]">
-            <div x-show="activeTab === 'overview'" class="space-y-6">
-              <div class="gold-line mb-4"></div>
-              <p class="mono text-sm text-gray-400 leading-relaxed" x-text="profile.bio || 'NO OPERATIONAL DATA RECORDED. UPDATE YOUR DOSSIER.'"></p>
-              
-              <div class="grid grid-cols-2 gap-4">
-                <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                  <p class="mono text-[10px] text-gold uppercase">Missions</p>
-                  <p class="orbit text-2xl font-black" x-text="profile.stats.missions"></p>
-                </div>
-                <div class="bg-black/40 p-4 rounded-xl border border-white/5">
-                  <p class="mono text-[10px] text-teal uppercase">Dept</p>
-                  <p class="orbit text-sm font-bold truncate" x-text="profile.department"></p>
-                </div>
-              </div>
-            </div>
-
-            <div x-show="activeTab === 'media'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <template x-for="asset in mediaAssets" :key="asset.id">
-                <div class="group relative rounded-xl overflow-hidden border border-white/10 bg-black">
-                  <img :src="asset.thumb" class="w-full aspect-video object-cover opacity-60 group-hover:opacity-100 transition-opacity">
-                  <div class="absolute inset-0 flex flex-col justify-end p-3 bg-gradient-to-t from-black to-transparent">
-                    <p class="orbit text-[10px] font-bold text-white" x-text="asset.title"></p>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      <footer class="mt-12 text-center pb-8">
-        <div class="gold-line mb-6 opacity-30"></div>
-        <p class="slogan mb-2">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="mono text-[9px] text-gray-600 tracking-[0.3em]">MINISTRY OF GROOVE // HQ-UPLINK // EST 2026</p>
-      </footer>
-
+      </div>
     </div>
   </template>
+  <style>
+    @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+    .animate-ticker { animation: ticker 35s linear infinite; }
+  </style>
 
-  <nav class="bnav">
-    <button @click="activeTab = 'overview'" class="flex-1 flex flex-col items-center py-3" :class="activeTab === 'overview' ? 'text-gold' : 'text-gray-600'">
-      <i data-lucide="layout-dashboard" size="20"></i>
-      <span class="orbit text-[8px] mt-1">CORE</span>
+  <nav class="nav-shell" x-show="view === 'hub'">
+    <div class="nav-container">
+      <div class="logo-block">
+        <div class="logo-frame">
+          <img src="/assets/images/logo.png" class="logo-img" alt="M.O.G.">
+        </div>
+        <div class="hidden sm:block">
+          <h1 class="font-orbit text-sm font-black text-white tracking-widest uppercase leading-none">Operative Hub</h1>
+          <p class="font-mono text-[9px] text-gold/40 mt-1" x-text="operativeId"></p>
+        </div>
+        <h1 class="sm:hidden font-orbit text-xs font-black text-white tracking-tighter uppercase">M.O.G. HUB</h1>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 border border-teal/20">
+          <div class="indicator-dot bg-teal"></div>
+          <span class="font-mono text-[9px] text-teal tracking-widest">UPLINK ACTIVE</span>
+        </div>
+
+        <button @click="showModal = true" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-gold transition-colors">
+          <i data-lucide="settings-2" size="18" class="text-gray-400"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <template x-if="view === 'hub'">
+    <main class="main-viewport">
+      
+      <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+        
+        <div class="lg:col-span-1 panel-glass p-6 flex flex-col items-center">
+          <div class="relative group">
+            <div class="w-32 h-32 rounded-3xl border-2 border-gold-dark/30 p-1 mb-4 bg-black/50">
+              <div class="w-full h-full rounded-2xl overflow-hidden bg-black flex items-center justify-center">
+                <template x-if="profile.avatar_url">
+                  <img :src="profile.avatar_url" class="w-full h-full object-cover" alt="Operative">
+                </template>
+                <template x-if="!profile.avatar_url">
+                  <i data-lucide="shield-check" size="48" class="text-gold-dark opacity-30"></i>
+                </template>
+              </div>
+            </div>
+            <div class="absolute -bottom-1 -right-1 bg-black border border-gold p-1.5 rounded-lg shadow-xl">
+              <i data-lucide="award" size="14" class="text-gold"></i>
+            </div>
+          </div>
+          
+          <h2 class="font-orbit text-lg font-black text-white uppercase text-center" x-text="profile.username"></h2>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="font-mono text-[10px] uppercase tracking-tighter" :class="getRankColor(profile.rank)" x-text="profile.rank"></span>
+            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+            <span class="font-mono text-[10px] text-gray-500 uppercase" x-text="profile.department"></span>
+          </div>
+
+          <div class="w-full h-[1px] bg-white/5 my-5"></div>
+          
+          <button @click="showModal = true" class="btn-mog w-full">
+            <i data-lucide="user-edit" size="14"></i> Update Dossier
+          </button>
+        </div>
+
+        <div class="lg:col-span-3 panel-glass p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="space-y-6">
+              <div>
+                <div class="status-row">
+                  <span class="status-indicator text-teal">
+                    <div class="indicator-dot bg-teal"></div> Systems Nominal
+                  </span>
+                  <span class="font-mono text-[9px] text-gray-600">STATUS: 100%</span>
+                </div>
+                <div class="data-bar"><div class="data-fill bg-teal" style="width: 100%"></div></div>
+              </div>
+
+              <div>
+                <div class="status-row">
+                  <span class="status-indicator text-gold">
+                    <div class="indicator-dot bg-gold"></div> Encryption Active
+                  </span>
+                  <span class="font-mono text-[9px] text-gray-600">PROTOCOL: AES-256</span>
+                </div>
+                <div class="data-bar"><div class="data-fill bg-gold" style="width: 88%"></div></div>
+              </div>
+
+              <div>
+                <div class="status-row">
+                  <span class="status-indicator text-red-500">
+                    <div class="indicator-dot bg-red-500"></div> Loyalty Verified
+                  </span>
+                  <span class="font-mono text-[9px] text-gray-600" x-text="'VAL: ' + profile.stats.loyalty + '%'"></span>
+                </div>
+                <div class="data-bar"><div class="data-fill bg-red-500" :style="'width:' + profile.stats.loyalty + '%'"></div></div>
+              </div>
+            </div>
+
+            <div class="flex flex-col justify-center">
+              <p class="font-orbit text-[9px] font-bold text-gray-500 uppercase mb-4 tracking-[0.3em]">Skill Certifications</p>
+              <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                <div class="badge-hex">
+                  <i data-lucide="binary" size="24" class="text-gold"></i>
+                  <span class="badge-label">CRYPTOGRAPHY</span>
+                </div>
+                <div class="badge-hex">
+                  <i data-lucide="radio" size="24" class="text-gold"></i>
+                  <span class="badge-label">SECURE UPLINK</span>
+                </div>
+                <div class="badge-hex">
+                  <i data-lucide="database" size="24" class="text-gold"></i>
+                  <span class="badge-label">ARCHIVE</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <aside class="lg:col-span-1 space-y-6">
+          <div class="panel-glass p-6">
+            <h3 class="font-orbit text-xs font-black text-white mb-6 flex items-center justify-between">
+              <span>SYSTEM LOGS</span>
+              <i data-lucide="terminal" size="14" class="text-gold"></i>
+            </h3>
+            
+            <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+              <template x-for="log in recentActivity" :key="log.id">
+                <div class="p-3 rounded-xl bg-black/40 border border-white/5 group hover:border-gold/30 transition-all">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-teal shadow-[0_0_5px_var(--teal)]"></span>
+                    <span class="font-mono text-[9px] text-teal" x-text="log.type || 'EVENT'"></span>
+                  </div>
+                  <p class="text-[11px] text-gray-300 leading-snug" x-text="log.description"></p>
+                  <p class="font-mono text-[8px] text-gray-600 mt-2" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+        </aside>
+
+        <section class="lg:col-span-2">
+          <div class="flex gap-2 mb-6 bg-black/40 p-1 rounded-xl border border-white/5 w-fit">
+            <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'active' : ''" class="tab-link">CORE</button>
+            <button @click="activeTab = 'intel'" :class="activeTab === 'intel' ? 'active' : ''" class="tab-link">INTEL</button>
+            <button @click="activeTab = 'network'" :class="activeTab === 'network' ? 'active' : ''" class="tab-link">NODES</button>
+          </div>
+
+          <div class="panel-glass p-6 min-h-[500px]">
+            
+            <div x-show="activeTab === 'overview'" class="space-y-10 animate-fade-in">
+              <div class="p-6 bg-black/50 rounded-2xl border border-gold/10 relative">
+                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="fingerprint" size="40"></i></div>
+                <h4 class="font-orbit text-[10px] text-gold font-bold mb-3 tracking-widest">MISSION DIRECTIVE</h4>
+                <p class="font-mono text-sm text-gray-400 italic leading-relaxed" x-text="profile.bio || 'ENCRYPTED DATA: NO OPERATIONAL SUMMARY AVAILABLE. PLEASE UPDATE DOSSIER.'"></p>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="status-card text-center">
+                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Missions</p>
+                  <p class="font-orbit text-2xl font-black text-white" x-text="profile.stats.missions"></p>
+                </div>
+                <div class="status-card text-center">
+                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Influence</p>
+                  <p class="font-orbit text-2xl font-black text-gold" x-text="profile.stats.influence + '%'"></p>
+                </div>
+                <div class="status-card text-center">
+                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Groove</p>
+                  <p class="font-orbit text-2xl font-black text-teal" x-text="profile.stats.groove"></p>
+                </div>
+                <div class="status-card text-center border-red-900/30">
+                  <p class="font-mono text-[8px] text-red-500 uppercase mb-2">Clearance</p>
+                  <p class="font-orbit text-xl font-black text-red-500">ALPHA</p>
+                </div>
+              </div>
+            </div>
+
+            <div x-show="activeTab === 'intel'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+              <template x-for="asset in mediaAssets" :key="asset.id">
+                <div class="group relative rounded-2xl overflow-hidden border border-white/5 bg-black aspect-video hover:border-gold transition-all">
+                  <img :src="asset.thumb" class="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-opacity">
+                  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent p-5 flex flex-col justify-end">
+                    <span class="font-mono text-[8px] text-gold uppercase mb-1" x-text="asset.type"></span>
+                    <p class="font-orbit text-xs font-black text-white tracking-widest" x-text="asset.title"></p>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <div x-show="activeTab === 'network'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+              <template x-for="node in networkNodes" :key="node.username">
+                <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center gap-4 group hover:border-teal/30 transition-all">
+                  <div class="w-12 h-12 rounded-full border border-teal/20 p-0.5">
+                    <img :src="node.avatar_url || '/assets/images/logo.png'" class="w-full h-full rounded-full object-cover">
+                  </div>
+                  <div>
+                    <p class="font-orbit text-[10px] font-black text-white" x-text="node.username"></p>
+                    <p class="font-mono text-[8px] text-teal/60 uppercase" x-text="node.rank"></p>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+      <footer class="mt-20 text-center pb-10">
+        <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-gold/10 to-transparent mb-10"></div>
+        <div class="flex justify-center gap-6 mb-6">
+          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="instagram" size="18"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="twitter" size="18"></i></a>
+          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="youtube" size="18"></i></a>
+        </div>
+        <p class="font-orbit text-[8px] text-gray-500 tracking-[0.5em] uppercase mb-2">Decrypting the Culture. Synchronizing the Grid.</p>
+        <p class="font-mono text-[9px] text-gray-700 tracking-widest uppercase">M.O.G. INFRASTRUCTURE // EMALAHLENI // © 2026</p>
+      </footer>
+
+    </main>
+  </template>
+
+  <nav class="fixed bottom-0 left-0 right-0 z-[110] h-[75px] bg-black/90 border-t border-white/5 flex md:hidden px-4 pb-4 backdrop-blur-2xl">
+    <button @click="activeTab = 'overview'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'overview' ? 'text-gold' : 'text-gray-600'">
+      <i data-lucide="layout-grid" size="20"></i>
+      <span class="font-orbit text-[7px] font-bold">CORE</span>
     </button>
-    <button @click="activeTab = 'media'" class="flex-1 flex flex-col items-center py-3" :class="activeTab === 'media' ? 'text-gold' : 'text-gray-600'">
-      <i data-lucide="layers" size="20"></i>
-      <span class="orbit text-[8px] mt-1">INTEL</span>
+    <button @click="activeTab = 'intel'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'intel' ? 'text-gold' : 'text-gray-600'">
+      <i data-lucide="zap" size="20"></i>
+      <span class="font-orbit text-[7px] font-bold">INTEL</span>
     </button>
-    <button @click="showModal = true" class="flex-1 flex flex-col items-center py-3 text-gray-600">
-      <i data-lucide="shield" size="20"></i>
-      <span class="orbit text-[8px] mt-1">DOSSIER</span>
+    <button @click="showModal = true" class="flex-1 flex flex-col items-center justify-center gap-1 text-gray-600">
+      <i data-lucide="user-plus" size="20"></i>
+      <span class="font-orbit text-[7px] font-bold">DOSSIER</span>
     </button>
   </nav>
 
-  <div x-show="showModal" class="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4" style="background: rgba(0,0,0,0.9);">
-    <div class="glass w-full max-w-lg rounded-t-3xl sm:rounded-3xl overflow-hidden" @click.away="showModal = false">
-      <div class="p-6 border-b border-white/10 flex justify-between items-center">
-        <h2 class="orbit text-gold font-black">EDIT DOSSIER</h2>
-        <button @click="showModal = false" class="text-gray-500"><i data-lucide="x"></i></button>
+  <div x-show="showModal" 
+       class="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-sm"
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0"
+       x-transition:enter-end="opacity-100">
+    
+    <div class="panel-glass w-full max-w-xl rounded-t-3xl sm:rounded-2xl border-gold/20" @click.away="showModal = false">
+      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+        <h2 class="font-orbit text-gold font-black tracking-widest text-sm italic">DOSSIER ENCRYPTION</h2>
+        <button @click="showModal = false" class="text-gray-500 hover:text-white transition-colors">
+          <i data-lucide="x-circle" size="22"></i>
+        </button>
       </div>
       
-      <div class="p-6 space-y-4">
+      <div class="p-8 space-y-6">
         <div>
-          <label class="mono text-[10px] text-gray-500 uppercase">Operative Designation</label>
-          <input type="text" x-model="profile.username" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white mono mt-1 focus:border-gold outline-none">
+          <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Operative Identifier</label>
+          <input type="text" x-model="profile.username" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white font-mono focus:border-gold outline-none transition-all">
         </div>
-        <div>
-          <label class="mono text-[10px] text-gray-500 uppercase">Operational Notes</label>
-          <textarea x-model="profile.bio" rows="4" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm mt-1 focus:border-gold outline-none"></textarea>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Sector Deployment</label>
+            <select x-model="profile.department" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white font-mono focus:border-gold outline-none">
+              <option value="UNASSIGNED">UNASSIGNED</option>
+              <option value="FIELD OPS">FIELD OPS</option>
+              <option value="INTEL UNIT">INTEL UNIT</option>
+              <option value="AUDIO LAB">AUDIO LAB</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Clearance</label>
+            <input type="text" :value="profile.rank" readonly class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-gray-500 font-mono outline-none">
+          </div>
         </div>
+
         <div>
-          <label class="mono text-[10px] text-gray-500 uppercase">Deployment Sector</label>
-          <select x-model="profile.department" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white mono mt-1 focus:border-gold outline-none">
-            <option value="UNASSIGNED">UNASSIGNED</option>
-            <option value="FIELD OPS">FIELD OPS</option>
-            <option value="INTELLIGENCE">INTELLIGENCE</option>
-            <option value="AUDIO UNIT">AUDIO UNIT</option>
-          </select>
+          <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Mission Narrative (Bio)</label>
+          <textarea x-model="profile.bio" rows="4" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white text-sm focus:border-gold outline-none resize-none transition-all" placeholder="Enter operative background data..."></textarea>
         </div>
       </div>
 
-      <div class="p-6 bg-white/5 flex gap-3">
-        <button @click="showModal = false" class="btn flex-1 py-4 text-[10px] border border-white/10">Abort</button>
-        <button @click="updateProfile()" class="btn-g flex-1 py-4 text-[10px] btn">
-          <span x-show="!isLoading">Sync Changes</span>
-          <i x-show="isLoading" data-lucide="loader" class="animate-spin"></i>
+      <div class="p-6 bg-white/5 flex gap-4">
+        <button @click="showModal = false" class="flex-1 py-4 font-orbit text-[10px] font-bold border border-white/5 rounded-xl uppercase tracking-widest hover:bg-white/5 transition-colors">Abort</button>
+        <button @click="updateDossier()" class="btn-mog flex-1 py-4 text-[10px]">
+          <span x-show="!isLoading">SYNC CHANGES</span>
+          <i x-show="isLoading" data-lucide="loader-2" class="animate-spin" size="16"></i>
         </button>
       </div>
     </div>
   </div>
+
+  <template x-if="view === 'loading'">
+    <div class="fixed inset-0 z-[3000] bg-black flex flex-col items-center justify-center">
+      <div class="logo-frame w-16 h-16 mb-6">
+        <img src="/assets/images/logo.png" class="logo-img animate-pulse" alt="Loading">
+      </div>
+      <div class="font-orbit text-[10px] text-gold font-black tracking-[0.5em] animate-pulse">SYNCHRONIZING HUB...</div>
+      <div class="w-48 h-1 bg-white/5 rounded-full mt-6 overflow-hidden">
+        <div class="h-full bg-gold animate-[loading_2s_infinite]"></div>
+      </div>
+    </div>
+  </template>
+  <style> @keyframes loading { from { width: 0%; } to { width: 100%; } } </style>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide) lucide.createIcons();
     });
   </script>
+
 </body>
 </html>
-            
