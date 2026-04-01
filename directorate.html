@@ -1,79 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M.O.G. | DIRECTORATE COMMAND</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <style>
-        body { background-color: #050505; color: #d4af37; font-family: 'Share Tech Mono', monospace; margin: 0; }
-        .border-gold { border: 1px solid rgba(212, 175, 55, 0.3); }
-        .bg-dark-panel { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(15px); border: 1px solid rgba(212, 175, 55, 0.1); }
-        
-        /* ADJUSTING SEAL SIZE */
-        .seal-frame {
-            width: clamp(80px, 15vw, 130px);
-            aspect-ratio: 1/1;
-            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.6));
-            flex-shrink: 0;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>M.O.G. | DIRECTORATE COMMAND</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =========================================================================
+       DIRECTORATE DESIGN SYSTEM
+       =========================================================================
+    */
+    :root {
+      --gold: #d4af37;
+      --gold-bright: #f0c040;
+      --red-alert: #ef4444;
+      --bg-black: #050505;
+      --surface: rgba(12, 12, 12, 0.98);
+      --border: rgba(212, 175, 55, 0.25);
+    }
+
+    body {
+      background-color: var(--bg-black);
+      color: var(--gold);
+      font-family: 'Share Tech Mono', monospace;
+      background-image: radial-gradient(circle at center, #111 0%, #050505 100%);
+      min-height: 100dvh;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    [x-cloak] { display: none !important; }
+
+    /* FLUID SEAL SCALING */
+    .seal-frame {
+      position: relative;
+      width: clamp(70px, 15vw, 120px);
+      aspect-ratio: 1 / 1;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.5));
+    }
+    .seal-frame img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* HARDWARE COMPONENTS */
+    .bg-dark-panel { 
+      background: var(--surface); 
+      border: 1px solid var(--border); 
+      border-radius: 1.25rem;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    }
+
+    .classified-stamp {
+      border: 3px solid var(--red-alert);
+      color: var(--red-alert);
+      transform: rotate(-12deg);
+      font-weight: 900;
+      padding: 5px 12px;
+      display: inline-block;
+      text-transform: uppercase;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    }
+
+    .btn-override {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 0.75rem;
+    }
+    .btn-override:active { transform: scale(0.95); }
+
+    /* AMBIENT EFFECTS */
+    .scanline {
+      position: fixed; inset: 0; pointer-events: none; z-index: 100;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 0, 0.06));
+      background-size: 100% 4px, 3px 100%;
+      opacity: 0.1;
+    }
+
+    .status-pulse { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold); }
+  </style>
+
+  <script>
+    /**
+     * =========================================================================
+     * DIRECTORATE MASTER LOGIC
+     * =========================================================================
+     */
+    function directorate() {
+      return {
+        view: 'loading',
+        protocolZero: false,
+        stats: { viewers: 12842, revenue: 45200, health: 99.9 },
+        logs: [],
+        operatives: [],
+
+        async init() {
+          console.log("DIRECTORATE UPLINK INITIATED...");
+          
+          let wait = 0;
+          while (typeof sb === 'undefined' && wait < 40) {
+            await new Promise(r => setTimeout(r, 100)); wait++;
+          }
+
+          try {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = '../login.html'; return; }
+            
+            await this.syncCommand();
+            this.view = 'active';
+            
+            // Re-trigger Icons
+            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+          } catch (e) { console.error("Access Refused."); }
+        },
+
+        async syncCommand() {
+          // Fetch Protocol Zero status from system_settings
+          const { data: settings } = await sb.from('system_settings').select('*').eq('key', 'protocolZero').single();
+          if (settings) this.protocolZero = JSON.parse(settings.value).active;
+
+          // Fetch Network Logs
+          const { data: logs } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(10);
+          this.logs = logs || [];
+
+          // Fetch Active Operatives
+          const { data: ops } = await sb.from('profiles').select('username, rank, avatar_url').limit(5);
+          this.operatives = ops || [];
+        },
+
+        async toggleLockdown() {
+          const mode = !this.protocolZero;
+          const confirmAction = window.confirm(mode ? "ACTIVATE SYSTEM LOCKDOWN?" : "RELEASE SYSTEM LOCKDOWN?");
+          if (!confirmAction) return;
+
+          const { error } = await sb.from('system_settings').upsert({
+            key: 'protocolZero',
+            value: JSON.stringify({ active: mode, timestamp: new Date() })
+          });
+
+          if (!error) {
+            this.protocolZero = mode;
+            this.logCommand(`PROTOCOL_ZERO_${mode ? 'ENGAGED' : 'DISENGAGED'}`);
+          }
+        },
+
+        async logCommand(action) {
+          await sb.from('activity_log').insert({
+            type: 'DIRECTORATE_ACTION',
+            description: `COMMAND: ${action}`
+          });
         }
-        .classified-stamp { border: 3px solid #ef4444; color: #ef4444; transform: rotate(-12deg); font-weight: 900; padding: 6px 15px; display: inline-block; text-transform: uppercase; font-family: sans-serif; }
-    </style>
+      }
+    }
+  </script>
 </head>
-<body class="p-6" x-data="directorate()">
-    <nav class="flex justify-between items-center mb-10 border-b border-gold/30 pb-8 sticky top-0 bg-black/90 backdrop-blur z-50">
-        <div class="flex items-center gap-6">
-            <div class="seal-frame">
-                <img src="../assets/images/1000219947.png" alt="Directorate Seal" class="w-full h-full object-contain">
-            </div>
-            <div>
-                <h1 class="text-3xl font-bold uppercase tracking-tighter text-white">Directorate Control</h1>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest">UPLINK: <span class="text-green-500 animate-pulse">ENCRYPTED</span> // STATION: EMALAHLENI</p>
-            </div>
+
+<body x-data="directorate()" x-init="init()" x-cloak>
+  <div class="scanline"></div>
+
+  <nav class="flex justify-between items-center p-6 border-b border-gold/30 bg-black/80 backdrop-blur sticky top-0 z-50">
+    <div class="flex items-center gap-6">
+      <div class="seal-frame">
+        <img src="../assets/images/1000219947.png" alt="Directorate Seal">
+      </div>
+      <div>
+        <h1 class="font-orbit text-2xl font-black uppercase tracking-tighter italic text-white leading-none">Directorate Command</h1>
+        <p class="font-mono text-[10px] text-gray-500 mt-2 tracking-widest uppercase">UPLINK: <span class="text-green-500 status-pulse">ENCRYPTED</span> // STATION: EMALAHLENI_PRIME</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-6">
+      <div class="hidden md:block text-right">
+        <p class="font-orbit text-[10px] font-bold text-white uppercase">Access Granted</p>
+        <p class="font-mono text-[8px] text-gold/60 uppercase">Clearance: Alpha</p>
+      </div>
+      <a href="../index.html" class="flex items-center gap-3 group">
+        <span class="font-mono text-[10px] text-gray-500 group-hover:text-gold transition-colors">EXIT_TO_HUB</span>
+        <div class="w-10 h-10 border border-gold/20 rounded-full flex items-center justify-center p-2 group-hover:border-gold transition-all">
+          <img src="../assets/images/logo.png" class="w-full h-full object-contain opacity-60 group-hover:opacity-100">
         </div>
-        <a href="../index.html" class="bg-gold/10 px-6 py-2 rounded border border-gold hover:bg-gold hover:text-black transition uppercase text-xs font-bold">Exit to Hub</a>
-    </nav>
+      </a>
+    </div>
+  </nav>
 
-    <main class="max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div class="bg-dark-panel p-8 rounded-2xl text-center">
-                <p class="text-[10px] uppercase text-gray-500 mb-4 tracking-widest">Clearance Level</p>
-                <div class="classified-stamp text-sm">LEVEL 5 ACCESS</div>
-            </div>
-            <div class="bg-dark-panel p-8 rounded-2xl">
-                <p class="text-[10px] uppercase text-gray-500 mb-2">Network Health</p>
-                <p class="text-3xl font-black text-green-500">99.9%</p>
-            </div>
-            </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 bg-dark-panel p-10 rounded-3xl border-gold">
-                <h2 class="text-xl font-bold uppercase mb-8 flex items-center gap-3">
-                    <i class="fa-solid fa-tower-broadcast text-red-600"></i> Master Signal Override
-                </h2>
-                <div class="aspect-video bg-black rounded-2xl border border-white/5 flex items-center justify-center relative overflow-hidden">
-                    <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                    <p class="text-[10px] italic text-gray-600 tracking-[0.4em]">MONITORING ACTIVE TRANSMISSION...</p>
-                </div>
-                <div class="grid grid-cols-2 gap-6 mt-10">
-                    <button class="bg-red-900/40 hover:bg-red-600 text-white py-4 rounded-xl text-xs font-black uppercase border border-red-600 transition">Protocol Zero</button>
-                    <button class="bg-gold/10 hover:bg-gold hover:text-black py-4 rounded-xl text-xs font-black uppercase border border-gold transition">Global Broadcast</button>
-                </div>
-            </div>
+  <main class="max-w-7xl mx-auto p-6" x-show="view === 'active'">
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-dark-panel p-6 flex flex-col justify-center">
+        <p class="text-[10px] uppercase text-gray-500 mb-2">Network Viewers</p>
+        <p class="text-3xl font-black text-white" x-text="stats.viewers.toLocaleString()"></p>
+      </div>
+      <div class="bg-dark-panel p-6 flex flex-col justify-center">
+        <p class="text-[10px] uppercase text-gray-500 mb-2">Ticket Revenue</p>
+        <p class="text-3xl font-black text-gold" x-text="'R' + stats.revenue.toLocaleString()"></p>
+      </div>
+      <div class="bg-dark-panel p-6 flex flex-col justify-center">
+        <p class="text-[10px] uppercase text-gray-500 mb-2">Uplink Health</p>
+        <p class="text-3xl font-black text-green-500" x-text="stats.health + '%'"></p>
+      </div>
+      <div class="bg-dark-panel p-6 flex flex-col justify-center items-center">
+        <div class="classified-stamp text-xs" :style="protocolZero ? 'background: #ef4444; color: white;' : ''">
+          <span x-text="protocolZero ? 'SYSTEM LOCKED' : 'LEVEL 5 CLEARANCE'"></span>
         </div>
-    </main>
+      </div>
+    </div>
 
-    <script>
-        function directorate() {
-            return {
-                init() {
-                    console.log("Directorate Prime Uplink Active.");
-                }
-            };
-        }
-    </script>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <div class="lg:col-span-2 space-y-8">
+        <div class="bg-dark-panel p-8 rounded-3xl relative overflow-hidden">
+          <h2 class="font-orbit text-sm font-bold uppercase mb-6 flex items-center gap-3">
+            <i class="fa-solid fa-tower-broadcast text-red-600 status-pulse"></i> Master Signal Override
+          </h2>
+          
+          <div class="aspect-video bg-black border border-white/5 rounded-xl flex items-center justify-center relative group overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+            <div class="text-center group-hover:scale-105 transition-transform duration-700">
+              <i class="fa-solid fa-eye text-5xl text-gray-900 mb-4"></i>
+              <p class="text-[10px] text-gray-700 uppercase italic tracking-widest">Live Feedback: HQ_CAM_01</p>
+            </div>
+            <div class="absolute top-4 left-4 font-mono text-[9px] text-green-500 space-y-1">
+              <p>● MONITORING</p>
+              <p x-text="new Date().toISOString().slice(0, 19).replace('T', ' ')"></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6 mt-10">
+            <button @click="toggleLockdown()" 
+                    class="btn-override p-4 border rounded-xl"
+                    :class="protocolZero ? 'bg-red-600 text-white border-red-400' : 'bg-red-900/20 text-red-500 border-red-600 hover:bg-red-600 hover:text-white'">
+              <i class="fa-solid fa-skull-crossbones mr-2"></i> Protocol Zero
+            </button>
+            <button class="btn-override p-4 bg-gold/10 border border-gold hover:bg-gold hover:text-black">
+              <i class="fa-solid fa-bullhorn mr-2"></i> Global Broadcast
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-dark-panel p-8 rounded-3xl">
+          <h3 class="font-orbit text-xs font-bold uppercase mb-6 text-gold/60">Active Operative Nodes</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <template x-for="op in operatives" :key="op.username">
+              <div class="p-4 border border-white/5 rounded-xl flex items-center gap-4 bg-black/30">
+                <div class="w-10 h-10 rounded-full border border-gold/30 p-0.5">
+                  <img :src="op.avatar_url || '../assets/images/logo.png'" class="w-full h-full rounded-full object-cover">
+                </div>
+                <div>
+                  <p class="font-orbit text-[10px] text-white uppercase" x-text="op.username"></p>
+                  <p class="font-mono text-[8px] text-gray-600 uppercase" x-text="op.rank"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <aside class="bg-dark-panel p-8 rounded-3xl h-fit">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-orbit text-xs font-bold uppercase">Transmission Logs</h3>
+          <span class="text-[8px] text-green-500 status-pulse tracking-widest">LIVE</span>
+        </div>
+        <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+          <template x-for="log in logs" :key="log.id">
+            <div class="text-[10px] border-l-2 border-gold/10 pl-4 py-2 hover:border-gold transition-all">
+              <p class="text-white/80" x-text="log.description"></p>
+              <p class="text-gray-600 text-[8px] mt-1 uppercase" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
+            </div>
+          </template>
+          <template x-if="logs.length === 0">
+            <p class="text-[10px] text-gray-700 italic">Scanning network for activity...</p>
+          </template>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+  <footer class="mt-20 p-12 text-center border-t border-gold/10">
+    <div class="flex justify-center gap-8 mb-6 opacity-30">
+      <i class="fa-solid fa-shield-halved text-2xl"></i>
+      <i class="fa-solid fa-satellite-dish text-2xl"></i>
+      <i class="fa-solid fa-fingerprint text-2xl"></i>
+    </div>
+    <p class="text-[10px] tracking-[0.5em] text-gray-700 uppercase">Seal of the Directorate Command // Level 5 Protected Area</p>
+    <p class="font-mono text-[9px] text-red-900 mt-4 uppercase tracking-widest">© 2026 M.O.G. ALL ACTIONS LOGGED TO OMEGA-VAULT</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
 </body>
 </html>
