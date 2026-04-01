@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
   <link rel="icon" type="image/png" href="assets/images/logo.png">
@@ -15,295 +14,543 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
   <script src="/js/supabase-client.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* =========================================================================
-       HARDWARE UI SHADERS
-       =========================================================================
-    */
-    @layer base, layout, components, animations;
-
-    @layer base {
-      :root {
-        --black: #000;
-        --gold: #d4af37;
-        --gold-bright: #f0c040;
-        --gold-glow: rgba(212,175,55,0.35);
-        --teal: #00d4aa;
-        --red: #dc2626;
-        --surface: rgba(5,7,6,0.98);
-        --border: rgba(212,175,55,0.15);
-        --text: #e8f0ee;
-      }
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      body {
-        font-family: 'Rajdhani', sans-serif;
-        background: var(--black); color: var(--text);
-        min-height: 100dvh; display: flex; align-items: center; justify-content: center;
-        overflow: hidden; padding: 1.5rem; -webkit-font-smoothing: antialiased;
-      }
+    :root {
+      --black:        #000;
+      --gold:         #d4af37;
+      --gold-dim:     #9a7c1f;
+      --gold-glow:    rgba(212,175,55,0.4);
+      --gold-subtle:  rgba(212,175,55,0.08);
+      --teal:         #00d4aa;
+      --teal-glow:    rgba(0,212,170,0.3);
+      --red:          #dc2626;
+      --surface:      rgba(6,8,7,0.97);
+      --border:       rgba(212,175,55,0.12);
+      --text:         #e0d8c0;
     }
 
-    @layer layout {
-      .bg-watermark {
-        position: fixed; inset: 0; pointer-events: none;
-        background: url('assets/images/logo.png') center/clamp(280px, 60vw, 500px) no-repeat;
-        opacity: 0.04; filter: blur(1px); z-index: 0;
-      }
-      .bg-grid {
-        position: fixed; inset: 0; z-index: 1;
-        background-image: linear-gradient(rgba(212,175,55,0.02) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(212,175,55,0.02) 1px, transparent 1px);
-        background-size: 50px 50px;
-      }
-      
-      .terminal-card {
-        position: relative; z-index: 10;
-        width: 100%; max-width: 420px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 2.5rem; padding: 3rem 2.5rem;
-        backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-        box-shadow: 0 25px 60px rgba(0,0,0,0.9);
-        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      
-      /* DIRECTORATE OVERRIDE VISUALS */
-      .terminal-card.directorate-gate {
-        border-color: var(--teal);
-        box-shadow: 0 0 50px rgba(0, 212, 170, 0.15);
-      }
-
-      .shake-anim { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-      @keyframes shake {
-        10%, 90% { transform: translateX(-1px); }
-        20%, 80% { transform: translateX(2px); }
-        30%, 50%, 70% { transform: translateX(-4px); }
-        40%, 60% { transform: translateX(4px); }
-      }
+    *, *::before, *::after {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    @layer components {
-      .access-ring {
-        width: clamp(80px, 15vw, 100px); height: clamp(80px, 15vw, 100px);
-        margin: 0 auto 2.5rem; border-radius: 50%; padding: 4px;
-        background: conic-gradient(from 0deg, var(--gold), var(--teal), var(--gold));
-        animation: rotate-ring 15s linear infinite;
-        flex-shrink: 0;
-      }
-      .access-ring div {
-        width: 100%; height: 100%; background: #000; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .access-ring img { width: 65%; object-fit: contain; filter: drop-shadow(0 0 10px var(--gold-glow)); }
-      @keyframes rotate-ring { to { transform: rotate(360deg); } }
-
-      .input-terminal {
-        width: 100%; background: rgba(0,0,0,0.5);
-        border: 1px solid rgba(212,175,55,0.2);
-        border-radius: 1.25rem; padding: 1.15rem;
-        color: #fff; font-family: 'Share Tech Mono', monospace;
-        margin-bottom: 1.25rem; transition: 0.3s;
-        text-align: center; font-size: 0.9rem; outline: none;
-      }
-      .input-terminal:focus { border-color: var(--gold); box-shadow: 0 0 20px var(--gold-glow); }
-      .input-terminal.directorate-focus { border-color: var(--teal); color: var(--teal); }
-
-      .btn-auth {
-        width: 100%; padding: 1.15rem;
-        background: var(--gold); border: none; border-radius: 1.25rem;
-        color: #000; font-family: 'Orbitron', sans-serif; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.7rem;
-        cursor: pointer; transition: 0.4s;
-      }
-      .btn-auth:hover { background: #fff; transform: translateY(-2px); box-shadow: 0 10px 30px var(--gold-glow); }
-      .btn-auth:disabled { opacity: 0.3; cursor: not-allowed; filter: grayscale(1); }
-      .btn-auth.directorate-btn { background: var(--teal); color: #000; }
-
-      .alert-strip {
-        display: none; background: rgba(220,38,38,0.2);
-        border: 1px solid var(--red); border-radius: 0.75rem;
-        padding: 0.8rem; margin-bottom: 1.5rem;
-        color: #fca5a5; font-size: 0.65rem; text-align: center;
-        font-family: 'Orbitron', sans-serif; letter-spacing: 0.1em;
-      }
-      .alert-strip.active { display: block; animation: pulse-red 2s infinite; }
-      @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
     }
 
-    .system-loader {
-      position: fixed; inset: 0; z-index: 1000; background: #000;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--black);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      -webkit-font-smoothing: antialiased;
     }
-    .system-loader.active { display: flex; }
+
+    /* ── DEEP SPACE BACKGROUND ── */
+    .bg-cosmos {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 20% 100%, rgba(0,212,170,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 50% at 80% 50%, rgba(212,175,55,0.03) 0%, transparent 50%),
+        #000;
+    }
+
+    /* ── GRID ── */
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(212,175,55,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,175,55,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    /* ── SCAN LINE SWEEP ── */
+    .bg-scanline {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.06) 3px,
+        rgba(0,0,0,0.06) 4px
+      );
+    }
+    .bg-scan-sweep {
+      position: fixed; left: 0; right: 0; z-index: 3; pointer-events: none;
+      height: 120px;
+      background: linear-gradient(180deg, transparent, rgba(212,175,55,0.04), transparent);
+      animation: sweep 8s linear infinite;
+    }
+    @keyframes sweep {
+      0%   { top: -120px; }
+      100% { top: 100vh; }
+    }
+
+    /* ── PARTICLES ── */
+    .particles { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute; border-radius: 50%;
+      background: var(--gold); opacity: 0;
+      animation: float-up linear infinite;
+    }
+    @keyframes float-up {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.5; }
+      90%  { opacity: 0.2; }
+      100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+    }
+
+    /* ── VIGNETTE ── */
+    .bg-vignette {
+      position: fixed; inset: 0; z-index: 4; pointer-events: none;
+      background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.92) 100%);
+    }
+
+    /* ── TERMINAL CARD ── */
+    .terminal-card {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem);
+      backdrop-filter: blur(30px);
+      box-shadow:
+        0 0 0 1px rgba(212,175,55,0.04),
+        0 30px 80px rgba(0,0,0,0.95),
+        inset 0 1px 0 rgba(255,255,255,0.03);
+      animation: card-arrive 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes card-arrive {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .terminal-card.is-director {
+      border-color: rgba(0,212,170,0.25);
+      box-shadow:
+        0 0 0 1px rgba(0,212,170,0.06),
+        0 30px 80px rgba(0,0,0,0.95),
+        0 0 60px rgba(0,212,170,0.06),
+        inset 0 1px 0 rgba(0,212,170,0.05);
+    }
+    .shake { animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shake {
+      10%, 90% { transform: translateX(-2px); }
+      20%, 80% { transform: translateX(3px); }
+      30%, 50%, 70% { transform: translateX(-5px); }
+      40%, 60% { transform: translateX(5px); }
+    }
+
+    /* ── LOGO RING ── */
+    .logo-ring-wrap {
+      width: clamp(72px, 16vw, 88px);
+      height: clamp(72px, 16vw, 88px);
+      margin: 0 auto 2rem;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .logo-ring-svg {
+      position: absolute; inset: 0;
+      animation: ring-spin 20s linear infinite;
+    }
+    @keyframes ring-spin { to { transform: rotate(360deg); } }
+    .logo-ring-inner {
+      position: absolute; inset: 8px;
+      background: #000; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-ring-inner img {
+      width: 58%; object-fit: contain;
+      filter: drop-shadow(0 0 10px var(--gold-glow));
+      transition: filter 0.5s;
+    }
+    .is-director .logo-ring-inner img {
+      filter: drop-shadow(0 0 12px var(--teal-glow));
+    }
+
+    /* ── TITLE ── */
+    .gate-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.18em;
+      text-align: center;
+      text-transform: uppercase;
+      line-height: 1;
+      transition: color 0.5s;
+    }
+    .is-director .gate-title { color: var(--teal); }
+    .gate-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(212,175,55,0.3);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px; margin: 1.75rem 0;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+    }
+
+    /* ── FIELD LABELS ── */
+    .field-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    /* ── INPUTS ── */
+    .input-wrap { position: relative; margin-bottom: 1rem; }
+    .input-terminal {
+      width: 100%;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(212,175,55,0.15);
+      border-radius: 1rem;
+      padding: 0.95rem 1rem 0.95rem 3rem;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      -webkit-appearance: none;
+    }
+    .input-terminal::placeholder { color: rgba(255,255,255,0.15); }
+    .input-terminal:focus {
+      border-color: rgba(212,175,55,0.5);
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.07), inset 0 0 20px rgba(212,175,55,0.02);
+    }
+    .is-director .input-terminal:focus {
+      border-color: rgba(0,212,170,0.5);
+      box-shadow: 0 0 0 3px rgba(0,212,170,0.07);
+    }
+    .input-icon {
+      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: rgba(212,175,55,0.3);
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+    .input-terminal:focus ~ .input-icon { color: var(--gold); }
+    .is-director .input-terminal:focus ~ .input-icon { color: var(--teal); }
+
+    /* eye toggle */
+    .eye-toggle {
+      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.2);
+      padding: 0; line-height: 1; transition: color 0.2s;
+    }
+    .eye-toggle:hover { color: var(--gold); }
+
+    /* ── STRENGTH BAR ── */
+    .strength-bar-wrap { margin-top: -0.5rem; margin-bottom: 0.75rem; height: 2px; border-radius: 2px; background: rgba(255,255,255,0.04); overflow: hidden; }
+    .strength-bar { height: 100%; border-radius: 2px; width: 0; transition: width 0.4s, background 0.4s; }
+
+    /* ── AUTH BTN ── */
+    .btn-auth {
+      width: 100%; padding: 1rem;
+      background: linear-gradient(135deg, var(--gold) 0%, #b8960a 100%);
+      border: none; border-radius: 1rem;
+      color: #000;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900; font-size: 0.65rem;
+      text-transform: uppercase; letter-spacing: 0.25em;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+      position: relative; overflow: hidden;
+      box-shadow: 0 4px 20px rgba(212,175,55,0.2);
+      margin-top: 0.5rem;
+    }
+    .btn-auth::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(212,175,55,0.35); }
+    .btn-auth:hover::before { opacity: 1; }
+    .btn-auth:active { transform: translateY(0) scale(0.98); }
+    .btn-auth:disabled { opacity: 0.25; cursor: not-allowed; transform: none; box-shadow: none; }
+    .is-director .btn-auth {
+      background: linear-gradient(135deg, var(--teal), #009e7e);
+      box-shadow: 0 4px 20px rgba(0,212,170,0.2);
+    }
+    .is-director .btn-auth:hover { box-shadow: 0 8px 30px rgba(0,212,170,0.4); }
+    .btn-auth .btn-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+
+    /* spinner */
+    .spinner {
+      display: none; width: 14px; height: 14px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .is-loading .spinner { display: block; }
+    .is-loading .btn-label { display: none; }
+
+    /* ── ALERT ── */
+    .alert-strip {
+      display: none;
+      background: rgba(220,38,38,0.1);
+      border: 1px solid rgba(220,38,38,0.35);
+      border-radius: 0.75rem;
+      padding: 0.7rem 1rem;
+      margin-bottom: 1rem;
+      color: #fca5a5;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-align: center;
+      animation: pulse-red 2s infinite;
+    }
+    .alert-strip.active { display: block; }
+    @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.65} }
+
+    /* ── BOTTOM LINKS ── */
+    .footer-links {
+      margin-top: 1.5rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+    }
+    .link-ghost {
+      background: none; border: none; cursor: pointer;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; color: rgba(255,255,255,0.18);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .link-ghost:hover { color: var(--gold); }
+    .is-director .link-ghost:hover { color: var(--teal); }
+    .status-blip {
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .blip {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--teal);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
+    .blip-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; color: rgba(255,255,255,0.1);
+      letter-spacing: 0.25em; text-transform: uppercase;
+    }
+
+    /* ── SYSTEM LOADER OVERLAY ── */
+    .sys-loader {
+      position: fixed; inset: 0; z-index: 1000;
+      background: #000;
+      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+    }
+    .sys-loader.active { display: flex; }
+    .loader-ring-wrap {
+      width: 90px; height: 90px; position: relative;
+    }
+    .loader-ring-svg { position: absolute; inset: 0; animation: ring-spin 3s linear infinite; }
+    .loader-ring-inner {
+      position: absolute; inset: 10px; background: #000;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .loader-ring-inner img { width: 55%; filter: drop-shadow(0 0 10px var(--gold-glow)); }
+    .loader-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.6rem; font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5em; text-transform: uppercase;
+      animation: pulse-txt 1.5s infinite;
+    }
+    @keyframes pulse-txt { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    .loader-bar {
+      width: 200px; height: 1px;
+      background: rgba(212,175,55,0.1);
+      border-radius: 1px; overflow: hidden;
+    }
+    .loader-bar-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      animation: load-fill 1.8s ease-in-out forwards;
+    }
+    @keyframes load-fill { to { width: 100%; } }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      position: fixed; bottom: max(1.5rem, env(safe-area-inset-bottom));
+      left: 0; right: 0; text-align: center; pointer-events: none; z-index: 5;
+    }
+    .page-footer p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem; color: rgba(255,255,255,0.07);
+      letter-spacing: 0.4em; text-transform: uppercase;
+    }
   </style>
-
-  <script>
-    /**
-     * =========================================================================
-     * BIFROST GATE CONTROLLER
-     * =========================================================================
-     */
-    const DIRECTOR_EMAIL = 'director.mog@gmail.com';
-    let failedAttempts = 0;
-
-    const getSb = () => window.sb || window.supabaseClient;
-
-    /**
-     * DUAL GATE MONITOR
-     * Visually transforms the gate when Directorate ID is entered.
-     */
-    function monitorGateInput(val) {
-        const card = document.getElementById('authCard');
-        const title = document.getElementById('gateTitle');
-        const btn = document.getElementById('authBtn');
-        const inputs = document.querySelectorAll('.input-terminal');
-
-        if (val.trim().toLowerCase() === DIRECTOR_EMAIL) {
-            card.classList.add('directorate-gate');
-            title.textContent = "DIRECTORATE PRIME";
-            title.style.color = "#00d4aa";
-            btn.classList.add('directorate-btn');
-            inputs.forEach(i => i.classList.add('directorate-focus'));
-            navigator.vibrate?.(40);
-        } else {
-            card.classList.remove('directorate-gate');
-            title.textContent = "M.O.G. HUB";
-            title.style.color = "#fff";
-            btn.classList.remove('directorate-btn');
-            inputs.forEach(i => i.classList.remove('directorate-focus'));
-        }
-    }
-
-    /**
-     * INITIALIZE GATE UPLINK
-     */
-    async function initializeAccess() {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const loader = document.getElementById('sysLoader');
-        const status = document.getElementById('loadStatus');
-        const card = document.getElementById('authCard');
-        const alertBox = document.getElementById('alertStrip');
-
-        if (!email || !password) {
-            triggerShake();
-            return;
-        }
-
-        loader.classList.add('active');
-        status.textContent = "ESTABLISHING SECURE TUNNEL...";
-
-        try {
-            const { data, error } = await getSb().auth.signInWithPassword({ email, password });
-            
-            if (error) throw error;
-
-            status.textContent = "CLEARANCE VERIFIED.";
-            
-            // DUAL-GATE REDIRECT LOGIC
-            setTimeout(() => {
-                if (email.toLowerCase() === DIRECTOR_EMAIL) {
-                    status.textContent = "REDIRECTING TO COMMAND CENTER...";
-                    window.location.href = 'pages/directorate.html';
-                } else {
-                    status.textContent = "REDIRECTING TO OPERATIVE HUB...";
-                    window.location.href = 'index.html';
-                }
-            }, 1200);
-
-        } catch (err) {
-            failedAttempts++;
-            loader.classList.remove('active');
-            triggerShake();
-            
-            alertBox.classList.add('active');
-            alertBox.textContent = `⚠ ACCESS DENIED: ATTEMPT ${failedAttempts}/3`;
-
-            if (failedAttempts >= 3) {
-                lockdownTerminal();
-            }
-        }
-    }
-
-    function triggerShake() {
-        const card = document.getElementById('authCard');
-        card.classList.add('shake-anim');
-        navigator.vibrate?.([50, 50, 50]);
-        setTimeout(() => card.classList.remove('shake-anim'), 500);
-    }
-
-    function lockdownTerminal() {
-        const btn = document.getElementById('authBtn');
-        const alertBox = document.getElementById('alertStrip');
-        alertBox.textContent = "⚠ TERMINAL LOCKED: INTRUSION LOGGED";
-        btn.disabled = true;
-        
-        // Log intrusion to Directorate
-        getSb().from('activity_log').insert({ 
-            type: 'INTRUSION_ALERT', 
-            description: `Multiple failed attempts for operative ID: ${document.getElementById('email').value}`
-        });
-    }
-
-    async function requestMagicLink() {
-        const email = document.getElementById('email').value;
-        if (!email) { alert("Enter Personnel ID first."); return; }
-        const { error } = await getSb().auth.signInWithOtp({ email });
-        if (!error) alert("Magic link transmitted to secure inbox.");
-    }
-  </script>
 </head>
 <body>
 
-  <div class="bg-watermark"></div>
+  <div class="bg-cosmos"></div>
   <div class="bg-grid"></div>
+  <div class="bg-scanline"></div>
+  <div class="bg-scan-sweep"></div>
+  <div class="bg-vignette"></div>
 
-  <div class="system-loader" id="sysLoader">
-    <div class="access-ring"><div><img src="assets/images/logo.png" alt="MOG"></div></div>
-    <p class="font-orbit text-gold text-[10px] tracking-[0.6em] animate-pulse" id="loadStatus">AUTHENTICATING</p>
+  <!-- Floating particles injected by JS -->
+  <div class="particles" id="particles"></div>
+
+  <!-- SYSTEM LOADER OVERLAY -->
+  <div class="sys-loader" id="sysLoader">
+    <div class="loader-ring-wrap">
+      <svg class="loader-ring-svg" viewBox="0 0 90 90" fill="none">
+        <circle cx="45" cy="45" r="40" stroke="url(#rg)" stroke-width="1.5" stroke-dasharray="6 4"/>
+        <defs>
+          <linearGradient id="rg" x1="0" y1="0" x2="90" y2="90" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#d4af37"/>
+            <stop offset="0.5" stop-color="#00d4aa"/>
+            <stop offset="1" stop-color="#d4af37"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="loader-ring-inner">
+        <img src="assets/images/logo.png" alt="MOG">
+      </div>
+    </div>
+    <p class="loader-text" id="loadStatus">Authenticating</p>
+    <div class="loader-bar"><div class="loader-bar-fill" id="loaderBar"></div></div>
   </div>
 
+  <!-- MAIN CARD -->
   <main class="terminal-card" id="authCard">
-    <div class="access-ring">
-      <div><img src="assets/images/logo.png" alt="MOG SEAL"></div>
-    </div>
-    
-    <div class="text-center mb-10">
-      <h1 class="font-orbit text-2xl font-black text-white tracking-[0.2em]" id="gateTitle">M.O.G. HUB</h1>
-      <p class="font-mono text-[9px] text-gold/40 uppercase tracking-[0.4em] mt-2">Secure Access Terminal</p>
+
+    <!-- Logo ring -->
+    <div class="logo-ring-wrap">
+      <svg class="logo-ring-svg" viewBox="0 0 88 88" fill="none">
+        <circle cx="44" cy="44" r="40" stroke="url(#lg)" stroke-width="1" stroke-dasharray="4 3"/>
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#d4af37" stop-opacity="0.8"/>
+            <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.6"/>
+            <stop offset="1" stop-color="#d4af37" stop-opacity="0.8"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="logo-ring-inner">
+        <img src="assets/images/logo.png" alt="MOG Seal">
+      </div>
     </div>
 
+    <!-- Title -->
+    <h1 class="gate-title" id="gateTitle">M.O.G. Hub</h1>
+    <p class="gate-sub">Secure Access Terminal</p>
+
+    <div class="divider"></div>
+
+    <!-- Alert -->
     <div class="alert-strip" id="alertStrip"></div>
 
-    <div class="space-y-1">
-      <p class="font-orbit text-[8px] text-gray-700 uppercase tracking-widest mb-2 px-1">Personnel ID</p>
-      <input type="email" id="email" class="input-terminal" placeholder="ID@MINISTRY.COM" oninput="monitorGateInput(this.value)">
-      
-      <p class="font-orbit text-[8px] text-gray-700 uppercase tracking-widest mb-2 px-1">Access Code</p>
-      <input type="password" id="password" class="input-terminal" placeholder="••••••••">
-      
-      <button class="btn-auth mt-6" id="authBtn" onclick="initializeAccess()">
-        Initialize Uplink
-      </button>
+    <!-- Email field -->
+    <label class="field-label" for="email">Personnel ID</label>
+    <div class="input-wrap">
+      <input type="email" id="email" class="input-terminal" placeholder="id@ministry.com"
+             oninput="monitorInput(this.value)"
+             onkeydown="if(event.key==='Enter') document.getElementById('password').focus()">
+      <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M2.5 6.5l7.5 5 7.5-5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round"/>
+      </svg>
+    </div>
 
-      <div class="flex flex-col items-center gap-4 mt-10">
-        <button onclick="requestMagicLink()" class="font-mono text-[9px] text-gray-600 hover:text-gold transition-colors uppercase tracking-widest">
-            Request Magic Link Access
-        </button>
-        <div class="flex items-center gap-2">
-            <span class="w-1 h-1 rounded-full bg-teal animate-pulse"></span>
-            <span class="font-mono text-[8px] text-gray-800 uppercase tracking-widest">Dual-Gate Protocol Active</span>
-        </div>
+    <!-- Password field -->
+    <label class="field-label" for="password">Access Code</label>
+    <div class="input-wrap">
+      <input type="password" id="password" class="input-terminal" placeholder="••••••••••"
+             oninput="updateStrength(this.value)"
+             onkeydown="if(event.key==='Enter') initializeAccess()">
+      <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="4" y="9" width="12" height="9" rx="1.5" stroke-linecap="round"/>
+        <path d="M7 9V7a3 3 0 016 0v2" stroke-linecap="round"/>
+      </svg>
+      <button class="eye-toggle" id="eyeBtn" onclick="toggleEye()" type="button" aria-label="Toggle visibility">
+        <svg id="eyeIcon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z" stroke-linecap="round"/>
+          <circle cx="10" cy="10" r="2.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Strength bar -->
+    <div class="strength-bar-wrap">
+      <div class="strength-bar" id="strengthBar"></div>
+    </div>
+
+    <!-- CTA -->
+    <button class="btn-auth" id="authBtn" onclick="initializeAccess()">
+      <span class="btn-inner">
+        <span class="spinner" id="spinner"></span>
+        <span class="btn-label" id="btnLabel">Initialize Uplink</span>
+      </span>
+    </button>
+
+    <!-- Footer links -->
+    <div class="footer-links">
+      <button class="link-ghost" onclick="requestMagicLink()">Request Magic Link Access</button>
+      <div class="status-blip">
+        <div class="blip"></div>
+        <span class="blip-label">Dual-Gate Protocol Active</span>
       </div>
     </div>
 
   </main>
 
-  <footer class="fixed bottom-8 w-full text-center pointer-events-none">
-    <p class="font-mono text-[9px] text-gray-800 uppercase tracking-[0.5em]">Ministry of Groove // Emalahleni // 2026</p>
+  <footer class="page-footer">
+    <p>Ministry of Groove // Emalahleni // 2026</p>
   </footer>
 
-</body>
-</html>
+  <script>
+    // ── CONSTANTS ──
+    const DIRECTOR_EMAIL = 'director.mog@gmail.com';
+    let failedAttempts = 0;
+    let isLoading = false;
+    const getSb = () => window.sb || window.supabaseClient;
+
+    // ── PARTICLES ──
+    (function spawnParticles() {
+      const container = document.getElementById('particles');
+      for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 2 + 1;
+        p.style.cssText = `
+          width:${size}px; height:${size}px;
+          left:${Math.random() * 100}%;
+          animation-duration:${Math.random() * 15 + 12}s;
+          animation-delay:${Math.random() * 10}s;
+        `;
+        container.appendChild(p);
+      }
+    })();
+
+    // ── MONITOR INPUT ──
+    function monitorInput(val) {
+      const card = document.getElementById('authCard');
+      const title = document.getElementById('gateTitle');
+      const btn = document.getElementById('authBtn');
+      const isDir = val.trim().toLowerCase() === DIRECTOR_EMAIL;
+      card.classList.toggle('is-director', isDir);
+      title.textContent = isDir ? 'Directorate Prime' : 'M.O.G. Hub';
+    }
+
+  
