@@ -553,4 +553,114 @@
       title.textContent = isDir ? 'Directorate Prime' : 'M.O.G. Hub';
     }
 
-  
+   // ── STRENGTH BAR ──
+    function updateStrength(val) {
+      const bar = document.getElementById('strengthBar');
+      let score = 0;
+      if (val.length >= 8)  score += 25;
+      if (val.length >= 12) score += 15;
+      if (/[A-Z]/.test(val)) score += 20;
+      if (/[0-9]/.test(val)) score += 20;
+      if (/[^A-Za-z0-9]/.test(val)) score += 20;
+      const color = score < 30 ? '#dc2626' : score < 60 ? '#f59e0b' : score < 85 ? '#d4af37' : '#00d4aa';
+      bar.style.width = score + '%';
+      bar.style.background = color;
+    }
+
+    // ── EYE TOGGLE ──
+    function toggleEye() {
+      const pw = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon');
+      if (pw.type === 'password') {
+        pw.type = 'text';
+        icon.innerHTML = `<path d="M3 3l14 14M10.5 5.07A7.94 7.94 0 0110 5C4 5 1 10 1 10s1.06 1.87 3 3.5M6.5 6.5A7.01 7.01 0 001 10s3 5 9 5c1.68 0 3.2-.44 4.5-1.12M10 13a3 3 0 01-3-3c0-.45.1-.88.27-1.27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
+      } else {
+        pw.type = 'password';
+        icon.innerHTML = `<path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5"/>`;
+      }
+    }
+
+    // ── SHAKE ──
+    function shake() {
+      const card = document.getElementById('authCard');
+      card.classList.add('shake');
+      navigator.vibrate?.([50, 50, 50]);
+      setTimeout(() => card.classList.remove('shake'), 500);
+    }
+
+    // ── SET LOADING STATE ──
+    function setLoading(state) {
+      isLoading = state;
+      const btn = document.getElementById('authBtn');
+      const spinner = document.getElementById('spinner');
+      const label = document.getElementById('btnLabel');
+      btn.disabled = state;
+      spinner.style.display = state ? 'block' : 'none';
+      label.style.display = state ? 'none' : 'block';
+    }
+
+    // ── INIT ACCESS ──
+    async function initializeAccess() {
+      if (isLoading) return;
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const loader = document.getElementById('sysLoader');
+      const status = document.getElementById('loadStatus');
+      const alertBox = document.getElementById('alertStrip');
+
+      if (!email || !password) { shake(); return; }
+
+      setLoading(true);
+      alertBox.classList.remove('active');
+
+      loader.classList.add('active');
+      status.textContent = 'Establishing Secure Tunnel';
+
+      try {
+        const { data, error } = await getSb().auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        status.textContent = 'Clearance Verified';
+        setTimeout(() => {
+          status.textContent = email.toLowerCase() === DIRECTOR_EMAIL
+            ? 'Redirecting to Command...'
+            : 'Redirecting to Hub...';
+          setTimeout(() => {
+            window.location.href = email.toLowerCase() === DIRECTOR_EMAIL
+              ? 'pages/directorate.html'
+              : 'index.html';
+          }, 600);
+        }, 900);
+
+      } catch (err) {
+        failedAttempts++;
+        loader.classList.remove('active');
+        setLoading(false);
+        shake();
+
+        alertBox.classList.add('active');
+        alertBox.textContent = failedAttempts >= 3
+          ? '⚠ Terminal Locked — Intrusion Logged'
+          : `⚠ Access Denied — Attempt ${failedAttempts}/3`;
+
+        if (failedAttempts >= 3) {
+          document.getElementById('authBtn').disabled = true;
+          getSb().from('activity_log').insert({
+            type: 'INTRUSION_ALERT',
+            description: `Failed login attempts: ${email}`
+          }).then(() => {});
+        }
+      }
+    }
+
+    // ── MAGIC LINK ──
+    async function requestMagicLink() {
+      const email = document.getElementById('email').value.trim();
+      if (!email) { shake(); return; }
+      const { error } = await getSb().auth.signInWithOtp({ email });
+      if (!error) alert('Magic link transmitted to secure inbox.');
+      else alert('Transmission failed. Verify Personnel ID.');
+    }
+  </script>
+</body>
+</html>
