@@ -1,865 +1,431 @@
 <!DOCTYPE html>
-<html lang="en" color-scheme="dark">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="M.O.G.">
-  
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/assets/images/logo.png">
-  <link rel="icon" type="image/png" href="/assets/images/logo.png">
-  
-  <title>M.O.G. | OPERATIVE HUB</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/config.js"></script>
-  <script src="/js/supabase-client.js"></script>
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <style>
-    /* =========================================================================
-       CORE STYLING ARCHITECTURE
-       =========================================================================
-    */
-    @layer base, layout, components, utilities, animations;
-
-    @layer base {
-      :root {
-        --black: #000000;
-        --surface: rgba(10, 12, 10, 0.98);
-        --gold: #d4af37;
-        --gold-bright: #f0c040;
-        --gold-dark: #8b6914;
-        --gold-glow: rgba(212, 175, 55, 0.35);
-        --teal: #00d4aa;
-        --teal-dim: #006e59;
-        --teal-glow: rgba(0, 212, 170, 0.25);
-        --red: #dc2626;
-        --red-glow: rgba(220, 38, 38, 0.4);
-        --text: #e8e0cc;
-        --border: rgba(212, 175, 55, 0.12);
-        --safe-bottom: env(safe-area-inset-bottom, 0px);
-        --safe-top: env(safe-area-inset-top, 0px);
-      }
-      
-      *, *::before, *::after { 
-        box-sizing: border-box; 
-        margin: 0; 
-        padding: 0; 
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      html { 
-        scroll-behavior: smooth; 
-        color-scheme: dark; 
-        background: var(--black);
-      }
-
-      body { 
-        font-family: 'Rajdhani', sans-serif; 
-        background: var(--black); 
-        color: var(--text); 
-        min-height: 100dvh; 
-        overflow-x: hidden;
-        line-height: 1.5;
-        -webkit-font-smoothing: antialiased;
-      }
-      
-      /* THE TERMINAL SCROLLBAR */
-      ::-webkit-scrollbar { width: 3px; height: 3px; }
-      ::-webkit-scrollbar-track { background: rgba(0,0,0,0.9); }
-      ::-webkit-scrollbar-thumb { 
-        background: linear-gradient(180deg, var(--gold-dark), var(--teal-dim)); 
-        border-radius: 2px; 
-      }
-
-      [x-cloak] { display: none !important; }
-    }
-
-    @layer layout {
-      /* AMBIENT LAYERS */
-      .bg-seal {
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: clamp(300px, 65vmin, 550px); height: clamp(300px, 65vmin, 550px);
-        background: url('/assets/images/logo.png') center/contain no-repeat;
-        opacity: 0.04; pointer-events: none; z-index: 0;
-        filter: drop-shadow(0 0 50px var(--gold-glow));
-      }
-
-      .bg-grid {
-        position: fixed; inset: 0; pointer-events: none; z-index: 1;
-        background-image: 
-          linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-        background-size: 45px 45px;
-      }
-
-      .bg-vignette {
-        position: fixed; inset: 0; pointer-events: none; z-index: 2;
-        background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.95) 100%);
-      }
-
-      .main-viewport {
-        position: relative;
-        z-index: 10;
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        padding-top: 5rem; /* Space for ticker + header */
-      }
-    }
-
-    @layer components {
-      /* =======================================================================
-         COMPONENT: HEADER & LOGO (FIXED SIZING)
-         ======================================================================= */
-      .nav-shell {
-        position: fixed;
-        top: 30px; /* Below Ticker */
-        left: 0; right: 0;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border-bottom: 1px solid var(--border);
-        transition: transform 0.3s ease;
-      }
-      
-      .nav-container {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 0.6rem 1.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .logo-block {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .logo-frame {
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
-      }
-
-      .logo-img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        filter: drop-shadow(0 0 8px var(--gold-glow));
-      }
-
-      /* =======================================================================
-         COMPONENT: SYSTEM STATUS (THE ENCRYPTOR LAYOUT)
-         ======================================================================= */
-      .panel-glass {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 1.5rem;
-        box-shadow: 0 12px 45px rgba(0, 0, 0, 0.7);
-        overflow: hidden;
-      }
-
-      .status-card {
-        background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.3) 100%);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 1.25rem;
-        padding: 1.25rem;
-      }
-
-      /* HEXAGON BADGES */
-      .badge-hex {
-        position: relative;
-        width: 76px; height: 86px;
-        background: rgba(15, 15, 15, 0.9);
-        border: 1px solid var(--gold-dark);
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s ease;
-      }
-      .badge-hex:hover {
-        border-color: var(--gold-bright);
-        box-shadow: 0 0 15px var(--gold-glow);
-        transform: translateY(-3px);
-      }
-      .badge-label {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 6px;
-        letter-spacing: 0.1em;
-        color: #fff;
-        margin-top: 4px;
-        text-align: center;
-      }
-
-      /* PROGRESS INDICATORS */
-      .status-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-      .status-indicator {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.65rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .indicator-dot {
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        animation: pulse-dot 2s infinite;
-      }
-      @keyframes pulse-dot {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.4; transform: scale(0.9); }
-      }
-
-      /* DATA BARS */
-      .data-bar {
-        height: 4px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 2px;
-        width: 100%;
-        overflow: hidden;
-      }
-      .data-fill {
-        height: 100%;
-        transition: width 2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      
-      /* =======================================================================
-         COMPONENT: BUTTONS & TABS
-         ======================================================================= */
-      .btn-mog {
-        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-        cursor: pointer; transition: all 0.25s ease;
-        font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 0.65rem;
-        letter-spacing: 0.15em; text-transform: uppercase;
-        border-radius: 0.75rem; padding: 0.75rem 1.5rem;
-        background: rgba(212, 175, 55, 0.05);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        color: var(--gold);
-        position: relative;
-        overflow: hidden;
-      }
-      .btn-mog::before {
-        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        transition: 0.5s;
-      }
-      .btn-mog:hover::before { left: 100%; }
-      .btn-mog:hover {
-        background: rgba(212, 175, 55, 0.12);
-        border-color: var(--gold-bright);
-        box-shadow: 0 0 15px var(--gold-glow);
-      }
-
-      /* TABS */
-      .tab-link {
-        font-family: 'Orbitron', sans-serif;
-        font-size: 0.6rem;
-        font-weight: 800;
-        letter-spacing: 0.2em;
-        padding: 0.6rem 1.4rem;
-        border-radius: 0.5rem;
-        color: #4b5563;
-        transition: all 0.2s;
-        border: 1px solid transparent;
-      }
-      .tab-link.active {
-        color: var(--gold);
-        background: rgba(212, 175, 55, 0.1);
-        border-color: rgba(212, 175, 55, 0.3);
-      }
-    }
-
-    @layer utilities {
-      .font-orbit { font-family: 'Orbitron', sans-serif; }
-      .font-mono { font-family: 'Share Tech Mono', monospace; }
-      .text-gold { color: var(--gold); }
-      .text-teal { color: var(--teal); }
-      .text-glow-gold { text-shadow: 0 0 10px var(--gold-glow); }
-      .no-scrollbar::-webkit-scrollbar { display: none; }
-    }
-  </style>
-
-  <script>
-    /**
-     * =========================================================================
-     * HUB CONTROLLER LOGIC
-     * Manages reactive state, Supabase persistence, and UI synchronization.
-     * =========================================================================
-     */
-    function hub() {
-      return {
-        // APPLICATION STATE
-        view: 'loading',
-        isLoading: false,
-        isOnline: navigator.onLine,
-        showModal: false,
-        activeTab: 'overview',
-        operativeId: 'OP:OFFLINE',
-        currentUser: null,
-
-        // OPERATIVE PROFILE DATA
-        profile: {
-          username: 'RECRUIT',
-          codename: 'PENDING',
-          rank: 'INITIATE',
-          department: 'UNASSIGNED',
-          bio: '',
-          avatar_url: null,
-          stats: { 
-            missions: 0, 
-            contributions: 0, 
-            influence: 15, 
-            loyalty: 85, 
-            groove: 40 
-          },
-          skills: ['CRYPTOGRAPHY', 'ENCRYPTION'],
-          joined_at: null
-        },
-
-        // SYSTEM ARTIFACTS
-        tickerMessages: [
-          "UPLINK ESTABLISHED: EMALAHLENI SECTOR 7G",
-          "SCANNING FOR UNAUTHORIZED INTERCEPTS...",
-          "ENCRYPTION PROTOCOL 3.5.2 ACTIVE",
-          "MINISTRY DIRECTIVE: SECURE THE GROOVE"
-        ],
-        recentActivity: [],
-        mediaAssets: [],
-        networkNodes: [],
-
-        /**
-         * HUB INITIALIZATION
-         * Authenticates user and fetches primary data bundles.
-         */
-        async init() {
-          console.log("M.O.G. HUB INITIALIZING...");
-          
-          // Network State Listeners
-          window.addEventListener('online', () => { 
-            this.isOnline = true; 
-            this.notify("Uplink Restored", "success"); 
-            this.fullSync();
-          });
-          window.addEventListener('offline', () => { 
-            this.isOnline = false; 
-            this.notify("Uplink Severed", "error"); 
-          });
-
-          // Dependency Check
-          let checks = 0;
-          while (typeof sb === 'undefined' && checks < 50) {
-            await new Promise(r => setTimeout(r, 100));
-            checks++;
-          }
-
-          if (typeof sb === 'undefined') {
-            this.notify("Infrastructure Failure: Check Client", "error");
-            return;
-          }
-
-          // Auth Validation
-          try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-              window.location.href = '/login.html';
-              return;
-            }
-            
-            this.currentUser = session.user;
-            this.operativeId = `OP-${this.currentUser.id.slice(0, 8).toUpperCase()}`;
-            
-            await this.fullSync();
-            this.view = 'hub';
-            
-            // Re-initialize Icons
-            this.$nextTick(() => { 
-              if (window.lucide) lucide.createIcons(); 
-            });
-            
-          } catch (err) {
-            console.error(err);
-            this.notify("Synchronization Fault", "error");
-          }
-        },
-
-        /**
-         * DATA REPLICATION
-         * Fetches all required operative and network data.
-         */
-        async fullSync() {
-          this.isLoading = true;
-          try {
-            await Promise.all([
-              this.syncProfile(),
-              this.syncActivity(),
-              this.syncMedia(),
-              this.syncNetwork()
-            ]);
-          } catch (e) {
-            console.error("Sync partial failure", e);
-          } finally {
-            this.isLoading = false;
-          }
-        },
-
-        async syncProfile() {
-          const { data, error } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
-          if (data) this.profile = { ...this.profile, ...data };
-        },
-
-        async syncActivity() {
-          const { data } = await sb.from('activity_log')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(10);
-          this.recentActivity = data || [];
-        },
-
-        async syncMedia() {
-          // Placeholder for development
-          this.mediaAssets = [
-            { id: 1, title: 'Sector 7 Operations', type: 'VIDEO', thumb: '/assets/images/gallery1.jpg' },
-            { id: 2, title: 'Uplink Alpha', type: 'AUDIO', thumb: '/assets/images/gallery2.jpg' },
-            { id: 3, title: 'Ministry Protocol', type: 'PHOTO', thumb: '/assets/images/gallery3.jpg' }
-          ];
-        },
-
-        async syncNetwork() {
-          const { data } = await sb.from('profiles').select('username, rank, avatar_url').limit(6);
-          this.networkNodes = data || [];
-        },
-
-        /**
-         * INTERFACE ACTIONS
-         */
-        async updateDossier() {
-          this.isLoading = true;
-          try {
-            const { error } = await sb.from('profiles').update({
-              username: this.profile.username,
-              bio: this.profile.bio,
-              department: this.profile.department
-            }).eq('id', this.currentUser.id);
-
-            if (error) throw error;
-            
-            this.notify("Dossier Synced", "success");
-            this.showModal = false;
-            await this.syncProfile();
-            
-          } catch (err) {
-            this.notify(err.message, "error");
-          } finally {
-            this.isLoading = false;
-          }
-        },
-
-        notify(msg, type = 'info') {
-          const container = document.getElementById('toast-rack');
-          if (!container) return;
-          
-          const toast = document.createElement('div');
-          toast.className = `p-4 mb-3 rounded-xl border flex items-center gap-3 bg-black shadow-2xl animate-bounce-in`;
-          
-          const colors = {
-            success: 'border-teal text-teal',
-            error: 'border-red text-red',
-            info: 'border-gold text-gold'
-          };
-          
-          toast.className += ` ${colors[type] || colors.info}`;
-          toast.innerHTML = `
-            <div class="w-2 h-2 rounded-full bg-current"></div>
-            <span class="font-orbit text-[10px] font-black uppercase tracking-widest">${msg}</span>
-          `;
-          
-          container.appendChild(toast);
-          setTimeout(() => toast.remove(), 4000);
-        },
-
-        async logout() {
-          this.notify("Terminating Session...", "info");
-          await sb.auth.signOut();
-          localStorage.clear();
-          window.location.href = '/login.html';
-        },
-
-        getRankColor(rank) {
-          const colors = {
-            'INITIATE': 'text-gray-500',
-            'AGENT': 'text-teal',
-            'OPERATIVE': 'text-gold',
-            'DIRECTOR': 'text-red-500 font-black'
-          };
-          return colors[rank] || 'text-white';
-        }
-      };
-    }
-  </script>
-</head>
-<body x-data="hub()" x-init="init()" x-cloak>
-
-  <div class="bg-seal"></div>
-  <div class="bg-grid"></div>
-  <div class="bg-vignette"></div>
-
-  <div id="toast-rack" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xs px-4"></div>
-
-  <template x-if="view === 'hub'">
-    <div class="fixed top-0 left-0 right-0 z-[110] h-[30px] flex items-center overflow-hidden border-b border-white/5" style="background: linear-gradient(90deg, #900, #000, #900);">
-      <div class="px-3 h-full bg-red flex items-center font-orbit text-[9px] font-black text-white italic tracking-tighter">LIVE FEED</div>
-      <div class="flex-1 overflow-hidden relative">
-        <div class="flex whitespace-nowrap animate-ticker">
-          <template x-for="msg in tickerMessages" :key="msg">
-            <span class="font-mono text-[10px] text-white/90 px-12 flex items-center gap-3">
-              <span class="text-gold">◈</span> <span x-text="msg"></span>
-            </span>
-          </template>
-        </div>
-      </div>
-    </div>
-  </template>
-  <style>
-    @keyframes ticker { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-    .animate-ticker { animation: ticker 35s linear infinite; }
-  </style>
-
-  <nav class="nav-shell" x-show="view === 'hub'">
-    <div class="nav-container">
-      <div class="logo-block">
-        <div class="logo-frame">
-          <img src="/assets/images/logo.png" class="logo-img" alt="M.O.G.">
-        </div>
-        <div class="hidden sm:block">
-          <h1 class="font-orbit text-sm font-black text-white tracking-widest uppercase leading-none">Operative Hub</h1>
-          <p class="font-mono text-[9px] text-gold/40 mt-1" x-text="operativeId"></p>
-        </div>
-        <h1 class="sm:hidden font-orbit text-xs font-black text-white tracking-tighter uppercase">M.O.G. HUB</h1>
-      </div>
-
-      <div class="flex items-center gap-4">
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 border border-teal/20">
-          <div class="indicator-dot bg-teal"></div>
-          <span class="font-mono text-[9px] text-teal tracking-widest">UPLINK ACTIVE</span>
-        </div>
-
-        <button @click="showModal = true" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-gold transition-colors">
-          <i data-lucide="settings-2" size="18" class="text-gray-400"></i>
-        </button>
-      </div>
-    </div>
-  </nav>
-
-  <template x-if="view === 'hub'">
-    <main class="main-viewport">
-      
-      <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        
-        <div class="lg:col-span-1 panel-glass p-6 flex flex-col items-center">
-          <div class="relative group">
-            <div class="w-32 h-32 rounded-3xl border-2 border-gold-dark/30 p-1 mb-4 bg-black/50">
-              <div class="w-full h-full rounded-2xl overflow-hidden bg-black flex items-center justify-center">
-                <template x-if="profile.avatar_url">
-                  <img :src="profile.avatar_url" class="w-full h-full object-cover" alt="Operative">
-                </template>
-                <template x-if="!profile.avatar_url">
-                  <i data-lucide="shield-check" size="48" class="text-gold-dark opacity-30"></i>
-                </template>
-              </div>
-            </div>
-            <div class="absolute -bottom-1 -right-1 bg-black border border-gold p-1.5 rounded-lg shadow-xl">
-              <i data-lucide="award" size="14" class="text-gold"></i>
-            </div>
-          </div>
-          
-          <h2 class="font-orbit text-lg font-black text-white uppercase text-center" x-text="profile.username"></h2>
-          <div class="flex items-center gap-2 mt-1">
-            <span class="font-mono text-[10px] uppercase tracking-tighter" :class="getRankColor(profile.rank)" x-text="profile.rank"></span>
-            <span class="w-1 h-1 rounded-full bg-gray-600"></span>
-            <span class="font-mono text-[10px] text-gray-500 uppercase" x-text="profile.department"></span>
-          </div>
-
-          <div class="w-full h-[1px] bg-white/5 my-5"></div>
-          
-          <button @click="showModal = true" class="btn-mog w-full">
-            <i data-lucide="user-edit" size="14"></i> Update Dossier
-          </button>
-        </div>
-
-        <div class="lg:col-span-3 panel-glass p-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            <div class="space-y-6">
-              <div>
-                <div class="status-row">
-                  <span class="status-indicator text-teal">
-                    <div class="indicator-dot bg-teal"></div> Systems Nominal
-                  </span>
-                  <span class="font-mono text-[9px] text-gray-600">STATUS: 100%</span>
-                </div>
-                <div class="data-bar"><div class="data-fill bg-teal" style="width: 100%"></div></div>
-              </div>
-
-              <div>
-                <div class="status-row">
-                  <span class="status-indicator text-gold">
-                    <div class="indicator-dot bg-gold"></div> Encryption Active
-                  </span>
-                  <span class="font-mono text-[9px] text-gray-600">PROTOCOL: AES-256</span>
-                </div>
-                <div class="data-bar"><div class="data-fill bg-gold" style="width: 88%"></div></div>
-              </div>
-
-              <div>
-                <div class="status-row">
-                  <span class="status-indicator text-red-500">
-                    <div class="indicator-dot bg-red-500"></div> Loyalty Verified
-                  </span>
-                  <span class="font-mono text-[9px] text-gray-600" x-text="'VAL: ' + profile.stats.loyalty + '%'"></span>
-                </div>
-                <div class="data-bar"><div class="data-fill bg-red-500" :style="'width:' + profile.stats.loyalty + '%'"></div></div>
-              </div>
-            </div>
-
-            <div class="flex flex-col justify-center">
-              <p class="font-orbit text-[9px] font-bold text-gray-500 uppercase mb-4 tracking-[0.3em]">Skill Certifications</p>
-              <div class="flex flex-wrap gap-4 justify-center md:justify-start">
-                <div class="badge-hex">
-                  <i data-lucide="binary" size="24" class="text-gold"></i>
-                  <span class="badge-label">CRYPTOGRAPHY</span>
-                </div>
-                <div class="badge-hex">
-                  <i data-lucide="radio" size="24" class="text-gold"></i>
-                  <span class="badge-label">SECURE UPLINK</span>
-                </div>
-                <div class="badge-hex">
-                  <i data-lucide="database" size="24" class="text-gold"></i>
-                  <span class="badge-label">ARCHIVE</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-      
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <aside class="lg:col-span-1 space-y-6">
-          <div class="panel-glass p-6">
-            <h3 class="font-orbit text-xs font-black text-white mb-6 flex items-center justify-between">
-              <span>SYSTEM LOGS</span>
-              <i data-lucide="terminal" size="14" class="text-gold"></i>
-            </h3>
-            
-            <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
-              <template x-for="log in recentActivity" :key="log.id">
-                <div class="p-3 rounded-xl bg-black/40 border border-white/5 group hover:border-gold/30 transition-all">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-teal shadow-[0_0_5px_var(--teal)]"></span>
-                    <span class="font-mono text-[9px] text-teal" x-text="log.type || 'EVENT'"></span>
-                  </div>
-                  <p class="text-[11px] text-gray-300 leading-snug" x-text="log.description"></p>
-                  <p class="font-mono text-[8px] text-gray-600 mt-2" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
-                </div>
-              </template>
-            </div>
-          </div>
-        </aside>
-
-        <section class="lg:col-span-2">
-          <div class="flex gap-2 mb-6 bg-black/40 p-1 rounded-xl border border-white/5 w-fit">
-            <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'active' : ''" class="tab-link">CORE</button>
-            <button @click="activeTab = 'intel'" :class="activeTab === 'intel' ? 'active' : ''" class="tab-link">INTEL</button>
-            <button @click="activeTab = 'network'" :class="activeTab === 'network' ? 'active' : ''" class="tab-link">NODES</button>
-          </div>
-
-          <div class="panel-glass p-6 min-h-[500px]">
-            
-            <div x-show="activeTab === 'overview'" class="space-y-10 animate-fade-in">
-              <div class="p-6 bg-black/50 rounded-2xl border border-gold/10 relative">
-                <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="fingerprint" size="40"></i></div>
-                <h4 class="font-orbit text-[10px] text-gold font-bold mb-3 tracking-widest">MISSION DIRECTIVE</h4>
-                <p class="font-mono text-sm text-gray-400 italic leading-relaxed" x-text="profile.bio || 'ENCRYPTED DATA: NO OPERATIONAL SUMMARY AVAILABLE. PLEASE UPDATE DOSSIER.'"></p>
-              </div>
-
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="status-card text-center">
-                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Missions</p>
-                  <p class="font-orbit text-2xl font-black text-white" x-text="profile.stats.missions"></p>
-                </div>
-                <div class="status-card text-center">
-                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Influence</p>
-                  <p class="font-orbit text-2xl font-black text-gold" x-text="profile.stats.influence + '%'"></p>
-                </div>
-                <div class="status-card text-center">
-                  <p class="font-mono text-[8px] text-gray-500 uppercase mb-2">Groove</p>
-                  <p class="font-orbit text-2xl font-black text-teal" x-text="profile.stats.groove"></p>
-                </div>
-                <div class="status-card text-center border-red-900/30">
-                  <p class="font-mono text-[8px] text-red-500 uppercase mb-2">Clearance</p>
-                  <p class="font-orbit text-xl font-black text-red-500">ALPHA</p>
-                </div>
-              </div>
-            </div>
-
-            <div x-show="activeTab === 'intel'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <template x-for="asset in mediaAssets" :key="asset.id">
-                <div class="group relative rounded-2xl overflow-hidden border border-white/5 bg-black aspect-video hover:border-gold transition-all">
-                  <img :src="asset.thumb" class="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-opacity">
-                  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent p-5 flex flex-col justify-end">
-                    <span class="font-mono text-[8px] text-gold uppercase mb-1" x-text="asset.type"></span>
-                    <p class="font-orbit text-xs font-black text-white tracking-widest" x-text="asset.title"></p>
-                  </div>
-                </div>
-              </template>
-            </div>
-
-            <div x-show="activeTab === 'network'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
-              <template x-for="node in networkNodes" :key="node.username">
-                <div class="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center gap-4 group hover:border-teal/30 transition-all">
-                  <div class="w-12 h-12 rounded-full border border-teal/20 p-0.5">
-                    <img :src="node.avatar_url || '/assets/images/logo.png'" class="w-full h-full rounded-full object-cover">
-                  </div>
-                  <div>
-                    <p class="font-orbit text-[10px] font-black text-white" x-text="node.username"></p>
-                    <p class="font-mono text-[8px] text-teal/60 uppercase" x-text="node.rank"></p>
-                  </div>
-                </div>
-              </template>
-            </div>
-
-          </div>
-        </section>
-
-      </div>
-
-      <footer class="mt-20 text-center pb-10">
-        <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-gold/10 to-transparent mb-10"></div>
-        <div class="flex justify-center gap-6 mb-6">
-          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="instagram" size="18"></i></a>
-          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="twitter" size="18"></i></a>
-          <a href="#" class="text-gray-600 hover:text-gold transition-colors"><i data-lucide="youtube" size="18"></i></a>
-        </div>
-        <p class="font-orbit text-[8px] text-gray-500 tracking-[0.5em] uppercase mb-2">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="font-mono text-[9px] text-gray-700 tracking-widest uppercase">M.O.G. INFRASTRUCTURE // EMALAHLENI // © 2026</p>
-      </footer>
-
-    </main>
-  </template>
-
-  <nav class="fixed bottom-0 left-0 right-0 z-[110] h-[75px] bg-black/90 border-t border-white/5 flex md:hidden px-4 pb-4 backdrop-blur-2xl">
-    <button @click="activeTab = 'overview'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'overview' ? 'text-gold' : 'text-gray-600'">
-      <i data-lucide="layout-grid" size="20"></i>
-      <span class="font-orbit text-[7px] font-bold">CORE</span>
-    </button>
-    <button @click="activeTab = 'intel'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'intel' ? 'text-gold' : 'text-gray-600'">
-      <i data-lucide="zap" size="20"></i>
-      <span class="font-orbit text-[7px] font-bold">INTEL</span>
-    </button>
-    <button @click="showModal = true" class="flex-1 flex flex-col items-center justify-center gap-1 text-gray-600">
-      <i data-lucide="user-plus" size="20"></i>
-      <span class="font-orbit text-[7px] font-bold">DOSSIER</span>
-    </button>
-  </nav>
-
-  <div x-show="showModal" 
-       class="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-sm"
-       x-transition:enter="transition ease-out duration-300"
-       x-transition:enter-start="opacity-0"
-       x-transition:enter-end="opacity-100">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>M.O.G. | DIGITAL HQ</title>
     
-    <div class="panel-glass w-full max-w-xl rounded-t-3xl sm:rounded-2xl border-gold/20" @click.away="showModal = false">
-      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-        <h2 class="font-orbit text-gold font-black tracking-widest text-sm italic">DOSSIER ENCRYPTION</h2>
-        <button @click="showModal = false" class="text-gray-500 hover:text-white transition-colors">
-          <i data-lucide="x-circle" size="22"></i>
-        </button>
-      </div>
-      
-      <div class="p-8 space-y-6">
-        <div>
-          <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Operative Identifier</label>
-          <input type="text" x-model="profile.username" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white font-mono focus:border-gold outline-none transition-all">
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Sector Deployment</label>
-            <select x-model="profile.department" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white font-mono focus:border-gold outline-none">
-              <option value="UNASSIGNED">UNASSIGNED</option>
-              <option value="FIELD OPS">FIELD OPS</option>
-              <option value="INTEL UNIT">INTEL UNIT</option>
-              <option value="AUDIO LAB">AUDIO LAB</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Clearance</label>
-            <input type="text" :value="profile.rank" readonly class="w-full bg-black/40 border border-white/5 rounded-xl p-4 text-gray-500 font-mono outline-none">
-          </div>
-        </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/config.js"></script>
+    <script src="/js/supabase-client.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-        <div>
-          <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Mission Narrative (Bio)</label>
-          <textarea x-model="profile.bio" rows="4" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white text-sm focus:border-gold outline-none resize-none transition-all" placeholder="Enter operative background data..."></textarea>
-        </div>
-      </div>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: { DEFAULT: '#D4AF37', bright: '#F0C040', dark: '#8B6914' },
+                        surface: '#050505',
+                        panel: '#0D0D0D',
+                    },
+                    fontFamily: {
+                        orbit: ['Orbitron', 'sans-serif'],
+                        raj: ['Rajdhani', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
 
-      <div class="p-6 bg-white/5 flex gap-4">
-        <button @click="showModal = false" class="flex-1 py-4 font-orbit text-[10px] font-bold border border-white/5 rounded-xl uppercase tracking-widest hover:bg-white/5 transition-colors">Abort</button>
-        <button @click="updateDossier()" class="btn-mog flex-1 py-4 text-[10px]">
-          <span x-show="!isLoading">SYNC CHANGES</span>
-          <i x-show="isLoading" data-lucide="loader-2" class="animate-spin" size="16"></i>
-        </button>
-      </div>
+    <style type="text/css">
+        /* --- HARDWARE RENDERER --- */
+        @layer base {
+            :root {
+                --gold: #D4AF37;
+                --gold-glow: rgba(212, 175, 55, 0.3);
+                --red: #dc2626;
+            }
+            [x-cloak] { display: none !important; }
+            body { background-color: #000; color: #E8E0CC; -webkit-font-smoothing: antialiased; }
+        }
+
+        /* --- AMBIENT OVERLAYS --- */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 45px 45px;
+        }
+
+        .bg-vignette {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.95) 100%);
+        }
+
+        /* --- TILE ARCHITECTURE (HQ LAYOUT) --- */
+        .tile-hq {
+            background: rgba(13, 13, 13, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .tile-hq:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+
+        /* --- HUB FEATURES --- */
+        .status-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .load-progress {
+            position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 9999;
+            background: linear-gradient(90deg, #8B6914, #D4AF37, #00d4aa);
+            transform-origin: left; transform: scaleX(0); transition: transform 0.4s ease;
+        }
+        .load-progress.active { animation: loading 2s infinite alternate; }
+        @keyframes loading { 0% { transform: scaleX(0.1); } 100% { transform: scaleX(0.8); } }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 10px; }
+    </style>
+
+    <script>
+        /**
+         * HUB CONTROLLER: CORE LOGIC INTEGRATION
+         * Merging 831-line Hub functionality into HQ Layout
+         */
+        function mogApp() {
+          return {
+            // --- STATE MANAGEMENT ---
+            view: 'loading',
+            isLoading: false,
+            isOnline: navigator.onLine,
+            showModal: false,
+            activeTab: 'overview',
+            currentUser: null,
+            operativeId: 'ID:OFFLINE',
+            lockdownActive: false,
+            
+            // --- PROFILE STRUCTURE ---
+            profile: {
+                username: 'RECRUIT',
+                codename: '---',
+                rank: 'INITIATE',
+                department: 'UNASSIGNED',
+                bio: '',
+                avatar_url: null,
+                stats: { missions: 0, loyalty: 100, groove: 50 }
+            },
+
+            // --- DATA ARRAYS ---
+            tickerMessages: ["UPLINK ACTIVE...", "SCANNING FREQUENCIES...", "MINISTRY SECURE"],
+            mediaAssets: [],
+            recentActivity: [],
+
+            // --- INITIALIZATION SEQUENCE ---
+            async init() {
+                window.addEventListener('online', () => { this.isOnline = true; this.toast("Back Online", "success"); });
+                window.addEventListener('offline', () => { this.isOnline = false; this.toast("Connection Lost", "error"); });
+
+                // Wait for Supabase Uplink
+                let t = 0; while (typeof sb === 'undefined' && t < 30) { await new Promise(r => setTimeout(r, 100)); t++; }
+                if (typeof sb === 'undefined') return;
+
+                try {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) { window.location.href = '/login.html'; return; }
+                    this.currentUser = session.user;
+                    this.operativeId = `ID:${this.currentUser.id.slice(0, 5).toUpperCase()}`;
+                    
+                    await this.syncData();
+                    await this.checkLockdown();
+                    this.view = 'hub';
+                    
+                    this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
+                } catch (err) { this.toast("Init Failed", "error"); }
+            },
+
+            async syncData() {
+                this.isLoading = true;
+                const bar = document.getElementById('topProgress');
+                if(bar) bar.classList.add('active');
+
+                await Promise.all([this.loadProfile(), this.loadActivity(), this.loadMedia()]);
+
+                if(bar) { bar.classList.remove('active'); bar.style.transform = 'scaleX(1)'; setTimeout(() => bar.style.opacity = '0', 600); }
+                this.isLoading = false;
+            },
+
+            async loadProfile() {
+                const { data } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
+                if (data) this.profile = { ...this.profile, ...data };
+            },
+
+            async loadActivity() {
+                const { data } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(5);
+                this.recentActivity = data || [];
+            },
+
+            async loadMedia() {
+                // Placeholder Media Assets (Operative Hub Feature)
+                this.mediaAssets = [
+                    { id: 1, title: 'Sunset Sessions', type: 'LIVE', icon: 'microphone-lines' },
+                    { id: 2, title: 'Archive 092', type: 'VAULT', icon: 'vault' }
+                ];
+            },
+
+            async checkLockdown() {
+                const { data } = await sb.from('system_settings').select('value').eq('key', 'protocolZero').single();
+                if (data) {
+                    const p = JSON.parse(data.value);
+                    this.lockdownActive = p.active === true;
+                }
+            },
+
+            toast(msg, type = 'info') {
+                const tc = document.getElementById('toastRack');
+                const el = document.createElement('div');
+                el.className = `p-4 mb-2 rounded-xl border flex items-center gap-3 bg-black/90 backdrop-blur text-[10px] font-orbit uppercase tracking-widest ${type === 'error' ? 'border-red-600 text-red-500' : 'border-gold text-gold'}`;
+                el.innerHTML = `<div class="w-2 h-2 rounded-full bg-current status-pulse"></div> ${msg}`;
+                tc.appendChild(el);
+                setTimeout(() => el.remove(), 4000);
+            },
+
+            async logout() {
+                await sb.auth.signOut();
+                localStorage.clear();
+                window.location.href = '/login.html';
+            }
+          };
+        }
+    </script>
+</head>
+<body x-data="mogApp()" x-init="init()" x-cloak class="font-raj min-h-screen">
+
+    <div id="topProgress" class="load-progress"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-vignette"></div>
+    <div id="toastRack" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-xs px-4"></div>
+
+    <div x-show="lockdownActive" class="fixed inset-0 z-[10000] bg-black/98 flex flex-col items-center justify-center text-center p-8">
+        <div class="w-24 h-24 border-2 border-red-600 rounded-full flex items-center justify-center mb-6 status-pulse">
+            <i class="fa-solid fa-lock text-4xl text-red-600"></i>
+        </div>
+        <h2 class="font-orbit text-3xl font-black text-red-600 mb-2">SYSTEM LOCKDOWN</h2>
+        <p class="font-mono text-xs text-gray-500 tracking-widest uppercase">Directorate Protocol Zero in Effect</p>
+        <button @click="location.reload()" class="mt-8 border border-red-600 px-6 py-2 font-orbit text-[10px] text-red-600 uppercase">Re-verify Identity</button>
     </div>
-  </div>
 
-  <template x-if="view === 'loading'">
-    <div class="fixed inset-0 z-[3000] bg-black flex flex-col items-center justify-center">
-      <div class="logo-frame w-16 h-16 mb-6">
-        <img src="/assets/images/logo.png" class="logo-img animate-pulse" alt="Loading">
-      </div>
-      <div class="font-orbit text-[10px] text-gold font-black tracking-[0.5em] animate-pulse">SYNCHRONIZING HUB...</div>
-      <div class="w-48 h-1 bg-white/5 rounded-full mt-6 overflow-hidden">
-        <div class="h-full bg-gold animate-[loading_2s_infinite]"></div>
-      </div>
+  
+    <template x-if="view === 'loading'">
+        <div class="fixed inset-0 z-[9000] bg-black flex flex-col items-center justify-center">
+            <img src="logo.png" class="w-32 h-32 animate-pulse mb-6" alt="Loading">
+            <p class="font-orbit text-[10px] text-gold tracking-[0.5em] uppercase">Synchronizing Digital HQ...</p>
+        </div>
+    </template>
+
+    <template x-if="view === 'hub'">
+        <div class="fade-in">
+            <div class="fixed top-0 left-0 right-0 z-50 h-8 bg-red-900/20 backdrop-blur border-b border-white/5 flex items-center overflow-hidden">
+                <div class="px-4 bg-red-600 text-white font-orbit text-[9px] font-black h-full flex items-center italic">LIVE</div>
+                <div class="flex whitespace-nowrap animate-[ticker_30s_linear_infinite]" style="animation: ticker 25s linear infinite;">
+                    <template x-for="msg in tickerMessages" :key="msg">
+                        <span class="font-mono text-[10px] text-white/80 px-12 uppercase flex items-center gap-2">
+                            <span class="text-gold">◈</span> <span x-text="msg"></span>
+                        </span>
+                    </template>
+                </div>
+            </div>
+            <style> @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } } </style>
+
+            <header class="pt-20 pb-12 px-6 flex flex-col items-center relative">
+                <div @click="showModal = true" class="absolute top-12 right-6 flex items-center gap-3 cursor-pointer group">
+                    <div class="text-right hidden sm:block">
+                        <p class="font-orbit text-[10px] font-bold text-white uppercase" x-text="profile.username"></p>
+                        <p class="font-mono text-[8px] text-gold/60 uppercase" x-text="profile.rank"></p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full border border-gold/30 p-0.5 overflow-hidden group-hover:border-gold transition-colors">
+                        <img :src="profile.avatar_url || 'logo.png'" class="w-full h-full object-cover rounded-full" alt="Me">
+                    </div>
+                </div>
+
+                <div class="relative group cursor-pointer mb-6">
+                    <div class="absolute inset-0 bg-gold blur-3xl opacity-10"></div>
+                    <img src="logo.png" alt="MOG Logo" class="w-32 h-32 md:w-44 md:h-44 relative z-10 transition-transform duration-500 group-hover:rotate-6">
+                </div>
+                
+                <div class="text-center space-y-2">
+                    <h1 class="font-orbit text-3xl md:text-4xl font-black tracking-[0.25em] uppercase text-white">Ministry of Groove</h1>
+                    <p class="font-mono text-[10px] text-gold/60 tracking-widest uppercase">EST. 2026 | OPERATIVE UPLINK: <span x-text="operativeId"></span></p>
+                </div>
+            </header>
+
+            <main class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+                
+                <div class="md:col-span-3 md:row-span-2 tile-hq rounded-3xl p-8 flex flex-col justify-end min-h-[350px] group border-l-4 border-l-red-600">
+                    <div class="absolute top-6 left-6 flex items-center gap-3">
+                        <div class="bg-red-600 text-white font-orbit text-[10px] font-black px-3 py-1.5 rounded-sm flex items-center gap-2 status-pulse">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full"></span> LIVE BROADCAST
+                        </div>
+                        <span class="font-mono text-[10px] text-gray-500">SECTOR 7G UPLINK</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <h2 class="font-orbit text-4xl md:text-5xl font-black italic uppercase text-white leading-tight">MOG LIVE: <br> <span class="text-gold">SUNSET SESSIONS</span></h2>
+                        <div class="flex items-center gap-6">
+                            <p class="text-gray-400 font-medium max-w-sm">Synchronizing the global ministry. Deeper cuts and exclusive sets.</p>
+                            <button class="w-14 h-14 rounded-full bg-gold flex items-center justify-center text-black hover:bg-gold-bright transition-all shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+                                <i class="fa-solid fa-play text-xl ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-6 flex flex-col items-center justify-center text-center group cursor-pointer aspect-square">
+                    <div class="w-16 h-16 rounded-2xl bg-gold/10 flex items-center justify-center mb-4 group-hover:bg-gold transition-all">
+                        <i class="fa-solid fa-ticket text-3xl text-gold group-hover:text-black"></i>
+                    </div>
+                    <h3 class="font-orbit text-sm font-bold uppercase text-white tracking-widest">The Ticket Box</h3>
+                    <p class="font-mono text-[9px] text-gray-500 mt-2 uppercase">Physical Access</p>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-6 flex flex-col items-center justify-center text-center group cursor-pointer aspect-square">
+                    <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:bg-white transition-all">
+                        <i class="fa-solid fa-shirt text-3xl text-gray-500 group-hover:text-black"></i>
+                    </div>
+                    <h3 class="font-orbit text-sm font-bold uppercase text-white tracking-widest">The Boutique</h3>
+                    <p class="font-mono text-[9px] text-gray-500 mt-2 uppercase">Lifestyle Gear</p>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-7 flex flex-col justify-between min-h-[220px]">
+                    <div class="flex justify-between items-start">
+                        <i class="fa-solid fa-microphone-lines text-2xl text-gold"></i>
+                        <span class="font-mono text-[9px] bg-white/10 px-2 py-1 rounded">TRANS-092</span>
+                    </div>
+                    <div>
+                        <h3 class="font-orbit text-lg font-black text-white uppercase italic">Groove Podcast</h3>
+                        <p class="text-sm text-gray-400 mt-1">Talk & Deep Sets.</p>
+                    </div>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-7 flex flex-col justify-between min-h-[220px]">
+                    <i class="fa-solid fa-vault text-2xl text-gold"></i>
+                    <div>
+                        <h3 class="font-orbit text-lg font-black text-white uppercase italic">The Vault</h3>
+                        <p class="text-sm text-gray-400 mt-1">Legendary Past Sets.</p>
+                    </div>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-6 flex items-center gap-5 md:col-span-1">
+                    <i class="fa-solid fa-qrcode text-3xl text-gold"></i>
+                    <div>
+                        <h3 class="font-orbit text-xs font-black text-white uppercase">My Passes</h3>
+                        <p class="font-mono text-[9px] text-gray-500 mt-1 uppercase">Instant Entry</p>
+                    </div>
+                </div>
+
+                <div class="tile-hq rounded-3xl p-6 flex items-center gap-5 md:col-span-2">
+                    <i class="fa-solid fa-comments text-3xl text-gold"></i>
+                    <div>
+                        <h3 class="font-orbit text-xs font-black text-white uppercase">The Shoutbox</h3>
+                        <p class="font-mono text-[9px] text-gray-500 mt-1 uppercase">Connect with Global Ministry</p>
+                    </div>
+                </div>
+
+              
+            </main>
+
+            <section class="max-w-6xl mx-auto px-6 mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1 tile-hq rounded-3xl p-6">
+                    <h3 class="font-orbit text-xs font-black text-gold uppercase mb-6 flex items-center gap-2">
+                        <i data-lucide="activity" size="14"></i> Transmission Logs
+                    </h3>
+                    <div class="space-y-4">
+                        <template x-for="log in recentActivity" :key="log.id">
+                            <div class="border-l border-gold/20 pl-4 py-1">
+                                <p class="text-[11px] text-white" x-text="log.description"></p>
+                                <p class="font-mono text-[8px] text-gray-600 mt-1" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
+                            </div>
+                        </template>
+                        <template x-if="!recentActivity.length">
+                            <p class="font-mono text-[9px] text-gray-700 italic">Scanning for new transmissions...</p>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 tile-hq rounded-3xl p-6 flex flex-col justify-center">
+                    <div class="flex items-center justify-between mb-4">
+                        <p class="font-orbit text-[10px] text-gold font-bold tracking-widest uppercase">Operative Authority Status</p>
+                        <span class="font-mono text-[10px] text-teal">ALPHA VERIFIED</span>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between font-mono text-[9px] text-gray-500 mb-1"><span>Loyalty</span><span x-text="profile.stats.loyalty + '%'"></span></div>
+                            <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-gold transition-all" :style="'width:' + profile.stats.loyalty + '%'"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between font-mono text-[9px] text-gray-500 mb-1"><span>Groove Factor</span><span x-text="profile.stats.groove + '%'"></span></div>
+                            <div class="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-full bg-teal transition-all" :style="'width:' + profile.stats.groove + '%'"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="mt-24 px-6 max-w-6xl mx-auto pb-24">
+                <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent mb-12"></div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div class="text-center md:text-left">
+                        <p class="font-orbit text-[10px] text-gold font-bold tracking-[0.4em] uppercase">Ministry of Groove // Emalahleni Uplink II</p>
+                        <p class="font-mono text-[9px] text-gray-600 uppercase tracking-widest">Decrypting the Culture. Synchronizing the Grid.</p>
+                    </div>
+                    <div class="flex gap-6">
+                        <a href="#" class="text-gray-500 hover:text-gold transition-colors"><i class="fa-brands fa-instagram text-xl"></i></a>
+                        <a href="#" class="text-gray-500 hover:text-gold transition-colors"><i class="fa-brands fa-tiktok text-xl"></i></a>
+                        <a href="#" class="text-gray-500 hover:text-gold transition-colors"><i class="fa-brands fa-youtube text-xl"></i></a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </template>
+
+    <div x-show="showModal" class="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/95 backdrop-blur-sm" x-transition>
+        <div class="bg-panel w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-gold/20 overflow-hidden" @click.away="showModal = false">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                <h2 class="font-orbit text-gold font-black tracking-widest text-sm">OPERATIVE DOSSIER</h2>
+                <button @click="showModal = false" class="text-gray-500 hover:text-white"><i data-lucide="x-circle"></i></button>
+            </div>
+            <div class="p-8 space-y-6">
+                <div>
+                    <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Identifier</label>
+                    <input type="text" x-model="profile.username" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white font-mono focus:border-gold outline-none">
+                </div>
+                <div>
+                    <label class="font-orbit text-[9px] text-gray-500 uppercase block mb-2 tracking-widest">Sector Background</label>
+                    <textarea x-model="profile.bio" rows="4" class="w-full bg-black border border-white/10 rounded-xl p-4 text-white text-sm focus:border-gold outline-none"></textarea>
+                </div>
+                <div class="flex gap-4">
+                    <button @click="showModal = false" class="flex-1 py-4 font-orbit text-[10px] border border-white/10 rounded-xl uppercase tracking-widest">Abort</button>
+                    <button @click="logout()" class="flex-1 py-4 font-orbit text-[10px] bg-red-900/20 border border-red-600/50 text-red-500 rounded-xl uppercase tracking-widest">Sign Out</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </template>
-  <style> @keyframes loading { from { width: 0%; } to { width: 100%; } } </style>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) lucide.createIcons();
-    });
-  </script>
+    <script> document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); }); </script>
 
+    <div style="display:none" id="mog-meta-layer">
+        <p>BUILD_VERSION: 5.0.1</p>
+        <p>LOGS_ENABLED: TRUE</p>
+        <p>REALTIME_SYNC: ACTIVE</p>
+    </div>
 </body>
 </html>
