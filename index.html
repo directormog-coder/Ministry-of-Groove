@@ -8,7 +8,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="M.O.G.">
-  
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="assets/images/logo.png">
   <link rel="icon" type="image/png" href="assets/images/logo.png">
@@ -18,171 +17,384 @@
   <script src="/js/config.js"></script>
   <script src="/js/supabase-client.js"></script>
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    /* =========================================================================
-       HARDWARE SHADER ENGINE (CSS)
-       =========================================================================
-    */
-    @layer base, layout, components, utilities, animations;
-
-    @layer base {
-      :root {
-        --black: #000000;
-        --surface: rgba(10, 12, 10, 0.98);
-        --gold: #d4af37;
-        --gold-bright: #f0c040;
-        --gold-glow: rgba(212, 175, 55, 0.35);
-        --teal: #00d4aa;
-        --red: #dc2626;
-        --text: #e8e0cc;
-        --border: rgba(212, 175, 55, 0.15);
-      }
-      
-      *, *::before, *::after { 
-        box-sizing: border-box; margin: 0; padding: 0; 
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      body { 
-        font-family: 'Rajdhani', sans-serif; 
-        background: var(--black); 
-        color: var(--text); 
-        min-height: 100dvh; 
-        overflow-x: hidden;
-        -webkit-font-smoothing: antialiased;
-      }
-
-      [x-cloak] { display: none !important; }
-      ::-webkit-scrollbar { width: 3px; }
-      ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+    :root {
+      --black:       #000;
+      --gold:        #d4af37;
+      --gold-bright: #f0c040;
+      --gold-glow:   rgba(212,175,55,0.35);
+      --gold-subtle: rgba(212,175,55,0.06);
+      --teal:        #00d4aa;
+      --teal-glow:   rgba(0,212,170,0.3);
+      --red:         #dc2626;
+      --surface:     rgba(7,9,8,0.97);
+      --surface-2:   rgba(12,14,12,0.95);
+      --border:      rgba(212,175,55,0.1);
+      --border-h:    rgba(212,175,55,0.25);
+      --text:        #ddd5bb;
+      --text-dim:    rgba(221,213,187,0.45);
     }
 
-    @layer layout {
-      /* AMBIENT BACKGROUNDS */
-      .bg-seal {
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        width: 80vmin; aspect-ratio: 1/1;
-        background: url('assets/images/logo.png') center/contain no-repeat;
-        opacity: 0.035; pointer-events: none; z-index: 0;
-        filter: drop-shadow(0 0 50px var(--gold-glow));
-      }
-      .bg-grid {
-        position: fixed; inset: 0; pointer-events: none; z-index: 1;
-        background-image: 
-          linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-        background-size: 45px 45px;
-      }
-      .bg-vignette {
-        position: fixed; inset: 0; pointer-events: none; z-index: 2;
-        background: radial-gradient(circle at center, transparent 30%, rgba(0,0,0,0.95) 100%);
-      }
+    *, *::before, *::after {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    @layer components {
-      /* FLUID LOGO FRAME */
-      .logo-frame {
-        position: relative;
-        width: clamp(42px, 10vw, 64px);
-        height: clamp(42px, 10vw, 64px);
-        flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-      }
-      .logo-frame img { 
-        width: 100%; height: 100%; object-fit: contain; 
-        filter: drop-shadow(0 0 12px var(--gold-glow)); 
-      }
-
-      /* HUB TILES */
-      .panel-glass {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 1.5rem;
-        backdrop-filter: blur(25px);
-        box-shadow: 0 15px 45px rgba(0,0,0,0.8);
-      }
-
-      /* TICKER SYSTEM */
-      .ticker-shell {
-        height: 32px; background: linear-gradient(90deg, #600, #000, #600);
-        border-bottom: 1px solid var(--border);
-        display: flex; align-items: center; overflow: hidden;
-      }
-      .ticker-tag {
-        background: var(--red); color: #fff; font-family: 'Orbitron', sans-serif;
-        font-size: 10px; font-weight: 900; padding: 0 15px; height: 100%;
-        display: flex; align-items: center; font-style: italic;
-      }
-      .ticker-move { display: flex; white-space: nowrap; animation: ticker-scroll 30s linear infinite; }
-      @keyframes ticker-scroll { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
-
-      /* HEXAGON BADGES */
-      .badge-hex {
-        width: 76px; height: 86px;
-        background: rgba(15, 15, 15, 0.9);
-        border: 1px solid var(--gold);
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: 0.3s;
-      }
-      .badge-hex:hover { border-color: var(--teal); transform: translateY(-3px); }
-
-      /* BUTTONS */
-      .btn-operative {
-        font-family: 'Orbitron', sans-serif; font-size: 0.65rem; font-weight: 900;
-        text-transform: uppercase; letter-spacing: 0.15em;
-        background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.3);
-        color: var(--gold); border-radius: 0.75rem; padding: 0.75rem 1.5rem;
-        transition: 0.3s;
-      }
-      .btn-operative:hover { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold-glow); }
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--black);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
-    @layer utilities {
-      .font-orbit { font-family: 'Orbitron', sans-serif; }
-      .font-mono { font-family: 'Share Tech Mono', monospace; }
-      .text-gold { color: var(--gold); }
-      .text-teal { color: var(--teal); }
-      .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
-      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.9); } }
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+    /* ── BACKGROUNDS ── */
+    .bg-cosmos {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(212,175,55,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 10% 90%, rgba(0,212,170,0.04) 0%, transparent 55%),
+        #000;
     }
+    .bg-grid {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(212,175,55,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,175,55,0.018) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 20%, transparent 80%);
+    }
+    .bg-seal {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: clamp(280px, 60vmin, 520px); aspect-ratio: 1;
+      background: url('assets/images/logo.png') center/contain no-repeat;
+      opacity: 0.025; pointer-events: none; z-index: 0;
+    }
+    .bg-scan-sweep {
+      position: fixed; left: 0; right: 0; z-index: 2; pointer-events: none;
+      height: 100px;
+      background: linear-gradient(180deg, transparent, rgba(212,175,55,0.025), transparent);
+      animation: sweep 12s linear infinite;
+    }
+    @keyframes sweep { 0%{top:-100px} 100%{top:100vh} }
+    .bg-vignette {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: radial-gradient(ellipse 90% 80% at 50% 50%, transparent 30%, rgba(0,0,0,0.97) 100%);
+    }
+
+    /* ── TICKER ── */
+    .ticker-shell {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+      height: 30px;
+      background: linear-gradient(90deg, rgba(60,0,0,0.9), rgba(0,0,0,0.95), rgba(60,0,0,0.9));
+      border-bottom: 1px solid rgba(212,175,55,0.1);
+      display: flex; align-items: center; overflow: hidden;
+    }
+    .ticker-tag {
+      background: var(--red); color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.5rem; font-weight: 900;
+      padding: 0 14px; height: 100%;
+      display: flex; align-items: center;
+      letter-spacing: 0.15em;
+      flex-shrink: 0;
+      clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+      padding-right: 22px;
+    }
+    .ticker-track {
+      overflow: hidden; flex: 1; height: 100%; display: flex; align-items: center;
+      mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
+    }
+    .ticker-move {
+      display: flex; white-space: nowrap;
+      animation: ticker-scroll 35s linear infinite;
+    }
+    @keyframes ticker-scroll { from{transform:translateX(100vw)} to{transform:translateX(-100%)} }
+    .ticker-item {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem; color: rgba(255,255,255,0.75);
+      padding: 0 2.5rem; display: flex; align-items: center; gap: 0.75rem;
+    }
+    .ticker-diamond { color: var(--gold); opacity: 0.4; font-size: 0.5rem; }
+
+    /* ── GLASS PANELS ── */
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      backdrop-filter: blur(25px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+      transition: border-color 0.3s;
+    }
+    .glass:hover { border-color: var(--border-h); }
+
+    /* ── NAV ── */
+    .hub-nav {
+      position: sticky; top: 30px; z-index: 50;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── LOGO RING ── */
+    .logo-ring-wrap {
+      position: relative; flex-shrink: 0;
+      width: clamp(38px, 9vw, 52px);
+      height: clamp(38px, 9vw, 52px);
+    }
+    .logo-ring-svg { position: absolute; inset: 0; animation: ring-spin 25s linear infinite; }
+    @keyframes ring-spin { to{transform:rotate(360deg)} }
+    .logo-ring-inner {
+      position: absolute; inset: 5px;
+      background: #000; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-ring-inner img { width: 65%; object-fit: contain; filter: drop-shadow(0 0 6px var(--gold-glow)); }
+
+    /* ── AVATAR ── */
+    .avatar-frame {
+      position: relative;
+      width: clamp(90px, 18vw, 120px);
+      height: clamp(90px, 18vw, 120px);
+      flex-shrink: 0;
+    }
+    .avatar-ring-svg { position: absolute; inset: 0; animation: ring-spin 20s linear infinite; }
+    .avatar-inner {
+      position: absolute; inset: 6px;
+      border-radius: 1.25rem; overflow: hidden;
+      background: #000;
+    }
+    .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── RANK BADGE ── */
+    .rank-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(212,175,55,0.07);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 2rem;
+      padding: 0.3rem 0.8rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.55rem; font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .rank-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+
+    /* ── STAT BARS ── */
+    .stat-track {
+      height: 3px; background: rgba(255,255,255,0.04);
+      border-radius: 3px; overflow: hidden;
+    }
+    .stat-fill {
+      height: 100%; border-radius: 3px;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .stat-fill.gold { background: linear-gradient(90deg, var(--gold-dim, #9a7c1f), var(--gold)); }
+    .stat-fill.teal { background: linear-gradient(90deg, #006b58, var(--teal)); box-shadow: 0 0 8px rgba(0,212,170,0.4); }
+    .stat-fill.uplink { background: linear-gradient(90deg, #006b58, var(--teal)); box-shadow: 0 0 12px rgba(0,212,170,0.5); }
+
+    /* ── HEX BADGES ── */
+    .hex-badge {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 72px; height: 80px;
+      background: rgba(5,5,5,0.95);
+      border: 1px solid rgba(212,175,55,0.2);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      transition: all 0.35s;
+      gap: 4px;
+    }
+    .hex-badge:hover { border-color: var(--teal); transform: translateY(-4px) scale(1.04); }
+    .hex-badge .hb-icon { color: var(--gold); }
+    .hex-badge .hb-label { font-family: 'Orbitron', sans-serif; font-size: 0.45rem; color: rgba(255,255,255,0.7); letter-spacing: 0.15em; }
+
+    /* ── ACTIVITY LOG ── */
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 0.9rem 0;
+      border-bottom: 1px solid rgba(212,175,55,0.05);
+      transition: background 0.2s;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-item:hover { background: rgba(212,175,55,0.02); border-radius: 0.75rem; padding-left: 0.5rem; padding-right: 0.5rem; }
+    .activity-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); margin-top: 5px; flex-shrink: 0; }
+    .activity-line { width: 1px; background: rgba(212,175,55,0.08); flex-shrink: 0; }
+
+    /* ── QUICK ACTIONS ── */
+    .action-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 1.25rem 0.75rem;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(212,175,55,0.08);
+      border-radius: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: var(--text-dim);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .action-btn:hover {
+      border-color: rgba(212,175,55,0.3);
+      background: rgba(212,175,55,0.04);
+      color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+    .action-btn svg { transition: color 0.3s; }
+    .action-btn:hover svg { color: var(--gold); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+      height: calc(64px + env(safe-area-inset-bottom));
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(0,0,0,0.92);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      backdrop-filter: blur(20px);
+      display: flex; align-items: center;
+    }
+    .bnav-btn {
+      flex: 1; height: 100%; background: none; border: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      cursor: pointer; transition: color 0.25s; color: rgba(255,255,255,0.2);
+    }
+    .bnav-btn.active { color: var(--gold); }
+    .bnav-btn span { font-family: 'Orbitron', sans-serif; font-size: 0.45rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+    .bnav-center {
+      flex: 0; width: 64px; height: 64px; margin: 0 0.5rem; margin-bottom: calc(env(safe-area-inset-bottom) * 0.5);
+      background: linear-gradient(135deg, var(--gold), #9a7c1f);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px var(--gold-glow);
+      cursor: pointer; border: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .bnav-center:hover { transform: scale(1.08); box-shadow: 0 0 30px var(--gold-glow); }
+    .bnav-center img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0); }
+
+    /* ── LOGOUT BTN ── */
+    .logout-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.2); padding: 0.5rem;
+      border-radius: 0.5rem; transition: color 0.25s;
+    }
+    .logout-btn:hover { color: var(--red); }
+
+    /* ── DIRECTOR BADGE ── */
+    .director-link {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.5rem; font-weight: 900;
+      color: var(--teal);
+      border: 1px solid rgba(0,212,170,0.3);
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+    .director-link:hover { background: var(--teal); color: #000; }
+
+    /* ── SECTION HEADERS ── */
+    .section-head {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.6rem; font-weight: 900;
+      color: rgba(212,175,55,0.7);
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── LOADING SCREEN ── */
+    .loading-screen {
+      position: fixed; inset: 0; z-index: 200;
+      background: #000;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+    }
+    .load-ring-wrap { width: 80px; height: 80px; position: relative; }
+    .load-ring-svg { position: absolute; inset: 0; animation: ring-spin 3s linear infinite; }
+    .load-ring-inner {
+      position: absolute; inset: 9px; background: #000; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .load-ring-inner img { width: 55%; filter: drop-shadow(0 0 8px var(--gold-glow)); animation: pulse 2s infinite; }
+    .load-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.55rem; font-weight: 700;
+      color: var(--gold); letter-spacing: 0.5em; text-transform: uppercase;
+      animation: pulse 1.5s infinite;
+    }
+    .load-bar-wrap { width: 160px; height: 1px; background: rgba(212,175,55,0.08); border-radius: 1px; overflow: hidden; }
+    .load-bar-fill { height: 100%; background: var(--gold); animation: load-sweep 1.5s ease-in-out infinite; }
+    @keyframes load-sweep {
+      0%   { width:0%;  margin-left:0%; }
+      50%  { width:70%; margin-left:15%; }
+      100% { width:0%;  margin-left:100%; }
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
+
+    /* ── ANIMATIONS ── */
+    .fade-up {
+      opacity: 0; transform: translateY(16px);
+      animation: fade-up 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes fade-up { to{opacity:1;transform:translateY(0)} }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    /* HELPERS */
+    .font-orbit { font-family: 'Orbitron', sans-serif; }
+    .font-mono  { font-family: 'Share Tech Mono', monospace; }
   </style>
 
   <script>
-    /**
-     * =========================================================================
-     * HUB LOGIC CONTROLLER (FIXED & COMPLETE)
-     * =========================================================================
-     */
     function hub() {
       return {
         view: 'loading',
         isLoading: false,
         isOnline: navigator.onLine,
         activeTab: 'overview',
-        showModal: false,
+        showProfileModal: false,
         operativeId: 'OP:OFFLINE',
         currentUser: null,
-        
-        // PROFILE FALLBACKS
+
         profile: {
-          username: 'RECRUIT', codename: '---', rank: 'INITIATE',
-          department: 'UNASSIGNED', bio: '', avatar_url: null,
+          username: 'RECRUIT',
+          codename: '---',
+          rank: 'INITIATE',
+          department: 'UNASSIGNED',
+          bio: '',
+          avatar_url: null,
           stats: { loyalty: 100, groove: 40, missions: 0 }
         },
 
-        tickerMsgs: ["UPLINK STABLE", "ENCRYPTION ACTIVE", "SECTOR 7G SCANNING", "MINISTRY SECURE"],
+        tickerMsgs: [
+          'UPLINK STABLE',
+          'ENCRYPTION ACTIVE',
+          'SECTOR 7G SCANNING',
+          'MINISTRY GRID SECURE',
+          'OPERATIVE NODES ONLINE',
+          'FREQUENCY LOCKED',
+          'SIGNAL INTEGRITY 100%'
+        ],
         recentActivity: [],
 
         async init() {
-          console.log("M.O.G. HUB INITIALIZING...");
-          window.addEventListener('online', () => { this.isOnline = true; });
+          window.addEventListener('online',  () => { this.isOnline = true; });
           window.addEventListener('offline', () => { this.isOnline = false; });
 
-          // Supabase Check
           let wait = 0;
           while (typeof sb === 'undefined' && wait < 50) {
             await new Promise(r => setTimeout(r, 100)); wait++;
@@ -192,25 +404,31 @@
           try {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) { window.location.href = '/login.html'; return; }
-            
+
             this.currentUser = session.user;
             this.operativeId = `OP-${this.currentUser.id.slice(0, 8).toUpperCase()}`;
-            
+
             await this.fullSync();
             this.view = 'hub';
-            
-            this.$nextTick(() => { if (window.lucide) lucide.createIcons(); });
-          } catch (e) { console.error("System Error", e); }
+
+            // Animate stat bars after render
+            this.$nextTick(() => this.animateStats());
+          } catch (e) { console.error('HUB ERROR', e); }
         },
 
         async fullSync() {
           this.isLoading = true;
           const { data } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
           if (data) this.profile = { ...this.profile, ...data };
-          
-          const { data: logs } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(5);
+
+          const { data: logs } = await sb.from('activity_log')
+            .select('*').order('created_at', { ascending: false }).limit(6);
           this.recentActivity = logs || [];
           this.isLoading = false;
+        },
+
+        animateStats() {
+          // stats already bound via Alpine — CSS transition handles the animation
         },
 
         async logout() {
@@ -219,161 +437,336 @@
           window.location.href = '/login.html';
         },
 
-        notify(msg, type='info') {
-          alert(msg); // Placeholder for custom toast logic
+        timeAgo(ts) {
+          const d = Math.floor((Date.now() - new Date(ts)) / 1000);
+          if (d < 60) return `${d}s ago`;
+          if (d < 3600) return `${Math.floor(d/60)}m ago`;
+          if (d < 86400) return `${Math.floor(d/3600)}h ago`;
+          return `${Math.floor(d/86400)}d ago`;
         }
       };
     }
   </script>
 </head>
+
 <body x-data="hub()" x-init="init()" x-cloak>
 
-  <div class="bg-seal"></div>
+  <div class="bg-cosmos"></div>
   <div class="bg-grid"></div>
+  <div class="bg-seal"></div>
+  <div class="bg-scan-sweep"></div>
   <div class="bg-vignette"></div>
 
+  <!-- LOADING -->
   <template x-if="view === 'loading'">
-    <div class="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center">
-      <div class="logo-frame mb-6 animate-pulse">
-        <img src="assets/images/logo.png" alt="Loading">
+    <div class="loading-screen">
+      <div class="load-ring-wrap">
+        <svg class="load-ring-svg" viewBox="0 0 80 80" fill="none">
+          <circle cx="40" cy="40" r="36" stroke="url(#lrg)" stroke-width="1.2" stroke-dasharray="5 3.5"/>
+          <defs>
+            <linearGradient id="lrg" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#d4af37"/>
+              <stop offset="0.5" stop-color="#00d4aa"/>
+              <stop offset="1" stop-color="#d4af37"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="load-ring-inner">
+          <img src="assets/images/logo.png" alt="MOG">
+        </div>
       </div>
-      <p class="font-orbit text-gold text-[10px] tracking-[0.5em] animate-pulse">SYNCHRONIZING HUB...</p>
+      <p class="load-text">Synchronizing Hub</p>
+      <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
     </div>
   </template>
 
+  <!-- HUB -->
   <template x-if="view === 'hub'">
-    <div class="relative z-10 pt-16 px-4 max-w-6xl mx-auto pb-24">
-      
-      <div class="ticker-shell fixed top-0 left-0 right-0 z-50">
-        <div class="ticker-tag">LIVE FEED</div>
-        <div class="ticker-move">
-          <template x-for="m in tickerMsgs" :key="m">
-            <span class="font-mono text-[11px] text-white/90 px-12 flex items-center gap-3">
-              <span class="text-gold opacity-50">◈</span> <span x-text="m"></span>
-            </span>
-          </template>
+    <div>
+
+      <!-- TICKER -->
+      <div class="ticker-shell">
+        <div class="ticker-tag">Live Feed</div>
+        <div class="ticker-track">
+          <div class="ticker-move">
+            <template x-for="m in tickerMsgs" :key="m">
+              <span class="ticker-item">
+                <span class="ticker-diamond">◈</span>
+                <span x-text="m"></span>
+              </span>
+            </template>
+            <!-- Duplicate for seamless loop -->
+            <template x-for="m in tickerMsgs" :key="m + '_2'">
+              <span class="ticker-item">
+                <span class="ticker-diamond">◈</span>
+                <span x-text="m"></span>
+              </span>
+            </template>
+          </div>
         </div>
       </div>
 
-      <nav class="panel-glass p-4 flex justify-between items-center mb-8 border-gold/20">
-        <div class="flex items-center gap-4">
-          <div class="logo-frame">
-            <img src="assets/images/logo.png" alt="M.O.G.">
+      <!-- MAIN CONTENT -->
+      <div style="position:relative;z-index:10;padding-top:58px;padding-bottom:96px;padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right));max-width:900px;margin:0 auto;">
+
+        <!-- NAV -->
+        <nav class="glass hub-nav fade-up" style="padding:0.9rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:0.9rem;">
+            <div class="logo-ring-wrap">
+              <svg class="logo-ring-svg" viewBox="0 0 52 52" fill="none">
+                <circle cx="26" cy="26" r="23" stroke="url(#nrg)" stroke-width="0.8" stroke-dasharray="3.5 3"/>
+                <defs>
+                  <linearGradient id="nrg" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#d4af37" stop-opacity="0.7"/>
+                    <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.5"/>
+                    <stop offset="1" stop-color="#d4af37" stop-opacity="0.7"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="logo-ring-inner">
+                <img src="assets/images/logo.png" alt="MOG">
+              </div>
+            </div>
+            <div>
+              <h1 class="font-orbit" style="color:#fff;font-size:clamp(0.65rem,2.5vw,0.85rem);font-weight:900;letter-spacing:0.2em;text-transform:uppercase;line-height:1;">Operative Hub</h1>
+              <p class="font-mono" style="color:var(--gold);font-size:0.55rem;margin-top:0.2rem;" x-text="operativeId"></p>
+            </div>
           </div>
-          <div>
-            <h1 class="font-orbit text-white text-sm font-black tracking-widest uppercase leading-none">Operative Hub</h1>
-            <p class="font-mono text-gold text-[10px]" x-text="operativeId"></p>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <template x-if="profile.rank === 'DIRECTOR'">
+              <a href="pages/directorate.html" class="director-link">⬡ Directorate</a>
+            </template>
+            <!-- Online indicator -->
+            <div style="display:flex;align-items:center;gap:0.4rem;" :title="isOnline ? 'Online' : 'Offline'">
+              <div style="width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite;"
+                   :style="isOnline ? 'background:var(--teal)' : 'background:var(--red)'"></div>
+            </div>
+            <button class="logout-btn" @click="logout()" title="Logout">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                <path d="M13 15l4-5-4-5M17 10H8M8 3H4a1 1 0 00-1 1v12a1 1 0 001 1h4"/>
+              </svg>
+            </button>
+          </div>
+        </nav>
+
+        <!-- PROFILE + STATUS ROW -->
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+          <!-- PROFILE CARD -->
+          <div class="glass fade-up delay-1" style="padding:1.75rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:0.9rem;min-width:160px;max-width:200px;">
+            <div class="avatar-frame">
+              <svg class="avatar-ring-svg" viewBox="0 0 120 120" fill="none">
+                <rect x="4" y="4" width="112" height="112" rx="20" stroke="url(#arg)" stroke-width="1" stroke-dasharray="4 3"/>
+                <defs>
+                  <linearGradient id="arg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+                    <stop stop-color="#d4af37" stop-opacity="0.6"/>
+                    <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.4"/>
+                    <stop offset="1" stop-color="#d4af37" stop-opacity="0.6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="avatar-inner">
+                <img :src="profile.avatar_url || 'assets/images/logo.png'" alt="Avatar">
+              </div>
+            </div>
+            <div style="text-align:center;">
+              <h2 class="font-orbit" style="color:#fff;font-size:0.75rem;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;line-height:1.2;" x-text="profile.username"></h2>
+              <div class="rank-badge" style="margin-top:0.6rem;">
+                <div class="rank-dot"></div>
+                <span x-text="profile.rank"></span>
+              </div>
+            </div>
+            <div style="width:100%;border-top:1px solid rgba(212,175,55,0.07);padding-top:0.9rem;text-align:center;">
+              <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:0.2em;text-transform:uppercase;">Department</p>
+              <p class="font-orbit" style="font-size:0.6rem;color:var(--gold);margin-top:0.25rem;letter-spacing:0.1em;" x-text="profile.department"></p>
+            </div>
+          </div>
+
+          <!-- STATUS PANEL -->
+          <div class="glass fade-up delay-2" style="padding:1.75rem 1.75rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
+
+            <!-- Uplink Bar -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                <span class="font-orbit" style="font-size:0.55rem;color:var(--teal);letter-spacing:0.2em;">Systems Nominal</span>
+                <span class="font-mono" style="font-size:0.55rem;color:var(--teal);">Uplink 100%</span>
+              </div>
+              <div class="stat-track">
+                <div class="stat-fill uplink" style="width:100%"></div>
+              </div>
+            </div>
+
+            <!-- Loyalty + Groove -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                  <span class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;">Loyalty</span>
+                  <span class="font-mono" style="font-size:0.55rem;color:var(--gold);" x-text="profile.stats.loyalty + '%'"></span>
+                </div>
+                <div class="stat-track">
+                  <div class="stat-fill gold" :style="'width:' + profile.stats.loyalty + '%'"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                  <span class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;">Groove Sync</span>
+                  <span class="font-mono" style="font-size:0.55rem;color:var(--teal);" x-text="profile.stats.groove + '%'"></span>
+                </div>
+                <div class="stat-track">
+                  <div class="stat-fill teal" :style="'width:' + profile.stats.groove + '%'"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hex badges + missions -->
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+              <div style="display:flex;gap:0.75rem;">
+                <div class="hex-badge">
+                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M10 2l1.74 3.53 3.9.57-2.82 2.75.67 3.88L10 11.25 6.51 12.73l.67-3.88-2.82-2.75 3.9-.57z" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 17h12" stroke-linecap="round"/>
+                  </svg>
+                  <span class="hb-label">Secure</span>
+                </div>
+                <div class="hex-badge">
+                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M13 10a3 3 0 11-6 0 3 3 0 016 0zM2 10h2M16 10h2M10 2v2M10 16v2" stroke-linecap="round"/>
+                  </svg>
+                  <span class="hb-label">Uplink</span>
+                </div>
+                <div class="hex-badge">
+                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="6" width="14" height="10" rx="1.5" stroke-linecap="round"/>
+                    <path d="M7 6V5a3 3 0 016 0v1" stroke-linecap="round"/>
+                  </svg>
+                  <span class="hb-label">Locked</span>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <p class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.2em;">Missions</p>
+                <p class="font-orbit" style="font-size:1.8rem;font-weight:900;color:#fff;line-height:1;" x-text="profile.stats.missions || 0"></p>
+              </div>
+            </div>
+
           </div>
         </div>
-        
-        <div class="flex items-center gap-4">
-          <template x-if="profile.rank === 'DIRECTOR'">
-            <a href="pages/directorate.html" class="hidden sm:block btn-operative py-1 px-4 text-[9px]">Directorate</a>
-          </template>
-          <button @click="logout()" class="text-gray-600 hover:text-red-500 transition-colors">
-            <i data-lucide="power" size="18"></i>
+
+        <!-- QUICK ACTIONS -->
+        <div class="fade-up delay-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem;">
+          <button class="action-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M3 6h14M3 10h14M3 14h10"/>
+            </svg>
+            Intel
+          </button>
+          <button class="action-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.31 3.13-6 7-6s7 2.69 7 6"/>
+            </svg>
+            Profile
+          </button>
+          <button class="action-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M10 2l2.09 4.26 4.71.68-3.4 3.32.8 4.68L10 12.77l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/>
+            </svg>
+            Missions
+          </button>
+          <button class="action-btn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2"/>
+            </svg>
+            Archive
           </button>
         </div>
-      </nav>
 
-      <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        
-        <div class="lg:col-span-1 panel-glass p-8 flex flex-col items-center">
-          <div class="w-32 h-32 rounded-2xl border-2 border-gold/20 p-1 mb-4 bg-black">
-            <img :src="profile.avatar_url || 'assets/images/logo.png'" class="w-full h-full object-cover rounded-xl">
+        <!-- ACTIVITY LOG -->
+        <div class="glass fade-up delay-4" style="padding:1.75rem;">
+          <div class="section-head">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M2 10h16M2 5h16M2 15h10"/>
+            </svg>
+            Recent Transmissions
+            <span class="font-mono" style="font-size:0.5rem;color:var(--teal);margin-left:auto;animation:pulse 2s infinite;">● Live</span>
           </div>
-          <h2 class="font-orbit text-lg font-black text-white uppercase" x-text="profile.username"></h2>
-          <p class="font-mono text-[10px] text-gold uppercase mt-1 tracking-widest" x-text="profile.rank"></p>
-        </div>
 
-        <div class="lg:col-span-3 panel-glass p-8">
-          <div class="flex flex-col md:flex-row justify-between items-center h-full gap-8">
-            
-            <div class="flex-1 w-full space-y-6">
-              <div>
-                <div class="flex justify-between font-orbit text-[10px] text-teal mb-2">
-                  <span>SYSTEMS NOMINAL</span>
-                  <span class="font-mono">UPLINK 100%</span>
-                </div>
-                <div class="h-1 bg-black rounded-full overflow-hidden">
-                  <div class="h-full bg-teal shadow-[0_0_12px_#00d4aa]" style="width: 100%"></div>
-                </div>
-              </div>
-              <div class="grid grid-cols-2 gap-6">
-                <div>
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-1">Loyalty Verified</p>
-                  <div class="h-1 bg-black rounded-full overflow-hidden">
-                    <div class="h-full bg-gold" :style="'width:' + profile.stats.loyalty + '%'"></div>
-                  </div>
-                </div>
-                <div>
-                  <p class="font-mono text-[9px] text-gray-500 uppercase mb-1">Groove Synchronization</p>
-                  <div class="h-1 bg-black rounded-full overflow-hidden">
-                    <div class="h-full bg-teal" :style="'width:' + profile.stats.groove + '%'"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <template x-if="recentActivity.length === 0">
+            <p class="font-mono" style="font-size:0.65rem;color:rgba(255,255,255,0.15);text-align:center;padding:2rem 0;letter-spacing:0.2em;text-transform:uppercase;">No transmissions logged</p>
+          </template>
 
-            <div class="flex gap-4">
-              <div class="badge-hex">
-                <i data-lucide="shield-check" class="text-gold" size="20"></i>
-                <span class="font-orbit text-[6px] text-white mt-2">SECURE</span>
+          <template x-for="(log, i) in recentActivity" :key="log.id">
+            <div class="activity-item">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                <div class="activity-pip" :style="i === 0 ? 'background:var(--teal)' : 'background:rgba(212,175,55,0.3)'"></div>
+                <template x-if="i < recentActivity.length - 1">
+                  <div class="activity-line" style="flex:1;min-height:20px;"></div>
+                </template>
               </div>
-              <div class="badge-hex">
-                <i data-lucide="zap" class="text-gold" size="20"></i>
-                <span class="font-orbit text-[6px] text-white mt-2">UPLINK</span>
+              <div style="flex:1;">
+                <p style="font-size:0.8rem;color:rgba(255,255,255,0.85);line-height:1.4;" x-text="log.description"></p>
+                <p class="font-mono" style="font-size:0.6rem;color:rgba(255,255,255,0.2);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.1em;" x-text="timeAgo(log.created_at)"></p>
               </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <section class="panel-glass p-8">
-        <h3 class="font-orbit text-xs font-black text-gold mb-6 flex items-center gap-2">
-          <i data-lucide="activity" size="14"></i> RECENT TRANSMISSIONS
-        </h3>
-        <div class="space-y-4">
-          <template x-for="log in recentActivity" :key="log.id">
-            <div class="border-l border-gold/20 pl-6 py-1">
-              <p class="text-[11px] text-white/90" x-text="log.description"></p>
-              <p class="font-mono text-[8px] text-gray-600 mt-1 uppercase" x-text="new Date(log.created_at).toLocaleTimeString()"></p>
             </div>
           </template>
         </div>
-      </section>
 
-      <footer class="mt-20 text-center">
-        <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-gold/10 to-transparent mb-10"></div>
-        <p class="font-orbit text-[8px] text-gray-600 tracking-[0.5em] uppercase mb-2">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="font-mono text-[9px] text-gray-700 tracking-widest uppercase">M.O.G. INFRASTRUCTURE // EMALAHLENI // © 2026</p>
-      </footer>
+        <!-- FOOTER -->
+        <footer style="margin-top:3rem;text-align:center;">
+          <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.08),transparent);margin-bottom:1.5rem;"></div>
+          <p class="font-orbit" style="font-size:0.55rem;color:rgba(255,255,255,0.1);letter-spacing:0.4em;text-transform:uppercase;margin-bottom:0.4rem;">Decrypting the Culture. Synchronizing the Grid.</p>
+          <p class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.07);letter-spacing:0.3em;text-transform:uppercase;">M.O.G. Infrastructure // Emalahleni // © 2026</p>
+        </footer>
+
+      </div>
+
+      
+      <!-- BOTTOM NAV (mobile) -->
+      <nav class="bottom-nav" style="display:none;" id="bottomNav">
+        <button class="bnav-btn" :class="activeTab==='overview'?'active':''" @click="activeTab='overview'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/>
+            <rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/>
+          </svg>
+          <span>Core</span>
+        </button>
+        <button class="bnav-btn" :class="activeTab==='intel'?'active':''" @click="activeTab='intel'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2"/>
+          </svg>
+          <span>Intel</span>
+        </button>
+        <button class="bnav-center">
+          <img src="assets/images/logo.png" alt="Hub">
+        </button>
+        <button class="bnav-btn" :class="activeTab==='missions'?'active':''" @click="activeTab='missions'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M10 2l2.09 4.26 4.71.68-3.4 3.32.8 4.68L10 12.77l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/>
+          </svg>
+          <span>Missions</span>
+        </button>
+        <button class="bnav-btn" :class="activeTab==='profile'?'active':''" @click="activeTab='profile'">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.31 3.13-6 7-6s7 2.69 7 6"/>
+          </svg>
+          <span>Profile</span>
+        </button>
+      </nav>
 
     </div>
-  </template>
-
-  <template x-if="view === 'hub'">
-    <nav class="fixed bottom-0 left-0 right-0 z-50 h-20 bg-black/90 border-t border-white/5 flex md:hidden px-4 pb-4 backdrop-blur-2xl">
-      <button @click="activeTab = 'overview'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'overview' ? 'text-gold' : 'text-gray-600'">
-        <i data-lucide="layout-grid" size="20"></i>
-        <span class="font-orbit text-[8px] font-bold">CORE</span>
-      </button>
-      <button @click="activeTab = 'intel'" class="flex-1 flex flex-col items-center justify-center gap-1" :class="activeTab === 'intel' ? 'text-gold' : 'text-gray-600'">
-        <i data-lucide="database" size="20"></i>
-        <span class="font-orbit text-[8px] font-bold">INTEL</span>
-      </button>
-      <button @click="showModal = true" class="flex-1 flex flex-col items-center justify-center gap-1 text-gray-600">
-        <i data-lucide="user" size="20"></i>
-        <span class="font-orbit text-[8px] font-bold">PROFILE</span>
-      </button>
-    </nav>
   </template>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      if (window.lucide) lucide.createIcons();
+    // Show bottom nav only on mobile
+    function checkNav() {
+      const nav = document.getElementById('bottomNav');
+      if (nav) nav.style.display = window.innerWidth < 768 ? 'flex' : 'none';
+    }
+    window.addEventListener('resize', checkNav);
+    document.addEventListener('DOMContentLoaded', checkNav);
+    // Re-check when view updates
+    document.addEventListener('alpine:initialized', () => {
+      setTimeout(checkNav, 100);
     });
   </script>
 </body>
 </html>
+         
