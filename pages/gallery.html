@@ -1,578 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#000000">
-    <title>M.O.G. | MEDIA CURATOR</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.O.G. — Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:90px;}
+  body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/supabase-client.js"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+  /* TOP BAR */
+  .top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
+  .back-btn{color:var(--gold);font-size:20px;text-decoration:none;padding:4px 8px;}
+  .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+  .top-bar-right{width:40px;}
 
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  /* FILTER TABS */
+  .filter-tabs{display:flex;gap:8px;padding:16px;overflow-x:auto;scrollbar-width:none;}
+  .filter-tabs::-webkit-scrollbar{display:none;}
+  .tab{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:7px 14px;border:1px solid var(--border);border-radius:3px;color:var(--gold-dim);background:none;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+  .tab.active,.tab:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08);}
 
-    <style>
-        [x-cloak] { display: none !important; }
+  /* GALLERY GRID */
+  .gallery-grid{padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .media-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;position:relative;cursor:pointer;transition:all 0.3s;}
+  .media-card:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.2);transform:translateY(-2px);}
+  .media-thumb{width:100%;aspect-ratio:1;background:var(--navy);display:flex;align-items:center;justify-content:center;position:relative;}
+  .media-thumb .thumb-icon{font-size:40px;opacity:0.3;}
+  .media-type-badge{position:absolute;top:8px;left:8px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:2px;}
+  .badge-photo{background:rgba(201,168,76,0.8);color:var(--black);}
+  .badge-video{background:rgba(0,229,204,0.8);color:var(--black);}
+  .media-actions{position:absolute;top:8px;right:8px;display:flex;gap:6px;}
+  .action-btn{background:rgba(5,10,14,0.85);border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-size:13px;cursor:pointer;transition:all 0.2s;}
+  .action-btn:hover{border-color:var(--gold);}
+  .media-info{padding:10px;}
+  .media-title{font-size:12px;font-weight:600;color:var(--gold-light);letter-spacing:1px;margin-bottom:3px;font-family:'Orbitron',sans-serif;}
+  .media-meta{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+  .likes-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+  .like-btn{background:none;border:none;color:var(--gold-dim);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:10px;transition:all 0.2s;}
+  .like-btn.liked,.like-btn:hover{color:var(--gold);}
+  .download-btn{background:none;border:1px solid var(--border-teal);color:var(--teal-dim);padding:4px 8px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+  .download-btn:hover{border-color:var(--teal);color:var(--teal);}
 
-        :root {
-            --black:       #000000;
-            --gold:        #d4af37;
-            --gold-bright: #f0c040;
-            --gold-dark:   #8b6914;
-            --gold-glow:   rgba(212,175,55,0.4);
-            --teal:        #00d4aa;
-            --teal-glow:   rgba(0,212,170,0.3);
-            --red:         #dc2626;
-            --red-glow:    rgba(220,38,38,0.4);
-        }
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.95);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal-close{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--gold);font-size:20px;padding:6px 12px;cursor:pointer;border-radius:3px;}
+  .modal-content{width:90%;max-width:400px;}
+  .modal-media{width:100%;aspect-ratio:1;background:var(--navy);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;}
+  .modal-title{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;}
+  .modal-meta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:16px;}
+  .modal-actions{display:flex;gap:10px;}
+  .modal-btn{flex:1;padding:12px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;border-radius:3px;cursor:pointer;border:none;transition:all 0.2s;}
+  .modal-btn.gold{background:var(--gold);color:var(--black);}
+  .modal-btn.teal{background:rgba(0,229,204,0.15);color:var(--teal);border:1px solid var(--teal);}
 
-        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
-        html { scroll-behavior: smooth; }
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.97);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(10px);}
+  .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+  .nav-item.active{border-top-color:var(--gold);}
+  .nav-icon{font-size:20px;}
+  .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+  .nav-item.active .nav-label{color:var(--gold);}
 
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--black);
-            color: #e8e0cc;
-            min-height: 100vh;
-            min-height: 100dvh;
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .mono  { font-family: 'Share Tech Mono', monospace; }
-        .orbit { font-family: 'Orbitron', sans-serif; }
-
-        /* ── Background ── */
-        .bg-seal {
-            position: fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-            width: clamp(280px,75vmin,600px); height: clamp(280px,75vmin,600px);
-            background: url('../assets/images/logo.png') center/contain no-repeat;
-            opacity: 0.04; pointer-events:none; z-index:0;
-        }
-        .bg-grid {
-            position:fixed; inset:0; pointer-events:none; z-index:1;
-            background-image:
-                linear-gradient(rgba(212,175,55,0.025) 1px,transparent 1px),
-                linear-gradient(90deg,rgba(212,175,55,0.025) 1px,transparent 1px);
-            background-size:52px 52px;
-        }
-        @media (max-width:480px){.bg-grid{display:none}}
-        .bg-vignette {
-            position:fixed; inset:0; pointer-events:none; z-index:2;
-            background: radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%);
-        }
-
-        /* ── Glass ── */
-        .glass {
-            background: rgba(8,10,6,0.93);
-            border: 1px solid rgba(212,175,55,0.18);
-            box-shadow: 0 4px 40px rgba(0,0,0,0.5);
-        }
-        @media (min-width:641px){
-            .glass { backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); }
-        }
-
-        /* ── Gold line ── */
-        .gold-line { height:1px; background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal),transparent); }
-
-        /* ── Loader ── */
-        .loader-ring {
-            width:56px; height:56px; position:relative;
-        }
-        .loader-ring::before {
-            content:''; position:absolute; inset:0; border-radius:50%;
-            border:3px solid transparent; border-top-color:var(--gold);
-            animation:spin 1s linear infinite;
-        }
-        .loader-ring::after {
-            content:''; position:absolute; inset:6px; border-radius:50%;
-            border:2px solid transparent; border-bottom-color:var(--teal);
-            animation:spin 1.6s linear infinite reverse;
-        }
-        @keyframes spin { to{transform:rotate(360deg)} }
-
-        /* ── Buttons ── */
-        .btn {
-            display:inline-flex; align-items:center; justify-content:center; gap:6px;
-            cursor:pointer; transition:all 0.24s ease;
-            font-family:'Orbitron',sans-serif; font-weight:700; text-transform:uppercase;
-            position:relative; overflow:hidden;
-        }
-        .btn-gold { background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22)); border:1px solid rgba(212,175,55,0.38); color:var(--gold); }
-        .btn-gold:hover { background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(139,105,20,0.38)); box-shadow:0 0 20px var(--gold-glow); border-color:var(--gold-bright); transform:translateY(-1px); }
-        .btn-red  { background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(153,27,27,0.22)); border:1px solid rgba(220,38,38,0.38); color:#fca5a5; }
-        .btn-red:hover  { background:linear-gradient(135deg,rgba(220,38,38,0.25),rgba(153,27,27,0.38)); box-shadow:0 0 20px var(--red-glow); border-color:var(--red); color:#fff; transform:translateY(-1px); }
-        .btn-teal { background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,110,89,0.2)); border:1px solid rgba(0,212,170,0.38); color:var(--teal); }
-        .btn-teal:hover { background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.35)); box-shadow:0 0 18px var(--teal-glow); border-color:var(--teal); transform:translateY(-1px); }
-        .btn:active { transform:scale(0.97) !important; }
-        .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none !important; }
-
-        /* ── Media card ── */
-        .media-card {
-            border-radius:1.5rem; overflow:hidden;
-            border:1px solid rgba(212,175,55,0.1);
-            background:rgba(4,6,4,0.95);
-            transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
-            position:relative;
-        }
-        @media (hover:hover){
-            .media-card:hover { transform:translateY(-6px) scale(1.01); border-color:rgba(212,175,55,0.35); box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 40px rgba(212,175,55,0.08); }
-            .media-card:hover .card-overlay { opacity:1; }
-            .media-card:hover .card-media { transform:scale(1.05); filter:grayscale(0%) !important; }
-        }
-        .media-card:active { transform:scale(0.98); }
-
-        .card-media {
-            width:100%; aspect-ratio:1/1; object-fit:cover;
-            filter:grayscale(30%);
-            transition:all 0.6s ease;
-        }
-
-        .card-overlay {
-            position:absolute; inset:0;
-            background:rgba(0,0,0,0.82);
-            opacity:0; transition:opacity 0.35s ease;
-            display:flex; flex-direction:column; justify-content:space-between;
-            padding:1.25rem;
-        }
-
-        /* Mobile: overlay always visible */
-        @media (max-width:640px){
-            .card-overlay { opacity:1; background:linear-gradient(to top,rgba(0,0,0,0.9) 0%,transparent 50%); }
-        }
-
-        /* ── Like button ── */
-        .like-btn { transition:all 0.2s ease; }
-        .like-btn.liked { color:#ef4444; border-color:rgba(239,68,68,0.5); background:rgba(239,68,68,0.15); box-shadow:0 0 12px rgba(239,68,68,0.3); }
-        .like-btn:not(.liked):hover { background:rgba(212,175,55,0.2); }
-
-        /* ── Slogan ── */
-        .slogan { font-family:'Orbitron',sans-serif; font-size:clamp(0.44rem,1.1vw,0.54rem); letter-spacing:0.28em; color:var(--teal); opacity:0.5; text-transform:uppercase; }
-
-        /* ── Upload progress ── */
-        .upload-bar { height:3px; background:rgba(0,0,0,0.7); border-radius:99px; overflow:hidden; }
-        .upload-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright)); box-shadow:0 0 8px var(--gold-glow); transition:width 0.3s ease; }
-
-        /* ── Toast ── */
-        .toast {
-            font-family:'Orbitron',sans-serif; font-size:0.62rem; font-weight:700;
-            letter-spacing:0.1em; text-transform:uppercase;
-            border-radius:12px; padding:11px 16px;
-            box-shadow:0 8px 32px rgba(0,0,0,0.8);
-            display:flex; align-items:center; gap:8px;
-            border-width:1px; border-style:solid;
-            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s ease;
-            max-width:min(90vw,360px);
-        }
-
-        /* ── Animations ── */
-        .fade-up { animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-
-        .dot-blink span { animation:blink 1.3s infinite; }
-        .dot-blink span:nth-child(2){animation-delay:.2s}
-        .dot-blink span:nth-child(3){animation-delay:.4s}
-        @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
-
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-track { background:rgba(0,0,0,0.6); }
-        ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold-dark),var(--teal)); border-radius:4px; }
-
-        @media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important} }
-    </style>
-
-    <script>
-    function galleryEngine() {
-        return {
-            view: 'gate',
-            isDirector: false,
-            isLoading: false,
-            isUploading: false,
-            uploadProgress: 0,
-            items: [],
-            likedSet: new Set(),
-            filterType: 'ALL',
-            currentUserId: null,
-
-            get sb() { return window.sb || window.supabaseClient; },
-
-            get filteredItems() {
-                if (this.filterType === 'ALL') return this.items;
-                return this.items.filter(i => (i.type||'image').toUpperCase() === this.filterType);
-            },
-
-            async init() {
-                // Auth check
-                const role = localStorage.getItem('userRole');
-                if (!role) { window.location.href = '../login.html'; return; }
-
-                // Wait for Supabase
-                let tries = 0;
-                while (!this.sb && tries < 30) {
-                    await new Promise(r => setTimeout(r, 100)); tries++;
-                }
-                if (!this.sb) {
-                    this.toast('Connection failed — refresh and try again', 'error');
-                    return;
-                }
-
-                try {
-                    const { data:{ session } } = await this.sb.auth.getSession();
-                    if (!session) { window.location.href = '../login.html'; return; }
-
-                    this.currentUserId = session.user.id;
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    await this.loadMedia();
-                    this.loadLikedFromStorage();
-                    this.subscribeRealtime();
-                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
-                } catch(e) {
-                    console.error('[GALLERY]', e);
-                    this.toast('Authentication failed', 'error');
-                }
-            },
-
-            loadLikedFromStorage() {
-                try {
-                    const stored = JSON.parse(localStorage.getItem('mog_liked_gallery') || '[]');
-                    this.likedSet = new Set(stored);
-                } catch(_) {}
-            },
-
-            saveLikedToStorage() {
-                try { localStorage.setItem('mog_liked_gallery', JSON.stringify([...this.likedSet])); } catch(_) {}
-            },
-
-            async loadMedia() {
-                this.isLoading = true;
-                try {
-                    const { data, error } = await this.sb.from('gallery')
-                        .select('*').order('created_at', { ascending:false });
-                    if (error) throw error;
-                    this.items = data || [];
-                } catch(e) {
-                    console.error('[GALLERY] load:', e);
-                    this.items = [];
-                } finally { this.isLoading = false; }
-            },
-
-            subscribeRealtime() {
-                try {
-                    this.sb.channel('gallery-realtime')
-                        .on('postgres_changes', { event:'*', schema:'public', table:'gallery' }, () => this.loadMedia())
-                        .subscribe();
-                } catch(_) {}
-            },
-
-            async likeItem(item) {
-                const id = item.id;
-                if (this.likedSet.has(id)) {
-                    this.toast('Already synchronized with this asset', 'warning'); return;
-                }
-                // Optimistic
-                this.likedSet.add(id);
-                this.likedSet = new Set(this.likedSet);
-                const idx = this.items.findIndex(i => i.id === id);
-                if (idx > -1) this.items[idx].likes = (this.items[idx].likes || 0) + 1;
-                this.saveLikedToStorage();
-                try {
-                    await this.sb.from('gallery').update({ likes:(item.likes||0)+1 }).eq('id', id);
-                } catch(_) {}
-            },
-
-            isLiked(id) { return this.likedSet.has(id); },
-
-            async handleUpload(e) {
-                if (!this.isDirector) { this.toast('Director clearance required', 'error'); return; }
-                const file = e.target.files[0];
-                if (!file) return;
-                if (file.size > 100 * 1024 * 1024) { this.toast('Max 100MB', 'error'); e.target.value=''; return; }
-
-                this.isUploading = true;
-                this.uploadProgress = 10;
-                try {
-                    const ext  = file.name.split('.').pop();
-                    const name = `MOG-${Date.now()}-${Math.random().toString(36).substr(2,8)}.${ext}`;
-                    this.uploadProgress = 35;
-                    const { error:ue } = await this.sb.storage.from('media').upload(name, file, { cacheControl:'3600', upsert:false });
-                    if (ue) throw ue;
-                    this.uploadProgress = 70;
-                    const { data:{ publicUrl } } = this.sb.storage.from('media').getPublicUrl(name);
-                    const { error:de } = await this.sb.from('gallery').insert({
-                        url: publicUrl,
-                        type: file.type.startsWith('video') ? 'video' : 'image',
-                        name: file.name.toUpperCase(),
-                        likes: 0,
-                        uploaded_by: this.currentUserId,
-                        created_at: new Date().toISOString()
-                    });
-                    if (de) throw de;
-                    this.uploadProgress = 100;
-                    this.toast('Asset archived successfully', 'success');
-                    await this.loadMedia();
-                } catch(err) {
-                    console.error('[GALLERY] upload:', err);
-                    this.toast('Upload failed: '+(err.message||'retry'), 'error');
-                } finally {
-                    this.isUploading = false;
-                    setTimeout(() => this.uploadProgress=0, 1500);
-                    e.target.value = '';
-                }
-            },
-
-            async redactItem(id) {
-                if (!this.isDirector) { this.toast('Director clearance required', 'error'); return; }
-                if (!confirm('PERMANENTLY REDACT THIS ASSET? IRREVERSIBLE.')) return;
-                try {
-                    const { data:asset } = await this.sb.from('gallery').select('url').eq('id',id).single();
-                    const { error } = await this.sb.from('gallery').delete().eq('id',id);
-                    if (error) throw error;
-                    if (asset?.url) {
-                        const path = asset.url.split('/').pop();
-                        if (path) await this.sb.storage.from('media').remove([path]).catch(()=>{});
-                    }
-                    this.items = this.items.filter(i => i.id !== id);
-                    this.toast('Asset purged from grid', 'success');
-                } catch(e) { this.toast('Redaction failed', 'error'); }
-            },
-
-            logout() {
-                try { this.sb?.auth?.signOut(); } catch(_) {}
-                localStorage.removeItem('userRole');
-                window.location.href = '../login.html';
-            },
-
-            timeAgo(ts) {
-                if (!ts) return '—';
-                const s=(Date.now()-new Date(ts))/1000;
-                if (s<60)    return Math.floor(s)+'s ago';
-                if (s<3600)  return Math.floor(s/60)+'m ago';
-                if (s<86400) return Math.floor(s/3600)+'h ago';
-                return Math.floor(s/86400)+'d ago';
-            },
-
-            toast(message, type='info') {
-                const cfg = {
-                    success:{ bg:'#052010', border:'rgba(0,212,170,0.4)',  color:'#4aecd4' },
-                    error:  { bg:'#1a0404', border:'rgba(220,38,38,0.45)', color:'#f87171' },
-                    warning:{ bg:'#1a1000', border:'rgba(212,175,55,0.4)', color:'#fcd34d' },
-                    info:   { bg:'#050a08', border:'rgba(0,212,170,0.2)',  color:'#e8f0ee' }
-                }[type]||{ bg:'#050a08', border:'rgba(0,212,170,0.2)', color:'#e8f0ee' };
-                const t=document.createElement('div');
-                const m=window.innerWidth<640;
-                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:16px;right:16px;transform:translateX(120%)'};background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:12px;padding:11px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.8);display:flex;align-items:center;gap:8px;max-width:min(90vw,360px);`;
-                t.textContent=message;
-                document.body.appendChild(t);
-                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';},20));
-                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),350);},4000);
-            }
-        };
-    }
-    </script>
+  /* Section header */
+  .section-hdr{padding:16px 16px 12px;display:flex;align-items:center;gap:10px;}
+  .section-hdr h2{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;}
+  .section-hdr .line{flex:1;height:1px;background:var(--border);}
+  .count-badge{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);border:1px solid var(--border-teal);padding:2px 8px;border-radius:2px;}
+</style>
 </head>
+<body>
 
-<body x-data="galleryEngine()" x-init="init()" x-cloak class="bg-black min-h-screen">
+<div class="top-bar">
+  <a href="../index.html" class="back-btn">←</a>
+  <div class="top-title">MEDIA VAULT</div>
+  <div class="top-bar-right"></div>
+</div>
 
-<div class="bg-seal" aria-hidden="true"></div>
-<div class="bg-grid" aria-hidden="true"></div>
-<div class="bg-vignette" aria-hidden="true"></div>
+<div class="filter-tabs">
+  <button class="tab active" onclick="filterMedia('all',this)">ALL INTEL</button>
+  <button class="tab" onclick="filterMedia('photo',this)">PHOTOS</button>
+  <button class="tab" onclick="filterMedia('video',this)">VIDEOS</button>
+  <button class="tab" onclick="filterMedia('session01',this)">SESSION 01</button>
+  <button class="tab" onclick="filterMedia('session02',this)">SESSION 02</button>
+</div>
 
-<!-- ── GATE ── -->
-<template x-if="view==='gate'">
-<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black">
-    <div class="loader-ring" style="width:56px;height:56px"></div>
-    <div class="text-center space-y-2">
-        <p class="orbit text-xs tracking-widest" style="color:var(--gold)">
-            Syncing Visual Archive
-            <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span>
-        </p>
-        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
+<div class="section-hdr">
+  <div class="line"></div>
+  <h2>CLASSIFIED MEDIA</h2>
+  <div class="count-badge" id="mediaCount">6 FILES</div>
+  <div class="line"></div>
+</div>
+
+<div class="gallery-grid" id="galleryGrid">
+  <!-- Cards injected by JS -->
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <button class="modal-close" onclick="closeModal()">✕</button>
+  <div class="modal-content">
+    <div class="modal-media" id="modalThumb">🎬</div>
+    <div class="modal-title" id="modalTitle">TITLE</div>
+    <div class="modal-meta" id="modalMeta">META</div>
+    <div class="modal-actions">
+      <button class="modal-btn gold" onclick="likeFromModal()">♥ LIKE</button>
+      <button class="modal-btn teal" onclick="downloadFromModal()">⬇ DOWNLOAD</button>
     </div>
+  </div>
 </div>
-</template>
 
-<!-- ── ACTIVE ── -->
-<template x-if="view==='active'">
-<div class="relative z-10 min-h-screen fade-up">
-
-    <!-- NAV -->
-    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.12)">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <a href="../index.html" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px;font-size:0.6rem">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                </a>
-                <img src="../assets/images/logo.png" alt="M.O.G." style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px var(--gold-glow))" onerror="this.style.display='none'">
-                <div>
-                    <p class="orbit font-black text-base sm:text-lg uppercase" style="color:var(--gold);line-height:1.1">Media Curator</p>
-                    <p class="slogan">Sector 7G Visual Archive</p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <!-- Filter chips — desktop -->
-                <div class="hidden sm:flex gap-1.5">
-                    <template x-for="f in ['ALL','IMAGE','VIDEO']" :key="f">
-                        <button @click="filterType=f" class="orbit font-bold uppercase rounded-full px-3 py-1 transition-all" style="font-size:0.56rem;min-height:unset" :style="filterType===f?'background:rgba(212,175,55,0.18);border:1px solid rgba(212,175,55,0.45);color:var(--gold)':'background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08);color:#6b7280'" x-text="f"></button>
-                    </template>
-                </div>
-
-                <!-- Upload (director only) -->
-                <template x-if="isDirector">
-                    <label class="btn btn-gold px-3 py-2 rounded-xl cursor-pointer" style="font-size:0.6rem;min-height:unset" :class="isUploading?'opacity-50':''">
-                        <svg x-show="!isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-                        <svg x-show="isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        <span x-text="isUploading?'Uploading...':'Upload Asset'"></span>
-                        <input type="file" @change="handleUpload($event)" class="hidden" accept="image/*,video/*" :disabled="isUploading">
-                    </label>
-                </template>
-
-                <button @click="logout()" class="btn btn-red p-2 rounded-xl" style="min-height:unset;padding:7px" title="Sign Out">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Upload progress bar -->
-        <template x-if="uploadProgress>0">
-            <div class="upload-bar mx-4 sm:mx-6 mb-2">
-                <div class="upload-fill" :style="'width:'+uploadProgress+'%'"></div>
-            </div>
-        </template>
-
-        <div class="gold-line" style="opacity:0.2"></div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8" style="padding-bottom:2rem">
-
-        <!-- Mobile filters -->
-        <div class="flex sm:hidden gap-2 mb-5">
-            <template x-for="f in ['ALL','IMAGE','VIDEO']" :key="f">
-                <button @click="filterType=f" class="orbit font-bold uppercase rounded-full px-4 py-2 transition-all flex-1" style="font-size:0.58rem" :style="filterType===f?'background:rgba(212,175,55,0.18);border:1px solid rgba(212,175,55,0.45);color:var(--gold)':'background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.08);color:#6b7280'" x-text="f"></button>
-            </template>
-        </div>
-
-        <!-- Loading -->
-        <template x-if="isLoading">
-            <div class="flex flex-col items-center justify-center py-20 gap-4">
-                <div class="loader-ring"></div>
-                <p class="orbit text-xs tracking-widest" style="color:var(--gold)">Loading Archive...</p>
-            </div>
-        </template>
-
-        <!-- Grid -->
-        <template x-if="!isLoading">
-            <div>
-                <!-- Empty state -->
-                <template x-if="filteredItems.length===0">
-                    <div class="flex flex-col items-center justify-center py-24 gap-5" style="opacity:0.2">
-                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
-                        <p class="orbit text-sm uppercase tracking-widest" style="color:var(--gold)">No Assets Detected</p>
-                        <p class="mono text-xs text-gray-600" x-show="isDirector">Use the Upload button to add media to the archive</p>
-                    </div>
-                </template>
-
-                <!-- Media grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <template x-for="item in filteredItems" :key="item.id">
-                        <div class="media-card">
-                            <!-- Media -->
-                            <template x-if="item.type==='video'">
-                                <video :src="item.url" class="card-media" muted loop playsinline preload="none"
-                                       @mouseenter="$el.play()" @mouseleave="$el.pause();$el.currentTime=0"
-                                       @touchstart="$el.play()"></video>
-                            </template>
-                            <template x-if="item.type!=='video'">
-                                <img :src="item.url" :alt="item.name||'Asset'" class="card-media" loading="lazy"
-                                     @error="$el.src='../assets/images/logo.png'">
-                            </template>
-
-                            <!-- Overlay -->
-                            <div class="card-overlay">
-                                <!-- Top: ref + redact -->
-                                <div class="flex items-start justify-between">
-                                    <div>
-                                        <p class="mono text-gray-500 truncate max-w-[120px]" style="font-size:0.52rem" x-text="'REF: '+(item.id||'').substring(0,8)"></p>
-                                        <p class="orbit font-bold text-white truncate max-w-[140px]" style="font-size:0.62rem" x-text="item.name||'UNTITLED'"></p>
-                                        <p class="mono text-gray-600" style="font-size:0.52rem" x-text="timeAgo(item.created_at)"></p>
-                                    </div>
-                                    <template x-if="isDirector">
-                                        <button @click.stop="redactItem(item.id)" class="btn btn-red p-1.5 rounded-lg" style="min-height:unset">
-                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                        </button>
-                                    </template>
-                                </div>
-
-                                <!-- Bottom: like + download -->
-                                <div class="flex items-center justify-center gap-4">
-                                    <button @click.stop="likeItem(item)"
-                                            class="like-btn btn rounded-full px-4 py-2.5 border"
-                                            :class="isLiked(item.id)?'liked':''"
-                                            style="border-color:rgba(212,175,55,0.25);background:rgba(0,0,0,0.5);color:var(--gold);font-size:0.6rem;font-family:'Orbitron',sans-serif;font-weight:700;letter-spacing:0.08em;min-height:unset"
-                                            :disabled="isLiked(item.id)">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" :style="isLiked(item.id)?'fill:#ef4444;stroke:#ef4444':''"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                                        <span x-text="(item.likes||0)"></span>
-                                    </button>
-                                    <a :href="item.url" download class="btn btn-gold rounded-full px-3 py-2.5" style="font-size:0.6rem;min-height:unset">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                        DL
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- Count -->
-                <template x-if="filteredItems.length > 0">
-                    <p class="mono text-center text-gray-700 mt-6" style="font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase" x-text="filteredItems.length+' assets in archive'"></p>
-                </template>
-            </div>
-        </template>
-    </main>
-
-    <!-- Footer -->
-        <footer class="text-center py-6 mt-4" style="">
-        <div class="gold-line mb-5" style="opacity:0.12"></div>
-
-        <!-- Social + contact icons -->
-        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-                <a href="https://tiktok.com/@ministryofgroove" target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#fff';this.style.borderColor='#fff';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
-                <a href="https://www.facebook.com/share/1ELj9aECsQ/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#1877f2';this.style.borderColor='#1877f2';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-                <a href="https://www.instagram.com/ministryofgroove_hq" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#e1306c';this.style.borderColor='#e1306c';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
-                <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#ff0000';this.style.borderColor='#ff0000';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
-                <a href="https://wa.me/27813874921" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#25d366';this.style.borderColor='#25d366';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
-                <a href="mailto:director.mog@gmail.com" target="_blank" rel="noopener noreferrer" aria-label="Email" title="Email" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>
-        </div>
-
-        <!-- Contact line -->
-        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;margin-bottom:10px">
-            <a href="mailto:director.mog@gmail.com"
-               style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(212,175,55,0.55);letter-spacing:0.1em;text-decoration:none;transition:color 0.2s"
-               onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(212,175,55,0.55)'">
-                director.mog@gmail.com
-            </a>
-            <span style="color:rgba(212,175,55,0.2);font-size:0.5rem">◆</span>
-            <a href="https://wa.me/27813874921" target="_blank" rel="noopener noreferrer"
-               style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(37,211,102,0.6);letter-spacing:0.1em;text-decoration:none;transition:color 0.2s"
-               onmouseover="this.style.color='#25d366'" onmouseout="this.style.color='rgba(37,211,102,0.6)'">
-                +27 81 387 4921
-            </a>
-        </div>
-
-        <!-- Slogan + page tag -->
-        <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2em;text-transform:uppercase">
-            Ministry of Groove // Visual Archive // Est. 2026
-        </p>
-    </footer>
-
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
+  <a href="gallery.html" class="nav-item active"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+  <a href="frequency.html" class="nav-item"><div class="nav-icon">🎙️</div><div class="nav-label">LIVE</div></a>
+  <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
-</template>
 
+<script>
+const mediaItems=[
+  {id:1,type:'video',session:'session01',title:'SESSION 01',subtitle:'AMAPIANO LIVE MIX',icon:'🎬',date:'14D AGO',likes:24,liked:false},
+  {id:2,type:'photo',session:'session01',title:'SESSION 01',subtitle:'GALLERY DROP A',icon:'📸',date:'14D AGO',likes:18,liked:false},
+  {id:3,type:'photo',session:'session01',title:'SESSION 01',subtitle:'GALLERY DROP B',icon:'🖼️',date:'14D AGO',likes:31,liked:false},
+  {id:4,type:'video',session:'session02',title:'SESSION 02',subtitle:'THE SEQUEL DROPS',icon:'🎥',date:'2D AGO',likes:9,liked:false},
+  {id:5,type:'photo',session:'session02',title:'SESSION 02',subtitle:'VIBE SHOTS',icon:'📷',date:'2D AGO',likes:15,liked:false},
+  {id:6,type:'photo',session:'session02',title:'SESSION 02',subtitle:'THE CROWD',icon:'📸',date:'2D AGO',likes:22,liked:false},
+];
+
+let activeFilter='all';
+let currentModalId=null;
+
+function renderGallery(items){
+  const grid=document.getElementById('galleryGrid');
+  document.getElementById('mediaCount').textContent=items.length+' FILES';
+  grid.innerHTML=items.map(m=>`
+    <div class="media-card" onclick="openModal(${m.id})">
+      <div class="media-thumb">
+        <div class="thumb-icon">${m.icon}</div>
+        <div class="media-type-badge badge-${m.type}">${m.type.toUpperCase()}</div>
+      </div>
+      <div class="media-info">
+        <div class="media-title">${m.title}</div>
+        <div class="media-meta">${m.subtitle} · ${m.date}</div>
+        <div class="likes-row">
+          <button class="like-btn ${m.liked?'liked':''}" onclick="event.stopPropagation();toggleLike(${m.id},this)">
+            ${m.liked?'♥':'♡'} <span>${m.likes}</span>
+          </button>
+          <button class="download-btn" onclick="event.stopPropagation();downloadItem(${m.id})">⬇ SAVE</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMedia(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered=f==='all'?mediaItems:mediaItems.filter(m=>m.type===f||m.session===f);
+  renderGallery(filtered);
+}
+
+function toggleLike(id,btn){
+  const item=mediaItems.find(m=>m.id===id);
+  item.liked=!item.liked;
+  item.likes+=item.liked?1:-1;
+  btn.classList.toggle('liked');
+  btn.innerHTML=(item.liked?'♥':'♡')+' <span>'+item.likes+'</span>';
+}
+
+function downloadItem(id){
+  const item=mediaItems.find(m=>m.id===id);
+  alert('📥 Downloading: '+item.title+' — '+item.subtitle+'\n(Connect to Supabase storage to enable real downloads)');
+}
+
+function openModal(id){
+  currentModalId=id;
+  const item=mediaItems.find(m=>m.id===id);
+  document.getElementById('modalThumb').textContent=item.icon;
+  document.getElementById('modalTitle').textContent=item.title+' — '+item.subtitle;
+  document.getElementById('modalMeta').textContent=item.type.toUpperCase()+' · '+item.date+' · '+item.likes+' LIKES';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function likeFromModal(){ if(currentModalId) toggleLike(currentModalId,{classList:{toggle:()=>{}},innerHTML:''}); closeModal(); }
+function downloadFromModal(){ if(currentModalId) downloadItem(currentModalId); closeModal(); }
+
+renderGallery(mediaItems);
+</script>
 </body>
 </html>
