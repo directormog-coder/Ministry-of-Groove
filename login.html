@@ -1,666 +1,293 @@
 <!DOCTYPE html>
-<html lang="en" color-scheme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="icon" type="image/png" href="assets/images/logo.png">
-  <title>M.O.G. | SECURE ACCESS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.O.G. — Operative Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0C85A;
+    --gold-dim: #8A6E2F;
+    --teal: #00E5CC;
+    --teal-dim: #009E8E;
+    --black: #050A0E;
+    --navy: #0D1F2D;
+    --panel: rgba(13,31,45,0.85);
+    --border: rgba(201,168,76,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; background:var(--black); font-family:'Rajdhani',sans-serif; overflow:hidden; }
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/config.js"></script>
-  <script src="/js/supabase-client.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  /* Animated circuit background */
+  canvas#bg { position:fixed; inset:0; z-index:0; opacity:0.18; }
 
-  <style>
-    :root {
-      --black:        #000;
-      --gold:         #d4af37;
-      --gold-dim:     #9a7c1f;
-      --gold-glow:    rgba(212,175,55,0.4);
-      --gold-subtle:  rgba(212,175,55,0.08);
-      --teal:         #00d4aa;
-      --teal-glow:    rgba(0,212,170,0.3);
-      --red:          #dc2626;
-      --surface:      rgba(6,8,7,0.97);
-      --border:       rgba(212,175,55,0.12);
-      --text:         #e0d8c0;
-    }
+  .login-wrap {
+    position:relative; z-index:2;
+    height:100vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; padding:24px;
+  }
 
-    *, *::before, *::after {
-      box-sizing: border-box; margin: 0; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+  /* Top status bar */
+  .status-bar {
+    position:fixed; top:0; left:0; right:0;
+    display:flex; align-items:center; gap:20px;
+    padding:10px 20px;
+    background:rgba(5,10,14,0.9);
+    border-bottom:1px solid var(--border);
+    font-family:'Share Tech Mono',monospace;
+    font-size:10px; color:var(--teal-dim);
+    letter-spacing:2px;
+  }
+  .status-bar .dot { width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
 
-    html, body {
-      width: 100%; height: 100%; overflow: hidden;
-    }
+  /* Logo */
+  .logo-ring {
+    width:110px; height:110px;
+    border:2px solid var(--gold);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 30px rgba(201,168,76,0.4), inset 0 0 20px rgba(0,229,204,0.05);
+    margin-bottom:8px;
+    animation:logoGlow 3s ease-in-out infinite;
+  }
+  @keyframes logoGlow {
+    0%,100%{box-shadow:0 0 20px rgba(201,168,76,0.4)}
+    50%{box-shadow:0 0 50px rgba(201,168,76,0.7),0 0 80px rgba(0,229,204,0.2)}
+  }
+  .logo-ring img { width:100px; height:100px; border-radius:50%; object-fit:cover; }
+  .logo-placeholder {
+    width:100px; height:100px; border-radius:50%;
+    background:var(--navy);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:'Orbitron',sans-serif; font-size:20px; font-weight:900; color:var(--gold);
+    letter-spacing:2px;
+  }
+  .logo-placeholder span { font-size:9px; color:var(--teal); letter-spacing:3px; margin-top:2px; }
 
-    body {
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--black);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.25rem;
-      -webkit-font-smoothing: antialiased;
-    }
+  .org-name {
+    font-family:'Orbitron',sans-serif;
+    font-size:13px; font-weight:700;
+    color:var(--gold); letter-spacing:4px;
+    text-align:center; margin-bottom:4px;
+  }
+  .org-sub {
+    font-family:'Share Tech Mono',monospace;
+    font-size:9px; color:var(--teal-dim);
+    letter-spacing:3px; text-align:center; margin-bottom:32px;
+  }
 
-    /* ── DEEP SPACE BACKGROUND ── */
-    .bg-cosmos {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 20% 100%, rgba(0,212,170,0.05) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 50% at 80% 50%, rgba(212,175,55,0.03) 0%, transparent 50%),
-        #000;
-    }
+  /* Panel */
+  .login-panel {
+    width:100%; max-width:380px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:32px 28px;
+    backdrop-filter:blur(16px);
+    position:relative;
+  }
+  .login-panel::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);
+  }
+  .panel-title {
+    font-family:'Orbitron',sans-serif;
+    font-size:11px; font-weight:700;
+    color:var(--gold-light); letter-spacing:4px;
+    margin-bottom:24px; text-align:center;
+  }
 
-    /* ── GRID ── */
-    .bg-grid {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(212,175,55,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(212,175,55,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
-    }
+  /* Google button */
+  .btn-google {
+    width:100%; padding:14px;
+    background:rgba(201,168,76,0.08);
+    border:1px solid var(--gold);
+    border-radius:3px;
+    display:flex; align-items:center; justify-content:center; gap:12px;
+    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
+    color:var(--gold-light); letter-spacing:2px;
+    cursor:pointer; transition:all 0.3s;
+    text-decoration:none;
+  }
+  .btn-google:hover {
+    background:rgba(201,168,76,0.18);
+    box-shadow:0 0 20px rgba(201,168,76,0.3);
+    transform:translateY(-1px);
+  }
+  .btn-google svg { width:20px; height:20px; flex-shrink:0; }
 
-    /* ── SCAN LINE SWEEP ── */
-    .bg-scanline {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.06) 3px,
-        rgba(0,0,0,0.06) 4px
-      );
-    }
-    .bg-scan-sweep {
-      position: fixed; left: 0; right: 0; z-index: 3; pointer-events: none;
-      height: 120px;
-      background: linear-gradient(180deg, transparent, rgba(212,175,55,0.04), transparent);
-      animation: sweep 8s linear infinite;
-    }
-    @keyframes sweep {
-      0%   { top: -120px; }
-      100% { top: 100vh; }
-    }
+  .divider {
+    display:flex; align-items:center; gap:12px;
+    margin:20px 0; color:var(--gold-dim);
+    font-family:'Share Tech Mono',monospace; font-size:10px; letter-spacing:2px;
+  }
+  .divider::before,.divider::after {
+    content:''; flex:1; height:1px; background:var(--border);
+  }
 
-    /* ── PARTICLES ── */
-    .particles { position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
-    .particle {
-      position: absolute; border-radius: 50%;
-      background: var(--gold); opacity: 0;
-      animation: float-up linear infinite;
-    }
-    @keyframes float-up {
-      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
-      10%  { opacity: 0.5; }
-      90%  { opacity: 0.2; }
-      100% { transform: translateY(-20vh) scale(1); opacity: 0; }
-    }
+  /* Email form */
+  .field { margin-bottom:16px; }
+  .field label {
+    display:block; font-family:'Share Tech Mono',monospace;
+    font-size:10px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:6px;
+  }
+  .field input {
+    width:100%; padding:12px 14px;
+    background:rgba(0,229,204,0.04);
+    border:1px solid rgba(0,229,204,0.2);
+    border-radius:3px; outline:none;
+    font-family:'Rajdhani',sans-serif; font-size:15px; color:#fff;
+    transition:border 0.3s;
+  }
+  .field input:focus { border-color:var(--teal); box-shadow:0 0 10px rgba(0,229,204,0.15); }
+  .field input::placeholder { color:rgba(255,255,255,0.2); }
 
-    /* ── VIGNETTE ── */
-    .bg-vignette {
-      position: fixed; inset: 0; z-index: 4; pointer-events: none;
-      background: radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,0,0.92) 100%);
-    }
+  .btn-login {
+    width:100%; padding:14px;
+    background:linear-gradient(135deg,var(--gold-dim),var(--gold));
+    border:none; border-radius:3px;
+    font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700;
+    color:var(--black); letter-spacing:3px;
+    cursor:pointer; transition:all 0.3s;
+    margin-top:4px;
+  }
+  .btn-login:hover {
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    box-shadow:0 0 25px rgba(201,168,76,0.5);
+  }
 
-    /* ── TERMINAL CARD ── */
-    .terminal-card {
-      position: relative; z-index: 10;
-      width: 100%; max-width: 400px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 2rem;
-      padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 4vw, 2.5rem);
-      backdrop-filter: blur(30px);
-      box-shadow:
-        0 0 0 1px rgba(212,175,55,0.04),
-        0 30px 80px rgba(0,0,0,0.95),
-        inset 0 1px 0 rgba(255,255,255,0.03);
-      animation: card-arrive 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-    @keyframes card-arrive {
-      from { opacity: 0; transform: translateY(24px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    .terminal-card.is-director {
-      border-color: rgba(0,212,170,0.25);
-      box-shadow:
-        0 0 0 1px rgba(0,212,170,0.06),
-        0 30px 80px rgba(0,0,0,0.95),
-        0 0 60px rgba(0,212,170,0.06),
-        inset 0 1px 0 rgba(0,212,170,0.05);
-    }
-    .shake { animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake {
-      10%, 90% { transform: translateX(-2px); }
-      20%, 80% { transform: translateX(3px); }
-      30%, 50%, 70% { transform: translateX(-5px); }
-      40%, 60% { transform: translateX(5px); }
-    }
+  .register-link {
+    text-align:center; margin-top:20px;
+    font-family:'Share Tech Mono',monospace; font-size:10px;
+    color:var(--gold-dim); letter-spacing:1px;
+  }
+  .register-link a { color:var(--teal); text-decoration:none; }
 
-    /* ── LOGO RING ── */
-    .logo-ring-wrap {
-      width: clamp(72px, 16vw, 88px);
-      height: clamp(72px, 16vw, 88px);
-      margin: 0 auto 2rem;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .logo-ring-svg {
-      position: absolute; inset: 0;
-      animation: ring-spin 20s linear infinite;
-    }
-    @keyframes ring-spin { to { transform: rotate(360deg); } }
-    .logo-ring-inner {
-      position: absolute; inset: 8px;
-      background: #000; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .logo-ring-inner img {
-      width: 58%; object-fit: contain;
-      filter: drop-shadow(0 0 10px var(--gold-glow));
-      transition: filter 0.5s;
-    }
-    .is-director .logo-ring-inner img {
-      filter: drop-shadow(0 0 12px var(--teal-glow));
-    }
+  /* Classification stamp */
+  .classify {
+    margin-top:28px; text-align:center;
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:rgba(201,168,76,0.25); letter-spacing:3px;
+    border:1px solid rgba(201,168,76,0.1);
+    padding:6px 16px; display:inline-block;
+    border-radius:2px;
+  }
 
-    /* ── TITLE ── */
-    .gate-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: clamp(1.1rem, 4vw, 1.4rem);
-      font-weight: 900;
-      color: #fff;
-      letter-spacing: 0.18em;
-      text-align: center;
-      text-transform: uppercase;
-      line-height: 1;
-      transition: color 0.5s;
-    }
-    .is-director .gate-title { color: var(--teal); }
-    .gate-sub {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.6rem;
-      color: rgba(212,175,55,0.3);
-      letter-spacing: 0.4em;
-      text-transform: uppercase;
-      text-align: center;
-      margin-top: 0.5rem;
-    }
-
-    /* ── DIVIDER ── */
-    .divider {
-      height: 1px; margin: 1.75rem 0;
-      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
-    }
-
-    /* ── FIELD LABELS ── */
-    .field-label {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem;
-      color: rgba(255,255,255,0.2);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-
-    /* ── INPUTS ── */
-    .input-wrap { position: relative; margin-bottom: 1rem; }
-    .input-terminal {
-      width: 100%;
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(212,175,55,0.15);
-      border-radius: 1rem;
-      padding: 0.95rem 1rem 0.95rem 3rem;
-      color: #fff;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.85rem;
-      outline: none;
-      transition: border-color 0.3s, box-shadow 0.3s;
-      -webkit-appearance: none;
-    }
-    .input-terminal::placeholder { color: rgba(255,255,255,0.15); }
-    .input-terminal:focus {
-      border-color: rgba(212,175,55,0.5);
-      box-shadow: 0 0 0 3px rgba(212,175,55,0.07), inset 0 0 20px rgba(212,175,55,0.02);
-    }
-    .is-director .input-terminal:focus {
-      border-color: rgba(0,212,170,0.5);
-      box-shadow: 0 0 0 3px rgba(0,212,170,0.07);
-    }
-    .input-icon {
-      position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
-      width: 16px; height: 16px;
-      color: rgba(212,175,55,0.3);
-      pointer-events: none;
-      transition: color 0.3s;
-    }
-    .input-terminal:focus ~ .input-icon { color: var(--gold); }
-    .is-director .input-terminal:focus ~ .input-icon { color: var(--teal); }
-
-    /* eye toggle */
-    .eye-toggle {
-      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.2);
-      padding: 0; line-height: 1; transition: color 0.2s;
-    }
-    .eye-toggle:hover { color: var(--gold); }
-
-    /* ── STRENGTH BAR ── */
-    .strength-bar-wrap { margin-top: -0.5rem; margin-bottom: 0.75rem; height: 2px; border-radius: 2px; background: rgba(255,255,255,0.04); overflow: hidden; }
-    .strength-bar { height: 100%; border-radius: 2px; width: 0; transition: width 0.4s, background 0.4s; }
-
-    /* ── AUTH BTN ── */
-    .btn-auth {
-      width: 100%; padding: 1rem;
-      background: linear-gradient(135deg, var(--gold) 0%, #b8960a 100%);
-      border: none; border-radius: 1rem;
-      color: #000;
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900; font-size: 0.65rem;
-      text-transform: uppercase; letter-spacing: 0.25em;
-      cursor: pointer;
-      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-      position: relative; overflow: hidden;
-      box-shadow: 0 4px 20px rgba(212,175,55,0.2);
-      margin-top: 0.5rem;
-    }
-    .btn-auth::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-      opacity: 0; transition: opacity 0.3s;
-    }
-    .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(212,175,55,0.35); }
-    .btn-auth:hover::before { opacity: 1; }
-    .btn-auth:active { transform: translateY(0) scale(0.98); }
-    .btn-auth:disabled { opacity: 0.25; cursor: not-allowed; transform: none; box-shadow: none; }
-    .is-director .btn-auth {
-      background: linear-gradient(135deg, var(--teal), #009e7e);
-      box-shadow: 0 4px 20px rgba(0,212,170,0.2);
-    }
-    .is-director .btn-auth:hover { box-shadow: 0 8px 30px rgba(0,212,170,0.4); }
-    .btn-auth .btn-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-
-    /* spinner */
-    .spinner {
-      display: none; width: 14px; height: 14px;
-      border: 2px solid rgba(0,0,0,0.3);
-      border-top-color: #000;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .is-loading .spinner { display: block; }
-    .is-loading .btn-label { display: none; }
-
-    /* ── ALERT ── */
-    .alert-strip {
-      display: none;
-      background: rgba(220,38,38,0.1);
-      border: 1px solid rgba(220,38,38,0.35);
-      border-radius: 0.75rem;
-      padding: 0.7rem 1rem;
-      margin-bottom: 1rem;
-      color: #fca5a5;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem;
-      letter-spacing: 0.12em;
-      text-align: center;
-      animation: pulse-red 2s infinite;
-    }
-    .alert-strip.active { display: block; }
-    @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.65} }
-
-    /* ── BOTTOM LINKS ── */
-    .footer-links {
-      margin-top: 1.5rem;
-      display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
-    }
-    .link-ghost {
-      background: none; border: none; cursor: pointer;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.6rem; color: rgba(255,255,255,0.18);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      transition: color 0.25s;
-    }
-    .link-ghost:hover { color: var(--gold); }
-    .is-director .link-ghost:hover { color: var(--teal); }
-    .status-blip {
-      display: flex; align-items: center; gap: 0.5rem;
-    }
-    .blip {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--teal);
-      animation: pulse-dot 2s infinite;
-    }
-    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
-    .blip-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.55rem; color: rgba(255,255,255,0.1);
-      letter-spacing: 0.25em; text-transform: uppercase;
-    }
-
-    /* ── SYSTEM LOADER OVERLAY ── */
-    .sys-loader {
-      position: fixed; inset: 0; z-index: 1000;
-      background: #000;
-      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
-    }
-    .sys-loader.active { display: flex; }
-    .loader-ring-wrap {
-      width: 90px; height: 90px; position: relative;
-    }
-    .loader-ring-svg { position: absolute; inset: 0; animation: ring-spin 3s linear infinite; }
-    .loader-ring-inner {
-      position: absolute; inset: 10px; background: #000;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    }
-    .loader-ring-inner img { width: 55%; filter: drop-shadow(0 0 10px var(--gold-glow)); }
-    .loader-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.6rem; font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 0.5em; text-transform: uppercase;
-      animation: pulse-txt 1.5s infinite;
-    }
-    @keyframes pulse-txt { 0%,100%{opacity:1} 50%{opacity:0.35} }
-    .loader-bar {
-      width: 200px; height: 1px;
-      background: rgba(212,175,55,0.1);
-      border-radius: 1px; overflow: hidden;
-    }
-    .loader-bar-fill {
-      height: 100%; width: 0%;
-      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
-      animation: load-fill 1.8s ease-in-out forwards;
-    }
-    @keyframes load-fill { to { width: 100%; } }
-
-    /* ── FOOTER ── */
-    .page-footer {
-      position: fixed; bottom: max(1.5rem, env(safe-area-inset-bottom));
-      left: 0; right: 0; text-align: center; pointer-events: none; z-index: 5;
-    }
-    .page-footer p {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.55rem; color: rgba(255,255,255,0.07);
-      letter-spacing: 0.4em; text-transform: uppercase;
-    }
-  </style>
+  /* Scanline overlay */
+  .scanlines {
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);
+  }
+</style>
 </head>
 <body>
+<canvas id="bg"></canvas>
+<div class="scanlines"></div>
 
-  <div class="bg-cosmos"></div>
-  <div class="bg-grid"></div>
-  <div class="bg-scanline"></div>
-  <div class="bg-scan-sweep"></div>
-  <div class="bg-vignette"></div>
+<div class="status-bar">
+  <div class="dot"></div>
+  <span>ENCRYPTION ACTIVE</span>
+  <span style="margin-left:auto;color:rgba(201,168,76,0.5)">CLASSIFIED — OPERATIVE ACCESS ONLY</span>
+</div>
 
-  <!-- Floating particles injected by JS -->
-  <div class="particles" id="particles"></div>
-
-  <!-- SYSTEM LOADER OVERLAY -->
-  <div class="sys-loader" id="sysLoader">
-    <div class="loader-ring-wrap">
-      <svg class="loader-ring-svg" viewBox="0 0 90 90" fill="none">
-        <circle cx="45" cy="45" r="40" stroke="url(#rg)" stroke-width="1.5" stroke-dasharray="6 4"/>
-        <defs>
-          <linearGradient id="rg" x1="0" y1="0" x2="90" y2="90" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#d4af37"/>
-            <stop offset="0.5" stop-color="#00d4aa"/>
-            <stop offset="1" stop-color="#d4af37"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      <div class="loader-ring-inner">
-        <img src="assets/images/logo.png" alt="MOG">
-      </div>
+<div class="login-wrap">
+  <div class="logo-ring">
+    <div class="logo-placeholder">
+      M.O.G
+      <span>EST.2026</span>
     </div>
-    <p class="loader-text" id="loadStatus">Authenticating</p>
-    <div class="loader-bar"><div class="loader-bar-fill" id="loaderBar"></div></div>
+  </div>
+  <div class="org-name">MINISTRY OF GROOVE</div>
+  <div class="org-sub">SECURE OPERATIVE NETWORK</div>
+
+  <div class="login-panel">
+    <div class="panel-title">— OPERATIVE AUTHENTICATION —</div>
+
+    <!-- Google Login -->
+    <a href="#" class="btn-google" onclick="handleGoogleLogin()">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      INFILTRATE WITH GOOGLE
+    </a>
+
+    <div class="divider">OR</div>
+
+    <!-- Email form -->
+    <div class="field">
+      <label>OPERATIVE ID (EMAIL)</label>
+      <input type="email" placeholder="your@gmail.com" id="emailInput">
+    </div>
+    <div class="field">
+      <label>CIPHER (PASSWORD)</label>
+      <input type="password" placeholder="••••••••••" id="passInput">
+    </div>
+    <button class="btn-login" onclick="handleEmailLogin()">INITIATE ACCESS</button>
+
+    <div class="register-link">
+      NEW RECRUIT? <a href="#" onclick="showRegister()">REQUEST CLEARANCE</a>
+    </div>
   </div>
 
-  <!-- MAIN CARD -->
-  <main class="terminal-card" id="authCard">
+  <div class="classify">TOP SECRET // M.O.G. NETWORK // EST. 2026</div>
+</div>
 
-    <!-- Logo ring -->
-    <div class="logo-ring-wrap">
-      <svg class="logo-ring-svg" viewBox="0 0 88 88" fill="none">
-        <circle cx="44" cy="44" r="40" stroke="url(#lg)" stroke-width="1" stroke-dasharray="4 3"/>
-        <defs>
-          <linearGradient id="lg" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#d4af37" stop-opacity="0.8"/>
-            <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.6"/>
-            <stop offset="1" stop-color="#d4af37" stop-opacity="0.8"/>
-          </linearGradient>
-        </defs>
-      </svg>
-      <div class="logo-ring-inner">
-        <img src="assets/images/logo.png" alt="MOG Seal">
-      </div>
-    </div>
+<script>
+// Circuit board background animation
+const canvas = document.getElementById('bg');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-    <!-- Title -->
-    <h1 class="gate-title" id="gateTitle">M.O.G. Hub</h1>
-    <p class="gate-sub">Secure Access Terminal</p>
+const nodes = [];
+const lines = [];
+for(let i=0;i<60;i++){
+  nodes.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3});
+}
 
-    <div class="divider"></div>
-
-    <!-- Alert -->
-    <div class="alert-strip" id="alertStrip"></div>
-
-    <!-- Email field -->
-    <label class="field-label" for="email">Personnel ID</label>
-    <div class="input-wrap">
-      <input type="email" id="email" class="input-terminal" placeholder="id@ministry.com"
-             oninput="monitorInput(this.value)"
-             onkeydown="if(event.key==='Enter') document.getElementById('password').focus()">
-      <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M2.5 6.5l7.5 5 7.5-5M3 5h14a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1z" stroke-linecap="round"/>
-      </svg>
-    </div>
-
-    <!-- Password field -->
-    <label class="field-label" for="password">Access Code</label>
-    <div class="input-wrap">
-      <input type="password" id="password" class="input-terminal" placeholder="••••••••••"
-             oninput="updateStrength(this.value)"
-             onkeydown="if(event.key==='Enter') initializeAccess()">
-      <svg class="input-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="4" y="9" width="12" height="9" rx="1.5" stroke-linecap="round"/>
-        <path d="M7 9V7a3 3 0 016 0v2" stroke-linecap="round"/>
-      </svg>
-      <button class="eye-toggle" id="eyeBtn" onclick="toggleEye()" type="button" aria-label="Toggle visibility">
-        <svg id="eyeIcon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z" stroke-linecap="round"/>
-          <circle cx="10" cy="10" r="2.5"/>
-        </svg>
-      </button>
-    </div>
-
-    <!-- Strength bar -->
-    <div class="strength-bar-wrap">
-      <div class="strength-bar" id="strengthBar"></div>
-    </div>
-
-    <!-- CTA -->
-    <button class="btn-auth" id="authBtn" onclick="initializeAccess()">
-      <span class="btn-inner">
-        <span class="spinner" id="spinner"></span>
-        <span class="btn-label" id="btnLabel">Initialize Uplink</span>
-      </span>
-    </button>
-
-    <!-- Footer links -->
-    <div class="footer-links">
-      <button class="link-ghost" onclick="requestMagicLink()">Request Magic Link Access</button>
-      <div class="status-blip">
-        <div class="blip"></div>
-        <span class="blip-label">Dual-Gate Protocol Active</span>
-      </div>
-    </div>
-
-  </main>
-
-  <footer class="page-footer">
-    <p>Ministry of Groove // Emalahleni // 2026</p>
-  </footer>
-
-  <script>
-    // ── CONSTANTS ──
-    const DIRECTOR_EMAIL = 'director.mog@gmail.com';
-    let failedAttempts = 0;
-    let isLoading = false;
-    const getSb = () => window.sb || window.supabaseClient;
-
-    // ── PARTICLES ──
-    (function spawnParticles() {
-      const container = document.getElementById('particles');
-      for (let i = 0; i < 18; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        const size = Math.random() * 2 + 1;
-        p.style.cssText = `
-          width:${size}px; height:${size}px;
-          left:${Math.random() * 100}%;
-          animation-duration:${Math.random() * 15 + 12}s;
-          animation-delay:${Math.random() * 10}s;
-        `;
-        container.appendChild(p);
-      }
-    })();
-
-    // ── MONITOR INPUT ──
-    function monitorInput(val) {
-      const card = document.getElementById('authCard');
-      const title = document.getElementById('gateTitle');
-      const btn = document.getElementById('authBtn');
-      const isDir = val.trim().toLowerCase() === DIRECTOR_EMAIL;
-      card.classList.toggle('is-director', isDir);
-      title.textContent = isDir ? 'Directorate Prime' : 'M.O.G. Hub';
-    }
-
-   // ── STRENGTH BAR ──
-    function updateStrength(val) {
-      const bar = document.getElementById('strengthBar');
-      let score = 0;
-      if (val.length >= 8)  score += 25;
-      if (val.length >= 12) score += 15;
-      if (/[A-Z]/.test(val)) score += 20;
-      if (/[0-9]/.test(val)) score += 20;
-      if (/[^A-Za-z0-9]/.test(val)) score += 20;
-      const color = score < 30 ? '#dc2626' : score < 60 ? '#f59e0b' : score < 85 ? '#d4af37' : '#00d4aa';
-      bar.style.width = score + '%';
-      bar.style.background = color;
-    }
-
-    // ── EYE TOGGLE ──
-    function toggleEye() {
-      const pw = document.getElementById('password');
-      const icon = document.getElementById('eyeIcon');
-      if (pw.type === 'password') {
-        pw.type = 'text';
-        icon.innerHTML = `<path d="M3 3l14 14M10.5 5.07A7.94 7.94 0 0110 5C4 5 1 10 1 10s1.06 1.87 3 3.5M6.5 6.5A7.01 7.01 0 001 10s3 5 9 5c1.68 0 3.2-.44 4.5-1.12M10 13a3 3 0 01-3-3c0-.45.1-.88.27-1.27" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`;
-      } else {
-        pw.type = 'password';
-        icon.innerHTML = `<path d="M1 10s3-6 9-6 9 6 9 6-3 6-9 6-9-6-9-6z" stroke-linecap="round"/><circle cx="10" cy="10" r="2.5"/>`;
+function drawBG(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  nodes.forEach(n=>{
+    n.x+=n.vx; n.y+=n.vy;
+    if(n.x<0||n.x>canvas.width)n.vx*=-1;
+    if(n.y<0||n.y>canvas.height)n.vy*=-1;
+    ctx.beginPath();ctx.arc(n.x,n.y,2,0,Math.PI*2);
+    ctx.fillStyle='#00E5CC';ctx.fill();
+  });
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<120){
+        ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);
+        ctx.strokeStyle=`rgba(0,229,204,${(1-d/120)*0.5})`;ctx.lineWidth=0.5;ctx.stroke();
       }
     }
+  }
+  requestAnimationFrame(drawBG);
+}
+drawBG();
 
-    // ── SHAKE ──
-    function shake() {
-      const card = document.getElementById('authCard');
-      card.classList.add('shake');
-      navigator.vibrate?.([50, 50, 50]);
-      setTimeout(() => card.classList.remove('shake'), 500);
-    }
-
-    // ── SET LOADING STATE ──
-    function setLoading(state) {
-      isLoading = state;
-      const btn = document.getElementById('authBtn');
-      const spinner = document.getElementById('spinner');
-      const label = document.getElementById('btnLabel');
-      btn.disabled = state;
-      spinner.style.display = state ? 'block' : 'none';
-      label.style.display = state ? 'none' : 'block';
-    }
-
-    // ── INIT ACCESS ──
-    async function initializeAccess() {
-      if (isLoading) return;
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const loader = document.getElementById('sysLoader');
-      const status = document.getElementById('loadStatus');
-      const alertBox = document.getElementById('alertStrip');
-
-      if (!email || !password) { shake(); return; }
-
-      setLoading(true);
-      alertBox.classList.remove('active');
-
-      loader.classList.add('active');
-      status.textContent = 'Establishing Secure Tunnel';
-
-      try {
-        const { data, error } = await getSb().auth.signInWithPassword({ email, password });
-        if (error) throw error;
-
-        status.textContent = 'Clearance Verified';
-        setTimeout(() => {
-          status.textContent = email.toLowerCase() === DIRECTOR_EMAIL
-            ? 'Redirecting to Command...'
-            : 'Redirecting to Hub...';
-          setTimeout(() => {
-            window.location.href = email.toLowerCase() === DIRECTOR_EMAIL
-              ? 'pages/directorate.html'
-              : 'index.html';
-          }, 600);
-        }, 900);
-
-      } catch (err) {
-        failedAttempts++;
-        loader.classList.remove('active');
-        setLoading(false);
-        shake();
-
-        alertBox.classList.add('active');
-        alertBox.textContent = failedAttempts >= 3
-          ? '⚠ Terminal Locked — Intrusion Logged'
-          : `⚠ Access Denied — Attempt ${failedAttempts}/3`;
-
-        if (failedAttempts >= 3) {
-          document.getElementById('authBtn').disabled = true;
-          getSb().from('activity_log').insert({
-            type: 'INTRUSION_ALERT',
-            description: `Failed login attempts: ${email}`
-          }).then(() => {});
-        }
-      }
-    }
-
-    // ── MAGIC LINK ──
-    async function requestMagicLink() {
-      const email = document.getElementById('email').value.trim();
-      if (!email) { shake(); return; }
-      const { error } = await getSb().auth.signInWithOtp({ email });
-      if (!error) alert('Magic link transmitted to secure inbox.');
-      else alert('Transmission failed. Verify Personnel ID.');
-    }
-  </script>
+function handleGoogleLogin(){
+  alert('🔐 Google OAuth will be connected to Supabase.\nRedirecting to Operative Hub...');
+  window.location.href='index.html';
+}
+function handleEmailLogin(){
+  const e=document.getElementById('emailInput').value;
+  const p=document.getElementById('passInput').value;
+  if(!e||!p){alert('Enter your Operative ID and Cipher.');return;}
+  alert('Authenticating operative...\nRedirecting to Hub.');
+  window.location.href='index.html';
+}
+function showRegister(){
+  alert('Registration portal — connect to Supabase auth to enable.');
+}
+</script>
 </body>
 </html>
