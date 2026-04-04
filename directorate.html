@@ -3,603 +3,278 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000">
+  <meta name="theme-color" content="#050A0E">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>M.O.G. | DIRECTORATE COMMAND</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
   <script src="/js/supabase-client.js"></script>
   <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --black:      #000;
-      --gold:       #d4af37;
-      --gold-glow:  rgba(212,175,55,0.35);
-      --gold-dim:   rgba(212,175,55,0.08);
-      --teal:       #00d4aa;
-      --teal-glow:  rgba(0,212,170,0.3);
-      --red:        #ef4444;
-      --red-glow:   rgba(239,68,68,0.25);
-      --surface:    rgba(6,7,6,0.97);
-      --border:     rgba(212,175,55,0.1);
-      --border-h:   rgba(212,175,55,0.22);
-      --text:       #d8d0ba;
+      --gold: #C9A84C;
+      --gold-light: #F0C85A;
+      --gold-glow: rgba(201,168,76,0.3);
+      --teal: #00E5CC;
+      --teal-glow: rgba(0,229,204,0.3);
+      --red: #FF3B3B;
+      --red-glow: rgba(255,59,59,0.3);
+      --black: #050A0E;
+      --navy: #0D1F2D;
+      --panel: rgba(13,31,45,0.9);
+      --border: rgba(201,168,76,0.15);
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box; margin: 0; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background: var(--black); color: #fff; font-family: 'Rajdhani', sans-serif; overflow-x: hidden; min-height: 100vh; padding-bottom: 60px; }
 
-    body {
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--black);
-      color: var(--text);
-      min-height: 100dvh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
+    /* --- ATMOSPHERICS --- */
+    .bg-vfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 50px 50px; mask-image: radial-gradient(circle, black, transparent 85%); opacity: 0.1; }
+    .scanlines { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px); z-index: 5; }
 
-    [x-cloak] { display: none !important; }
-    ::-webkit-scrollbar { width: 2px; }
-    ::-webkit-scrollbar-thumb { background: var(--gold); }
-
-    /* ── BACKGROUNDS ── */
-    .bg-cosmos {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 50% -5%, rgba(212,175,55,0.09) 0%, transparent 55%),
-        radial-gradient(ellipse 40% 30% at 90% 80%, rgba(239,68,68,0.04) 0%, transparent 50%),
-        radial-gradient(ellipse 40% 30% at 10% 80%, rgba(0,212,170,0.03) 0%, transparent 50%),
-        #000;
-    }
-    .bg-grid {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(212,175,55,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(212,175,55,0.02) 1px, transparent 1px);
-      background-size: 52px 52px;
-      mask-image: radial-gradient(ellipse 100% 80% at 50% 30%, black 30%, transparent 80%);
-    }
-    .bg-seal {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: clamp(280px, 60vmin, 600px); aspect-ratio: 1;
-      background: url('../assets/images/1000219947.png') center/contain no-repeat;
-      opacity: 0.022; pointer-events: none; z-index: 0;
-    }
-    .bg-scan-sweep {
-      position: fixed; left: 0; right: 0; z-index: 2; pointer-events: none;
-      height: 100px;
-      background: linear-gradient(180deg, transparent, rgba(212,175,55,0.02), transparent);
-      animation: sweep 14s linear infinite;
-    }
-    @keyframes sweep { 0%{top:-100px} 100%{top:100vh} }
-    .bg-vignette {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
-      background: radial-gradient(ellipse 90% 70% at 50% 50%, transparent 30%, rgba(0,0,0,0.97) 100%);
-    }
-
-    /* Scanline overlay */
-    .bg-scanlines {
-      position: fixed; inset: 0; z-index: 3; pointer-events: none;
-      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px);
-    }
-
-    /* ── GLASS ── */
-    .glass {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.5rem;
-      backdrop-filter: blur(25px);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
-      transition: border-color 0.3s;
-    }
-    .glass:hover { border-color: var(--border-h); }
-
-    /* ── RING ── */
-    .seal-ring-wrap {
-      position: relative; flex-shrink: 0;
-      width: clamp(52px, 12vw, 76px);
-      height: clamp(52px, 12vw, 76px);
-    }
-    .seal-ring-svg { position: absolute; inset: 0; animation: ring-spin 20s linear infinite; }
-    @keyframes ring-spin { to{transform:rotate(360deg)} }
-    .seal-ring-inner {
-      position: absolute; inset: 7px; background: #000; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .seal-ring-inner img { width: 65%; object-fit: contain; filter: drop-shadow(0 0 8px var(--gold-glow)); }
-
-    /* ── NAV ── */
-    .top-nav {
-      position: sticky; top: 0; z-index: 60;
-      padding: 1rem 1.5rem;
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(0,0,0,0.88);
-      border-bottom: 1px solid rgba(212,175,55,0.07);
+    /* --- TOP COMMAND BAR --- */
+    .command-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5,10,14,0.98); border-bottom: 1px solid var(--gold);
+      padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;
       backdrop-filter: blur(20px);
     }
+    .director-brand { display: flex; align-items: center; gap: 15px; }
+    .director-brand img { filter: drop-shadow(0 0 8px var(--gold-glow)); }
+    .system-clock { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--teal); letter-spacing: 2px; }
 
-    /* ── STAT CARDS ── */
+    /* --- LAYOUT GRID --- */
+    .dashboard {
+      display: grid; grid-template-columns: 1fr 360px; gap: 20px;
+      max-width: 1400px; margin: 20px auto; padding: 0 20px;
+      position: relative; z-index: 10;
+    }
+
+    /* --- STATS RIBBON --- */
+    .stats-ribbon { grid-column: span 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
     .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      padding: 1.5rem;
-      transition: all 0.3s;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      background: var(--panel); border: 1px solid var(--border);
+      padding: 18px; border-radius: 8px; position: relative; overflow: hidden;
     }
-    .stat-card:hover { border-color: var(--border-h); transform: translateY(-2px); }
-    .stat-card .val {
-      font-family: 'Orbitron', sans-serif;
-      font-weight: 900; line-height: 1;
-      margin-top: 0.5rem;
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: var(--gold); }
+    .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: var(--gold-glow); letter-spacing: 2px; text-transform: uppercase; }
+    .stat-value { font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 900; margin-top: 5px; letter-spacing: 1px; }
+
+    /* --- MAIN PANELS --- */
+    .glass-panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    .panel-title { font-family: 'Orbitron', sans-serif; font-size: 13px; letter-spacing: 3px; color: var(--gold); font-weight: 700; }
+
+    .video-feed {
+      width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 8px; 
+      position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .radar-sweep {
+      position: absolute; width: 200%; height: 200%;
+      background: conic-gradient(from 0deg, transparent, var(--teal-glow), transparent 30%);
+      animation: rotate 4s linear infinite; opacity: 0.2;
     }
 
-    /* ── CLASSIFIED STAMP ── */
-    .classified-stamp {
-      border: 2px solid var(--red);
-      color: var(--red);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem; font-weight: 900;
-      padding: 0.4rem 0.9rem;
-      letter-spacing: 0.2em; text-transform: uppercase;
-      transform: rotate(-8deg);
-      box-shadow: 0 0 12px rgba(239,68,68,0.15);
-      transition: all 0.4s;
+    /* --- BUTTONS --- */
+    .console-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+    .btn {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      padding: 15px; border-radius: 6px; cursor: pointer; color: #fff;
+      font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
+      letter-spacing: 2px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
     }
-    .classified-stamp.locked {
-      background: var(--red); color: #fff;
-      box-shadow: 0 0 20px rgba(239,68,68,0.4);
-    }
+    .btn:hover { background: var(--gold); color: var(--black); box-shadow: 0 0 20px var(--gold-glow); }
+    .btn-danger { color: var(--red); border-color: var(--red-glow); }
+    .btn-danger:hover { background: var(--red); color: #fff; box-shadow: 0 0 20px var(--red-glow); }
+    .btn-danger.active { background: var(--red); color: #fff; animation: pulse-red 1.5s infinite; }
 
-    /* ── MONITOR FRAME ── */
-    .monitor-frame {
-      background: #000;
-      border: 1px solid rgba(255,255,255,0.04);
-      border-radius: 1rem;
-      overflow: hidden;
-      aspect-ratio: 16/9;
-      position: relative;
-    }
-    .monitor-noise {
-      position: absolute; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
-      opacity: 0.15; pointer-events: none;
-    }
-    .monitor-scanlines {
-      position: absolute; inset: 0; pointer-events: none;
-      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,212,170,0.015) 2px, rgba(0,212,170,0.015) 4px);
-    }
-    .monitor-center { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 0.75rem; }
-    .monitor-eye-svg { animation: eye-pulse 4s ease-in-out infinite; }
-    @keyframes eye-pulse { 0%,100%{opacity:0.06} 50%{opacity:0.14} }
-    .monitor-hud {
-      position: absolute; top: 0.75rem; left: 0.75rem; z-index: 3;
-    }
-
-    /* ── PROTOCOL BUTTON ── */
-    .proto-btn {
-      padding: 1rem 1.25rem;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 0.2em;
-      border-radius: 1rem;
-      cursor: pointer; transition: all 0.35s;
-      border: 1px solid;
-      display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-    }
-    .proto-btn.danger {
-      background: rgba(239,68,68,0.07);
-      border-color: rgba(239,68,68,0.3);
-      color: var(--red);
-    }
-    .proto-btn.danger:hover, .proto-btn.danger.active {
-      background: var(--red);
-      border-color: var(--red);
-      color: #fff;
-      box-shadow: 0 0 25px var(--red-glow);
-    }
-    .proto-btn.broadcast {
-      background: var(--gold-dim);
-      border-color: rgba(212,175,55,0.3);
-      color: var(--gold);
-    }
-    .proto-btn.broadcast:hover {
-      background: var(--gold);
-      border-color: var(--gold);
-      color: #000;
-      box-shadow: 0 0 25px var(--gold-glow);
-    }
-
-    /* ── OPERATIVE NODES ── */
-    .op-node {
-      padding: 0.9rem 1rem;
-      border: 1px solid rgba(212,175,55,0.06);
-      border-radius: 1rem;
-      background: rgba(0,0,0,0.35);
-      display: flex; align-items: center; gap: 0.85rem;
-      transition: all 0.3s;
-    }
-    .op-node:hover { border-color: rgba(212,175,55,0.2); background: rgba(212,175,55,0.03); }
-    .op-avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      border: 1px solid rgba(212,175,55,0.2); overflow: hidden; flex-shrink: 0;
-    }
-    .op-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .op-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; margin-left: auto; flex-shrink: 0; }
-
-    /* ── TRANSMISSION LOG ── */
-    .tx-item {
-      padding: 0.7rem 0;
-      border-bottom: 1px solid rgba(212,175,55,0.04);
-      transition: all 0.2s; cursor: default;
-    }
-    .tx-item:last-child { border-bottom: none; }
-    .tx-item:hover { padding-left: 0.5rem; border-left: 2px solid rgba(212,175,55,0.3); }
-
-    /* ── SECTION HEAD ── */
-    .section-head {
-      display: flex; align-items: center; gap: 0.6rem;
-      font-family: 'Orbitron', sans-serif; font-size: 0.6rem;
-      font-weight: 900; color: rgba(212,175,55,0.65);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      margin-bottom: 1.25rem;
-    }
-
-    /* ── ANIMATIONS ── */
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    @keyframes pulse-ring { 0%,100%{opacity:0.6} 50%{opacity:1} }
-    .fade-up { opacity:0; transform:translateY(16px); animation:fade-up 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
-    @keyframes fade-up { to{opacity:1;transform:translateY(0)} }
-    .delay-1{animation-delay:0.08s} .delay-2{animation-delay:0.16s}
-    .delay-3{animation-delay:0.24s} .delay-4{animation-delay:0.32s}
-    .delay-5{animation-delay:0.40s}
-
-    /* ── LOADING ── */
-    .loading-screen {
-      position:fixed;inset:0;z-index:200;background:#000;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;
-    }
-    .load-ring-wrap{width:80px;height:80px;position:relative;}
-    .load-ring-svg{position:absolute;inset:0;animation:ring-spin 3s linear infinite;}
-    .load-ring-inner{position:absolute;inset:9px;background:#000;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-    .load-ring-inner img{width:55%;filter:drop-shadow(0 0 8px var(--gold-glow));animation:pulse 2s infinite;}
-    .load-text{font-family:'Orbitron',sans-serif;font-size:0.55rem;font-weight:700;color:var(--gold);letter-spacing:0.5em;text-transform:uppercase;animation:pulse 1.5s infinite;}
-    .load-bar-wrap{width:160px;height:1px;background:rgba(212,175,55,0.08);border-radius:1px;overflow:hidden;}
-    .load-bar-fill{height:100%;background:var(--gold);animation:load-sweep 1.5s ease-in-out infinite;}
-    @keyframes load-sweep{0%{width:0%;margin-left:0%}50%{width:70%;margin-left:15%}100%{width:0%;margin-left:100%}}
-
-    /* HELPERS */
-    .font-orbit{font-family:'Orbitron',sans-serif;}
-    .font-mono{font-family:'Share Tech Mono',monospace;}
-    .text-gold{color:var(--gold);}
-    .text-teal{color:var(--teal);}
-    .text-red{color:var(--red);}
+    /* --- LISTS & ANIMATIONS --- */
+    .log-container { height: 400px; overflow-y: auto; padding-right: 10px; }
+    .log-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-family: 'Share Tech Mono', monospace; font-size: 11px; }
+    .log-item .ts { color: var(--gold-glow); font-size: 9px; margin-bottom: 4px; display: block; }
+    .op-row { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 2px solid var(--teal); }
+    
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255,59,59,0.7); } 70% { box-shadow: 0 0 0 15px rgba(255,59,59,0); } 100% { box-shadow: 0 0 0 0 rgba(255,59,59,0); } }
+    
+    [x-cloak] { display: none !important; }
+    @media (max-width: 1000px) { .dashboard { grid-template-columns: 1fr; } .stats-ribbon { grid-template-columns: 1fr 1fr; } }
   </style>
+</head>
+<body x-data="directorCommand()" x-init="init()">
+
+  <div class="bg-vfx"><div class="grid"></div><div class="scanlines"></div></div>
+
+  <template x-if="view === 'loading'">
+    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; z-index:20;">
+      <div style="width:60px; height:60px; border:3px solid var(--gold); border-top-color:transparent; border-radius:50%; animation: rotate 1s linear infinite;"></div>
+      <p style="margin-top:25px; font-family:'Orbitron'; font-size:11px; letter-spacing:6px; color:var(--gold);">AUTHENTICATING DIRECTOR ACCESS...</p>
+    </div>
+  </template>
+
+  <template x-if="view === 'active'">
+    <div>
+      <nav class="command-bar">
+        <div class="director-brand">
+          <img src="../assets/images/1000219947.png" height="32">
+          <div>
+            <h1 style="font-family:'Orbitron'; font-size:14px; letter-spacing:2px; font-weight:900;">DIRECTORATE COMMAND</h1>
+            <p class="system-clock">UPLINK: SECURE // <span x-text="currentTime"></span></p>
+          </div>
+        </div>
+        <a href="../index.html" class="btn" style="padding:8px 15px;">EXIT TO HUB</a>
+      </nav>
+
+      <main class="dashboard">
+        <div class="stats-ribbon">
+          <div class="stat-card">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" style="color:var(--gold-light);" x-text="stats.revenue"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Operatives Live</div>
+            <div class="stat-value" style="color:var(--teal);" x-text="operatives.length"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">System Load</div>
+            <div class="stat-value">12.4%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Vault Status</div>
+            <div class="stat-value">LOCKED</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="glass-panel">
+            <div class="panel-head">
+              <div class="panel-title">// MASTER SIGNAL OVERRIDE</div>
+              <div style="font-family:'Share Tech Mono'; font-size:10px; color:var(--red);">LIVE BROADCAST ACTIVE</div>
+            </div>
+            <div class="video-feed">
+              <div class="radar-sweep"></div>
+              <div style="z-index:10; text-align:center;">
+                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="var(--gold-glow)" stroke-width="1">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/>
+                </svg>
+                <p style="font-family:'Share Tech Mono'; font-size:10px; color:var(--gold-glow); margin-top:10px; letter-spacing:2px;">FEED: MOG_PRIME_STREAM</p>
+              </div>
+            </div>
+            <div class="console-grid">
+              <button class="btn btn-danger" :class="protocolZero ? 'active' : ''" @click="toggleProtocol()">
+                <span x-text="protocolZero ? 'DISENGAGE LOCKDOWN' : 'PROTOCOL ZERO'"></span>
+              </button>
+              <button class="btn" @click="globalBroadcast()">GLOBAL PUSH ALERT</button>
+            </div>
+          </div>
+
+          <div class="glass-panel">
+            <div class="panel-title" style="margin-bottom:15px;">// DEPLOY NEW ASSETS</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+              <div style="border:1px dashed var(--border); padding:20px; border-radius:8px; text-align:center; background:rgba(0,0,0,0.2);">
+                <p style="font-size:10px; font-family:'Share Tech Mono';">DROP SESSION MEDIA</p>
+                <button class="btn" style="margin-top:10px; font-size:9px; padding:8px;">BROWSE</button>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <input type="text" placeholder="SESSION TITLE..." style="background:var(--navy); border:1px solid var(--border); padding:10px; border-radius:4px; color:#fff; font-family:'Share Tech Mono';">
+                <button class="btn" style="background:var(--teal); color:var(--black); border:none;">UPLOAD TO GALLERY</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div class="glass-panel" style="padding:20px; margin:0;">
+            <div class="panel-title" style="font-size:11px; margin-bottom:15px;">TRANSMISSION LOGS</div>
+            <div class="log-container">
+              <template x-for="log in logs" :key="log.id">
+                <div class="log-item">
+                  <span class="ts" x-text="formatTime(log.created_at)"></span>
+                  <span x-text="log.description"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+          <div class="glass-panel" style="padding:20px; margin:0;">
+            <div class="panel-title" style="font-size:11px; margin-bottom:15px;">ACTIVE DOSSIERS</div>
+            <template x-for="op in operatives" :key="op.username">
+              <div class="op-row">
+                <div style="width:30px; height:30px; border-radius:50%; background:var(--navy); display:flex; align-items:center; justify-content:center; font-size:10px; font-family:'Orbitron'; border:1px solid var(--border);" x-text="op.username.substring(0,2).toUpperCase()"></div>
+                <div style="flex:1;">
+                  <div style="font-size:11px; font-weight:700;" x-text="op.username"></div>
+                  <div style="font-size:8px; color:var(--gold-glow); text-transform:uppercase;" x-text="op.rank || 'OPERATIVE'"></div>
+                </div>
+                <div style="width:6px; height:6px; background:var(--teal); border-radius:50%; animation: pulse-red 2s infinite;"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </main>
+    </div>
+  </template>
 
   <script>
-    function directorate() {
+    function directorCommand() {
       return {
         view: 'loading',
+        currentTime: '',
         protocolZero: false,
-        stats: { viewers: 12842, revenue: 45200, health: 99.9, clearance: 5 },
+        stats: { revenue: 'R45,200' },
         logs: [],
         operatives: [],
-        currentTime: '',
-        timerInterval: null,
 
         async init() {
-          this.currentTime = new Date().toISOString().slice(0,19).replace('T',' ');
-          this.timerInterval = setInterval(() => {
-            this.currentTime = new Date().toISOString().slice(0,19).replace('T',' ');
-          }, 1000);
-
-          let wait = 0;
-          while (typeof sb === 'undefined' && wait < 40) {
-            await new Promise(r => setTimeout(r, 100)); wait++;
-          }
-
+          setInterval(() => { this.currentTime = new Date().toLocaleTimeString(); }, 1000);
           try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) { window.location.href = '../login.html'; return; }
-            await this.syncCommand();
+            if (typeof sb !== 'undefined') {
+              const { data: { session } } = await sb.auth.getSession();
+              if (!session) { window.location.href = '../login.html'; return; }
+              await this.syncData();
+            } else {
+              // Mock data for display
+              this.logs = [{ id:1, created_at: new Date(), description: 'SYSTEMS ONLINE // OFFLINE EMULATION' }];
+              this.operatives = [{ username: 'DIRECTOR_X', rank: 'DIRECTOR' }];
+            }
             this.view = 'active';
-          } catch (e) { console.error('DIRECTORATE ACCESS REFUSED', e); }
+          } catch (e) { this.view = 'active'; }
         },
 
-        async syncCommand() {
-          const { data: settings } = await sb.from('system_settings').select('*').eq('key', 'protocolZero').single();
-          if (settings) {
-            try { this.protocolZero = JSON.parse(settings.value).active; } catch {}
-          }
-          const { data: logs } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(12);
+        async syncData() {
+          const { data: logs } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(15);
           this.logs = logs || [];
-          const { data: ops } = await sb.from('profiles').select('username, rank, avatar_url').limit(6);
+          const { data: ops } = await sb.from('profiles').select('username, rank').limit(5);
           this.operatives = ops || [];
         },
 
-        async toggleLockdown() {
+        async toggleProtocol() {
           const mode = !this.protocolZero;
-          const msg = mode ? '⚠ ACTIVATE SYSTEM LOCKDOWN?\nAll operative sessions will be suspended.' : 'RELEASE SYSTEM LOCKDOWN?';
-          if (!window.confirm(msg)) return;
-
-          const { error } = await sb.from('system_settings').upsert({
-            key: 'protocolZero',
-            value: JSON.stringify({ active: mode, timestamp: new Date() })
-          });
-
-          if (!error) {
+          if(confirm(mode ? "ACTIVATE SYSTEM-WIDE LOCKDOWN?" : "REVERT TO NORMAL OPERATIONS?")) {
             this.protocolZero = mode;
-            await this.logCommand(`PROTOCOL_ZERO_${mode ? 'ENGAGED' : 'DISENGAGED'}`);
-            await this.syncCommand();
+            if(typeof sb !== 'undefined') {
+              await sb.from('system_settings').upsert({ key: 'protocol_zero', value: mode });
+              await sb.from('activity_log').insert({ description: mode ? '!!! PROTOCOL ZERO ENGAGED !!!' : 'Protocol Zero Disengaged' });
+              this.syncData();
+            }
           }
         },
 
-        async logCommand(action) {
-          await sb.from('activity_log').insert({ type: 'DIRECTORATE_ACTION', description: `COMMAND: ${action}` });
+        async globalBroadcast() {
+          const msg = prompt("ENTER BROADCAST ALERT:");
+          if(msg && typeof sb !== 'undefined') {
+            await sb.from('activity_log').insert({ description: `GLOBAL ALERT: ${msg}` });
+            this.syncData();
+            alert("BROADCAST SENT.");
+          }
         },
 
-        timeAgo(ts) {
-          const d = Math.floor((Date.now() - new Date(ts)) / 1000);
-          if (d < 60) return `${d}s ago`;
-          if (d < 3600) return `${Math.floor(d/60)}m ago`;
-          return `${Math.floor(d/3600)}h ago`;
-        }
-      };
+        formatTime(ts) { return new Date(ts).toLocaleTimeString(); }
+      }
     }
   </script>
-</head>
-
-<body x-data="directorate()" x-init="init()" x-cloak>
-
-  <div class="bg-cosmos"></div>
-  <div class="bg-grid"></div>
-  <div class="bg-seal"></div>
-  <div class="bg-scan-sweep"></div>
-  <div class="bg-vignette"></div>
-  <div class="bg-scanlines"></div>
-
-  <!-- LOADING -->
-  <template x-if="view === 'loading'">
-    <div class="loading-screen">
-      <div class="load-ring-wrap">
-        <svg class="load-ring-svg" viewBox="0 0 80 80" fill="none">
-          <circle cx="40" cy="40" r="36" stroke="url(#dlg)" stroke-width="1.2" stroke-dasharray="5 3.5"/>
-          <defs>
-            <linearGradient id="dlg" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#d4af37"/>
-              <stop offset="0.5" stop-color="#ef4444"/>
-              <stop offset="1" stop-color="#d4af37"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="load-ring-inner">
-          <img src="../assets/images/1000219947.png" alt="Directorate">
-        </div>
-      </div>
-      <p class="load-text">Establishing Command Link</p>
-      <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
-    </div>
-  </template>
-
-  <!-- ACTIVE COMMAND -->
-  <template x-if="view === 'active'">
-    <div>
-
-      <!-- NAV -->
-      <nav class="top-nav fade-up">
-        <div style="display:flex;align-items:center;gap:1rem;">
-          <div class="seal-ring-wrap">
-            <svg class="seal-ring-svg" viewBox="0 0 76 76" fill="none">
-              <circle cx="38" cy="38" r="34" stroke="url(#snrg)" stroke-width="0.9" stroke-dasharray="4 3"/>
-              <defs>
-                <linearGradient id="snrg" x1="0" y1="0" x2="76" y2="76" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#d4af37" stop-opacity="0.8"/>
-                  <stop offset="0.5" stop-color="#ef4444" stop-opacity="0.5"/>
-                  <stop offset="1" stop-color="#d4af37" stop-opacity="0.8"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div class="seal-ring-inner">
-              <img src="../assets/images/1000219947.png" alt="Directorate Seal">
-            </div>
-          </div>
-          <div>
-            <h1 class="font-orbit" style="color:#fff;font-size:clamp(0.75rem,2.5vw,1rem);font-weight:900;letter-spacing:0.18em;text-transform:uppercase;font-style:italic;line-height:1;">Directorate Command</h1>
-            <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);margin-top:0.3rem;letter-spacing:0.2em;text-transform:uppercase;">
-              Uplink: <span style="color:var(--teal);animation:pulse 2s infinite;display:inline-block;">Encrypted</span>
-              &nbsp;//&nbsp; Station: Emalahleni Prime
-            </p>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:1rem;">
-          <div style="text-align:right;display:none;" class="md-show">
-            <p class="font-orbit" style="font-size:0.6rem;color:#fff;font-weight:900;letter-spacing:0.1em;">Access Granted</p>
-            <p class="font-mono" style="font-size:0.5rem;color:rgba(212,175,55,0.4);letter-spacing:0.15em;text-transform:uppercase;">Clearance: Alpha</p>
-          </div>
-          <a href="../index.html" style="display:flex;align-items:center;gap:0.6rem;text-decoration:none;color:rgba(255,255,255,0.25);transition:color 0.25s;font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;" class="hover-gold">
-            <span>Exit to Hub</span>
-            <div style="width:36px;height:36px;border:1px solid rgba(212,175,55,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:border-color 0.25s;">
-              <img src="../assets/images/logo.png" style="width:22px;height:22px;object-fit:contain;opacity:0.5;">
-            </div>
-          </a>
-        </div>
-      </nav>
-
-      <!-- MAIN -->
-      <main style="position:relative;z-index:10;max-width:1200px;margin:0 auto;padding:1.5rem max(1rem,env(safe-area-inset-left)) 3rem;">
-
-        <!-- STAT ROW -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem;">
-          <div class="stat-card fade-up delay-1">
-            <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.15em;">Network Viewers</p>
-            <p class="val" style="font-size:clamp(1.4rem,3vw,2rem);color:#fff;" x-text="stats.viewers.toLocaleString()"></p>
-            <div style="margin-top:0.6rem;height:2px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;">
-              <div style="height:100%;background:linear-gradient(90deg,#9a7c1f,var(--gold));width:78%;border-radius:2px;"></div>
-            </div>
-          </div>
-          <div class="stat-card fade-up delay-2">
-            <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.15em;">Ticket Revenue</p>
-            <p class="val text-gold" style="font-size:clamp(1.4rem,3vw,2rem);" x-text="'R' + stats.revenue.toLocaleString()"></p>
-            <div style="margin-top:0.6rem;height:2px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;">
-              <div style="height:100%;background:linear-gradient(90deg,#9a7c1f,var(--gold));width:62%;border-radius:2px;box-shadow:0 0 8px var(--gold-glow);"></div>
-            </div>
-          </div>
-          <div class="stat-card fade-up delay-3">
-            <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.15em;">Uplink Health</p>
-            <p class="val text-teal" style="font-size:clamp(1.4rem,3vw,2rem);" x-text="stats.health + '%'"></p>
-            <div style="margin-top:0.6rem;height:2px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden;">
-              <div style="height:100%;background:linear-gradient(90deg,#006b58,var(--teal));width:99.9%;border-radius:2px;box-shadow:0 0 8px var(--teal-glow);"></div>
-            </div>
-          </div>
-          <div class="stat-card fade-up delay-4" style="display:flex;align-items:center;justify-content:center;">
-            <div class="classified-stamp" :class="protocolZero ? 'locked' : ''">
-              <span x-text="protocolZero ? 'System Locked' : 'Level 5 Clearance'"></span>
-            </div>
-          </div>
-        </div>
-
-        <!-- MAIN GRID -->
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:1.25rem;align-items:start;">
-
-          <!-- LEFT COL -->
-          <div style="display:flex;flex-direction:column;gap:1.25rem;">
-
-            <!-- SIGNAL OVERRIDE + MONITOR -->
-            <div class="glass fade-up delay-2" style="padding:1.75rem;">
-              <div class="section-head">
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round">
-                  <path d="M2 2l16 16M9.17 4.07A6 6 0 0115.95 11M4.05 9a6 6 0 016.78-5.94M3 17l2-2M17 17l-2-2M10 13a3 3 0 01-3-3"/>
-                </svg>
-                Master Signal Override
-                <span class="font-mono" style="font-size:0.5rem;color:var(--red);margin-left:auto;animation:pulse 2s infinite;">● Broadcasting</span>
-              </div>
-
-              <!-- Monitor -->
-              <div class="monitor-frame">
-                <div class="monitor-noise"></div>
-                <div class="monitor-scanlines"></div>
-                <div class="monitor-center">
-                  <svg class="monitor-eye-svg" width="80" height="80" viewBox="0 0 80 80" fill="none">
-                    <ellipse cx="40" cy="40" rx="35" ry="22" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
-                    <circle cx="40" cy="40" r="10" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
-                    <circle cx="40" cy="40" r="4" fill="rgba(255,255,255,0.08)"/>
-                  </svg>
-                  <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.15);letter-spacing:0.3em;text-transform:uppercase;">Live Feedback: HQ_CAM_01</p>
-                </div>
-                <div class="monitor-hud">
-                  <p class="font-mono" style="font-size:0.55rem;color:var(--teal);line-height:1.8;">
-                    ● Monitoring<br>
-                    <span x-text="currentTime"></span>
-                  </p>
-                </div>
-                <!-- Corner brackets -->
-                <div style="position:absolute;top:10px;right:10px;width:16px;height:16px;border-top:1px solid rgba(212,175,55,0.2);border-right:1px solid rgba(212,175,55,0.2);"></div>
-                <div style="position:absolute;bottom:10px;left:10px;width:16px;height:16px;border-bottom:1px solid rgba(212,175,55,0.2);border-left:1px solid rgba(212,175,55,0.2);"></div>
-              </div>
-
-              <!-- Buttons -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.25rem;">
-                <button class="proto-btn danger" :class="protocolZero ? 'active' : ''" @click="toggleLockdown()">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <circle cx="10" cy="10" r="7"/><path d="M10 7v3M10 13h.01"/>
-                  </svg>
-                  <span x-text="protocolZero ? 'Disengage Protocol' : 'Protocol Zero'"></span>
-                </button>
-                <button class="proto-btn broadcast">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                    <path d="M5 10a7 7 0 0110 0M3 7a11 11 0 0114 0M7 13a4 4 0 016 0M10 16h.01"/>
-                  </svg>
-                  Global Broadcast
-                </button>
-              </div>
-            </div>
-
-            <!-- OPERATIVE NODES -->
-            <div class="glass fade-up delay-3" style="padding:1.75rem;">
-              <div class="section-head">
-                <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                  <circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.31 3.13-6 7-6s7 2.69 7 6"/>
-                </svg>
-                Active Operative Nodes
-                <span class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.2);margin-left:auto;" x-text="operatives.length + ' Online'"></span>
-              </div>
-              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.75rem;">
-                <template x-for="op in operatives" :key="op.username">
-                  <div class="op-node">
-                    <div class="op-avatar">
-                      <img :src="op.avatar_url || '../assets/images/logo.png'" :alt="op.username">
-                    </div>
-                    <div style="flex:1;min-width:0;">
-                      <p class="font-orbit" style="font-size:0.6rem;color:#fff;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" x-text="op.username"></p>
-                      <p class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;" x-text="op.rank"></p>
-                    </div>
-                    <div class="op-status-dot"></div>
-                  </div>
-                </template>
-                <template x-if="operatives.length === 0">
-                  <p class="font-mono" style="font-size:0.6rem;color:rgba(255,255,255,0.15);text-align:center;padding:1rem;grid-column:span 2;letter-spacing:0.2em;text-transform:uppercase;">No active operatives</p>
-                </template>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- RIGHT: LOGS -->
-          <div class="glass fade-up delay-4" style="padding:1.5rem;position:sticky;top:80px;">
-            <div class="section-head" style="margin-bottom:1rem;">
-              <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                <path d="M2 5h16M2 9h16M2 13h10"/>
-              </svg>
-              Transmission Logs
-              <span class="font-mono" style="font-size:0.5rem;color:var(--teal);margin-left:auto;animation:pulse 2s infinite;">● Live</span>
-            </div>
-            <div style="max-height:520px;overflow-y:auto;padding-right:0.25rem;">
-              <template x-for="log in logs" :key="log.id">
-                <div class="tx-item">
-                  <p style="font-size:0.75rem;color:rgba(255,255,255,0.75);line-height:1.4;" x-text="log.description"></p>
-                  <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.2);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.1em;" x-text="timeAgo(log.created_at)"></p>
-                </div>
-              </template>
-              <template x-if="logs.length === 0">
-                <p class="font-mono" style="font-size:0.6rem;color:rgba(255,255,255,0.12);text-align:center;padding:2rem 0;letter-spacing:0.2em;text-transform:uppercase;font-style:italic;">Scanning network...</p>
-              </template>
-            </div>
-          </div>
-
-        </div>
-
-      </main>
-
-      <!-- FOOTER -->
-      <footer style="padding:2rem 1.5rem 3rem;text-align:center;border-top:1px solid rgba(212,175,55,0.05);">
-        <div style="display:flex;justify-content:center;gap:2rem;margin-bottom:1rem;opacity:0.12;">
-          <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 2l1.74 3.53 3.9.57-2.82 2.75.67 3.88L10 11.25 6.51 12.73l.67-3.88-2.82-2.75 3.9-.57z"/></svg>
-          <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 10a7 7 0 0110 0M3 7a11 11 0 0114 0M10 16h.01"/></svg>
-          <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="9" width="12" height="9" rx="1.5"/><path d="M7 9V7a3 3 0 016 0v2"/></svg>
-        </div>
-        <p class="font-orbit" style="font-size:0.5rem;color:rgba(255,255,255,0.08);letter-spacing:0.4em;text-transform:uppercase;">Seal of the Directorate Command // Level 5 Protected Area</p>
-        <p class="font-mono" style="font-size:0.5rem;color:rgba(239,68,68,0.25);margin-top:0.5rem;letter-spacing:0.3em;text-transform:uppercase;">© 2026 M.O.G. All Actions Logged to Omega-Vault</p>
-      </footer>
-
-    </div>
-  </template>
-
-  <style>
-    @media(min-width:768px){.md-show{display:block!important}}
-    @media(max-width:900px){
-      main > div > div:last-child { grid-template-columns: 1fr !important; }
-    }
-    .hover-gold:hover { color: var(--gold) !important; }
-    .hover-gold:hover div { border-color: rgba(212,175,55,0.4) !important; }
-  </style>
-
 </body>
 </html>
