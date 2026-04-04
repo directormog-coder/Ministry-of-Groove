@@ -1,772 +1,380 @@
 <!DOCTYPE html>
-<html lang="en" color-scheme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="M.O.G.">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="assets/images/logo.png">
-  <link rel="icon" type="image/png" href="assets/images/logo.png">
-  <title>M.O.G. | OPERATIVE HUB</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.O.G. — Operative Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0C85A;
+    --gold-dim: #8A6E2F;
+    --teal: #00E5CC;
+    --teal-dim: #009E8E;
+    --black: #050A0E;
+    --navy: #0D1F2D;
+    --panel: rgba(13,31,45,0.9);
+    --border: rgba(201,168,76,0.25);
+    --border-teal: rgba(0,229,204,0.2);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--black); font-family:'Rajdhani',sans-serif; color:#fff; min-height:100vh; padding-bottom:90px; }
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/config.js"></script>
-  <script src="/js/supabase-client.js"></script>
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  /* Scanlines */
+  body::after {
+    content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);
+  }
 
-  <style>
-    :root {
-      --black:       #000;
-      --gold:        #d4af37;
-      --gold-bright: #f0c040;
-      --gold-glow:   rgba(212,175,55,0.35);
-      --gold-subtle: rgba(212,175,55,0.06);
-      --teal:        #00d4aa;
-      --teal-glow:   rgba(0,212,170,0.3);
-      --red:         #dc2626;
-      --surface:     rgba(7,9,8,0.97);
-      --surface-2:   rgba(12,14,12,0.95);
-      --border:      rgba(212,175,55,0.1);
-      --border-h:    rgba(212,175,55,0.25);
-      --text:        #ddd5bb;
-      --text-dim:    rgba(221,213,187,0.45);
-    }
+  /* TOP STATUS BAR */
+  .status-bar {
+    position:sticky; top:0; z-index:100;
+    background:rgba(5,10,14,0.97);
+    border-bottom:1px solid var(--border);
+    padding:0 16px;
+    display:flex; align-items:center;
+    height:44px; gap:12px;
+    backdrop-filter:blur(10px);
+  }
+  .status-live {
+    background:#8B0000; color:#fff;
+    font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
+    padding:3px 10px; letter-spacing:2px; border-radius:2px;
+    animation:livePulse 1.5s ease infinite;
+  }
+  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+  .status-items { display:flex; gap:16px; flex:1; justify-content:center; }
+  .status-item {
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:var(--teal-dim); letter-spacing:1px;
+    display:flex; align-items:center; gap:5px;
+  }
+  .status-item .dot { width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite; }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+  .status-logout {
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:var(--gold-dim); letter-spacing:1px; cursor:pointer;
+    border:1px solid var(--border); padding:4px 8px; border-radius:2px;
+    transition:all 0.2s;
+  }
+  .status-logout:hover { color:var(--gold); border-color:var(--gold); }
 
-    *, *::before, *::after {
-      box-sizing: border-box; margin: 0; padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
+  /* HERO CARD */
+  .hero { padding:16px; }
+  .hero-card {
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:18px;
+    display:flex; align-items:center; gap:14px;
+    position:relative; overflow:hidden;
+  }
+  .hero-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));
+  }
+  .hero-avatar {
+    width:56px; height:56px; border-radius:50%;
+    border:2px solid var(--gold);
+    background:var(--navy);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',sans-serif; font-size:18px; font-weight:900; color:var(--gold);
+    box-shadow:0 0 15px rgba(201,168,76,0.3);
+    flex-shrink:0;
+  }
+  .hero-info { flex:1; }
+  .hero-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:2px; }
+  .hero-name { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:#fff; letter-spacing:2px; }
+  .hero-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--gold-dim); letter-spacing:1px; margin-top:2px; }
+  .hero-dept { font-size:11px; color:var(--teal); font-weight:600; letter-spacing:2px; margin-top:6px; }
+  .hero-logout-btn {
+    background:none; border:1px solid var(--border);
+    color:var(--gold-dim); padding:8px; border-radius:4px;
+    cursor:pointer; font-size:16px; transition:all 0.2s;
+  }
+  .hero-logout-btn:hover { border-color:var(--gold); color:var(--gold); }
 
-    body {
-      font-family: 'Rajdhani', sans-serif;
-      background: var(--black);
-      color: var(--text);
-      min-height: 100dvh;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
+  /* GRID STATS */
+  .stats-grid { padding:0 16px 16px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat-card {
+    background:var(--panel); border:1px solid var(--border-teal);
+    border-radius:6px; padding:16px;
+    position:relative;
+  }
+  .stat-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:8px; }
+  .stat-bar-wrap { height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-bottom:6px; }
+  .stat-bar { height:100%; border-radius:2px; transition:width 1s ease; }
+  .stat-bar.gold { background:linear-gradient(90deg,var(--gold-dim),var(--gold-light)); }
+  .stat-bar.teal { background:linear-gradient(90deg,var(--teal-dim),var(--teal)); }
+  .stat-value { font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; color:var(--gold); }
+  .stat-sub { font-size:10px; color:rgba(255,255,255,0.35); font-family:'Share Tech Mono',monospace; font-size:9px; }
 
-    [x-cloak] { display: none !important; }
-    ::-webkit-scrollbar { width: 2px; }
-    ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+  /* SECTION TITLE */
+  .section-title {
+    padding:0 16px 12px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title h2 {
+    font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700;
+    color:var(--gold); letter-spacing:3px;
+  }
+  .section-title .line { flex:1; height:1px; background:var(--border); }
+  .section-title .live-dot {
+    width:7px;height:7px;border-radius:50%;background:var(--teal);
+    box-shadow:0 0 8px var(--teal); animation:pulse 1.5s infinite;
+  }
 
-    /* ── BACKGROUNDS ── */
-    .bg-cosmos {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(212,175,55,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 40% at 10% 90%, rgba(0,212,170,0.04) 0%, transparent 55%),
-        #000;
-    }
-    .bg-grid {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(212,175,55,0.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(212,175,55,0.018) 1px, transparent 1px);
-      background-size: 50px 50px;
-      mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 20%, transparent 80%);
-    }
-    .bg-seal {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: clamp(280px, 60vmin, 520px); aspect-ratio: 1;
-      background: url('assets/images/logo.png') center/contain no-repeat;
-      opacity: 0.025; pointer-events: none; z-index: 0;
-    }
-    .bg-scan-sweep {
-      position: fixed; left: 0; right: 0; z-index: 2; pointer-events: none;
-      height: 100px;
-      background: linear-gradient(180deg, transparent, rgba(212,175,55,0.025), transparent);
-      animation: sweep 12s linear infinite;
-    }
-    @keyframes sweep { 0%{top:-100px} 100%{top:100vh} }
-    .bg-vignette {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
-      background: radial-gradient(ellipse 90% 80% at 50% 50%, transparent 30%, rgba(0,0,0,0.97) 100%);
-    }
+  /* QUICK ACTION ICONS */
+  .quick-actions { padding:0 16px 20px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .qa-btn {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:6px; padding:16px 8px;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; transition:all 0.3s; text-decoration:none;
+  }
+  .qa-btn:hover, .qa-btn.active {
+    border-color:var(--gold);
+    background:rgba(201,168,76,0.08);
+    box-shadow:0 0 15px rgba(201,168,76,0.15);
+    transform:translateY(-2px);
+  }
+  .qa-icon { font-size:22px; }
+  .qa-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--gold-dim); letter-spacing:1px; text-align:center; }
 
-    /* ── TICKER ── */
-    .ticker-shell {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
-      height: 30px;
-      background: linear-gradient(90deg, rgba(60,0,0,0.9), rgba(0,0,0,0.95), rgba(60,0,0,0.9));
-      border-bottom: 1px solid rgba(212,175,55,0.1);
-      display: flex; align-items: center; overflow: hidden;
-    }
-    .ticker-tag {
-      background: var(--red); color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.5rem; font-weight: 900;
-      padding: 0 14px; height: 100%;
-      display: flex; align-items: center;
-      letter-spacing: 0.15em;
-      flex-shrink: 0;
-      clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
-      padding-right: 22px;
-    }
-    .ticker-track {
-      overflow: hidden; flex: 1; height: 100%; display: flex; align-items: center;
-      mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent);
-    }
-    .ticker-move {
-      display: flex; white-space: nowrap;
-      animation: ticker-scroll 35s linear infinite;
-    }
-    @keyframes ticker-scroll { from{transform:translateX(100vw)} to{transform:translateX(-100%)} }
-    .ticker-item {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.6rem; color: rgba(255,255,255,0.75);
-      padding: 0 2.5rem; display: flex; align-items: center; gap: 0.75rem;
-    }
-    .ticker-diamond { color: var(--gold); opacity: 0.4; font-size: 0.5rem; }
+  /* RECENT TRANSMISSIONS */
+  .transmissions { padding:0 16px 20px; }
+  .tx-card {
+    background:var(--panel); border:1px solid var(--border-teal);
+    border-radius:6px; padding:18px; position:relative; overflow:hidden;
+  }
+  .tx-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,var(--teal),transparent);
+  }
+  .tx-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .tx-title { font-family:'Orbitron',sans-serif; font-size:11px; color:var(--gold); letter-spacing:3px; }
+  .tx-live { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal); letter-spacing:2px; display:flex; align-items:center; gap:5px; }
+  .tx-item {
+    display:flex; align-items:flex-start; gap:10px;
+    padding:10px 0; border-bottom:1px solid rgba(201,168,76,0.08);
+  }
+  .tx-item:last-child { border-bottom:none; padding-bottom:0; }
+  .tx-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); margin-top:4px; flex-shrink:0; box-shadow:0 0 6px rgba(201,168,76,0.5); }
+  .tx-dot.teal { background:var(--teal); box-shadow:0 0 6px rgba(0,229,204,0.5); }
+  .tx-text { flex:1; }
+  .tx-main { font-size:13px; font-weight:600; color:#e0e0e0; letter-spacing:1px; }
+  .tx-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); margin-top:2px; letter-spacing:1px; }
 
-    /* ── GLASS PANELS ── */
-    .glass {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 1.5rem;
-      backdrop-filter: blur(25px);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
-      transition: border-color 0.3s;
-    }
-    .glass:hover { border-color: var(--border-h); }
+  /* UPCOMING EVENT BANNER */
+  .event-banner { margin:0 16px 20px; }
+  .event-card {
+    background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(0,229,204,0.05));
+    border:1px solid var(--gold);
+    border-radius:6px; padding:18px;
+    position:relative; overflow:hidden;
+  }
+  .event-card::after {
+    content:'EVENT'; position:absolute; right:-10px; top:50%; transform:translateY(-50%) rotate(90deg);
+    font-family:'Orbitron',sans-serif; font-size:40px; font-weight:900;
+    color:rgba(201,168,76,0.04); letter-spacing:4px;
+  }
+  .event-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal); letter-spacing:3px; margin-bottom:6px; }
+  .event-name { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:var(--gold-light); letter-spacing:2px; margin-bottom:4px; }
+  .event-date { font-size:13px; color:rgba(255,255,255,0.6); letter-spacing:1px; font-weight:500; }
+  .event-btn {
+    display:inline-block; margin-top:14px;
+    background:var(--gold); color:var(--black);
+    font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700;
+    padding:8px 20px; border-radius:3px; letter-spacing:2px;
+    text-decoration:none; cursor:pointer; border:none;
+    transition:all 0.2s;
+  }
+  .event-btn:hover { background:var(--gold-light); box-shadow:0 0 20px rgba(201,168,76,0.4); }
 
-    /* ── NAV ── */
-    .hub-nav {
-      position: sticky; top: 30px; z-index: 50;
-      margin-bottom: 1.75rem;
-    }
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; z-index:100;
+    background:rgba(5,10,14,0.97);
+    border-top:1px solid var(--border);
+    display:grid; grid-template-columns:repeat(5,1fr);
+    backdrop-filter:blur(10px);
+  }
+  .nav-item {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:10px 4px; gap:4px; cursor:pointer;
+    text-decoration:none; transition:all 0.2s;
+    border-top:2px solid transparent;
+  }
+  .nav-item.active { border-top-color:var(--gold); }
+  .nav-item .nav-icon { font-size:20px; }
+  .nav-item .nav-label {
+    font-family:'Share Tech Mono',monospace; font-size:8px;
+    color:var(--gold-dim); letter-spacing:1px;
+  }
+  .nav-item.active .nav-label { color:var(--gold); }
 
-    /* ── LOGO RING ── */
-    .logo-ring-wrap {
-      position: relative; flex-shrink: 0;
-      width: clamp(38px, 9vw, 52px);
-      height: clamp(38px, 9vw, 52px);
-    }
-    .logo-ring-svg { position: absolute; inset: 0; animation: ring-spin 25s linear infinite; }
-    @keyframes ring-spin { to{transform:rotate(360deg)} }
-    .logo-ring-inner {
-      position: absolute; inset: 5px;
-      background: #000; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .logo-ring-inner img { width: 65%; object-fit: contain; filter: drop-shadow(0 0 6px var(--gold-glow)); }
-
-    /* ── AVATAR ── */
-    .avatar-frame {
-      position: relative;
-      width: clamp(90px, 18vw, 120px);
-      height: clamp(90px, 18vw, 120px);
-      flex-shrink: 0;
-    }
-    .avatar-ring-svg { position: absolute; inset: 0; animation: ring-spin 20s linear infinite; }
-    .avatar-inner {
-      position: absolute; inset: 6px;
-      border-radius: 1.25rem; overflow: hidden;
-      background: #000;
-    }
-    .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
-
-    /* ── RANK BADGE ── */
-    .rank-badge {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      background: rgba(212,175,55,0.07);
-      border: 1px solid rgba(212,175,55,0.2);
-      border-radius: 2rem;
-      padding: 0.3rem 0.8rem;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem; font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-    }
-    .rank-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
-
-    /* ── STAT BARS ── */
-    .stat-track {
-      height: 3px; background: rgba(255,255,255,0.04);
-      border-radius: 3px; overflow: hidden;
-    }
-    .stat-fill {
-      height: 100%; border-radius: 3px;
-      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
-    }
-    .stat-fill.gold { background: linear-gradient(90deg, var(--gold-dim, #9a7c1f), var(--gold)); }
-    .stat-fill.teal { background: linear-gradient(90deg, #006b58, var(--teal)); box-shadow: 0 0 8px rgba(0,212,170,0.4); }
-    .stat-fill.uplink { background: linear-gradient(90deg, #006b58, var(--teal)); box-shadow: 0 0 12px rgba(0,212,170,0.5); }
-
-    /* ── HEX BADGES ── */
-    .hex-badge {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      width: 72px; height: 80px;
-      background: rgba(5,5,5,0.95);
-      border: 1px solid rgba(212,175,55,0.2);
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      transition: all 0.35s;
-      gap: 4px;
-    }
-    .hex-badge:hover { border-color: var(--teal); transform: translateY(-4px) scale(1.04); }
-    .hex-badge .hb-icon { color: var(--gold); }
-    .hex-badge .hb-label { font-family: 'Orbitron', sans-serif; font-size: 0.45rem; color: rgba(255,255,255,0.7); letter-spacing: 0.15em; }
-
-    /* ── ACTIVITY LOG ── */
-    .activity-item {
-      display: flex; align-items: flex-start; gap: 1rem;
-      padding: 0.9rem 0;
-      border-bottom: 1px solid rgba(212,175,55,0.05);
-      transition: background 0.2s;
-    }
-    .activity-item:last-child { border-bottom: none; }
-    .activity-item:hover { background: rgba(212,175,55,0.02); border-radius: 0.75rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-    .activity-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); margin-top: 5px; flex-shrink: 0; }
-    .activity-line { width: 1px; background: rgba(212,175,55,0.08); flex-shrink: 0; }
-
-    /* ── QUICK ACTIONS ── */
-    .action-btn {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;
-      padding: 1.25rem 0.75rem;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(212,175,55,0.08);
-      border-radius: 1.25rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-decoration: none;
-      color: var(--text-dim);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
-    .action-btn:hover {
-      border-color: rgba(212,175,55,0.3);
-      background: rgba(212,175,55,0.04);
-      color: var(--gold);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-    }
-    .action-btn svg { transition: color 0.3s; }
-    .action-btn:hover svg { color: var(--gold); }
-
-    /* ── BOTTOM NAV ── */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-      height: calc(64px + env(safe-area-inset-bottom));
-      padding-bottom: env(safe-area-inset-bottom);
-      background: rgba(0,0,0,0.92);
-      border-top: 1px solid rgba(255,255,255,0.04);
-      backdrop-filter: blur(20px);
-      display: flex; align-items: center;
-    }
-    .bnav-btn {
-      flex: 1; height: 100%; background: none; border: none;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-      cursor: pointer; transition: color 0.25s; color: rgba(255,255,255,0.2);
-    }
-    .bnav-btn.active { color: var(--gold); }
-    .bnav-btn span { font-family: 'Orbitron', sans-serif; font-size: 0.45rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
-    .bnav-center {
-      flex: 0; width: 64px; height: 64px; margin: 0 0.5rem; margin-bottom: calc(env(safe-area-inset-bottom) * 0.5);
-      background: linear-gradient(135deg, var(--gold), #9a7c1f);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 20px var(--gold-glow);
-      cursor: pointer; border: none;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .bnav-center:hover { transform: scale(1.08); box-shadow: 0 0 30px var(--gold-glow); }
-    .bnav-center img { width: 36px; height: 36px; object-fit: contain; filter: brightness(0); }
-
-    /* ── LOGOUT BTN ── */
-    .logout-btn {
-      background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,0.2); padding: 0.5rem;
-      border-radius: 0.5rem; transition: color 0.25s;
-    }
-    .logout-btn:hover { color: var(--red); }
-
-    /* ── DIRECTOR BADGE ── */
-    .director-link {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.5rem; font-weight: 900;
-      color: var(--teal);
-      border: 1px solid rgba(0,212,170,0.3);
-      border-radius: 0.5rem;
-      padding: 0.4rem 0.8rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      text-decoration: none;
-      transition: all 0.3s;
-    }
-    .director-link:hover { background: var(--teal); color: #000; }
-
-    /* ── SECTION HEADERS ── */
-    .section-head {
-      display: flex; align-items: center; gap: 0.6rem;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.6rem; font-weight: 900;
-      color: rgba(212,175,55,0.7);
-      letter-spacing: 0.2em; text-transform: uppercase;
-      margin-bottom: 1.5rem;
-    }
-
-    /* ── LOADING SCREEN ── */
-    .loading-screen {
-      position: fixed; inset: 0; z-index: 200;
-      background: #000;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
-    }
-    .load-ring-wrap { width: 80px; height: 80px; position: relative; }
-    .load-ring-svg { position: absolute; inset: 0; animation: ring-spin 3s linear infinite; }
-    .load-ring-inner {
-      position: absolute; inset: 9px; background: #000; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .load-ring-inner img { width: 55%; filter: drop-shadow(0 0 8px var(--gold-glow)); animation: pulse 2s infinite; }
-    .load-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.55rem; font-weight: 700;
-      color: var(--gold); letter-spacing: 0.5em; text-transform: uppercase;
-      animation: pulse 1.5s infinite;
-    }
-    .load-bar-wrap { width: 160px; height: 1px; background: rgba(212,175,55,0.08); border-radius: 1px; overflow: hidden; }
-    .load-bar-fill { height: 100%; background: var(--gold); animation: load-sweep 1.5s ease-in-out infinite; }
-    @keyframes load-sweep {
-      0%   { width:0%;  margin-left:0%; }
-      50%  { width:70%; margin-left:15%; }
-      100% { width:0%;  margin-left:100%; }
-    }
-
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.8)} }
-
-    /* ── ANIMATIONS ── */
-    .fade-up {
-      opacity: 0; transform: translateY(16px);
-      animation: fade-up 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-    }
-    @keyframes fade-up { to{opacity:1;transform:translateY(0)} }
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-    .delay-4 { animation-delay: 0.4s; }
-
-    /* HELPERS */
-    .font-orbit { font-family: 'Orbitron', sans-serif; }
-    .font-mono  { font-family: 'Share Tech Mono', monospace; }
-  </style>
-
-  <script>
-    function hub() {
-      return {
-        view: 'loading',
-        isLoading: false,
-        isOnline: navigator.onLine,
-        activeTab: 'overview',
-        showProfileModal: false,
-        operativeId: 'OP:OFFLINE',
-        currentUser: null,
-
-        profile: {
-          username: 'RECRUIT',
-          codename: '---',
-          rank: 'INITIATE',
-          department: 'UNASSIGNED',
-          bio: '',
-          avatar_url: null,
-          stats: { loyalty: 100, groove: 40, missions: 0 }
-        },
-
-        tickerMsgs: [
-          'UPLINK STABLE',
-          'ENCRYPTION ACTIVE',
-          'SECTOR 7G SCANNING',
-          'MINISTRY GRID SECURE',
-          'OPERATIVE NODES ONLINE',
-          'FREQUENCY LOCKED',
-          'SIGNAL INTEGRITY 100%'
-        ],
-        recentActivity: [],
-
-        async init() {
-          window.addEventListener('online',  () => { this.isOnline = true; });
-          window.addEventListener('offline', () => { this.isOnline = false; });
-
-          let wait = 0;
-          while (typeof sb === 'undefined' && wait < 50) {
-            await new Promise(r => setTimeout(r, 100)); wait++;
-          }
-          if (typeof sb === 'undefined') return;
-
-          try {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) { window.location.href = '/login.html'; return; }
-
-            this.currentUser = session.user;
-            this.operativeId = `OP-${this.currentUser.id.slice(0, 8).toUpperCase()}`;
-
-            await this.fullSync();
-            this.view = 'hub';
-
-            // Animate stat bars after render
-            this.$nextTick(() => this.animateStats());
-          } catch (e) { console.error('HUB ERROR', e); }
-        },
-
-        async fullSync() {
-          this.isLoading = true;
-          const { data } = await sb.from('profiles').select('*').eq('id', this.currentUser.id).single();
-          if (data) this.profile = { ...this.profile, ...data };
-
-          const { data: logs } = await sb.from('activity_log')
-            .select('*').order('created_at', { ascending: false }).limit(6);
-          this.recentActivity = logs || [];
-          this.isLoading = false;
-        },
-
-        animateStats() {
-          // stats already bound via Alpine — CSS transition handles the animation
-        },
-
-        async logout() {
-          await sb.auth.signOut();
-          localStorage.clear();
-          window.location.href = '/login.html';
-        },
-
-        timeAgo(ts) {
-          const d = Math.floor((Date.now() - new Date(ts)) / 1000);
-          if (d < 60) return `${d}s ago`;
-          if (d < 3600) return `${Math.floor(d/60)}m ago`;
-          if (d < 86400) return `${Math.floor(d/3600)}h ago`;
-          return `${Math.floor(d/86400)}d ago`;
-        }
-      };
-    }
-  </script>
+  /* Footer watermark */
+  .watermark {
+    text-align:center; padding:10px 16px 6px;
+    font-family:'Share Tech Mono',monospace; font-size:9px;
+    color:rgba(201,168,76,0.15); letter-spacing:3px;
+  }
+</style>
 </head>
+<body>
 
-<body x-data="hub()" x-init="init()" x-cloak>
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-live">LIVE</div>
+  <div class="status-items">
+    <div class="status-item"><div class="dot"></div>UPLINK STABLE</div>
+    <div class="status-item"><div class="dot"></div>ENCRYPTION ACTIVE</div>
+  </div>
+  <div class="status-logout" onclick="logout()">EXIT</div>
+</div>
 
-  <div class="bg-cosmos"></div>
-  <div class="bg-grid"></div>
-  <div class="bg-seal"></div>
-  <div class="bg-scan-sweep"></div>
-  <div class="bg-vignette"></div>
-
-  <!-- LOADING -->
-  <template x-if="view === 'loading'">
-    <div class="loading-screen">
-      <div class="load-ring-wrap">
-        <svg class="load-ring-svg" viewBox="0 0 80 80" fill="none">
-          <circle cx="40" cy="40" r="36" stroke="url(#lrg)" stroke-width="1.2" stroke-dasharray="5 3.5"/>
-          <defs>
-            <linearGradient id="lrg" x1="0" y1="0" x2="80" y2="80" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#d4af37"/>
-              <stop offset="0.5" stop-color="#00d4aa"/>
-              <stop offset="1" stop-color="#d4af37"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <div class="load-ring-inner">
-          <img src="assets/images/logo.png" alt="MOG">
-        </div>
-      </div>
-      <p class="load-text">Synchronizing Hub</p>
-      <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
+<!-- HERO CARD -->
+<div class="hero">
+  <div class="hero-card">
+    <div class="hero-avatar">OP</div>
+    <div class="hero-info">
+      <div class="hero-label">OPERATIVE HUB</div>
+      <div class="hero-name" id="userName">OPERATIVE</div>
+      <div class="hero-id" id="userId">OP-XXXXXXXX</div>
+      <div class="hero-dept">● GROOVE DIVISION</div>
     </div>
-  </template>
+    <button class="hero-logout-btn" onclick="logout()">⇥</button>
+  </div>
+</div>
 
-  <!-- HUB -->
-  <template x-if="view === 'hub'">
-    <div>
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-label">LOYALTY RATING</div>
+    <div class="stat-bar-wrap"><div class="stat-bar gold" style="width:0%" id="loyaltyBar"></div></div>
+    <div class="stat-value">100%</div>
+    <div class="stat-sub">FULLY COMMITTED</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">GROOVE SYNC</div>
+    <div class="stat-bar-wrap"><div class="stat-bar teal" style="width:0%" id="syncBar"></div></div>
+    <div class="stat-value" id="syncVal">—</div>
+    <div class="stat-sub">SESSIONS ATTENDED</div>
+  </div>
+</div>
 
-      <!-- TICKER -->
-      <div class="ticker-shell">
-        <div class="ticker-tag">Live Feed</div>
-        <div class="ticker-track">
-          <div class="ticker-move">
-            <template x-for="m in tickerMsgs" :key="m">
-              <span class="ticker-item">
-                <span class="ticker-diamond">◈</span>
-                <span x-text="m"></span>
-              </span>
-            </template>
-            <!-- Duplicate for seamless loop -->
-            <template x-for="m in tickerMsgs" :key="m + '_2'">
-              <span class="ticker-item">
-                <span class="ticker-diamond">◈</span>
-                <span x-text="m"></span>
-              </span>
-            </template>
-          </div>
-        </div>
-      </div>
+<!-- QUICK ACTIONS -->
+<div class="section-title"><div class="line"></div><h2>COMMAND CENTRE</h2><div class="line"></div></div>
+<div class="quick-actions">
+  <a href="pages/gallery.html" class="qa-btn">
+    <div class="qa-icon">🎬</div>
+    <div class="qa-label">GALLERY</div>
+  </a>
+  <a href="pages/frequency.html" class="qa-btn">
+    <div class="qa-icon">🎙️</div>
+    <div class="qa-label">FREQUENCY</div>
+  </a>
+  <a href="pages/dispatch.html" class="qa-btn">
+    <div class="qa-icon">💬</div>
+    <div class="qa-label">DISPATCH</div>
+  </a>
+  <a href="pages/dossier.html" class="qa-btn">
+    <div class="qa-icon">🗳️</div>
+    <div class="qa-label">VOTE</div>
+  </a>
+</div>
 
-      <!-- MAIN CONTENT -->
-      <div style="position:relative;z-index:10;padding-top:58px;padding-bottom:96px;padding-left:max(1rem,env(safe-area-inset-left));padding-right:max(1rem,env(safe-area-inset-right));max-width:900px;margin:0 auto;">
+<!-- UPCOMING EVENT -->
+<div class="event-banner">
+  <div class="event-card">
+    <div class="event-label">// NEXT TRANSMISSION //</div>
+    <div class="event-name">AMAPIANO SESSIONS VOL.3</div>
+    <div class="event-date">TBD — LOCATION CLASSIFIED</div>
+    <button class="event-btn">VIEW INTEL</button>
+  </div>
+</div>
 
-        <!-- NAV -->
-        <nav class="glass hub-nav fade-up" style="padding:0.9rem 1.25rem;display:flex;justify-content:space-between;align-items:center;">
-          <div style="display:flex;align-items:center;gap:0.9rem;">
-            <div class="logo-ring-wrap">
-              <svg class="logo-ring-svg" viewBox="0 0 52 52" fill="none">
-                <circle cx="26" cy="26" r="23" stroke="url(#nrg)" stroke-width="0.8" stroke-dasharray="3.5 3"/>
-                <defs>
-                  <linearGradient id="nrg" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#d4af37" stop-opacity="0.7"/>
-                    <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.5"/>
-                    <stop offset="1" stop-color="#d4af37" stop-opacity="0.7"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="logo-ring-inner">
-                <img src="assets/images/logo.png" alt="MOG">
-              </div>
-            </div>
-            <div>
-              <h1 class="font-orbit" style="color:#fff;font-size:clamp(0.65rem,2.5vw,0.85rem);font-weight:900;letter-spacing:0.2em;text-transform:uppercase;line-height:1;">Operative Hub</h1>
-              <p class="font-mono" style="color:var(--gold);font-size:0.55rem;margin-top:0.2rem;" x-text="operativeId"></p>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.75rem;">
-            <template x-if="profile.rank === 'DIRECTOR'">
-              <a href="pages/directorate.html" class="director-link">⬡ Directorate</a>
-            </template>
-            <!-- Online indicator -->
-            <div style="display:flex;align-items:center;gap:0.4rem;" :title="isOnline ? 'Online' : 'Offline'">
-              <div style="width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite;"
-                   :style="isOnline ? 'background:var(--teal)' : 'background:var(--red)'"></div>
-            </div>
-            <button class="logout-btn" @click="logout()" title="Logout">
-              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-                <path d="M13 15l4-5-4-5M17 10H8M8 3H4a1 1 0 00-1 1v12a1 1 0 001 1h4"/>
-              </svg>
-            </button>
-          </div>
-        </nav>
-
-        <!-- PROFILE + STATUS ROW -->
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:1.25rem;margin-bottom:1.25rem;">
-
-          <!-- PROFILE CARD -->
-          <div class="glass fade-up delay-1" style="padding:1.75rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:0.9rem;min-width:160px;max-width:200px;">
-            <div class="avatar-frame">
-              <svg class="avatar-ring-svg" viewBox="0 0 120 120" fill="none">
-                <rect x="4" y="4" width="112" height="112" rx="20" stroke="url(#arg)" stroke-width="1" stroke-dasharray="4 3"/>
-                <defs>
-                  <linearGradient id="arg" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
-                    <stop stop-color="#d4af37" stop-opacity="0.6"/>
-                    <stop offset="0.5" stop-color="#00d4aa" stop-opacity="0.4"/>
-                    <stop offset="1" stop-color="#d4af37" stop-opacity="0.6"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div class="avatar-inner">
-                <img :src="profile.avatar_url || 'assets/images/logo.png'" alt="Avatar">
-              </div>
-            </div>
-            <div style="text-align:center;">
-              <h2 class="font-orbit" style="color:#fff;font-size:0.75rem;font-weight:900;letter-spacing:0.15em;text-transform:uppercase;line-height:1.2;" x-text="profile.username"></h2>
-              <div class="rank-badge" style="margin-top:0.6rem;">
-                <div class="rank-dot"></div>
-                <span x-text="profile.rank"></span>
-              </div>
-            </div>
-            <div style="width:100%;border-top:1px solid rgba(212,175,55,0.07);padding-top:0.9rem;text-align:center;">
-              <p class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.2);letter-spacing:0.2em;text-transform:uppercase;">Department</p>
-              <p class="font-orbit" style="font-size:0.6rem;color:var(--gold);margin-top:0.25rem;letter-spacing:0.1em;" x-text="profile.department"></p>
-            </div>
-          </div>
-
-          <!-- STATUS PANEL -->
-          <div class="glass fade-up delay-2" style="padding:1.75rem 1.75rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.5rem;">
-
-            <!-- Uplink Bar -->
-            <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
-                <span class="font-orbit" style="font-size:0.55rem;color:var(--teal);letter-spacing:0.2em;">Systems Nominal</span>
-                <span class="font-mono" style="font-size:0.55rem;color:var(--teal);">Uplink 100%</span>
-              </div>
-              <div class="stat-track">
-                <div class="stat-fill uplink" style="width:100%"></div>
-              </div>
-            </div>
-
-            <!-- Loyalty + Groove -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
-              <div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-                  <span class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;">Loyalty</span>
-                  <span class="font-mono" style="font-size:0.55rem;color:var(--gold);" x-text="profile.stats.loyalty + '%'"></span>
-                </div>
-                <div class="stat-track">
-                  <div class="stat-fill gold" :style="'width:' + profile.stats.loyalty + '%'"></div>
-                </div>
-              </div>
-              <div>
-                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-                  <span class="font-mono" style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;">Groove Sync</span>
-                  <span class="font-mono" style="font-size:0.55rem;color:var(--teal);" x-text="profile.stats.groove + '%'"></span>
-                </div>
-                <div class="stat-track">
-                  <div class="stat-fill teal" :style="'width:' + profile.stats.groove + '%'"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Hex badges + missions -->
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-              <div style="display:flex;gap:0.75rem;">
-                <div class="hex-badge">
-                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M10 2l1.74 3.53 3.9.57-2.82 2.75.67 3.88L10 11.25 6.51 12.73l.67-3.88-2.82-2.75 3.9-.57z" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M4 17h12" stroke-linecap="round"/>
-                  </svg>
-                  <span class="hb-label">Secure</span>
-                </div>
-                <div class="hex-badge">
-                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M13 10a3 3 0 11-6 0 3 3 0 016 0zM2 10h2M16 10h2M10 2v2M10 16v2" stroke-linecap="round"/>
-                  </svg>
-                  <span class="hb-label">Uplink</span>
-                </div>
-                <div class="hex-badge">
-                  <svg class="hb-icon" width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="6" width="14" height="10" rx="1.5" stroke-linecap="round"/>
-                    <path d="M7 6V5a3 3 0 016 0v1" stroke-linecap="round"/>
-                  </svg>
-                  <span class="hb-label">Locked</span>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <p class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.2em;">Missions</p>
-                <p class="font-orbit" style="font-size:1.8rem;font-weight:900;color:#fff;line-height:1;" x-text="profile.stats.missions || 0"></p>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- QUICK ACTIONS -->
-        <div class="fade-up delay-3" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem;">
-          <button class="action-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M3 6h14M3 10h14M3 14h10"/>
-            </svg>
-            Intel
-          </button>
-          <button class="action-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.31 3.13-6 7-6s7 2.69 7 6"/>
-            </svg>
-            Profile
-          </button>
-          <button class="action-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M10 2l2.09 4.26 4.71.68-3.4 3.32.8 4.68L10 12.77l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/>
-            </svg>
-            Missions
-          </button>
-          <button class="action-btn">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2"/>
-            </svg>
-            Archive
-          </button>
-        </div>
-
-        <!-- ACTIVITY LOG -->
-        <div class="glass fade-up delay-4" style="padding:1.75rem;">
-          <div class="section-head">
-            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-              <path d="M2 10h16M2 5h16M2 15h10"/>
-            </svg>
-            Recent Transmissions
-            <span class="font-mono" style="font-size:0.5rem;color:var(--teal);margin-left:auto;animation:pulse 2s infinite;">● Live</span>
-          </div>
-
-          <template x-if="recentActivity.length === 0">
-            <p class="font-mono" style="font-size:0.65rem;color:rgba(255,255,255,0.15);text-align:center;padding:2rem 0;letter-spacing:0.2em;text-transform:uppercase;">No transmissions logged</p>
-          </template>
-
-          <template x-for="(log, i) in recentActivity" :key="log.id">
-            <div class="activity-item">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
-                <div class="activity-pip" :style="i === 0 ? 'background:var(--teal)' : 'background:rgba(212,175,55,0.3)'"></div>
-                <template x-if="i < recentActivity.length - 1">
-                  <div class="activity-line" style="flex:1;min-height:20px;"></div>
-                </template>
-              </div>
-              <div style="flex:1;">
-                <p style="font-size:0.8rem;color:rgba(255,255,255,0.85);line-height:1.4;" x-text="log.description"></p>
-                <p class="font-mono" style="font-size:0.6rem;color:rgba(255,255,255,0.2);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.1em;" x-text="timeAgo(log.created_at)"></p>
-              </div>
-            </div>
-          </template>
-        </div>
-
-        <!-- FOOTER -->
-        <footer style="margin-top:3rem;text-align:center;">
-          <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.08),transparent);margin-bottom:1.5rem;"></div>
-          <p class="font-orbit" style="font-size:0.55rem;color:rgba(255,255,255,0.1);letter-spacing:0.4em;text-transform:uppercase;margin-bottom:0.4rem;">Decrypting the Culture. Synchronizing the Grid.</p>
-          <p class="font-mono" style="font-size:0.5rem;color:rgba(255,255,255,0.07);letter-spacing:0.3em;text-transform:uppercase;">M.O.G. Infrastructure // Emalahleni // © 2026</p>
-        </footer>
-
-      </div>
-
-      
-      <!-- BOTTOM NAV (mobile) -->
-      <nav class="bottom-nav" style="display:none;" id="bottomNav">
-        <button class="bnav-btn" :class="activeTab==='overview'?'active':''" @click="activeTab='overview'">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/>
-            <rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/>
-          </svg>
-          <span>Core</span>
-        </button>
-        <button class="bnav-btn" :class="activeTab==='intel'?'active':''" @click="activeTab='intel'">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <circle cx="10" cy="10" r="7"/><path d="M10 7v3l2 2"/>
-          </svg>
-          <span>Intel</span>
-        </button>
-        <button class="bnav-center">
-          <img src="assets/images/logo.png" alt="Hub">
-        </button>
-        <button class="bnav-btn" :class="activeTab==='missions'?'active':''" @click="activeTab='missions'">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <path d="M10 2l2.09 4.26 4.71.68-3.4 3.32.8 4.68L10 12.77l-4.2 2.17.8-4.68-3.4-3.32 4.71-.68z"/>
-          </svg>
-          <span>Missions</span>
-        </button>
-        <button class="bnav-btn" :class="activeTab==='profile'?'active':''" @click="activeTab='profile'">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.31 3.13-6 7-6s7 2.69 7 6"/>
-          </svg>
-          <span>Profile</span>
-        </button>
-      </nav>
-
+<!-- RECENT TRANSMISSIONS -->
+<div class="transmissions">
+  <div class="tx-card">
+    <div class="tx-header">
+      <div class="tx-title">RECENT TRANSMISSIONS</div>
+      <div class="tx-live"><div class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite;"></div>LIVE</div>
     </div>
-  </template>
+    <div class="tx-item">
+      <div class="tx-dot teal"></div>
+      <div class="tx-text">
+        <div class="tx-main">📸 NEW GALLERY UPLOAD — SESSION 02</div>
+        <div class="tx-time">2 HRS AGO</div>
+      </div>
+    </div>
+    <div class="tx-item">
+      <div class="tx-dot"></div>
+      <div class="tx-text">
+        <div class="tx-main">🎵 TOP 10 VOTE — WEEK 14 OPEN</div>
+        <div class="tx-time">5 HRS AGO</div>
+      </div>
+    </div>
+    <div class="tx-item">
+      <div class="tx-dot teal"></div>
+      <div class="tx-text">
+        <div class="tx-main">💬 DISPATCH ROOM: SESSION 02 ACTIVE</div>
+        <div class="tx-time">8 HRS AGO</div>
+      </div>
+    </div>
+    <div class="tx-item">
+      <div class="tx-dot"></div>
+      <div class="tx-text">
+        <div class="tx-main">🎬 VIDEO UPLOAD — AMAPIANO_SESSION_01</div>
+        <div class="tx-time">14D AGO</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-  <script>
-    // Show bottom nav only on mobile
-    function checkNav() {
-      const nav = document.getElementById('bottomNav');
-      if (nav) nav.style.display = window.innerWidth < 768 ? 'flex' : 'none';
-    }
-    window.addEventListener('resize', checkNav);
-    document.addEventListener('DOMContentLoaded', checkNav);
-    // Re-check when view updates
-    document.addEventListener('alpine:initialized', () => {
-      setTimeout(checkNav, 100);
-    });
-  </script>
+<div class="watermark">M.O.G. NETWORK // DECRYPTING THE CULTURE // EST. 2026</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <a href="index.html" class="nav-item active">
+    <div class="nav-icon">⬡</div>
+    <div class="nav-label">HUB</div>
+  </a>
+  <a href="pages/gallery.html" class="nav-item">
+    <div class="nav-icon">🎬</div>
+    <div class="nav-label">GALLERY</div>
+  </a>
+  <a href="pages/frequency.html" class="nav-item">
+    <div class="nav-icon">🎙️</div>
+    <div class="nav-label">LIVE</div>
+  </a>
+  <a href="pages/dispatch.html" class="nav-item">
+    <div class="nav-icon">💬</div>
+    <div class="nav-label">CHAT</div>
+  </a>
+  <a href="pages/dossier.html" class="nav-item">
+    <div class="nav-icon">👤</div>
+    <div class="nav-label">PROFILE</div>
+  </a>
+</div>
+
+<script>
+// Animate bars on load
+setTimeout(()=>{
+  document.getElementById('loyaltyBar').style.width='100%';
+  document.getElementById('syncBar').style.width='40%';
+  document.getElementById('syncVal').textContent='40%';
+},300);
+
+// Generate operative ID
+const uid='OP-'+Math.random().toString(36).substr(2,8).toUpperCase();
+document.getElementById('userId').textContent=uid;
+
+function logout(){
+  if(confirm('Terminate operative session?')) window.location.href='login.html';
+}
+</script>
 </body>
 </html>
-         
