@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M.O.G. — Vote & Profile</title>
+<title>M.O.G. — Frequency</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
@@ -14,55 +14,55 @@
   .top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
   .back-btn{color:var(--gold);font-size:20px;text-decoration:none;padding:4px 8px;}
   .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+  .live-badge{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;padding:4px 10px;letter-spacing:2px;border-radius:2px;animation:livePulse 1.5s ease infinite;}
+  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
 
-  /* PAGE TABS */
-  .page-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);}
-  .page-tab{padding:14px;text-align:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;}
-  .page-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,0.04);}
+  /* BROADCAST AREA */
+  .broadcast-zone{margin:16px;border:1px solid var(--gold);border-radius:8px;overflow:hidden;position:relative;}
+  .broadcast-screen{width:100%;aspect-ratio:16/9;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+  .broadcast-bg-pattern{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,229,204,0.05) 0%,transparent 70%),repeating-linear-gradient(45deg,transparent,transparent 20px,rgba(201,168,76,0.02) 20px,rgba(201,168,76,0.02) 21px);}
+  .broadcast-content{position:relative;z-index:1;text-align:center;}
+  .broadcast-icon{font-size:48px;margin-bottom:12px;}
+  .broadcast-status{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:6px;}
+  .broadcast-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
 
-  .page-section{display:none;padding:16px;}
-  .page-section.active{display:block;}
+  /* LIVE NOW banner */
+  .live-now-banner{background:linear-gradient(135deg,rgba(139,0,0,0.4),rgba(201,168,76,0.1));border-top:1px solid rgba(139,0,0,0.4);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+  .live-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#fff;letter-spacing:2px;}
+  .live-viewers{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal);letter-spacing:1px;}
 
-  /* PROFILE SECTION */
-  .profile-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:24px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px;}
-  .profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
-  .profile-avatar-big{width:80px;height:80px;border-radius:50%;border:2px solid var(--gold);background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:var(--gold);margin:0 auto 12px;box-shadow:0 0 30px rgba(201,168,76,0.3);}
-  .profile-name{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:4px;}
-  .profile-email{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:8px;}
-  .profile-rank{display:inline-block;border:1px solid var(--gold);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;padding:4px 14px;border-radius:2px;margin-bottom:16px;}
-  .profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
-  .pstat{background:var(--navy);padding:14px 8px;text-align:center;}
-  .pstat-val{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--gold);}
-  .pstat-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:4px;}
+  /* SIGNAL BARS ANIMATION */
+  .signal-bars{display:flex;align-items:flex-end;gap:3px;height:20px;}
+  .signal-bar{width:4px;background:var(--teal);border-radius:1px;animation:signalAnim 1s ease infinite;}
+  .signal-bar:nth-child(1){height:6px;animation-delay:0s;}
+  .signal-bar:nth-child(2){height:12px;animation-delay:0.1s;}
+  .signal-bar:nth-child(3){height:18px;animation-delay:0.2s;}
+  .signal-bar:nth-child(4){height:12px;animation-delay:0.3s;}
+  .signal-bar:nth-child(5){height:8px;animation-delay:0.4s;}
+  @keyframes signalAnim{0%,100%{opacity:0.3}50%{opacity:1}}
 
-  .edit-btn{width:100%;margin-top:12px;padding:12px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;cursor:pointer;transition:all 0.2s;}
-  .edit-btn:hover{background:rgba(201,168,76,0.15);box-shadow:0 0 15px rgba(201,168,76,0.2);}
-  .logout-btn{width:100%;margin-top:8px;padding:12px;background:rgba(139,0,0,0.15);border:1px solid rgba(139,0,0,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:#ff4444;letter-spacing:3px;cursor:pointer;transition:all 0.2s;}
-  .logout-btn:hover{background:rgba(139,0,0,0.25);}
+  /* SECTION */
+  .section{padding:0 16px 20px;}
+  .section-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .section-hdr h2{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;}
+  .section-hdr .line{flex:1;height:1px;background:var(--border);}
 
-  /* VOTE SECTION */
-  .vote-header{background:var(--panel);border:1px solid var(--gold);border-radius:6px;padding:16px;margin-bottom:16px;position:relative;overflow:hidden;}
-  .vote-header::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
-  .vote-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold-light);letter-spacing:2px;margin-bottom:4px;}
-  .vote-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:10px;}
-  .vote-deadline{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
-  .votes-left{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--teal);letter-spacing:2px;margin-top:6px;}
+  /* UPCOMING EVENTS */
+  .event-item{background:var(--panel);border:1px solid var(--border-teal);border-radius:6px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:all 0.2s;}
+  .event-item:hover{border-color:var(--gold);}
+  .event-date-box{background:var(--navy);border:1px solid var(--border);border-radius:4px;padding:8px 12px;text-align:center;flex-shrink:0;}
+  .event-month{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal-dim);letter-spacing:2px;}
+  .event-day{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:var(--gold);line-height:1;}
+  .event-details{flex:1;}
+  .event-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#e0e0e0;letter-spacing:1px;margin-bottom:4px;}
+  .event-location{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+  .event-status{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;padding:3px 8px;border-radius:2px;align-self:flex-start;}
+  .status-upcoming{border:1px solid var(--border);color:var(--gold-dim);}
+  .status-confirmed{border:1px solid var(--teal);color:var(--teal);}
 
-  .song-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:6px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;transition:all 0.3s;cursor:pointer;}
-  .song-card:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
-  .song-card.voted{border-color:var(--gold);background:rgba(201,168,76,0.08);box-shadow:0 0 15px rgba(201,168,76,0.15);}
-  .song-rank{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold-dim);width:32px;text-align:center;flex-shrink:0;}
-  .song-rank.top3{color:var(--gold);}
-  .song-info{flex:1;}
-  .song-title{font-size:14px;font-weight:700;color:#e0e0e0;letter-spacing:1px;margin-bottom:2px;}
-  .song-artist{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:1px;}
-  .song-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
-  .vote-count{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold);}
-  .vote-bar-wrap{width:60px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden;}
-  .vote-bar{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width 0.5s ease;}
-  .vote-btn{padding:5px 12px;border-radius:3px;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;cursor:pointer;border:1px solid var(--border);color:var(--gold-dim);background:none;transition:all 0.2s;}
-  .vote-btn.voted{background:var(--gold);color:var(--black);border-color:var(--gold);}
-  .vote-btn:not(.voted):hover{border-color:var(--gold);color:var(--gold);}
+  /* NOTIFY BTN */
+  .notify-btn{width:100%;padding:14px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;cursor:pointer;margin-top:6px;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .notify-btn:hover{background:rgba(201,168,76,0.15);box-shadow:0 0 15px rgba(201,168,76,0.2);}
 
   /* BOTTOM NAV */
   .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.97);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(10px);}
@@ -71,45 +71,103 @@
   .nav-icon{font-size:20px;}
   .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
   .nav-item.active .nav-label{color:var(--gold);}
+
+  /* PAST SESSIONS */
+  .session-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.2s;}
+  .session-card:hover{border-color:var(--gold);}
+  .session-thumb{width:52px;height:52px;border-radius:4px;background:var(--navy);border:1px solid var(--border-teal);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+  .session-info{flex:1;}
+  .session-name{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold-light);letter-spacing:1px;margin-bottom:4px;}
+  .session-meta{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;}
+  .session-arrow{color:var(--gold-dim);font-size:18px;}
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
-  <div class="top-title">DOSSIER</div>
+  <div class="top-title">FREQUENCY</div>
+  <div class="live-badge">LIVE</div>
 </div>
 
-<div class="page-tabs">
-  <div class="page-tab active" onclick="showTab('vote',this)">🗳️ TOP 10 VOTE</div>
-  <div class="page-tab" onclick="showTab('profile',this)">👤 MY PROFILE</div>
-</div>
-
-<!-- VOTE SECTION -->
-<div class="page-section active" id="voteSection">
-  <div class="vote-header">
-    <div class="vote-title">TOP 10 AMAPIANO — WEEK 14</div>
-    <div class="vote-sub">// CLASSIFIED MUSIC INTELLIGENCE //</div>
-    <div class="vote-deadline">POLL CLOSES: SUNDAY 23:59</div>
-    <div class="votes-left" id="votesLeft">2 VOTES REMAINING</div>
-  </div>
-  <div id="songList"></div>
-</div>
-
-<!-- PROFILE SECTION -->
-<div class="page-section" id="profileSection">
-  <div class="profile-card">
-    <div class="profile-avatar-big">OP</div>
-    <div class="profile-name" id="pName">OPERATIVE</div>
-    <div class="profile-email" id="pEmail">operative@gmail.com</div>
-    <div class="profile-rank">GROOVE DIVISION // RECRUIT</div>
-    <div class="profile-stats">
-      <div class="pstat"><div class="pstat-val">2</div><div class="pstat-label">SESSIONS</div></div>
-      <div class="pstat"><div class="pstat-val">14</div><div class="pstat-label">LIKES</div></div>
-      <div class="pstat"><div class="pstat-val">100%</div><div class="pstat-label">LOYALTY</div></div>
+<!-- BROADCAST ZONE -->
+<div class="broadcast-zone">
+  <div class="broadcast-screen">
+    <div class="broadcast-bg-pattern"></div>
+    <div class="broadcast-content">
+      <div class="broadcast-icon">📡</div>
+      <div class="broadcast-status">AWAITING BROADCAST</div>
+      <div class="broadcast-sub">NO ACTIVE SESSION — STANDBY</div>
     </div>
-    <button class="edit-btn" onclick="editProfile()">✎ EDIT OPERATIVE FILE</button>
-    <button class="logout-btn" onclick="logout()">⇥ TERMINATE SESSION</button>
+  </div>
+  <div class="live-now-banner">
+    <div>
+      <div class="live-title">NEXT: SESSION 03</div>
+      <div class="live-viewers">🔐 LOCATION TBA · CONFIRM ATTENDANCE</div>
+    </div>
+    <div class="signal-bars">
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+      <div class="signal-bar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- UPCOMING -->
+<div class="section">
+  <div class="section-hdr"><div class="line"></div><h2>UPCOMING OPERATIONS</h2><div class="line"></div></div>
+
+  <div class="event-item">
+    <div class="event-date-box">
+      <div class="event-month">APR</div>
+      <div class="event-day">19</div>
+    </div>
+    <div class="event-details">
+      <div class="event-name">AMAPIANO SESSIONS VOL.3</div>
+      <div class="event-location">📍 LOCATION CLASSIFIED</div>
+    </div>
+    <div class="event-status status-confirmed">CONFIRMED</div>
+  </div>
+
+  <div class="event-item">
+    <div class="event-date-box">
+      <div class="event-month">MAY</div>
+      <div class="event-day">??</div>
+    </div>
+    <div class="event-details">
+      <div class="event-name">M.O.G. GROOVE SUMMIT</div>
+      <div class="event-location">📍 TBA — INTEL PENDING</div>
+    </div>
+    <div class="event-status status-upcoming">PENDING</div>
+  </div>
+
+  <button class="notify-btn" onclick="enableNotifs()">
+    🔔 ENABLE EVENT ALERTS
+  </button>
+</div>
+
+<!-- PAST SESSIONS -->
+<div class="section">
+  <div class="section-hdr"><div class="line"></div><h2>PAST TRANSMISSIONS</h2><div class="line"></div></div>
+
+  <div class="session-card" onclick="window.location.href='gallery.html'">
+    <div class="session-thumb">🎬</div>
+    <div class="session-info">
+      <div class="session-name">SESSION 02 — REPLAY</div>
+      <div class="session-meta">2D AGO · VIDEO + PHOTOS IN VAULT</div>
+    </div>
+    <div class="session-arrow">›</div>
+  </div>
+
+  <div class="session-card" onclick="window.location.href='gallery.html'">
+    <div class="session-thumb">🎵</div>
+    <div class="session-info">
+      <div class="session-name">SESSION 01 — FULL REPLAY</div>
+      <div class="session-meta">14D AGO · VIDEO + PHOTOS IN VAULT</div>
+    </div>
+    <div class="session-arrow">›</div>
   </div>
 </div>
 
@@ -117,74 +175,22 @@
 <div class="bottom-nav">
   <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
-  <a href="frequency.html" class="nav-item"><div class="nav-icon">🎙️</div><div class="nav-label">LIVE</div></a>
+  <a href="frequency.html" class="nav-item active"><div class="nav-icon">🎙️</div><div class="nav-label">LIVE</div></a>
   <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
-  <a href="dossier.html" class="nav-item active"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+  <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
-const songs=[
-  {id:1,title:'PIANO HUB',artist:'Kabza De Small & DJ Maphorisa',votes:312},
-  {id:2,title:'ASIBE HAPPY',artist:'Kabza De Small ft. Ami Faku',votes:287},
-  {id:3,title:'BUYILE',artist:'Young Stunna ft. Kabza De Small',votes:264},
-  {id:4,title:'SCORPION KINGS LIVE',artist:'Kabza De Small & DJ Maphorisa',votes:241},
-  {id:5,title:'LOVE LANGUAGE',artist:'Sun-EL Musician ft. Simmy',votes:198},
-  {id:6,title:'UMBALA',artist:'Musa Keys ft. Nobantu',votes:176},
-  {id:7,title:'SPONONO',artist:'Kabza De Small ft. Wizkid',votes:153},
-  {id:8,title:'IZINTO',artist:'Da Muziqal Chef',votes:131},
-  {id:9,title:'NGEKE',artist:'Various Artists',votes:109},
-  {id:10,title:'AMALOBOLO',artist:'Focalistic & Shakes',votes:94},
-];
-
-let votesLeft=2;
-const maxVotes=Math.max(...songs.map(s=>s.votes));
-const votedFor=new Set();
-
-function renderSongs(){
-  const list=document.getElementById('songList');
-  const sorted=[...songs].sort((a,b)=>b.votes-a.votes);
-  list.innerHTML=sorted.map((s,i)=>`
-    <div class="song-card ${votedFor.has(s.id)?'voted':''}" onclick="vote(${s.id})">
-      <div class="song-rank ${i<3?'top3':''}">${i+1}</div>
-      <div class="song-info">
-        <div class="song-title">${s.title}</div>
-        <div class="song-artist">${s.artist}</div>
-      </div>
-      <div class="song-right">
-        <div class="vote-count">${s.votes}</div>
-        <div class="vote-bar-wrap"><div class="vote-bar" style="width:${Math.round(s.votes/maxVotes*100)}%"></div></div>
-        <button class="vote-btn ${votedFor.has(s.id)?'voted':''}">${votedFor.has(s.id)?'✓ VOTED':'VOTE'}</button>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('votesLeft').textContent=votesLeft+' VOTE'+(votesLeft!==1?'S':'')+' REMAINING';
-}
-
-function vote(id){
-  if(votedFor.has(id)){
-    votedFor.delete(id);
-    songs.find(s=>s.id===id).votes--;
-    votesLeft++;
+function enableNotifs(){
+  if('Notification' in window){
+    Notification.requestPermission().then(p=>{
+      if(p==='granted') alert('✅ You will be notified when M.O.G. sessions go live!');
+      else alert('Enable notifications in your browser settings to receive M.O.G. alerts.');
+    });
   } else {
-    if(votesLeft<=0){alert('No votes remaining this week. Come back next week!');return;}
-    votedFor.add(id);
-    songs.find(s=>s.id===id).votes++;
-    votesLeft--;
+    alert('Push notifications require the PWA to be installed on your device.');
   }
-  renderSongs();
 }
-
-function showTab(tab,btn){
-  document.querySelectorAll('.page-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tab+'Section').classList.add('active');
-}
-
-function editProfile(){ alert('Edit profile — connect to Supabase to enable profile updates.'); }
-function logout(){ if(confirm('Terminate session?')) window.location.href='../login.html'; }
-
-renderSongs();
 </script>
 </body>
 </html>
