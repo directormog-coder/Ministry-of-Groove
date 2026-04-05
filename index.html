@@ -2,377 +2,200 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Operative Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --gold: #C9A84C;
-    --gold-light: #F0C85A;
-    --gold-dim: #8A6E2F;
-    --teal: #00E5CC;
-    --teal-dim: #009E8E;
-    --black: #050A0E;
-    --navy: #0D1F2D;
-    --panel: rgba(13,31,45,0.9);
-    --border: rgba(201,168,76,0.25);
-    --border-teal: rgba(0,229,204,0.2);
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  body { background:var(--black); font-family:'Rajdhani',sans-serif; color:#fff; min-height:100vh; padding-bottom:90px; }
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:80px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-  /* Scanlines */
-  body::after {
-    content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
-    background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);
-  }
+/* STATUS BAR */
+.status-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:46px;gap:10px;backdrop-filter:blur(10px);}
+.status-live{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;padding:3px 10px;letter-spacing:2px;border-radius:2px;animation:livePulse 1.5s ease infinite;white-space:nowrap;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.status-items{display:flex;gap:12px;flex:1;justify-content:center;overflow:hidden;}
+.status-item{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+.status-logout{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;cursor:pointer;border:1px solid var(--border);padding:5px 10px;border-radius:2px;transition:all 0.2s;white-space:nowrap;background:none;}
+.status-logout:hover{color:var(--gold);border-color:var(--gold);}
 
-  /* TOP STATUS BAR */
-  .status-bar {
-    position:sticky; top:0; z-index:100;
-    background:rgba(5,10,14,0.97);
-    border-bottom:1px solid var(--border);
-    padding:0 16px;
-    display:flex; align-items:center;
-    height:44px; gap:12px;
-    backdrop-filter:blur(10px);
-  }
-  .status-live {
-    background:#8B0000; color:#fff;
-    font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
-    padding:3px 10px; letter-spacing:2px; border-radius:2px;
-    animation:livePulse 1.5s ease infinite;
-  }
-  @keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
-  .status-items { display:flex; gap:16px; flex:1; justify-content:center; }
-  .status-item {
-    font-family:'Share Tech Mono',monospace; font-size:9px;
-    color:var(--teal-dim); letter-spacing:1px;
-    display:flex; align-items:center; gap:5px;
-  }
-  .status-item .dot { width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite; }
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
-  .status-logout {
-    font-family:'Share Tech Mono',monospace; font-size:9px;
-    color:var(--gold-dim); letter-spacing:1px; cursor:pointer;
-    border:1px solid var(--border); padding:4px 8px; border-radius:2px;
-    transition:all 0.2s;
-  }
-  .status-logout:hover { color:var(--gold); border-color:var(--gold); }
+/* HERO */
+.hero{padding:14px 16px 0;}
+.hero-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
+.hero-avatar{width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;box-shadow:0 0 18px rgba(201,168,76,0.35);flex-shrink:0;}
+.hero-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.hero-info{flex:1;min-width:0;}
+.hero-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:2px;}
+.hero-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hero-id{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
+.hero-dept{font-size:11px;color:var(--teal);font-weight:600;letter-spacing:2px;margin-top:5px;}
+.hero-exit{background:none;border:1px solid var(--border);color:var(--gold-dim);padding:8px 10px;border-radius:4px;cursor:pointer;font-size:16px;transition:all 0.2s;flex-shrink:0;}
+.hero-exit:hover{border-color:var(--gold);color:var(--gold);}
 
-  /* HERO CARD */
-  .hero { padding:16px; }
-  .hero-card {
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:6px;
-    padding:18px;
-    display:flex; align-items:center; gap:14px;
-    position:relative; overflow:hidden;
-  }
-  .hero-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));
-  }
-  .hero-avatar {
-    width:56px; height:56px; border-radius:50%;
-    border:2px solid var(--gold);
-    overflow:hidden;
-    box-shadow:0 0 15px rgba(201,168,76,0.3);
-    flex-shrink:0;
-  }
-  .hero-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-  .hero-info { flex:1; }
-  .hero-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:2px; }
-  .hero-name { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:#fff; letter-spacing:2px; }
-  .hero-id { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--gold-dim); letter-spacing:1px; margin-top:2px; }
-  .hero-dept { font-size:11px; color:var(--teal); font-weight:600; letter-spacing:2px; margin-top:6px; }
-  .hero-logout-btn {
-    background:none; border:1px solid var(--border);
-    color:var(--gold-dim); padding:8px; border-radius:4px;
-    cursor:pointer; font-size:16px; transition:all 0.2s;
-  }
-  .hero-logout-btn:hover { border-color:var(--gold); color:var(--gold); }
+/* STATS */
+.stats-grid{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.stat-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:8px;padding:16px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--teal));}
+.stat-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:8px;}
+.stat-bar-wrap{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.stat-bar{height:100%;border-radius:2px;width:0%;transition:width 1.2s ease;}
+.stat-bar.gold{background:linear-gradient(90deg,var(--gold-dim),var(--gold-light));}
+.stat-bar.teal{background:linear-gradient(90deg,var(--teal-dim),var(--teal));}
+.stat-value{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--gold);}
+.stat-sub{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;letter-spacing:1px;}
 
-  /* GRID STATS */
-  .stats-grid { padding:0 16px 16px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .stat-card {
-    background:var(--panel); border:1px solid var(--border-teal);
-    border-radius:6px; padding:16px;
-    position:relative;
-  }
-  .stat-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:8px; }
-  .stat-bar-wrap { height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; margin-bottom:6px; }
-  .stat-bar { height:100%; border-radius:2px; transition:width 1s ease; }
-  .stat-bar.gold { background:linear-gradient(90deg,var(--gold-dim),var(--gold-light)); }
-  .stat-bar.teal { background:linear-gradient(90deg,var(--teal-dim),var(--teal)); }
-  .stat-value { font-family:'Orbitron',sans-serif; font-size:13px; font-weight:700; color:var(--gold); }
-  .stat-sub { font-size:10px; color:rgba(255,255,255,0.35); font-family:'Share Tech Mono',monospace; font-size:9px; }
+/* SECTION HDR */
+.section-hdr{padding:4px 16px 12px;display:flex;align-items:center;gap:10px;}
+.section-hdr h2{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
+.line{flex:1;height:1px;background:var(--border);}
 
-  /* SECTION TITLE */
-  .section-title {
-    padding:0 16px 12px;
-    display:flex; align-items:center; gap:10px;
-  }
-  .section-title h2 {
-    font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700;
-    color:var(--gold); letter-spacing:3px;
-  }
-  .section-title .line { flex:1; height:1px; background:var(--border); }
-  .section-title .live-dot {
-    width:7px;height:7px;border-radius:50%;background:var(--teal);
-    box-shadow:0 0 8px var(--teal); animation:pulse 1.5s infinite;
-  }
+/* QUICK ACTIONS */
+.quick-actions{padding:0 16px 16px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.qa-btn{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.25s;text-decoration:none;}
+.qa-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);box-shadow:0 0 16px rgba(201,168,76,0.15);transform:translateY(-2px);}
+.qa-icon{font-size:22px;line-height:1;}
+.qa-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;text-align:center;}
 
-  /* QUICK ACTION ICONS */
-  .quick-actions { padding:0 16px 20px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .qa-btn {
-    background:var(--panel); border:1px solid var(--border);
-    border-radius:6px; padding:16px 8px;
-    display:flex; flex-direction:column; align-items:center; gap:8px;
-    cursor:pointer; transition:all 0.3s; text-decoration:none;
-  }
-  .qa-btn:hover, .qa-btn.active {
-    border-color:var(--gold);
-    background:rgba(201,168,76,0.08);
-    box-shadow:0 0 15px rgba(201,168,76,0.15);
-    transform:translateY(-2px);
-  }
-  .qa-icon { font-size:22px; }
-  .qa-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--gold-dim); letter-spacing:1px; text-align:center; }
+/* EVENT BANNER */
+.event-wrap{padding:0 16px 16px;}
+.event-card{background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(0,229,204,0.04));border:1px solid var(--gold);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
+.event-card::after{content:'LIVE';position:absolute;right:-8px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:rgba(201,168,76,0.04);letter-spacing:4px;pointer-events:none;}
+.event-tag{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:3px;margin-bottom:6px;}
+.event-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--gold-light);letter-spacing:2px;margin-bottom:4px;}
+.event-date{font-size:13px;color:rgba(255,255,255,0.55);letter-spacing:1px;}
+.event-btn{display:inline-block;margin-top:14px;background:var(--gold);color:var(--black);font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;padding:8px 20px;border-radius:3px;letter-spacing:2px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s;}
+.event-btn:hover{background:var(--gold-light);box-shadow:0 0 20px rgba(201,168,76,0.4);}
 
-  /* RECENT TRANSMISSIONS */
-  .transmissions { padding:0 16px 20px; }
-  .tx-card {
-    background:var(--panel); border:1px solid var(--border-teal);
-    border-radius:6px; padding:18px; position:relative; overflow:hidden;
-  }
-  .tx-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:1px;
-    background:linear-gradient(90deg,transparent,var(--teal),transparent);
-  }
-  .tx-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-  .tx-title { font-family:'Orbitron',sans-serif; font-size:11px; color:var(--gold); letter-spacing:3px; }
-  .tx-live { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal); letter-spacing:2px; display:flex; align-items:center; gap:5px; }
-  .tx-item {
-    display:flex; align-items:flex-start; gap:10px;
-    padding:10px 0; border-bottom:1px solid rgba(201,168,76,0.08);
-  }
-  .tx-item:last-child { border-bottom:none; padding-bottom:0; }
-  .tx-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); margin-top:4px; flex-shrink:0; box-shadow:0 0 6px rgba(201,168,76,0.5); }
-  .tx-dot.teal { background:var(--teal); box-shadow:0 0 6px rgba(0,229,204,0.5); }
-  .tx-text { flex:1; }
-  .tx-main { font-size:13px; font-weight:600; color:#e0e0e0; letter-spacing:1px; }
-  .tx-time { font-family:'Share Tech Mono',monospace; font-size:9px; color:rgba(255,255,255,0.3); margin-top:2px; letter-spacing:1px; }
+/* TRANSMISSIONS */
+.tx-wrap{padding:0 16px 20px;}
+.tx-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
+.tx-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.tx-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.tx-title{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:3px;}
+.tx-live-ind{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:2px;display:flex;align-items:center;gap:5px;}
+.tx-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07);}
+.tx-item:last-child{border-bottom:none;padding-bottom:0;}
+.tx-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0;box-shadow:0 0 6px rgba(201,168,76,0.5);}
+.tx-dot.teal{background:var(--teal);box-shadow:0 0 6px rgba(0,229,204,0.5);}
+.tx-main{font-size:13px;font-weight:600;color:#ddd;letter-spacing:0.5px;}
+.tx-time{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;letter-spacing:1px;}
 
-  /* UPCOMING EVENT BANNER */
-  .event-banner { margin:0 16px 20px; }
-  .event-card {
-    background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(0,229,204,0.05));
-    border:1px solid var(--gold);
-    border-radius:6px; padding:18px;
-    position:relative; overflow:hidden;
-  }
-  .event-card::after {
-    content:'EVENT'; position:absolute; right:-10px; top:50%; transform:translateY(-50%) rotate(90deg);
-    font-family:'Orbitron',sans-serif; font-size:40px; font-weight:900;
-    color:rgba(201,168,76,0.04); letter-spacing:4px;
-  }
-  .event-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal); letter-spacing:3px; margin-bottom:6px; }
-  .event-name { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:var(--gold-light); letter-spacing:2px; margin-bottom:4px; }
-  .event-date { font-size:13px; color:rgba(255,255,255,0.6); letter-spacing:1px; font-weight:500; }
-  .event-btn {
-    display:inline-block; margin-top:14px;
-    background:var(--gold); color:var(--black);
-    font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700;
-    padding:8px 20px; border-radius:3px; letter-spacing:2px;
-    text-decoration:none; cursor:pointer; border:none;
-    transition:all 0.2s;
-  }
-  .event-btn:hover { background:var(--gold-light); box-shadow:0 0 20px rgba(201,168,76,0.4); }
+/* WATERMARK */
+.watermark{text-align:center;padding:8px 16px;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(201,168,76,0.14);letter-spacing:3px;}
 
-  /* BOTTOM NAV */
-  .bottom-nav {
-    position:fixed; bottom:0; left:0; right:0; z-index:100;
-    background:rgba(5,10,14,0.97);
-    border-top:1px solid var(--border);
-    display:grid; grid-template-columns:repeat(5,1fr);
-    backdrop-filter:blur(10px);
-  }
-  .nav-item {
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:10px 4px; gap:4px; cursor:pointer;
-    text-decoration:none; transition:all 0.2s;
-    border-top:2px solid transparent;
-  }
-  .nav-item.active { border-top-color:var(--gold); }
-  .nav-item .nav-icon { font-size:20px; }
-  .nav-item .nav-label {
-    font-family:'Share Tech Mono',monospace; font-size:8px;
-    color:var(--gold-dim); letter-spacing:1px;
-  }
-  .nav-item.active .nav-label { color:var(--gold); }
-
-  /* Footer watermark */
-  .watermark {
-    text-align:center; padding:10px 16px 6px;
-    font-family:'Share Tech Mono',monospace; font-size:9px;
-    color:rgba(201,168,76,0.15); letter-spacing:3px;
-  }
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
 </style>
 </head>
 <body>
 
-<!-- STATUS BAR -->
 <div class="status-bar">
   <div class="status-live">LIVE</div>
   <div class="status-items">
     <div class="status-item"><div class="dot"></div>UPLINK STABLE</div>
-    <div class="status-item"><div class="dot"></div>ENCRYPTION ACTIVE</div>
+    <div class="status-item"><div class="dot"></div>ENCRYPTED</div>
   </div>
-  <div class="status-logout" onclick="logout()">EXIT</div>
+  <button class="status-logout" onclick="logout()">⇥ EXIT</button>
 </div>
 
-<!-- HERO CARD -->
 <div class="hero">
   <div class="hero-card">
-    <div class="hero-avatar"><img src="logo.png" alt="M.O.G."></div>
+    <div class="hero-avatar">
+      <img src="logo.png" alt="M.O.G." onerror="this.style.background='#0D1F2D';this.style.display='flex';this.outerHTML='<div style=\'width:58px;height:58px;border-radius:50%;background:#0D1F2D;display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:12px;font-weight:900;color:#C9A84C\'>MOG</div>'">
+    </div>
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
       <div class="hero-name" id="userName">OPERATIVE</div>
       <div class="hero-id" id="userId">OP-XXXXXXXX</div>
       <div class="hero-dept">● GROOVE DIVISION</div>
     </div>
-    <button class="hero-logout-btn" onclick="logout()">⇥</button>
+    <button class="hero-exit" onclick="logout()" title="Logout">⇥</button>
   </div>
 </div>
 
-<!-- STATS -->
 <div class="stats-grid">
   <div class="stat-card">
     <div class="stat-label">LOYALTY RATING</div>
-    <div class="stat-bar-wrap"><div class="stat-bar gold" style="width:0%" id="loyaltyBar"></div></div>
+    <div class="stat-bar-wrap"><div class="stat-bar gold" id="loyaltyBar"></div></div>
     <div class="stat-value">100%</div>
     <div class="stat-sub">FULLY COMMITTED</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">GROOVE SYNC</div>
-    <div class="stat-bar-wrap"><div class="stat-bar teal" style="width:0%" id="syncBar"></div></div>
+    <div class="stat-bar-wrap"><div class="stat-bar teal" id="syncBar"></div></div>
     <div class="stat-value" id="syncVal">—</div>
     <div class="stat-sub">SESSIONS ATTENDED</div>
   </div>
 </div>
 
-<!-- QUICK ACTIONS -->
-<div class="section-title"><div class="line"></div><h2>COMMAND CENTRE</h2><div class="line"></div></div>
+<div class="section-hdr"><div class="line"></div><h2>COMMAND CENTRE</h2><div class="line"></div></div>
 <div class="quick-actions">
-  <a href="pages/gallery.html" class="qa-btn">
-    <div class="qa-icon">🎬</div>
-    <div class="qa-label">GALLERY</div>
-  </a>
-  <a href="pages/frequency.html" class="qa-btn">
-    <div class="qa-icon">🎙️</div>
-    <div class="qa-label">FREQUENCY</div>
-  </a>
-  <a href="pages/dispatch.html" class="qa-btn">
-    <div class="qa-icon">💬</div>
-    <div class="qa-label">DISPATCH</div>
-  </a>
-  <a href="pages/dossier.html" class="qa-btn">
-    <div class="qa-icon">🗳️</div>
-    <div class="qa-label">VOTE</div>
-  </a>
+  <a href="pages/gallery.html" class="qa-btn"><div class="qa-icon">🎬</div><div class="qa-label">GALLERY</div></a>
+  <a href="pages/frequency.html" class="qa-btn"><div class="qa-icon">📡</div><div class="qa-label">LIVE</div></a>
+  <a href="pages/dispatch.html" class="qa-btn"><div class="qa-icon">💬</div><div class="qa-label">DISPATCH</div></a>
+  <a href="pages/dossier.html" class="qa-btn"><div class="qa-icon">🗳️</div><div class="qa-label">VOTE</div></a>
 </div>
 
-<!-- UPCOMING EVENT -->
-<div class="event-banner">
+<div class="event-wrap">
   <div class="event-card">
-    <div class="event-label">// NEXT TRANSMISSION //</div>
+    <div class="event-tag">// NEXT TRANSMISSION //</div>
     <div class="event-name">AMAPIANO SESSIONS VOL.3</div>
     <div class="event-date">TBD — LOCATION CLASSIFIED</div>
-    <button class="event-btn">VIEW INTEL</button>
+    <a href="pages/frequency.html" class="event-btn">VIEW INTEL</a>
   </div>
 </div>
 
-<!-- RECENT TRANSMISSIONS -->
-<div class="transmissions">
+<div class="section-hdr"><div class="line"></div><h2>RECENT TRANSMISSIONS</h2><div class="line"></div></div>
+<div class="tx-wrap">
   <div class="tx-card">
     <div class="tx-header">
-      <div class="tx-title">RECENT TRANSMISSIONS</div>
-      <div class="tx-live"><div class="dot" style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 1.5s infinite;"></div>LIVE</div>
+      <div class="tx-title">INTEL FEED</div>
+      <div class="tx-live-ind"><div class="dot"></div>LIVE</div>
     </div>
-    <div class="tx-item">
-      <div class="tx-dot teal"></div>
-      <div class="tx-text">
-        <div class="tx-main">📸 NEW GALLERY UPLOAD — SESSION 02</div>
-        <div class="tx-time">2 HRS AGO</div>
-      </div>
-    </div>
-    <div class="tx-item">
-      <div class="tx-dot"></div>
-      <div class="tx-text">
-        <div class="tx-main">🎵 TOP 10 VOTE — WEEK 14 OPEN</div>
-        <div class="tx-time">5 HRS AGO</div>
-      </div>
-    </div>
-    <div class="tx-item">
-      <div class="tx-dot teal"></div>
-      <div class="tx-text">
-        <div class="tx-main">💬 DISPATCH ROOM: SESSION 02 ACTIVE</div>
-        <div class="tx-time">8 HRS AGO</div>
-      </div>
-    </div>
-    <div class="tx-item">
-      <div class="tx-dot"></div>
-      <div class="tx-text">
-        <div class="tx-main">🎬 VIDEO UPLOAD — AMAPIANO_SESSION_01</div>
-        <div class="tx-time">14D AGO</div>
-      </div>
-    </div>
+    <div class="tx-item"><div class="tx-dot teal"></div><div><div class="tx-main">📸 NEW GALLERY UPLOAD — SESSION 02</div><div class="tx-time">2 HRS AGO</div></div></div>
+    <div class="tx-item"><div class="tx-dot"></div><div><div class="tx-main">🗳️ TOP 10 VOTE — WEEK 14 NOW OPEN</div><div class="tx-time">5 HRS AGO</div></div></div>
+    <div class="tx-item"><div class="tx-dot teal"></div><div><div class="tx-main">💬 DISPATCH ROOM: SESSION 02 ACTIVE</div><div class="tx-time">8 HRS AGO</div></div></div>
+    <div class="tx-item"><div class="tx-dot"></div><div><div class="tx-main">🎬 VIDEO UPLOAD — AMAPIANO SESSION 01</div><div class="tx-time">14D AGO</div></div></div>
   </div>
 </div>
 
 <div class="watermark">M.O.G. NETWORK // DECRYPTING THE CULTURE // EST. 2026</div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
-  <a href="index.html" class="nav-item active">
-    <div class="nav-icon">⬡</div>
-    <div class="nav-label">HUB</div>
-  </a>
-  <a href="pages/gallery.html" class="nav-item">
-    <div class="nav-icon">🎬</div>
-    <div class="nav-label">GALLERY</div>
-  </a>
-  <a href="pages/frequency.html" class="nav-item">
-    <div class="nav-icon">🎙️</div>
-    <div class="nav-label">LIVE</div>
-  </a>
-  <a href="pages/dispatch.html" class="nav-item">
-    <div class="nav-icon">💬</div>
-    <div class="nav-label">CHAT</div>
-  </a>
-  <a href="pages/dossier.html" class="nav-item">
-    <div class="nav-icon">👤</div>
-    <div class="nav-label">PROFILE</div>
-  </a>
+  <a href="index.html" class="nav-item active"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
+  <a href="pages/gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+  <a href="pages/frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
+  <a href="pages/dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="pages/dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
-// Animate bars on load
+// Load user from session
+const storedName=sessionStorage.getItem('mogUser')||'OPERATIVE';
+document.getElementById('userName').textContent=storedName.length>14?storedName.substring(0,14)+'…':storedName;
+document.getElementById('userId').textContent='OP-'+Math.random().toString(36).substr(2,8).toUpperCase();
+// Animate bars
 setTimeout(()=>{
   document.getElementById('loyaltyBar').style.width='100%';
   document.getElementById('syncBar').style.width='40%';
   document.getElementById('syncVal').textContent='40%';
-},300);
-
-// Generate operative ID
-const uid='OP-'+Math.random().toString(36).substr(2,8).toUpperCase();
-document.getElementById('userId').textContent=uid;
-
+},350);
 function logout(){
-  if(confirm('Terminate operative session?')) window.location.href='login.html';
+  if(confirm('Terminate operative session?')){
+    sessionStorage.clear();
+    window.location.href='login.html';
+  }
 }
 </script>
 </body>
