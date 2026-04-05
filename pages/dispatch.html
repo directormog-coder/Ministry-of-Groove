@@ -2,67 +2,71 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Dispatch</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-  body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:column;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-  /* TOP BAR */
-  .top-bar{background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);flex-shrink:0;z-index:10;}
-  .back-btn{color:var(--gold);font-size:20px;text-decoration:none;padding:4px 8px;}
-  .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
-  .room-indicator{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;}
+/* TOP BAR */
+.top-bar{background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);flex-shrink:0;z-index:10;position:relative;}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;transition:color 0.2s;}
+.back-btn:hover{color:var(--gold-light);}
+.top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+.online-count{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
 
-  /* ROOMS SELECTOR */
-  .rooms-bar{background:var(--navy);border-bottom:1px solid var(--border-teal);padding:0 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;z-index:9;}
-  .rooms-bar::-webkit-scrollbar{display:none;}
-  .room-tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 12px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;}
-  .room-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-  .room-tab .unread{background:var(--teal);color:var(--black);font-size:8px;padding:1px 5px;border-radius:8px;margin-left:5px;font-weight:700;}
+/* ROOM TABS */
+.rooms-bar{background:rgba(13,31,45,0.6);border-bottom:1px solid var(--border-teal);padding:0 16px;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;z-index:9;position:relative;}
+.rooms-bar::-webkit-scrollbar{display:none;}
+.room-tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:12px 14px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;position:relative;background:none;border-top:none;border-left:none;border-right:none;}
+.room-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.room-tab:hover:not(.active){color:var(--gold-light);}
+.unread{background:var(--teal);color:var(--black);font-size:8px;padding:1px 5px;border-radius:8px;margin-left:5px;font-weight:700;display:inline-block;}
 
-  /* MESSAGES AREA */
-  .messages-area{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;z-index:1;position:relative;}
-  .messages-area::-webkit-scrollbar{width:3px;}
-  .messages-area::-webkit-scrollbar-thumb{background:var(--border);}
+/* MESSAGES */
+.messages-wrap{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;}
+.messages-wrap::-webkit-scrollbar{width:3px;}
+.messages-wrap::-webkit-scrollbar-thumb{background:var(--border);}
+.room-header-label{text-align:center;padding:6px;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold-dim);letter-spacing:3px;border:1px solid var(--border);padding:6px 16px;border-radius:2px;display:inline-block;align-self:center;}
+.sys-msg{text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:4px;}
 
-  /* Room header */
-  .room-header{text-align:center;padding:8px;}
-  .room-header-text{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold-dim);letter-spacing:3px;border:1px solid var(--border);padding:6px 16px;border-radius:2px;display:inline-block;}
+/* MSG BUBBLES */
+.msg{display:flex;gap:10px;max-width:88%;}
+.msg.mine{flex-direction:row-reverse;align-self:flex-end;}
+.msg-avatar{width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;align-self:flex-end;}
+.msg-avatar.directorate{border-color:var(--teal);color:var(--teal);}
+.msg-body{display:flex;flex-direction:column;gap:3px;}
+.msg-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;}
+.msg.mine .msg-name{text-align:right;color:var(--gold-dim);}
+.bubble{background:var(--panel);border:1px solid var(--border);border-radius:10px;border-bottom-left-radius:2px;padding:10px 14px;font-size:14px;font-weight:500;color:#ddd;line-height:1.4;word-break:break-word;}
+.msg.mine .bubble{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);border-bottom-right-radius:2px;border-bottom-left-radius:10px;}
+.bubble.directorate-bubble{background:rgba(0,229,204,0.05);border-color:rgba(0,229,204,0.3);}
+.msg-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.22);letter-spacing:1px;}
+.msg.mine .msg-time{text-align:right;}
 
-  /* Messages */
-  .msg{display:flex;gap:10px;max-width:85%;}
-  .msg.mine{flex-direction:row-reverse;align-self:flex-end;}
-  .msg-avatar{width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;}
-  .msg-body{display:flex;flex-direction:column;gap:3px;}
-  .msg-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;}
-  .msg.mine .msg-name{text-align:right;}
-  .msg-bubble{background:var(--panel);border:1px solid var(--border);border-radius:6px;border-top-left-radius:2px;padding:10px 14px;font-size:14px;font-weight:500;color:#e0e0e0;line-height:1.4;}
-  .msg.mine .msg-bubble{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.4);border-top-right-radius:2px;border-top-left-radius:6px;}
-  .msg-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:1px;}
-  .msg.mine .msg-time{text-align:right;}
+/* INPUT */
+.input-wrap{background:rgba(5,10,14,0.97);border-top:1px solid var(--border);padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-end;flex-shrink:0;z-index:10;position:relative;}
+.msg-input{flex:1;background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);border-radius:8px;padding:11px 14px;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;outline:none;resize:none;max-height:120px;min-height:44px;transition:border 0.2s;}
+.msg-input:focus{border-color:var(--teal);}
+.msg-input::placeholder{color:rgba(255,255,255,0.2);}
+.send-btn{background:var(--gold);border:none;border-radius:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;flex-shrink:0;color:var(--black);}
+.send-btn:hover{background:var(--gold-light);box-shadow:0 0 16px rgba(201,168,76,0.4);}
+.send-btn:active{transform:scale(0.95);}
 
-  /* System message */
-  .sys-msg{text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:4px;}
-
-  /* INPUT AREA */
-  .input-area{background:rgba(5,10,14,0.97);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:flex-end;flex-shrink:0;z-index:10;}
-  .msg-input{flex:1;background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);border-radius:6px;padding:12px 14px;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;outline:none;resize:none;max-height:100px;min-height:44px;}
-  .msg-input:focus{border-color:var(--teal);}
-  .msg-input::placeholder{color:rgba(255,255,255,0.2);}
-  .send-btn{background:var(--gold);border:none;border-radius:6px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;flex-shrink:0;}
-  .send-btn:hover{background:var(--gold-light);box-shadow:0 0 15px rgba(201,168,76,0.4);}
-
-  /* BOTTOM NAV */
-  .bottom-nav{background:rgba(5,10,14,0.97);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;z-index:10;}
-  .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
-  .nav-item.active{border-top-color:var(--gold);}
-  .nav-icon{font-size:20px;}
-  .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
-  .nav-item.active .nav-label{color:var(--gold);}
+/* BOTTOM NAV */
+.bottom-nav{background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;z-index:10;position:relative;}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -70,103 +74,114 @@
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
   <div class="top-title">DISPATCH</div>
-  <div class="room-indicator" id="onlineCount">● 12 ONLINE</div>
+  <div class="online-count"><div class="dot"></div><span id="onlineCount">12 ONLINE</span></div>
 </div>
 
 <div class="rooms-bar">
-  <div class="room-tab active" onclick="switchRoom('general',this)">GENERAL HQ</div>
-  <div class="room-tab" onclick="switchRoom('session01',this)">SESSION 01 <span class="unread">3</span></div>
-  <div class="room-tab" onclick="switchRoom('session02',this)">SESSION 02</div>
-  <div class="room-tab" onclick="switchRoom('amapiano',this)">AMAPIANO INTEL</div>
+  <button class="room-tab active" onclick="switchRoom('general',this)">GENERAL HQ</button>
+  <button class="room-tab" onclick="switchRoom('session01',this)">SESSION 01 <span class="unread">3</span></button>
+  <button class="room-tab" onclick="switchRoom('session02',this)">SESSION 02</button>
+  <button class="room-tab" onclick="switchRoom('amapiano',this)">AMAPIANO INTEL</button>
 </div>
 
-<div class="messages-area" id="messagesArea"></div>
+<div class="messages-wrap" id="msgWrap"></div>
 
-<div class="input-area">
+<div class="input-wrap">
   <textarea class="msg-input" id="msgInput" placeholder="TRANSMIT MESSAGE..." rows="1"
-    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
-    oninput="this.style.height='44px';this.style.height=this.scrollHeight+'px'"></textarea>
-  <button class="send-btn" onclick="sendMsg()">➤</button>
+    oninput="autoResize(this)"
+    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"></textarea>
+  <button class="send-btn" onclick="send()">➤</button>
 </div>
 
 <div class="bottom-nav">
   <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
-  <a href="frequency.html" class="nav-item"><div class="nav-icon">🎙️</div><div class="nav-label">LIVE</div></a>
+  <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
   <a href="dispatch.html" class="nav-item active"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
   <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
+const myName=(sessionStorage.getItem('mogUser')||'OPERATIVE').substring(0,12);
+
 const rooms={
-  general:{name:'GENERAL HQ',messages:[
-    {id:1,user:'OPERATIVE_ZEN',initial:'Z',text:'The groove is real 🔥',time:'21:05',mine:false},
-    {id:2,user:'MOG_NOVA',initial:'N',text:'Session 02 was insane. When is the next one?',time:'21:10',mine:false},
-    {id:3,user:'YOU',initial:'ME',text:'Already counting down 🎵',time:'21:12',mine:true},
-    {id:4,user:'OPERATIVE_KASE',initial:'K',text:'The Directorate never misses 🎯',time:'21:15',mine:false},
+  general:{name:'GENERAL HQ',msgs:[
+    {u:'OPERATIVE_ZEN',ini:'ZN',text:'The groove is real 🔥',t:'21:05',mine:false},
+    {u:'MOG_NOVA',ini:'MN',text:'Session 02 was insane. When is the next one?',t:'21:10',mine:false},
+    {u:myName,ini:myName.substring(0,2),text:'Already counting down 🎵',t:'21:12',mine:true},
+    {u:'OPERATIVE_KASE',ini:'KS',text:'The Directorate never misses 🎯',t:'21:15',mine:false},
   ]},
-  session01:{name:'SESSION 01',messages:[
-    {id:1,user:'MOG_NOVA',initial:'N',text:'That opening set was a full takeover 🎶',time:'14D AGO',mine:false},
-    {id:2,user:'OPERATIVE_ZEN',initial:'Z',text:'Piano Hub killed it on the decks',time:'14D AGO',mine:false},
-    {id:3,user:'OPERATIVE_RIZE',initial:'R',text:'Download the pics in the vault!!',time:'14D AGO',mine:false},
+  session01:{name:'SESSION 01 DEBRIEF',msgs:[
+    {u:'DIRECTORATE',ini:'D',text:'Session 01 recap uploaded to the vault. Check the gallery.',t:'14D',mine:false,dir:true},
+    {u:'MOG_NOVA',ini:'MN',text:'That opening set was a full takeover 🎶',t:'14D',mine:false},
+    {u:'OPERATIVE_ZEN',ini:'ZN',text:'Piano Hub killed it on the decks 🔊',t:'14D',mine:false},
+    {u:'OPERATIVE_RIZE',ini:'OR',text:'Download the pics in the vault! Quality is 🔥',t:'14D',mine:false},
   ]},
-  session02:{name:'SESSION 02',messages:[
-    {id:1,user:'DIRECTORATE',initial:'D',text:'Session 02 recap is live in the vault. Go check it 🔐',time:'2D AGO',mine:false,isDirectorate:true},
-    {id:2,user:'MOG_NOVA',initial:'N',text:'The energy was even crazier this time 🔥',time:'2D AGO',mine:false},
+  session02:{name:'SESSION 02 DEBRIEF',msgs:[
+    {u:'DIRECTORATE',ini:'D',text:'SESSION 02 recap is LIVE in the vault. Download, like, and share 🔐',t:'2D',mine:false,dir:true},
+    {u:'MOG_NOVA',ini:'MN',text:'The energy was even crazier this time 🙌',t:'2D',mine:false},
+    {u:'OPERATIVE_KASE',ini:'KS',text:'Need Vol.3 ASAP',t:'2D',mine:false},
   ]},
-  amapiano:{name:'AMAPIANO INTEL',messages:[
-    {id:1,user:'OPERATIVE_KASE',initial:'K',text:'Who thinks Scorpion Kings are still top 5?',time:'3 HRS AGO',mine:false},
-    {id:2,user:'OPERATIVE_ZEN',initial:'Z',text:'Kabza De Small is untouchable right now',time:'3 HRS AGO',mine:false},
-    {id:3,user:'YOU',initial:'ME',text:'Vote in the dossier section 🗳️',time:'2 HRS AGO',mine:true},
+  amapiano:{name:'AMAPIANO INTEL',msgs:[
+    {u:'OPERATIVE_KASE',ini:'KS',text:'Who thinks Scorpion Kings are still top 5?',t:'3HRS',mine:false},
+    {u:'OPERATIVE_ZEN',ini:'ZN',text:'Kabza De Small is untouchable right now',t:'3HRS',mine:false},
+    {u:myName,ini:myName.substring(0,2),text:'Vote in the dossier section 🗳️',t:'2HRS',mine:true},
   ]},
 };
 
-let currentRoom='general';
+let current='general';
 
-function renderMessages(roomKey){
-  const area=document.getElementById('messagesArea');
-  const room=rooms[roomKey];
-  area.innerHTML=`
-    <div class="room-header"><div class="room-header-text">// ${room.name} //</div></div>
-    <div class="sys-msg">END-TO-END ENCRYPTED — OPERATIVE EYES ONLY</div>
-    ${room.messages.map(m=>`
+function renderMsgs(key){
+  const room=rooms[key];
+  const wrap=document.getElementById('msgWrap');
+  wrap.innerHTML=`
+    <div style="display:flex;justify-content:center;margin-bottom:6px;">
+      <div class="room-header-label">// ${room.name} //</div>
+    </div>
+    <div class="sys-msg">🔐 END-TO-END ENCRYPTED</div>
+    ${room.msgs.map(m=>`
       <div class="msg ${m.mine?'mine':''}">
-        <div class="msg-avatar" style="${m.isDirectorate?'border-color:var(--teal);color:var(--teal)':''}">${m.initial}</div>
+        <div class="msg-avatar ${m.dir?'directorate':''}">${m.ini}</div>
         <div class="msg-body">
-          <div class="msg-name">${m.user}</div>
-          <div class="msg-bubble" style="${m.isDirectorate?'border-color:var(--teal);background:rgba(0,229,204,0.05)':''}">${m.text}</div>
-          <div class="msg-time">${m.time}</div>
+          <div class="msg-name">${m.u}</div>
+          <div class="bubble ${m.dir?'directorate-bubble':''}">${m.text}</div>
+          <div class="msg-time">${m.t}</div>
         </div>
       </div>
     `).join('')}
   `;
-  area.scrollTop=area.scrollHeight;
+  wrap.scrollTop=wrap.scrollHeight;
 }
 
 function switchRoom(key,btn){
-  currentRoom=key;
+  current=key;
   document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  // clear unread badge
   const badge=btn.querySelector('.unread');
   if(badge)badge.remove();
-  renderMessages(key);
+  renderMsgs(key);
 }
 
-function sendMsg(){
+function send(){
   const input=document.getElementById('msgInput');
   const text=input.value.trim();
   if(!text)return;
   const now=new Date();
-  const time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
-  rooms[currentRoom].messages.push({id:Date.now(),user:'YOU',initial:'ME',text,time,mine:true});
-  input.value='';
-  input.style.height='44px';
-  renderMessages(currentRoom);
+  const t=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  rooms[current].msgs.push({u:myName,ini:myName.substring(0,2),text,t,mine:true});
+  input.value='';input.style.height='44px';
+  renderMsgs(current);
 }
 
-renderMessages('general');
+function autoResize(el){
+  el.style.height='44px';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+// Random online count
+document.getElementById('onlineCount').textContent=Math.floor(Math.random()*20+8)+' ONLINE';
+
+renderMsgs('general');
 </script>
 </body>
 </html>
-
