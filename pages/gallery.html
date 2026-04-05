@@ -2,74 +2,71 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>M.O.G. — Gallery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
+<title>M.O.G. — Media Vault</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-  :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:90px;}
-  body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:80px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;transition:color 0.2s;}
+.back-btn:hover{color:var(--gold-light);}
+.top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+.top-count{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;white-space:nowrap;}
 
-  /* TOP BAR */
-  .top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
-  .back-btn{color:var(--gold);font-size:20px;text-decoration:none;padding:4px 8px;}
-  .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
-  .top-bar-right{width:40px;}
+/* FILTER */
+.filter-wrap{padding:12px 16px;overflow-x:auto;scrollbar-width:none;display:flex;gap:8px;}
+.filter-wrap::-webkit-scrollbar{display:none;}
+.tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:7px 14px;border:1px solid var(--border);border-radius:3px;color:var(--gold-dim);background:none;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.tab.active,.tab:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08);}
 
-  /* FILTER TABS */
-  .filter-tabs{display:flex;gap:8px;padding:16px;overflow-x:auto;scrollbar-width:none;}
-  .filter-tabs::-webkit-scrollbar{display:none;}
-  .tab{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:7px 14px;border:1px solid var(--border);border-radius:3px;color:var(--gold-dim);background:none;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
-  .tab.active,.tab:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08);}
+/* GRID */
+.gallery-grid{padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative;z-index:1;}
+.media-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all 0.25s;}
+.media-card:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.18);transform:translateY(-2px);}
+.media-thumb{width:100%;aspect-ratio:1;background:var(--navy);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.thumb-icon{font-size:38px;opacity:0.35;}
+.type-badge{position:absolute;top:8px;left:8px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 7px;border-radius:2px;font-weight:700;}
+.badge-photo{background:rgba(201,168,76,0.85);color:var(--black);}
+.badge-video{background:rgba(0,229,204,0.85);color:var(--black);}
+.media-info{padding:10px;}
+.media-title{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold-light);letter-spacing:1px;margin-bottom:3px;}
+.media-meta{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.likes-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.like-btn{background:none;border:none;color:var(--gold-dim);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:9px;transition:color 0.2s;padding:0;}
+.like-btn.liked,.like-btn:hover{color:var(--gold);}
+.dl-btn{background:none;border:1px solid var(--border-teal);color:var(--teal-dim);padding:4px 8px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:8px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+.dl-btn:hover{border-color:var(--teal);color:var(--teal);}
 
-  /* GALLERY GRID */
-  .gallery-grid{padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .media-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;position:relative;cursor:pointer;transition:all 0.3s;}
-  .media-card:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.2);transform:translateY(-2px);}
-  .media-thumb{width:100%;aspect-ratio:1;background:var(--navy);display:flex;align-items:center;justify-content:center;position:relative;}
-  .media-thumb .thumb-icon{font-size:40px;opacity:0.3;}
-  .media-type-badge{position:absolute;top:8px;left:8px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:2px 6px;border-radius:2px;}
-  .badge-photo{background:rgba(201,168,76,0.8);color:var(--black);}
-  .badge-video{background:rgba(0,229,204,0.8);color:var(--black);}
-  .media-actions{position:absolute;top:8px;right:8px;display:flex;gap:6px;}
-  .action-btn{background:rgba(5,10,14,0.85);border:1px solid var(--border);border-radius:3px;padding:5px 8px;font-size:13px;cursor:pointer;transition:all 0.2s;}
-  .action-btn:hover{border-color:var(--gold);}
-  .media-info{padding:10px;}
-  .media-title{font-size:12px;font-weight:600;color:var(--gold-light);letter-spacing:1px;margin-bottom:3px;font-family:'Orbitron',sans-serif;}
-  .media-meta{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
-  .likes-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
-  .like-btn{background:none;border:none;color:var(--gold-dim);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:10px;transition:all 0.2s;}
-  .like-btn.liked,.like-btn:hover{color:var(--gold);}
-  .download-btn{background:none;border:1px solid var(--border-teal);color:var(--teal-dim);padding:4px 8px;border-radius:3px;font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
-  .download-btn:hover{border-color:var(--teal);color:var(--teal);}
+/* EMPTY STATE */
+.empty-state{grid-column:span 2;text-align:center;padding:60px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(201,168,76,0.3);letter-spacing:3px;}
 
-  /* MODAL */
-  .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.95);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:center;}
-  .modal-overlay.open{display:flex;}
-  .modal-close{position:absolute;top:16px;right:16px;background:none;border:1px solid var(--border);color:var(--gold);font-size:20px;padding:6px 12px;cursor:pointer;border-radius:3px;}
-  .modal-content{width:90%;max-width:400px;}
-  .modal-media{width:100%;aspect-ratio:1;background:var(--navy);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;}
-  .modal-title{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--gold);letter-spacing:2px;margin-bottom:8px;}
-  .modal-meta{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:16px;}
-  .modal-actions{display:flex;gap:10px;}
-  .modal-btn{flex:1;padding:12px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;border-radius:3px;cursor:pointer;border:none;transition:all 0.2s;}
-  .modal-btn.gold{background:var(--gold);color:var(--black);}
-  .modal-btn.teal{background:rgba(0,229,204,0.15);color:var(--teal);border:1px solid var(--teal);}
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.96);backdrop-filter:blur(10px);flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.modal.open{display:flex;}
+.modal-inner{width:100%;max-width:400px;}
+.modal-screen{width:100%;aspect-ratio:1;background:var(--navy);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:80px;margin-bottom:16px;position:relative;}
+.modal-close{position:absolute;top:16px;right:16px;background:rgba(5,10,14,0.8);border:1px solid var(--border);color:var(--gold);font-size:18px;padding:6px 12px;cursor:pointer;border-radius:4px;transition:all 0.2s;}
+.modal-close:hover{border-color:var(--gold);color:var(--gold-light);}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--gold);letter-spacing:2px;margin-bottom:6px;}
+.modal-meta{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:16px;}
+.modal-actions{display:flex;gap:10px;}
+.mbtn{flex:1;padding:13px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;border-radius:4px;cursor:pointer;border:none;transition:all 0.2s;}
+.mbtn-gold{background:var(--gold);color:var(--black);}
+.mbtn-gold:hover{background:var(--gold-light);}
+.mbtn-teal{background:rgba(0,229,204,0.12);color:var(--teal);border:1px solid var(--teal);}
+.mbtn-teal:hover{background:rgba(0,229,204,0.22);}
 
-  /* BOTTOM NAV */
-  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.97);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(10px);}
-  .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
-  .nav-item.active{border-top-color:var(--gold);}
-  .nav-icon{font-size:20px;}
-  .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
-  .nav-item.active .nav-label{color:var(--gold);}
-
-  /* Section header */
-  .section-hdr{padding:16px 16px 12px;display:flex;align-items:center;gap:10px;}
-  .section-hdr h2{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;}
-  .section-hdr .line{flex:1;height:1px;background:var(--border);}
-  .count-badge{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);border:1px solid var(--border-teal);padding:2px 8px;border-radius:2px;}
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
 </style>
 </head>
 <body>
@@ -77,121 +74,129 @@
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
   <div class="top-title">MEDIA VAULT</div>
-  <div class="top-bar-right"></div>
+  <div class="top-count" id="countBadge">6 FILES</div>
 </div>
 
-<div class="filter-tabs">
-  <button class="tab active" onclick="filterMedia('all',this)">ALL INTEL</button>
-  <button class="tab" onclick="filterMedia('photo',this)">PHOTOS</button>
-  <button class="tab" onclick="filterMedia('video',this)">VIDEOS</button>
-  <button class="tab" onclick="filterMedia('session01',this)">SESSION 01</button>
-  <button class="tab" onclick="filterMedia('session02',this)">SESSION 02</button>
+<div class="filter-wrap">
+  <button class="tab active" onclick="filter('all',this)">ALL INTEL</button>
+  <button class="tab" onclick="filter('photo',this)">📸 PHOTOS</button>
+  <button class="tab" onclick="filter('video',this)">🎬 VIDEOS</button>
+  <button class="tab" onclick="filter('session01',this)">SESSION 01</button>
+  <button class="tab" onclick="filter('session02',this)">SESSION 02</button>
 </div>
 
-<div class="section-hdr">
-  <div class="line"></div>
-  <h2>CLASSIFIED MEDIA</h2>
-  <div class="count-badge" id="mediaCount">6 FILES</div>
-  <div class="line"></div>
-</div>
-
-<div class="gallery-grid" id="galleryGrid">
-  <!-- Cards injected by JS -->
-</div>
+<div class="gallery-grid" id="grid"></div>
 
 <!-- MODAL -->
-<div class="modal-overlay" id="modal">
-  <button class="modal-close" onclick="closeModal()">✕</button>
-  <div class="modal-content">
-    <div class="modal-media" id="modalThumb">🎬</div>
-    <div class="modal-title" id="modalTitle">TITLE</div>
-    <div class="modal-meta" id="modalMeta">META</div>
+<div class="modal" id="modal">
+  <div class="modal-inner">
+    <div class="modal-screen" id="mScreen">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <span id="mIcon" style="font-size:80px"></span>
+    </div>
+    <div class="modal-title" id="mTitle"></div>
+    <div class="modal-meta" id="mMeta"></div>
     <div class="modal-actions">
-      <button class="modal-btn gold" onclick="likeFromModal()">♥ LIKE</button>
-      <button class="modal-btn teal" onclick="downloadFromModal()">⬇ DOWNLOAD</button>
+      <button class="mbtn mbtn-gold" id="mLikeBtn" onclick="modalLike()">♥ LIKE</button>
+      <button class="mbtn mbtn-teal" onclick="modalDownload()">⬇ DOWNLOAD</button>
     </div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav">
   <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="gallery.html" class="nav-item active"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
-  <a href="frequency.html" class="nav-item"><div class="nav-icon">🎙️</div><div class="nav-label">LIVE</div></a>
+  <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
   <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
   <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
-const mediaItems=[
-  {id:1,type:'video',session:'session01',title:'SESSION 01',subtitle:'AMAPIANO LIVE MIX',icon:'🎬',date:'14D AGO',likes:24,liked:false},
-  {id:2,type:'photo',session:'session01',title:'SESSION 01',subtitle:'GALLERY DROP A',icon:'📸',date:'14D AGO',likes:18,liked:false},
-  {id:3,type:'photo',session:'session01',title:'SESSION 01',subtitle:'GALLERY DROP B',icon:'🖼️',date:'14D AGO',likes:31,liked:false},
-  {id:4,type:'video',session:'session02',title:'SESSION 02',subtitle:'THE SEQUEL DROPS',icon:'🎥',date:'2D AGO',likes:9,liked:false},
-  {id:5,type:'photo',session:'session02',title:'SESSION 02',subtitle:'VIBE SHOTS',icon:'📷',date:'2D AGO',likes:15,liked:false},
-  {id:6,type:'photo',session:'session02',title:'SESSION 02',subtitle:'THE CROWD',icon:'📸',date:'2D AGO',likes:22,liked:false},
+const media=[
+  {id:1,type:'video',session:'session01',title:'SESSION 01',sub:'AMAPIANO LIVE MIX',icon:'🎬',date:'14D AGO',likes:24,liked:false},
+  {id:2,type:'photo',session:'session01',title:'SESSION 01',sub:'GALLERY DROP A',icon:'📸',date:'14D AGO',likes:18,liked:false},
+  {id:3,type:'photo',session:'session01',title:'SESSION 01',sub:'GALLERY DROP B',icon:'🖼️',date:'14D AGO',likes:31,liked:false},
+  {id:4,type:'video',session:'session02',title:'SESSION 02',sub:'THE SEQUEL',icon:'🎥',date:'2D AGO',likes:9,liked:false},
+  {id:5,type:'photo',session:'session02',title:'SESSION 02',sub:'VIBE SHOTS',icon:'📷',date:'2D AGO',likes:15,liked:false},
+  {id:6,type:'photo',session:'session02',title:'SESSION 02',sub:'THE CROWD',icon:'📸',date:'2D AGO',likes:22,liked:false},
 ];
 
 let activeFilter='all';
-let currentModalId=null;
+let currentId=null;
 
-function renderGallery(items){
-  const grid=document.getElementById('galleryGrid');
-  document.getElementById('mediaCount').textContent=items.length+' FILES';
+function getFiltered(){
+  if(activeFilter==='all') return media;
+  return media.filter(m=>m.type===activeFilter||m.session===activeFilter);
+}
+
+function render(){
+  const items=getFiltered();
+  const grid=document.getElementById('grid');
+  document.getElementById('countBadge').textContent=items.length+' FILE'+(items.length!==1?'S':'');
+  if(items.length===0){grid.innerHTML='<div class="empty-state">NO FILES FOUND</div>';return;}
   grid.innerHTML=items.map(m=>`
     <div class="media-card" onclick="openModal(${m.id})">
       <div class="media-thumb">
         <div class="thumb-icon">${m.icon}</div>
-        <div class="media-type-badge badge-${m.type}">${m.type.toUpperCase()}</div>
+        <div class="type-badge badge-${m.type}">${m.type.toUpperCase()}</div>
       </div>
       <div class="media-info">
         <div class="media-title">${m.title}</div>
-        <div class="media-meta">${m.subtitle} · ${m.date}</div>
+        <div class="media-meta">${m.sub} · ${m.date}</div>
         <div class="likes-row">
           <button class="like-btn ${m.liked?'liked':''}" onclick="event.stopPropagation();toggleLike(${m.id},this)">
             ${m.liked?'♥':'♡'} <span>${m.likes}</span>
           </button>
-          <button class="download-btn" onclick="event.stopPropagation();downloadItem(${m.id})">⬇ SAVE</button>
+          <button class="dl-btn" onclick="event.stopPropagation();download(${m.id})">⬇ SAVE</button>
         </div>
       </div>
     </div>
   `).join('');
 }
 
-function filterMedia(f,btn){
+function filter(f,btn){
   activeFilter=f;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  const filtered=f==='all'?mediaItems:mediaItems.filter(m=>m.type===f||m.session===f);
-  renderGallery(filtered);
+  render();
 }
 
 function toggleLike(id,btn){
-  const item=mediaItems.find(m=>m.id===id);
-  item.liked=!item.liked;
-  item.likes+=item.liked?1:-1;
-  btn.classList.toggle('liked');
-  btn.innerHTML=(item.liked?'♥':'♡')+' <span>'+item.likes+'</span>';
+  const m=media.find(x=>x.id===id);
+  m.liked=!m.liked;m.likes+=m.liked?1:-1;
+  btn.className='like-btn'+(m.liked?' liked':'');
+  btn.innerHTML=(m.liked?'♥':'♡')+' <span>'+m.likes+'</span>';
 }
 
-function downloadItem(id){
-  const item=mediaItems.find(m=>m.id===id);
-  alert('📥 Downloading: '+item.title+' — '+item.subtitle+'\n(Connect to Supabase storage to enable real downloads)');
+function download(id){
+  const m=media.find(x=>x.id===id);
+  alert('📥 Downloading: '+m.title+' — '+m.sub+'\n\nConnect Supabase Storage to enable real downloads.');
 }
 
 function openModal(id){
-  currentModalId=id;
-  const item=mediaItems.find(m=>m.id===id);
-  document.getElementById('modalThumb').textContent=item.icon;
-  document.getElementById('modalTitle').textContent=item.title+' — '+item.subtitle;
-  document.getElementById('modalMeta').textContent=item.type.toUpperCase()+' · '+item.date+' · '+item.likes+' LIKES';
+  currentId=id;
+  const m=media.find(x=>x.id===id);
+  document.getElementById('mIcon').textContent=m.icon;
+  document.getElementById('mTitle').textContent=m.title+' — '+m.sub;
+  document.getElementById('mMeta').textContent=m.type.toUpperCase()+' · '+m.date+' · ♥ '+m.likes+' LIKES';
+  document.getElementById('mLikeBtn').textContent=m.liked?'♥ LIKED':'♥ LIKE';
   document.getElementById('modal').classList.add('open');
 }
-function closeModal(){ document.getElementById('modal').classList.remove('open'); }
-function likeFromModal(){ if(currentModalId) toggleLike(currentModalId,{classList:{toggle:()=>{}},innerHTML:''}); closeModal(); }
-function downloadFromModal(){ if(currentModalId) downloadItem(currentModalId); closeModal(); }
+function closeModal(){document.getElementById('modal').classList.remove('open');currentId=null;}
+function modalLike(){
+  if(!currentId)return;
+  const m=media.find(x=>x.id===currentId);
+  m.liked=!m.liked;m.likes+=m.liked?1:-1;
+  document.getElementById('mLikeBtn').textContent=m.liked?'♥ LIKED':'♥ LIKE';
+  document.getElementById('mMeta').textContent=m.type.toUpperCase()+' · '+m.date+' · ♥ '+m.likes+' LIKES';
+  render();
+}
+function modalDownload(){if(currentId)download(currentId);}
 
-renderGallery(mediaItems);
+// Close modal on backdrop click
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+render();
 </script>
 </body>
 </html>
