@@ -78,12 +78,11 @@
   .hero-avatar {
     width:56px; height:56px; border-radius:50%;
     border:2px solid var(--gold);
-    background:var(--navy);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Orbitron',sans-serif; font-size:18px; font-weight:900; color:var(--gold);
+    overflow:hidden;
     box-shadow:0 0 15px rgba(201,168,76,0.3);
     flex-shrink:0;
   }
+  .hero-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
   .hero-info { flex:1; }
   .hero-label { font-family:'Share Tech Mono',monospace; font-size:9px; color:var(--teal-dim); letter-spacing:2px; margin-bottom:2px; }
   .hero-name { font-family:'Orbitron',sans-serif; font-size:16px; font-weight:700; color:#fff; letter-spacing:2px; }
@@ -238,7 +237,7 @@
 <!-- HERO CARD -->
 <div class="hero">
   <div class="hero-card">
-    <div class="hero-avatar">OP</div>
+    <div class="hero-avatar"><img src="logo.png" alt="M.O.G."></div>
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
       <div class="hero-name" id="userName">OPERATIVE</div>
