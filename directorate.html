@@ -1,580 +1,373 @@
 <!DOCTYPE html>
-<html lang="en" color-scheme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#050A0E">
-  <meta name="robots" content="noindex, nofollow">
-  <title>M.O.G. | DIRECTORATE COMMAND</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
+<meta name="robots" content="noindex,nofollow">
+<title>M.O.G. | DIRECTORATE COMMAND</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--red:#FF3B3B;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.92);--border:rgba(201,168,76,0.2);--border-teal:rgba(0,229,204,0.15);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;overflow-x:hidden;min-height:100vh;padding-bottom:40px;}
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/js/config.js"></script>
-  <script src="/js/supabase-client.js"></script>
-  <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+/* BG */
+.bg-vfx{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.05) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(circle,black,transparent 85%);}
+.scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);}
 
-  <style>
-    :root {
-      --gold: #C9A84C;
-      --gold-light: #F0C85A;
-      --gold-dim: #8A6E2F;
-      --gold-glow: rgba(201,168,76,0.3);
-      --teal: #00E5CC;
-      --teal-dim: #009E8E;
-      --teal-glow: rgba(0,229,204,0.2);
-      --red: #FF3B3B;
-      --red-glow: rgba(255,59,59,0.3);
-      --black: #050A0E;
-      --navy: #0D1F2D;
-      --panel: rgba(13,31,45,0.92);
-      --border: rgba(201,168,76,0.2);
-      --border-teal: rgba(0,229,204,0.15);
-    }
+/* NAV */
+.command-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.98);border-bottom:1px solid var(--gold);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-logo{width:42px;height:42px;border-radius:50%;border:1px solid var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.3);object-fit:cover;display:block;}
+.brand-logo-fallback{width:42px;height:42px;border-radius:50%;border:1px solid var(--gold);background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);}
+.brand-text h1{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--gold-light);letter-spacing:3px;}
+.clock{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-top:2px;}
+.exit-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);border:1px solid var(--border);padding:8px 16px;border-radius:3px;text-decoration:none;transition:all 0.2s;background:none;cursor:pointer;}
+.exit-btn:hover{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,0.07);}
 
-    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-    body {
-      background: var(--black);
-      color: #fff;
-      font-family: 'Rajdhani', sans-serif;
-      overflow-x: hidden;
-      min-height: 100vh;
-      padding-bottom: 60px;
-    }
+/* DASHBOARD */
+.dashboard{display:grid;grid-template-columns:1fr 340px;gap:18px;max-width:1400px;margin:18px auto;padding:0 20px;position:relative;z-index:10;}
+@media(max-width:1000px){.dashboard{grid-template-columns:1fr;}.stats-ribbon{grid-template-columns:1fr 1fr!important;}}
 
-    /* ATMOSPHERICS */
-    .bg-vfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-    .grid {
-      position: absolute; inset: 0;
-      background-image: linear-gradient(rgba(201,168,76,0.06) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(201,168,76,0.06) 1px, transparent 1px);
-      background-size: 50px 50px;
-      mask-image: radial-gradient(circle, black, transparent 85%);
-    }
-    .scanlines {
-      position: absolute; inset: 0;
-      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
-      z-index: 5;
-    }
+/* STATS */
+.stats-ribbon{grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:1000px){.stats-ribbon{grid-column:span 1;}}
+.stat-card{background:var(--panel);border:1px solid var(--border);padding:18px;border-radius:6px;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--teal));}
+.stat-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
+.stat-value{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;letter-spacing:1px;}
+.sv-gold{color:var(--gold-light);}
+.sv-teal{color:var(--teal);}
+.sv-white{color:#fff;font-size:14px;letter-spacing:3px;margin-top:4px;}
 
-    /* TOP COMMAND BAR */
-    .command-bar {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(5,10,14,0.98);
-      border-bottom: 1px solid var(--gold);
-      padding: 10px 20px;
-      display: flex; align-items: center; justify-content: space-between;
-      backdrop-filter: blur(20px);
-    }
-    .director-brand { display: flex; align-items: center; gap: 14px; }
-    .brand-logo {
-      width: 42px; height: 42px; border-radius: 50%;
-      border: 1px solid var(--gold);
-      box-shadow: 0 0 12px var(--gold-glow);
-      object-fit: cover;
-    }
-    .brand-text h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px; font-weight: 900;
-      color: var(--gold-light); letter-spacing: 3px;
-    }
-    .system-clock {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px; color: var(--teal-dim);
-      letter-spacing: 2px; margin-top: 2px;
-    }
-    .exit-btn {
-      font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
-      letter-spacing: 2px; color: var(--gold-dim);
-      border: 1px solid var(--border); padding: 8px 16px;
-      border-radius: 3px; text-decoration: none;
-      transition: all 0.2s; background: none;
-      cursor: pointer;
-    }
-    .exit-btn:hover { color: var(--gold); border-color: var(--gold); background: rgba(201,168,76,0.08); }
+/* PANELS */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.panel-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;}
+.panel-status{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;}
+.ps-teal{color:var(--teal);}
+.ps-red{color:var(--red);}
 
-    /* DASHBOARD GRID */
-    .dashboard {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 20px;
-      max-width: 1400px;
-      margin: 20px auto;
-      padding: 0 20px;
-      position: relative; z-index: 10;
-    }
-    @media (max-width: 1000px) {
-      .dashboard { grid-template-columns: 1fr; }
-      .stats-ribbon { grid-template-columns: 1fr 1fr !important; }
-    }
+/* BROADCAST SCREEN */
+.video-feed{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-teal);}
+.radar{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.12),transparent 30%);animation:rot 4s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
+.feed-content{z-index:5;text-align:center;}
+.feed-icon{font-size:42px;display:block;margin-bottom:10px;}
+.feed-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
 
-    /* STATS RIBBON */
-    .stats-ribbon {
-      grid-column: span 2;
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
-    }
-    @media (max-width: 1000px) { .stats-ribbon { grid-column: span 1; } }
+/* BUTTONS */
+.console-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;}
+.btn{background:rgba(201,168,76,0.05);border:1px solid var(--border);padding:14px;border-radius:4px;cursor:pointer;color:var(--gold);font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:hover{background:var(--gold);color:var(--black);box-shadow:0 0 20px rgba(201,168,76,0.3);}
+.btn-danger{color:var(--red);border-color:rgba(255,59,59,0.25);background:rgba(255,59,59,0.04);}
+.btn-danger:hover{background:var(--red);color:#fff;box-shadow:0 0 20px rgba(255,59,59,0.3);}
+.btn-danger.on{background:var(--red);color:#fff;animation:pulseRed 1.5s infinite;border-color:var(--red);}
+.btn-teal{color:var(--teal);border-color:var(--border-teal);background:rgba(0,229,204,0.04);}
+.btn-teal:hover{background:var(--teal);color:var(--black);box-shadow:0 0 20px rgba(0,229,204,0.25);}
+@keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(255,59,59,0.6)}70%{box-shadow:0 0 0 12px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
-    .stat-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      padding: 18px; border-radius: 6px;
-      position: relative; overflow: hidden;
-    }
-    .stat-card::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; width: 3px; height: 100%;
-      background: linear-gradient(180deg, var(--gold), var(--teal));
-    }
-    .stat-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px; color: var(--teal-dim);
-      letter-spacing: 2px; margin-bottom: 6px;
-    }
-    .stat-value {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 22px; font-weight: 900;
-      letter-spacing: 1px;
-    }
-    .stat-value.gold { color: var(--gold-light); }
-    .stat-value.teal { color: var(--teal); }
-    .stat-value.white { color: #fff; }
+/* UPLOAD */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.upload-zone{border:1px dashed rgba(201,168,76,0.3);border-radius:6px;padding:22px;text-align:center;background:rgba(0,0,0,0.2);cursor:pointer;transition:all 0.2s;}
+.upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
+.upload-icon{font-size:30px;margin-bottom:10px;}
+.upload-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;}
+.upload-label.changed{color:var(--gold);}
+.field-col{display:flex;flex-direction:column;gap:10px;}
+.inp{background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);padding:11px 14px;border-radius:4px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:10px;outline:none;transition:border 0.2s;width:100%;}
+.inp:focus{border-color:var(--teal);}
+.inp::placeholder,.inp option{color:rgba(255,255,255,0.25);}
 
-    /* PANELS */
-    .glass-panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 8px; padding: 22px;
-      margin-bottom: 18px;
-      position: relative; overflow: hidden;
-    }
-    .glass-panel::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
-    .panel-head {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 18px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-    }
-    .panel-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 700;
-      color: var(--gold); letter-spacing: 3px;
-    }
-    .panel-status {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 9px; letter-spacing: 2px;
-    }
-    .status-red { color: var(--red); }
-    .status-teal { color: var(--teal); }
+/* LOGS */
+.log-wrap{height:260px;overflow-y:auto;padding-right:6px;}
+.log-wrap::-webkit-scrollbar{width:3px;}
+.log-wrap::-webkit-scrollbar-thumb{background:var(--border);}
+.log-item{padding:9px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.7);}
+.log-ts{color:var(--teal-dim);font-size:9px;margin-bottom:3px;display:block;letter-spacing:1px;}
+.empty-log{text-align:center;padding:30px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;}
 
-    /* BROADCAST SCREEN */
-    .video-feed {
-      width: 100%; aspect-ratio: 16/9;
-      background: #000; border-radius: 6px;
-      position: relative; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid var(--border-teal);
-    }
-    .radar-sweep {
-      position: absolute; width: 200%; height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(0,229,204,0.15), transparent 30%);
-      animation: rotate 4s linear infinite; opacity: 0.4;
-    }
-    .feed-icon { z-index: 10; text-align: center; }
-    .feed-icon svg { display: block; margin: 0 auto 10px; }
-    .feed-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px; color: var(--teal-dim); letter-spacing: 2px;
-    }
+/* OPERATIVES */
+.op-row{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);padding:10px 12px;border-radius:4px;margin-bottom:8px;border-left:2px solid var(--teal);}
+.op-av{width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;}
+.op-name{font-size:12px;font-weight:700;color:#e0e0e0;letter-spacing:1px;}
+.op-rank{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
+.op-online{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 6px var(--teal);margin-left:auto;}
 
-    /* BUTTONS */
-    .console-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
-    .btn {
-      background: rgba(201,168,76,0.05);
-      border: 1px solid var(--border);
-      padding: 14px; border-radius: 4px;
-      cursor: pointer; color: var(--gold);
-      font-family: 'Orbitron', sans-serif; font-size: 9px; font-weight: 700;
-      letter-spacing: 2px; transition: all 0.25s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn:hover {
-      background: var(--gold); color: var(--black);
-      box-shadow: 0 0 20px var(--gold-glow);
-    }
-    .btn-danger { color: var(--red); border-color: rgba(255,59,59,0.3); background: rgba(255,59,59,0.04); }
-    .btn-danger:hover { background: var(--red); color: #fff; box-shadow: 0 0 20px var(--red-glow); }
-    .btn-danger.active { background: var(--red); color: #fff; animation: pulseRed 1.5s infinite; border-color: var(--red); }
-    .btn-teal { color: var(--teal); border-color: var(--border-teal); background: rgba(0,229,204,0.04); }
-    .btn-teal:hover { background: var(--teal); color: var(--black); box-shadow: 0 0 20px var(--teal-glow); }
-
-    /* UPLOAD AREA */
-    .upload-zone {
-      border: 1px dashed rgba(201,168,76,0.3);
-      border-radius: 6px; padding: 24px;
-      text-align: center; background: rgba(0,0,0,0.2);
-      cursor: pointer; transition: all 0.2s;
-    }
-    .upload-zone:hover { border-color: var(--gold); background: rgba(201,168,76,0.04); }
-    .upload-icon { font-size: 32px; margin-bottom: 10px; }
-    .upload-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px; color: var(--teal-dim); letter-spacing: 2px;
-    }
-    .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .upload-input {
-      background: rgba(13,31,45,0.8);
-      border: 1px solid var(--border-teal);
-      padding: 11px 14px; border-radius: 4px;
-      color: #fff; font-family: 'Share Tech Mono', monospace;
-      font-size: 11px; outline: none; transition: border 0.2s;
-    }
-    .upload-input:focus { border-color: var(--teal); }
-    .upload-input::placeholder { color: rgba(255,255,255,0.2); }
-
-    /* LOGS */
-    .log-container { height: 280px; overflow-y: auto; padding-right: 6px; }
-    .log-container::-webkit-scrollbar { width: 3px; }
-    .log-container::-webkit-scrollbar-thumb { background: var(--border); }
-    .log-item {
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(201,168,76,0.06);
-      font-family: 'Share Tech Mono', monospace; font-size: 10px;
-      color: rgba(255,255,255,0.7);
-    }
-    .log-item .ts {
-      color: var(--teal-dim); font-size: 9px;
-      margin-bottom: 3px; display: block; letter-spacing: 1px;
-    }
-
-    /* OPERATIVE ROWS */
-    .op-row {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(0,0,0,0.2); padding: 10px 12px;
-      border-radius: 4px; margin-bottom: 8px;
-      border-left: 2px solid var(--teal);
-    }
-    .op-avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--navy); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
-      color: var(--gold); flex-shrink: 0;
-    }
-    .op-name { font-size: 12px; font-weight: 700; color: #e0e0e0; letter-spacing: 1px; }
-    .op-rank { font-family: 'Share Tech Mono', monospace; font-size: 8px; color: var(--gold-dim); letter-spacing: 1px; margin-top: 2px; }
-    .op-online { width: 7px; height: 7px; background: var(--teal); border-radius: 50%; box-shadow: 0 0 6px var(--teal); animation: pulseRed 2s infinite; }
-
-    /* LOADING */
-    .loading-screen {
-      height: 100vh; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      position: relative; z-index: 20;
-    }
-    .loading-spinner {
-      width: 60px; height: 60px;
-      border: 2px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: rotate 1s linear infinite;
-    }
-    .loading-text {
-      margin-top: 24px;
-      font-family: 'Orbitron', monospace;
-      font-size: 10px; letter-spacing: 5px; color: var(--gold);
-    }
-
-    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-    @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(0,229,204,0.5); } 70% { box-shadow: 0 0 0 8px rgba(0,229,204,0); } 100% { box-shadow: 0 0 0 0 rgba(0,229,204,0); } }
-    [x-cloak] { display: none !important; }
-  </style>
+/* LOADING */
+.loading-screen{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:20;}
+.spinner{width:58px;height:58px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;}
+.loading-text{margin-top:24px;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:5px;color:var(--gold);}
+[x-cloak]{display:none!important;}
+</style>
 </head>
-<body x-data="directorCommand()" x-init="init()">
+<body x-data="dirCmd()" x-init="init()">
+<div class="bg-vfx"><div class="grid-bg"></div><div class="scanlines"></div></div>
 
-  <div class="bg-vfx"><div class="grid"></div><div class="scanlines"></div></div>
+<!-- LOADING -->
+<template x-if="view==='loading'">
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <p class="loading-text">AUTHENTICATING DIRECTOR ACCESS...</p>
+  </div>
+</template>
 
-  <!-- LOADING -->
-  <template x-if="view === 'loading'">
-    <div class="loading-screen">
-      <div class="loading-spinner"></div>
-      <p class="loading-text">AUTHENTICATING DIRECTOR ACCESS...</p>
-    </div>
-  </template>
+<!-- DASHBOARD -->
+<template x-if="view==='active'">
+  <div>
+    <nav class="command-bar">
+      <div class="brand">
+        <img src="logo.png" class="brand-logo" alt="M.O.G." onerror="this.outerHTML='<div class=\'brand-logo-fallback\'>MOG</div>'">
+        <div class="brand-text">
+          <h1>DIRECTORATE COMMAND</h1>
+          <p class="clock">UPLINK: SECURE // <span x-text="clock"></span></p>
+        </div>
+      </div>
+      <a href="index.html" class="exit-btn">⇥ EXIT TO HUB</a>
+    </nav>
 
-  <!-- MAIN DASHBOARD -->
-  <template x-if="view === 'active'">
-    <div>
+    <main class="dashboard">
+      <!-- STATS -->
+      <div class="stats-ribbon">
+        <div class="stat-card"><div class="stat-label">TOTAL REVENUE</div><div class="stat-value sv-gold" x-text="stats.revenue"></div></div>
+        <div class="stat-card"><div class="stat-label">ACTIVE OPERATIVES</div><div class="stat-value sv-teal" x-text="operatives.length||'—'"></div></div>
+        <div class="stat-card"><div class="stat-label">MEDIA FILES</div><div class="stat-value sv-gold" x-text="stats.mediaCount"></div></div>
+        <div class="stat-card"><div class="stat-label">VAULT STATUS</div><div class="stat-value sv-white">SECURED</div></div>
+      </div>
 
-      <!-- COMMAND BAR -->
-      <nav class="command-bar">
-        <div class="director-brand">
-          <img src="logo.png" class="brand-logo" alt="M.O.G.">
-          <div class="brand-text">
-            <h1>DIRECTORATE COMMAND</h1>
-            <p class="system-clock">UPLINK: SECURE // <span x-text="currentTime"></span></p>
+      <!-- LEFT COLUMN -->
+      <div>
+        <!-- BROADCAST -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">// MASTER SIGNAL OVERRIDE</div>
+            <div class="panel-status" :class="lockdown?'ps-red':'ps-teal'" x-text="lockdown?'⚠ LOCKDOWN ACTIVE':'● SYSTEMS NOMINAL'"></div>
+          </div>
+          <div class="video-feed">
+            <div class="radar"></div>
+            <div class="feed-content">
+              <span class="feed-icon">📡</span>
+              <div class="feed-label">FEED: MOG_PRIME_STREAM</div>
+            </div>
+          </div>
+          <div class="console-grid">
+            <button class="btn btn-danger" :class="lockdown?'on':''" @click="toggleLockdown()">
+              ⚡ <span x-text="lockdown?'DISENGAGE LOCKDOWN':'PROTOCOL ZERO'"></span>
+            </button>
+            <button class="btn" @click="globalAlert()">📡 GLOBAL PUSH ALERT</button>
           </div>
         </div>
-        <a href="index.html" class="exit-btn">⇥ EXIT TO HUB</a>
-      </nav>
 
-      <main class="dashboard">
-
-        <!-- STATS -->
-        <div class="stats-ribbon">
-          <div class="stat-card">
-            <div class="stat-label">TOTAL REVENUE</div>
-            <div class="stat-value gold" x-text="stats.revenue"></div>
+        <!-- MEDIA UPLOAD -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">// DEPLOY SESSION ASSETS</div>
+            <div class="panel-status ps-teal">ADMIN ONLY</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">ACTIVE OPERATIVES</div>
-            <div class="stat-value teal" x-text="operatives.length || '—'"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">MEDIA FILES</div>
-            <div class="stat-value gold" x-text="stats.mediaCount"></div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">VAULT STATUS</div>
-            <div class="stat-value white" style="font-size:14px;letter-spacing:3px;">SECURED</div>
+          <div class="upload-grid">
+            <div class="upload-zone" onclick="document.getElementById('fileIn').click()">
+              <div class="upload-icon">📁</div>
+              <div class="upload-label" id="uploadLabel">SELECT MEDIA FILE</div>
+              <input type="file" id="fileIn" accept="image/*,video/*" style="display:none" onchange="fileChosen(this)">
+            </div>
+            <div class="field-col">
+              <input type="text" id="sessTitle" class="inp" placeholder="SESSION TITLE...">
+              <select id="sessTag" class="inp" style="cursor:pointer;appearance:none;">
+                <option value="">SELECT SESSION</option>
+                <option value="session01">SESSION 01</option>
+                <option value="session02">SESSION 02</option>
+                <option value="session03">SESSION 03</option>
+              </select>
+              <button class="btn btn-teal" @click="uploadAsset()">⬆ UPLOAD TO VAULT</button>
+            </div>
           </div>
         </div>
 
-        <!-- LEFT COLUMN -->
-        <div>
-
-          <!-- BROADCAST CONTROL -->
-          <div class="glass-panel">
-            <div class="panel-head">
-              <div class="panel-title">// MASTER SIGNAL OVERRIDE</div>
-              <div class="panel-status" :class="protocolZero ? 'status-red' : 'status-teal'"
-                x-text="protocolZero ? '⚠ LOCKDOWN ACTIVE' : '● SYSTEMS NOMINAL'"></div>
-            </div>
-            <div class="video-feed">
-              <div class="radar-sweep"></div>
-              <div class="feed-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(0,229,204,0.4)" stroke-width="1">
-                  <circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20"/>
-                </svg>
-                <div class="feed-label">FEED: MOG_PRIME_STREAM</div>
-              </div>
-            </div>
-            <div class="console-grid">
-              <button class="btn btn-danger" :class="protocolZero ? 'active' : ''" @click="toggleProtocol()">
-                ⚡ <span x-text="protocolZero ? 'DISENGAGE LOCKDOWN' : 'PROTOCOL ZERO'"></span>
-              </button>
-              <button class="btn" @click="globalBroadcast()">📡 GLOBAL PUSH ALERT</button>
-            </div>
+        <!-- POLL CONTROL -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">// POLL CONTROL</div>
+            <div class="panel-status ps-teal">WEEK 14 ACTIVE</div>
           </div>
-
-          <!-- MEDIA UPLOAD -->
-          <div class="glass-panel">
-            <div class="panel-head">
-              <div class="panel-title">// DEPLOY SESSION ASSETS</div>
-              <div class="panel-status status-teal">ADMIN ONLY</div>
-            </div>
-            <div class="upload-grid">
-              <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📁</div>
-                <div class="upload-label">SELECT MEDIA FILE</div>
-                <input type="file" id="fileInput" accept="image/*,video/*" style="display:none" onchange="previewFile(this)">
-              </div>
-              <div style="display:flex;flex-direction:column;gap:10px;">
-                <input type="text" id="sessionTitle" class="upload-input" placeholder="SESSION TITLE...">
-                <select id="sessionTag" class="upload-input" style="cursor:pointer;">
-                  <option value="">SELECT SESSION</option>
-                  <option value="session01">SESSION 01</option>
-                  <option value="session02">SESSION 02</option>
-                  <option value="session03">SESSION 03</option>
-                </select>
-                <button class="btn btn-teal" @click="uploadAsset()">⬆ UPLOAD TO VAULT</button>
-              </div>
-            </div>
+          <div class="console-grid">
+            <button class="btn" @click="resetPoll()">🔄 RESET VOTES</button>
+            <button class="btn" @click="exportResults()">📊 EXPORT RESULTS</button>
           </div>
-
-          <!-- POLL MANAGEMENT -->
-          <div class="glass-panel">
-            <div class="panel-head">
-              <div class="panel-title">// POLL CONTROL</div>
-              <div class="panel-status status-teal">WEEK 14 ACTIVE</div>
-            </div>
-            <div class="console-grid">
-              <button class="btn" @click="resetPoll()">🔄 RESET VOTE POLL</button>
-              <button class="btn" @click="exportResults()">📊 EXPORT RESULTS</button>
-            </div>
-          </div>
-
         </div>
+      </div>
 
-        <!-- RIGHT COLUMN -->
-        <div style="display:flex;flex-direction:column;gap:18px;">
-
-          <!-- TRANSMISSION LOGS -->
-          <div class="glass-panel" style="padding:20px;margin:0;">
-            <div class="panel-head">
-              <div class="panel-title">TRANSMISSION LOGS</div>
-              <button class="btn" style="padding:4px 10px;font-size:8px;" @click="syncData()">↺ REFRESH</button>
-            </div>
-            <div class="log-container">
-              <template x-for="log in logs" :key="log.id">
-                <div class="log-item">
-                  <span class="ts" x-text="formatTime(log.created_at)"></span>
-                  <span x-text="log.description"></span>
-                </div>
-              </template>
-              <div x-show="logs.length === 0" style="text-align:center;padding:30px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;">
-                NO TRANSMISSIONS LOGGED
-              </div>
-            </div>
+      <!-- RIGHT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <!-- LOGS -->
+        <div class="panel" style="padding:20px;margin:0;">
+          <div class="panel-head">
+            <div class="panel-title">TRANSMISSION LOGS</div>
+            <button class="btn" style="padding:5px 12px;font-size:8px;" @click="syncData()">↺ REFRESH</button>
           </div>
-
-          <!-- ACTIVE DOSSIERS -->
-          <div class="glass-panel" style="padding:20px;margin:0;">
-            <div class="panel-head">
-              <div class="panel-title">ACTIVE DOSSIERS</div>
-              <div class="panel-status status-teal" x-text="operatives.length + ' ONLINE'"></div>
-            </div>
-            <template x-for="op in operatives" :key="op.username">
-              <div class="op-row">
-                <div class="op-avatar" x-text="op.username.substring(0,2).toUpperCase()"></div>
-                <div style="flex:1;">
-                  <div class="op-name" x-text="op.username"></div>
-                  <div class="op-rank" x-text="op.rank || 'OPERATIVE'"></div>
-                </div>
-                <div class="op-online"></div>
+          <div class="log-wrap">
+            <template x-for="log in logs" :key="log.id">
+              <div class="log-item">
+                <span class="log-ts" x-text="fmtTime(log.created_at)"></span>
+                <span x-text="log.description"></span>
               </div>
             </template>
-            <div x-show="operatives.length === 0" style="text-align:center;padding:24px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;">
-              NO OPERATIVES ONLINE
-            </div>
+            <div class="empty-log" x-show="logs.length===0">NO TRANSMISSIONS LOGGED</div>
           </div>
-
         </div>
-      </main>
-    </div>
-  </template>
 
-  <script>
-    function previewFile(input) {
-      if(input.files && input.files[0]) {
-        const name = input.files[0].name;
-        document.querySelector('.upload-label').textContent = '✓ ' + name.substring(0,20) + (name.length > 20 ? '...' : '');
-      }
-    }
+        <!-- OPERATIVES -->
+        <div class="panel" style="padding:20px;margin:0;">
+          <div class="panel-head">
+            <div class="panel-title">ACTIVE DOSSIERS</div>
+            <div class="panel-status ps-teal" x-text="operatives.length+' ONLINE'"></div>
+          </div>
+          <template x-for="op in operatives" :key="op.username">
+            <div class="op-row">
+              <div class="op-av" x-text="op.username.substring(0,2).toUpperCase()"></div>
+              <div>
+                <div class="op-name" x-text="op.username"></div>
+                <div class="op-rank" x-text="op.rank||'OPERATIVE'"></div>
+              </div>
+              <div class="op-online"></div>
+            </div>
+          </template>
+          <div class="empty-log" x-show="operatives.length===0">NO OPERATIVES ONLINE</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>
 
-    function directorCommand() {
-      return {
-        view: 'loading',
-        currentTime: '',
-        protocolZero: false,
-        stats: { revenue: 'R45,200', mediaCount: '—' },
-        logs: [],
-        operatives: [],
+<script>
+function fileChosen(input){
+  if(input.files&&input.files[0]){
+    const n=input.files[0].name;
+    const lbl=document.getElementById('uploadLabel');
+    lbl.textContent='✓ '+(n.length>18?n.substring(0,18)+'…':n);
+    lbl.classList.add('changed');
+  }
+}
 
-        async init() {
-          setInterval(() => { this.currentTime = new Date().toLocaleTimeString(); }, 1000);
-          try {
-            if (typeof sb !== 'undefined') {
-              const { data: { session } } = await sb.auth.getSession();
-              if (!session) { window.location.href = 'login.html'; return; }
-              await this.syncData();
-            } else {
-              // Offline mock data
-              this.logs = [
-                { id:1, created_at: new Date(), description: 'SYSTEMS ONLINE — M.O.G. DIRECTORATE ACTIVE' },
-                { id:2, created_at: new Date(Date.now()-60000), description: 'GALLERY: SESSION 02 PHOTOS UPLOADED' },
-                { id:3, created_at: new Date(Date.now()-3600000), description: 'POLL: WEEK 14 VOTING OPENED' },
-              ];
-              this.operatives = [
-                { username: 'OPERATIVE_ZEN', rank: 'GROOVE DIVISION' },
-                { username: 'MOG_NOVA', rank: 'GROOVE DIVISION' },
-                { username: 'OPERATIVE_KASE', rank: 'RECRUIT' },
-              ];
-              this.stats.mediaCount = '12';
-            }
-            this.view = 'active';
-          } catch (e) {
-            console.error(e);
-            this.view = 'active';
-          }
-        },
+function dirCmd(){
+  return {
+    view:'loading',clock:'',lockdown:false,
+    stats:{revenue:'R45,200',mediaCount:'—'},
+    logs:[],operatives:[],
 
-        async syncData() {
-          if(typeof sb === 'undefined') return;
-          const { data: logs } = await sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(15);
-          this.logs = logs || [];
-          const { data: ops } = await sb.from('profiles').select('username, rank').limit(10);
-          this.operatives = ops || [];
-          const { count } = await sb.from('media').select('*', { count: 'exact', head: true });
-          this.stats.mediaCount = count || '—';
-        },
-
-        async toggleProtocol() {
-          const mode = !this.protocolZero;
-          if(confirm(mode ? '⚠ ACTIVATE SYSTEM-WIDE LOCKDOWN?' : 'REVERT TO NORMAL OPERATIONS?')) {
-            this.protocolZero = mode;
-            if(typeof sb !== 'undefined') {
-              await sb.from('system_settings').upsert({ key: 'protocol_zero', value: String(mode) });
-              await sb.from('activity_log').insert({ description: mode ? '!!! PROTOCOL ZERO ENGAGED !!!' : 'Protocol Zero Disengaged — Systems Nominal' });
-              await this.syncData();
-            }
-          }
-        },
-
-        async globalBroadcast() {
-          const msg = prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
-          if(msg && msg.trim()) {
-            if(typeof sb !== 'undefined') {
-              await sb.from('activity_log').insert({ description: '📡 GLOBAL ALERT: ' + msg });
-              await this.syncData();
-            } else {
-              this.logs.unshift({ id: Date.now(), created_at: new Date(), description: '📡 GLOBAL ALERT: ' + msg });
-            }
-            alert('✅ BROADCAST SENT TO ALL OPERATIVES.');
-          }
-        },
-
-        async uploadAsset() {
-          const title = document.getElementById('sessionTitle').value;
-          const tag = document.getElementById('sessionTag').value;
-          const file = document.getElementById('fileInput').files[0];
-          if(!title || !file) { alert('Provide a session title and select a file.'); return; }
-          if(typeof sb !== 'undefined') {
-            const path = tag + '/' + Date.now() + '_' + file.name;
-            const { error } = await sb.storage.from('media').upload(path, file);
-            if(!error) {
-              await sb.from('media').insert({ title, session: tag, file_path: path, type: file.type.startsWith('video') ? 'video' : 'photo' });
-              await sb.from('activity_log').insert({ description: 'GALLERY UPLOAD: ' + title });
-              await this.syncData();
-              alert('✅ ASSET DEPLOYED TO VAULT: ' + title);
-            } else { alert('Upload failed: ' + error.message); }
-          } else {
-            alert('✅ MOCK UPLOAD: ' + title + '\n(Connect Supabase to enable real uploads)');
-          }
-        },
-
-        async resetPoll() {
-          if(confirm('RESET ALL VOTES FOR THE CURRENT POLL?')) {
-            if(typeof sb !== 'undefined') {
-              await sb.from('votes').delete().neq('id', 0);
-              await sb.from('activity_log').insert({ description: 'POLL RESET — WEEK VOTES CLEARED' });
-              await this.syncData();
-            }
-            alert('✅ POLL RESET COMPLETE.');
-          }
-        },
-
-        exportResults() {
-          alert('📊 Export feature — connect Supabase to generate CSV vote results.');
-        },
-
-        formatTime(ts) {
-          return new Date(ts).toLocaleTimeString('en-ZA', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    async init(){
+      setInterval(()=>{this.clock=new Date().toLocaleTimeString();},1000);
+      try{
+        if(typeof sb!=='undefined'){
+          const {data:{session}}=await sb.auth.getSession();
+          if(!session){window.location.href='login.html';return;}
+          await this.syncData();
+        } else {
+          // Offline demo data
+          this.logs=[
+            {id:1,created_at:new Date(),description:'SYSTEMS ONLINE — M.O.G. DIRECTORATE ACTIVE'},
+            {id:2,created_at:new Date(Date.now()-60000),description:'GALLERY: SESSION 02 ASSETS DEPLOYED'},
+            {id:3,created_at:new Date(Date.now()-3600000),description:'POLL: WEEK 14 VOTING PERIOD OPENED'},
+            {id:4,created_at:new Date(Date.now()-86400000),description:'OPERATIVE COUNT: 47 REGISTERED'},
+          ];
+          this.operatives=[
+            {username:'OPERATIVE_ZEN',rank:'GROOVE DIVISION'},
+            {username:'MOG_NOVA',rank:'GROOVE DIVISION'},
+            {username:'OPERATIVE_KASE',rank:'RECRUIT'},
+            {username:'OPERATIVE_RIZE',rank:'RECRUIT'},
+          ];
+          this.stats.mediaCount='12';
         }
+        this.view='active';
+      }catch(e){console.error(e);this.view='active';}
+    },
+
+    async syncData(){
+      if(typeof sb==='undefined')return;
+      const{data:logs}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(20);
+      this.logs=logs||[];
+      const{data:ops}=await sb.from('profiles').select('username,rank').limit(10);
+      this.operatives=ops||[];
+      const{count}=await sb.from('media').select('*',{count:'exact',head:true});
+      this.stats.mediaCount=count||'—';
+    },
+
+    async toggleLockdown(){
+      const mode=!this.lockdown;
+      if(!confirm(mode?'⚠ ACTIVATE SYSTEM-WIDE LOCKDOWN?\n\nThis will restrict all operative access.':'DISENGAGE LOCKDOWN and return to normal operations?'))return;
+      this.lockdown=mode;
+      if(typeof sb!=='undefined'){
+        await sb.from('system_settings').upsert({key:'lockdown',value:String(mode)});
+        await sb.from('activity_log').insert({description:mode?'!!! PROTOCOL ZERO ENGAGED — ALL OPERATIVES LOCKED OUT !!!':'Protocol Zero DISENGAGED — Systems Nominal'});
+        await this.syncData();
+      } else {
+        this.logs.unshift({id:Date.now(),created_at:new Date(),description:mode?'!!! PROTOCOL ZERO ENGAGED !!!':'Protocol Zero Disengaged'});
       }
-    }
-  </script>
+    },
+
+    async globalAlert(){
+      const msg=prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
+      if(!msg||!msg.trim())return;
+      if(typeof sb!=='undefined'){
+        await sb.from('activity_log').insert({description:'📡 GLOBAL ALERT: '+msg.trim()});
+        await this.syncData();
+      } else {
+        this.logs.unshift({id:Date.now(),created_at:new Date(),description:'📡 GLOBAL ALERT: '+msg.trim()});
+      }
+      alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
+    },
+
+    async uploadAsset(){
+      const title=document.getElementById('sessTitle').value.trim();
+      const tag=document.getElementById('sessTag').value;
+      const file=document.getElementById('fileIn').files[0];
+      if(!title){alert('⚠ Enter a session title.');return;}
+      if(!file){alert('⚠ Select a media file.');return;}
+      if(!tag){alert('⚠ Select a session.');return;}
+      if(typeof sb!=='undefined'){
+        const path=tag+'/'+Date.now()+'_'+file.name;
+        const{error}=await sb.storage.from('media').upload(path,file);
+        if(!error){
+          await sb.from('media').insert({title,session:tag,file_path:path,type:file.type.startsWith('video')?'video':'photo'});
+          await sb.from('activity_log').insert({description:'🎬 VAULT UPLOAD: '+title+' ('+tag.toUpperCase()+')'});
+          await this.syncData();
+          alert('✅ ASSET DEPLOYED TO VAULT: '+title);
+          document.getElementById('sessTitle').value='';
+          document.getElementById('sessTag').value='';
+          document.getElementById('fileIn').value='';
+          document.getElementById('uploadLabel').textContent='SELECT MEDIA FILE';
+          document.getElementById('uploadLabel').classList.remove('changed');
+        } else {alert('❌ Upload failed: '+error.message);}
+      } else {
+        this.logs.unshift({id:Date.now(),created_at:new Date(),description:'🎬 MOCK UPLOAD: '+title});
+        alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase to enable real uploads.');
+      }
+    },
+
+    async resetPoll(){
+      if(!confirm('RESET ALL VOTES FOR THE CURRENT POLL?\n\nThis cannot be undone.'))return;
+      if(typeof sb!=='undefined'){
+        await sb.from('votes').delete().neq('id',0);
+        await sb.from('activity_log').insert({description:'🗳️ POLL RESET — WEEK VOTES CLEARED'});
+        await this.syncData();
+      }
+      alert('✅ POLL RESET COMPLETE. All votes cleared.');
+    },
+
+    exportResults(){
+      if(typeof sb==='undefined'){alert('Connect Supabase to export real vote results as CSV.');return;}
+      alert('📊 Generating results export...\n\nThis will be implemented with your Supabase connection.');
+    },
+
+    fmtTime(ts){return new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+  };
+}
+</script>
 </body>
 </html>
