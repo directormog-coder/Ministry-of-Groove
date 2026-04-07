@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
+<title>M.O.G. — Membership</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:90px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;}
+.top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+
+/* CURRENT RANK BANNER */
+.rank-banner{margin:16px;position:relative;z-index:1;}
+.rank-card{background:linear-gradient(135deg,rgba(13,31,45,0.95),rgba(201,168,76,0.08));border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
+.rank-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
+.rank-badge-big{width:58px;height:58px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.rank-info{flex:1;}
+.rank-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:4px;}
+.rank-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;margin-bottom:4px;}
+.rank-since{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.upgrade-pill{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:6px 12px;border-radius:3px;cursor:pointer;border:none;background:var(--gold);color:var(--black);white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.upgrade-pill:hover{background:var(--gold-light);box-shadow:0 0 16px rgba(201,168,76,0.4);}
+
+/* TOGGLE BILLING */
+.billing-toggle{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px;position:relative;z-index:1;}
+.toggle-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;}
+.toggle-label.active{color:var(--gold);}
+.toggle-label.inactive{color:rgba(255,255,255,0.3);}
+.toggle-switch{width:48px;height:26px;background:rgba(201,168,76,0.15);border:1px solid var(--border);border-radius:13px;position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;}
+.toggle-switch.annual{background:rgba(201,168,76,0.3);}
+.toggle-knob{width:20px;height:20px;background:var(--gold);border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.3s;box-shadow:0 0 8px rgba(201,168,76,0.4);}
+.toggle-switch.annual .toggle-knob{left:24px;}
+.save-badge{background:rgba(0,229,204,0.15);border:1px solid var(--border-teal);color:var(--teal);font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;padding:3px 8px;border-radius:2px;}
+
+/* MEMBERSHIP CARDS */
+.memberships{padding:0 16px;display:flex;flex-direction:column;gap:14px;position:relative;z-index:1;}
+.mem-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:12px;padding:22px;position:relative;overflow:hidden;transition:all 0.3s;}
+.mem-card.featured{border-color:var(--gold);box-shadow:0 0 30px rgba(201,168,76,0.12);}
+.mem-card.current-plan{border-color:var(--teal);box-shadow:0 0 20px rgba(0,229,204,0.08);}
+.mem-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;}
+.mem-card.recruit::before{background:rgba(255,255,255,0.1);}
+.mem-card.operative::before{background:linear-gradient(180deg,var(--teal),var(--teal-dim));}
+.mem-card.agent::before{background:linear-gradient(180deg,var(--gold),var(--gold-dim));}
+.mem-card.director::before{background:linear-gradient(180deg,var(--gold-light),var(--teal));}
+
+.plan-top-badge{position:absolute;top:14px;right:14px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:2px;}
+.badge-popular{background:rgba(201,168,76,0.2);color:var(--gold);border:1px solid var(--gold);}
+.badge-current{background:rgba(0,229,204,0.12);color:var(--teal);border:1px solid var(--teal);}
+.badge-top{background:linear-gradient(135deg,rgba(201,168,76,0.3),rgba(0,229,204,0.2));color:#fff;border:1px solid var(--gold);}
+
+.plan-icon{font-size:28px;margin-bottom:10px;display:block;}
+.plan-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;margin-bottom:4px;}
+.plan-tagline{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:2px;margin-bottom:14px;}
+
+.plan-price-wrap{display:flex;align-items:baseline;gap:4px;margin-bottom:4px;}
+.plan-price{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;}
+.plan-period{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+.plan-annual-note{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:16px;height:14px;}
+
+.perks-list{margin-bottom:18px;}
+.perk{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);border-bottom:1px solid rgba(255,255,255,0.04);}
+.perk:last-child{border-bottom:none;}
+.perk-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center;}
+.perk.locked{color:rgba(255,255,255,0.25);}
+.perk.locked .perk-icon{opacity:0.3;}
+
+.plan-btn{width:100%;padding:13px;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;border:none;}
+.plan-btn.free{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.1);cursor:default;}
+.plan-btn.teal{background:rgba(0,229,204,0.1);color:var(--teal);border:1px solid var(--teal);}
+.plan-btn.teal:hover{background:var(--teal);color:var(--black);box-shadow:0 0 20px rgba(0,229,204,0.3);}
+.plan-btn.gold{background:linear-gradient(135deg,var(--gold-dim),var(--gold));color:var(--black);}
+.plan-btn.gold:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 24px rgba(201,168,76,0.4);}
+.plan-btn.premium{background:linear-gradient(135deg,var(--gold),var(--teal));color:var(--black);}
+.plan-btn.premium:hover{box-shadow:0 0 28px rgba(201,168,76,0.4);}
+.plan-btn.current{background:rgba(0,229,204,0.08);color:var(--teal);border:1px solid var(--teal);cursor:default;}
+
+/* COMPARISON TABLE */
+.compare-section{padding:16px;position:relative;z-index:1;}
+.compare-table{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.compare-hdr{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;background:rgba(201,168,76,0.06);border-bottom:1px solid var(--border);}
+.compare-hdr-cell{padding:10px 6px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;color:var(--gold);letter-spacing:2px;text-align:center;}
+.compare-hdr-cell:first-child{text-align:left;padding-left:12px;}
+.compare-row{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 1fr;border-bottom:1px solid rgba(255,255,255,0.04);}
+.compare-row:last-child{border-bottom:none;}
+.compare-cell{padding:10px 6px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);text-align:center;display:flex;align-items:center;justify-content:center;}
+.compare-cell:first-child{text-align:left;justify-content:flex-start;padding-left:12px;color:rgba(255,255,255,0.7);}
+.check{color:var(--teal);font-size:14px;}
+.cross{color:rgba(255,255,255,0.15);font-size:14px;}
+
+/* PAYMENT MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.95);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
+.modal.open{display:flex;}
+.modal-box{width:100%;max-width:400px;background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:6px;text-align:center;}
+.modal-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;text-align:center;margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
+.field input,.field select{width:100%;padding:12px 14px;background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:4px;outline:none;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;transition:border 0.2s;}
+.field input:focus{border-color:var(--teal);}
+.field input::placeholder{color:rgba(255,255,255,0.2);}
+.plan-confirm-box{background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:16px;}
+.pcb-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:4px;}
+.pcb-price{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--teal-dim);letter-spacing:1px;}
+.pay-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;}
+.pay-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 24px rgba(201,168,76,0.4);}
+.cancel-link{display:block;text-align:center;margin-top:12px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25);letter-spacing:2px;cursor:pointer;}
+.cancel-link:hover{color:var(--gold-dim);}
+
+/* SUCCESS */
+.success-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,10,14,0.97);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px;flex-direction:column;text-align:center;}
+.success-modal.open{display:flex;}
+.success-icon{font-size:60px;margin-bottom:14px;animation:pop 0.4s ease;}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.success-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold-light);letter-spacing:3px;margin-bottom:8px;}
+.success-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:24px;line-height:1.8;}
+.new-rank-card{background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:20px;width:100%;max-width:340px;margin-bottom:24px;position:relative;overflow:hidden;}
+.new-rank-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
+.nrc-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:3px;margin-bottom:6px;}
+.nrc-rank{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--gold-light);letter-spacing:3px;margin-bottom:4px;}
+.nrc-perks{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.8;}
+.done-btn{background:var(--gold);color:var(--black);border:none;border-radius:6px;padding:14px 40px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;}
+.done-btn:hover{background:var(--gold-light);}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec-hdr h2{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
+.line{flex:1;height:1px;background:var(--border);}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="../index.html" class="back-btn">←</a>
+  <div class="top-title">MEMBERSHIP</div>
+</div>
+
+<!-- CURRENT RANK -->
+<div class="rank-banner">
+  <div class="rank-card">
+    <div class="rank-badge-big" id="currentBadge" style="border-color:#8A6E2F">🪖</div>
+    <div class="rank-info">
+      <div class="rank-label">CURRENT RANK</div>
+      <div class="rank-name" id="currentRankName" style="color:#C9A84C">RECRUIT</div>
+      <div class="rank-since">MEMBER SINCE APR 2026</div>
+    </div>
+    <button class="upgrade-pill" onclick="scrollToPlans()">UPGRADE ↓</button>
+  </div>
+</div>
+
+<!-- BILLING TOGGLE -->
+<div class="billing-toggle">
+  <span class="toggle-label" id="lbl-monthly" style="color:var(--gold)">MONTHLY</span>
+  <div class="toggle-switch" id="billingSwitch" onclick="toggleBilling()">
+    <div class="toggle-knob"></div>
+  </div>
+  <span class="toggle-label" id="lbl-annual" style="color:rgba(255,255,255,0.3)">ANNUAL</span>
+  <div class="save-badge">SAVE 20%</div>
+</div>
+
+<!-- MEMBERSHIP TIERS -->
+<div class="memberships" id="plansSection">
+
+  <!-- RECRUIT (FREE) -->
+  <div class="mem-card recruit current-plan">
+    <div class="plan-top-badge badge-current">CURRENT</div>
+    <span class="plan-icon">🪖</span>
+    <div class="plan-name" style="color:rgba(255,255,255,0.6)">RECRUIT</div>
+    <div class="plan-tagline">BASIC OPERATIVE ACCESS</div>
+    <div class="plan-price-wrap"><div class="plan-price" style="color:rgba(255,255,255,0.5)">FREE</div></div>
+    <div class="plan-annual-note"></div>
+    <div class="perks-list">
+      <div class="perk"><span class="perk-icon">✅</span>Access to Operative Hub</div>
+      <div class="perk"><span class="perk-icon">✅</span>View gallery thumbnails</div>
+      <div class="perk"><span class="perk-icon">✅</span>General chat rooms</div>
+      <div class="perk"><span class="perk-icon">✅</span>Top 10 voting (2 votes)</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>Full resolution downloads</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>Early event access</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>Exclusive VIP chat</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>Ticket discounts</div>
+    </div>
+    <button class="plan-btn current">✓ CURRENT PLAN</button>
+  </div>
+
+  <!-- OPERATIVE -->
+  <div class="mem-card operative">
+    <div class="plan-top-badge badge-popular">POPULAR</div>
+    <span class="plan-icon">🔫</span>
+    <div class="plan-name" style="color:var(--teal)">OPERATIVE</div>
+    <div class="plan-tagline">FULL NETWORK ACCESS</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price" style="color:var(--teal)" id="price-operative">R99</div>
+      <span class="plan-period" id="period-operative">/month</span>
+    </div>
+    <div class="plan-annual-note" id="note-operative"></div>
+    <div class="perks-list">
+      <div class="perk"><span class="perk-icon">✅</span>Everything in Recruit</div>
+      <div class="perk"><span class="perk-icon">✅</span>Full HD photo & video downloads</div>
+      <div class="perk"><span class="perk-icon">✅</span>5 votes per poll week</div>
+      <div class="perk"><span class="perk-icon">✅</span>Early event notifications</div>
+      <div class="perk"><span class="perk-icon">✅</span>10% discount on tickets</div>
+      <div class="perk"><span class="perk-icon">✅</span>Operative chat badge</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>VIP chat rooms</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>M.O.G. merch discount</div>
+    </div>
+    <button class="plan-btn teal" onclick="selectPlan('OPERATIVE','R99',99)">UPGRADE TO OPERATIVE</button>
+  </div>
+
+  <!-- AGENT -->
+  <div class="mem-card agent featured">
+    <div class="plan-top-badge badge-popular" style="background:rgba(201,168,76,0.2);color:var(--gold);border-color:var(--gold);">BEST VALUE</div>
+    <span class="plan-icon">⭐</span>
+    <div class="plan-name" style="color:var(--gold)">AGENT</div>
+    <div class="plan-tagline">PRIORITY INTELLIGENCE ACCESS</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price" style="color:var(--gold)" id="price-agent">R199</div>
+      <span class="plan-period" id="period-agent">/month</span>
+    </div>
+    <div class="plan-annual-note" id="note-agent"></div>
+    <div class="perks-list">
+      <div class="perk"><span class="perk-icon">✅</span>Everything in Operative</div>
+      <div class="perk"><span class="perk-icon">✅</span>VIP event chat rooms</div>
+      <div class="perk"><span class="perk-icon">✅</span>10 votes per poll week</div>
+      <div class="perk"><span class="perk-icon">✅</span>Priority ticket access (24hr early)</div>
+      <div class="perk"><span class="perk-icon">✅</span>20% discount on all tickets</div>
+      <div class="perk"><span class="perk-icon">✅</span>15% M.O.G. merch discount</div>
+      <div class="perk"><span class="perk-icon">✅</span>Agent chat badge + gold frame</div>
+      <div class="perk locked"><span class="perk-icon">🔒</span>Meet & greet invitations</div>
+    </div>
+    <button class="plan-btn gold" onclick="selectPlan('AGENT','R199',199)">UPGRADE TO AGENT</button>
+  </div>
+
+  <!-- DIRECTOR -->
+  <div class="mem-card director">
+    <div class="plan-top-badge badge-top">ELITE</div>
+    <span class="plan-icon">👑</span>
+    <div class="plan-name" style="color:var(--gold-light)">DIRECTOR</div>
+    <div class="plan-tagline">FULL COMMAND ACCESS</div>
+    <div class="plan-price-wrap">
+      <div class="plan-price" style="color:var(--gold-light)" id="price-director">R499</div>
+      <span class="plan-period" id="period-director">/month</span>
+    </div>
+    <div class="plan-annual-note" id="note-director"></div>
+    <div class="perks-list">
+      <div class="perk"><span class="perk-icon">✅</span>Everything in Agent</div>
+      <div class="perk"><span class="perk-icon">✅</span>Meet & greet invitations</div>
+      <div class="perk"><span class="perk-icon">✅</span>Unlimited votes per poll</div>
+      <div class="perk"><span class="perk-icon">✅</span>Complimentary ticket per event</div>
+      <div class="perk"><span class="perk-icon">✅</span>30% discount on extra tickets</div>
+      <div class="perk"><span class="perk-icon">✅</span>25% M.O.G. merch discount</div>
+      <div class="perk"><span class="perk-icon">✅</span>Director badge + exclusive frame</div>
+      <div class="perk"><span class="perk-icon">✅</span>Name in event credits</div>
+    </div>
+    <button class="plan-btn premium" onclick="selectPlan('DIRECTOR','R499',499)">UPGRADE TO DIRECTOR</button>
+  </div>
+</div>
+
+<!-- COMPARISON TABLE -->
+<div class="compare-section">
+  <div class="sec-hdr"><div class="line"></div><h2>FULL COMPARISON</h2><div class="line"></div></div>
+  <div class="compare-table">
+    <div class="compare-hdr">
+      <div class="compare-hdr-cell">FEATURE</div>
+      <div class="compare-hdr-cell">FREE</div>
+      <div class="compare-hdr-cell">OP</div>
+      <div class="compare-hdr-cell">AGENT</div>
+      <div class="compare-hdr-cell">DIR</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">Gallery access</div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">HD Downloads</div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">Poll votes/week</div>
+      <div class="compare-cell" style="color:rgba(255,255,255,0.5);">2</div>
+      <div class="compare-cell" style="color:var(--teal);">5</div>
+      <div class="compare-cell" style="color:var(--gold);">10</div>
+      <div class="compare-cell" style="color:var(--gold-light);">∞</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">Ticket discount</div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell" style="color:var(--teal);">10%</div>
+      <div class="compare-cell" style="color:var(--gold);">20%</div>
+      <div class="compare-cell" style="color:var(--gold-light);">30%</div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">VIP Chat Rooms</div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">Free event ticket</div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-cell">Meet & greet</div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="cross">—</span></div>
+      <div class="compare-cell"><span class="check">✓</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal" id="upgradeModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeUpgrade()">✕</button>
+    <div class="modal-title" id="modalPlanTitle">UPGRADE PLAN</div>
+    <div class="modal-sub" id="modalPlanSub">BILLING MONTHLY · CANCEL ANYTIME</div>
+    <div class="plan-confirm-box">
+      <div class="pcb-name" id="modalPlanName">OPERATIVE</div>
+      <div class="pcb-price" id="modalPlanPrice">R99 / MONTH</div>
+    </div>
+    <div class="field"><label>FULL NAME</label><input type="text" id="upgName" placeholder="Your Name" autocomplete="name"></div>
+    <div class="field"><label>EMAIL ADDRESS</label><input type="email" id="upgEmail" placeholder="your@gmail.com" autocomplete="email"></div>
+    <div class="field">
+      <label>PAYMENT METHOD</label>
+      <select id="upgPayMethod">
+        <option value="card">💳 Credit / Debit Card</option>
+        <option value="eft">🏦 EFT / SnapScan</option>
+        <option value="yoco">📱 Yoco</option>
+        <option value="payflex">🔄 PayFlex (Buy Now Pay Later)</option>
+      </select>
+    </div>
+    <button class="pay-btn" onclick="confirmUpgrade()">🔐 CONFIRM SUBSCRIPTION</button>
+    <span class="cancel-link" onclick="closeUpgrade()">CANCEL</span>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="success-modal" id="successModal">
+  <div class="success-icon" id="successIcon">🎉</div>
+  <div class="success-title">RANK UPGRADED!</div>
+  <div class="success-sub">WELCOME TO THE INNER CIRCLE<br>YOUR NEW PERKS ARE NOW ACTIVE</div>
+  <div class="new-rank-card">
+    <div class="nrc-label">YOUR NEW RANK</div>
+    <div class="nrc-rank" id="newRankName">OPERATIVE</div>
+    <div class="nrc-perks" id="newRankPerks">HD Downloads · 5 votes/week · 10% ticket discount</div>
+  </div>
+  <button class="done-btn" onclick="closeSuccess()">✓ ENTER THE NETWORK</button>
+</div>
+
+<div class="bottom-nav">
+  <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
+  <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+  <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
+  <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="dossier.html" class="nav-item active"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+</div>
+
+<script>
+let isAnnual=false;
+let selectedPlan={name:'',displayPrice:'',amount:0};
+
+const planPrices={
+  operative:{monthly:99,annual:79},
+  agent:{monthly:199,annual:159},
+  director:{monthly:499,annual:399},
+};
+
+const rankPerks={
+  OPERATIVE:'HD Downloads · 5 votes/week · 10% ticket discount · Operative badge',
+  AGENT:'VIP chat rooms · 10 votes/week · 20% ticket discount · Priority access',
+  DIRECTOR:'Free event ticket · Unlimited votes · Meet & greet · 30% discount',
+};
+
+function toggleBilling(){
+  isAnnual=!isAnnual;
+  const sw=document.getElementById('billingSwitch');
+  sw.classList.toggle('annual',isAnnual);
+  document.getElementById('lbl-monthly').style.color=isAnnual?'rgba(255,255,255,0.3)':'var(--gold)';
+  document.getElementById('lbl-annual').style.color=isAnnual?'var(--gold)':'rgba(255,255,255,0.3)';
+  updatePrices();
+}
+
+function updatePrices(){
+  ['operative','agent','director'].forEach(key=>{
+    const monthly=planPrices[key].monthly;
+    const annual=planPrices[key].annual;
+    const price=isAnnual?annual:monthly;
+    document.getElementById('price-'+key).textContent='R'+price;
+    document.getElementById('period-'+key).textContent=isAnnual?'/month (billed annually)':'/month';
+    const note=document.getElementById('note-'+key);
+    if(isAnnual){
+      note.textContent='Save R'+((monthly-annual)*12)+'/year vs monthly';
+      note.style.color='var(--teal)';
+    } else {
+      note.textContent='Switch to annual & save R'+((monthly-annual)*12)+'/yr';
+      note.style.color='rgba(0,229,204,0.5)';
+    }
+  });
+}
+
+function selectPlan(name,price,amount){
+  const annualAmount=planPrices[name.toLowerCase()]?.annual||amount;
+  const finalAmount=isAnnual?annualAmount:amount;
+  const finalPrice='R'+finalAmount;
+  selectedPlan={name,displayPrice:finalPrice,amount:finalAmount};
+  document.getElementById('modalPlanTitle').textContent='// UPGRADE TO '+name+' //';
+  document.getElementById('modalPlanSub').textContent='BILLING '+(isAnnual?'ANNUALLY':'MONTHLY')+' · CANCEL ANYTIME';
+  document.getElementById('modalPlanName').textContent=name+' MEMBERSHIP';
+  document.getElementById('modalPlanPrice').textContent=finalPrice+(isAnnual?' / MONTH (BILLED ANNUALLY)':' / MONTH');
+  const email=sessionStorage.getItem('mogEmail')||'';
+  if(email) document.getElementById('upgEmail').value=email;
+  const name2=sessionStorage.getItem('mogUser')||'';
+  if(name2) document.getElementById('upgName').value=name2.replace(/_/g,' ');
+  document.getElementById('upgradeModal').classList.add('open');
+}
+
+function closeUpgrade(){document.getElementById('upgradeModal').classList.remove('open');}
+
+function confirmUpgrade(){
+  const name=document.getElementById('upgName').value.trim();
+  const email=document.getElementById('upgEmail').value.trim();
+  if(!name){alert('⚠ Enter your full name.');return;}
+  if(!email||!email.includes('@')){alert('⚠ Enter a valid email.');return;}
+  // Wire payment gateway:
+  // PayFast: https://developers.payfast.co.za/docs#recurring_billing
+  // Yoco subscriptions: https://developer.yoco.com
+  closeUpgrade();
+  const icons={OPERATIVE:'🔫',AGENT:'⭐',DIRECTOR:'👑'};
+  document.getElementById('successIcon').textContent=icons[selectedPlan.name]||'🎉';
+  document.getElementById('newRankName').textContent=selectedPlan.name;
+  document.getElementById('newRankPerks').textContent=rankPerks[selectedPlan.name]||'';
+  sessionStorage.setItem('mogRank',selectedPlan.name);
+  document.getElementById('successModal').classList.add('open');
+}
+
+function closeSuccess(){
+  document.getElementById('successModal').classList.remove('open');
+  const rank=sessionStorage.getItem('mogRank')||'RECRUIT';
+  updateCurrentRank(rank);
+}
+
+function updateCurrentRank(rank){
+  const icons={RECRUIT:'🪖',OPERATIVE:'🔫',AGENT:'⭐',DIRECTOR:'👑'};
+  const colors={RECRUIT:'#8A6E2F',OPERATIVE:'#00E5CC',AGENT:'#C9A84C',DIRECTOR:'#F0C85A'};
+  document.getElementById('currentBadge').textContent=icons[rank]||'🪖';
+  document.getElementById('currentBadge').style.borderColor=colors[rank]||'#8A6E2F';
+  document.getElementById('currentRankName').textContent=rank;
+  document.getElementById('currentRankName').style.color=colors[rank]||'#8A6E2F';
+}
+
+function scrollToPlans(){document.getElementById('plansSection').scrollIntoView({behavior:'smooth',block:'start'});}
+
+// Close modal on backdrop
+document.getElementById('upgradeModal').addEventListener('click',function(e){if(e.target===this)closeUpgrade();});
+
+// Init
+const savedRank=sessionStorage.getItem('mogRank')||'RECRUIT';
+updateCurrentRank(savedRank);
+updatePrices();
+</script>
+</body>
+</html>
