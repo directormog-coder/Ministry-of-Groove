@@ -7,367 +7,1292 @@
 <meta name="robots" content="noindex,nofollow">
 <title>M.O.G. | DIRECTORATE COMMAND</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/config.js"></script>
 <script src="/js/supabase-client.js"></script>
-<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--red:#FF3B3B;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.92);--border:rgba(201,168,76,0.2);--border-teal:rgba(0,229,204,0.15);}
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--red:#FF3B3B;--green:#00C853;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.95);--border:rgba(201,168,76,0.2);--border-teal:rgba(0,229,204,0.15);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;overflow-x:hidden;min-height:100vh;padding-bottom:40px;}
-
-/* BG */
+body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
 .bg-vfx{position:fixed;inset:0;z-index:0;pointer-events:none;}
-.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.05) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(circle,black,transparent 85%);}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(circle,black,transparent 85%);}
 .scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);}
 
-/* NAV */
-.command-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.98);border-bottom:1px solid var(--gold);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);}
+/* ── SCREENS ── */
+.screen{display:none;position:relative;z-index:10;}
+.screen.active{display:block;}
+.screen-full{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;}
+.screen-full.active{display:flex;}
+
+/* ── ACCESS DENIED ── */
+.denied-card{background:var(--panel);border:1px solid rgba(255,59,59,0.4);border-radius:10px;padding:40px 32px;max-width:400px;width:100%;}
+.denied-icon{font-size:52px;margin-bottom:16px;}
+.denied-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--red);letter-spacing:4px;margin-bottom:10px;}
+.denied-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;line-height:1.8;margin-bottom:24px;}
+.denied-btn{display:block;width:100%;padding:13px;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--red);letter-spacing:3px;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s;}
+.denied-btn:hover{background:rgba(255,59,59,0.2);}
+
+/* ── LOADING ── */
+.loading-screen{background:var(--black);}
+.spinner{width:58px;height:58px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;margin-bottom:24px;}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loading-text{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:5px;color:var(--gold);}
+.loading-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:3px;margin-top:8px;}
+
+/* ── TOP NAV ── */
+.command-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.99);border-bottom:1px solid var(--gold);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);}
 .brand{display:flex;align-items:center;gap:14px;}
-.brand-logo{width:42px;height:42px;border-radius:50%;border:1px solid var(--gold);box-shadow:0 0 12px rgba(201,168,76,0.3);object-fit:cover;display:block;}
-.brand-logo-fallback{width:42px;height:42px;border-radius:50%;border:1px solid var(--gold);background:var(--navy);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);}
+.brand-logo{width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 14px rgba(201,168,76,0.35);object-fit:cover;}
 .brand-text h1{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--gold-light);letter-spacing:3px;}
 .clock{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-top:2px;}
-.exit-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);border:1px solid var(--border);padding:8px 16px;border-radius:3px;text-decoration:none;transition:all 0.2s;background:none;cursor:pointer;}
-.exit-btn:hover{color:var(--gold);border-color:var(--gold);background:rgba(201,168,76,0.07);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.admin-badge{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:5px 10px;border-radius:2px;background:rgba(201,168,76,0.15);border:1px solid var(--gold);color:var(--gold);}
+.exit-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);border:1px solid var(--border);padding:8px 14px;border-radius:3px;background:none;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.exit-btn:hover{color:var(--gold);border-color:var(--gold);}
 
-/* DASHBOARD */
-.dashboard{display:grid;grid-template-columns:1fr 340px;gap:18px;max-width:1400px;margin:18px auto;padding:0 20px;position:relative;z-index:10;}
-@media(max-width:1000px){.dashboard{grid-template-columns:1fr;}.stats-ribbon{grid-template-columns:1fr 1fr!important;}}
+/* ── TAB NAV ── */
+.tab-nav{background:rgba(5,10,14,0.95);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:63px;z-index:99;backdrop-filter:blur(10px);}
+.tab-nav::-webkit-scrollbar{display:none;}
+.tab-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;padding:14px 18px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;flex-shrink:0;}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,0.04);}
+.tab-btn:hover:not(.active){color:var(--gold-light);}
 
-/* STATS */
-.stats-ribbon{grid-column:span 2;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-@media(max-width:1000px){.stats-ribbon{grid-column:span 1;}}
-.stat-card{background:var(--panel);border:1px solid var(--border);padding:18px;border-radius:6px;position:relative;overflow:hidden;}
+/* ── TAB SECTIONS ── */
+.tab-section{display:none;padding:20px;}
+.tab-section.active{display:block;}
+
+/* ── STATS RIBBON ── */
+.stats-ribbon{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+@media(max-width:800px){.stats-ribbon{grid-template-columns:1fr 1fr;}}
+.stat-card{background:var(--panel);border:1px solid var(--border);padding:18px;border-radius:8px;position:relative;overflow:hidden;}
 .stat-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--teal));}
 .stat-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
-.stat-value{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;letter-spacing:1px;}
+.stat-value{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;}
 .sv-gold{color:var(--gold-light);}
 .sv-teal{color:var(--teal);}
-.sv-white{color:#fff;font-size:14px;letter-spacing:3px;margin-top:4px;}
+.sv-green{color:var(--green);}
+.sv-white{color:#fff;font-size:14px;letter-spacing:2px;margin-top:4px;}
+.stat-sub{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.25);letter-spacing:1px;margin-top:4px;}
 
-/* PANELS */
+/* ── PANELS ── */
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:22px;margin-bottom:18px;position:relative;overflow:hidden;}
 .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;flex-wrap:wrap;gap:8px;}
 .panel-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;}
-.panel-status{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;}
-.ps-teal{color:var(--teal);}
-.ps-red{color:var(--red);}
+.panel-badge{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;}
+.pb-teal{color:var(--teal);}
+.pb-red{color:var(--red);}
+.pb-green{color:var(--green);}
 
-/* BROADCAST SCREEN */
-.video-feed{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-teal);}
-.radar{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.12),transparent 30%);animation:rot 4s linear infinite;}
-@keyframes rot{to{transform:rotate(360deg)}}
-.feed-content{z-index:5;text-align:center;}
-.feed-icon{font-size:42px;display:block;margin-bottom:10px;}
-.feed-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
-
-/* BUTTONS */
-.console-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;}
-.btn{background:rgba(201,168,76,0.05);border:1px solid var(--border);padding:14px;border-radius:4px;cursor:pointer;color:var(--gold);font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:8px;}
+/* ── BUTTONS ── */
+.btn{background:rgba(201,168,76,0.06);border:1px solid var(--border);padding:13px 16px;border-radius:4px;cursor:pointer;color:var(--gold);font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;transition:all 0.25s;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;}
 .btn:hover{background:var(--gold);color:var(--black);box-shadow:0 0 20px rgba(201,168,76,0.3);}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-sm{padding:7px 12px;font-size:8px;}
 .btn-danger{color:var(--red);border-color:rgba(255,59,59,0.25);background:rgba(255,59,59,0.04);}
 .btn-danger:hover{background:var(--red);color:#fff;box-shadow:0 0 20px rgba(255,59,59,0.3);}
-.btn-danger.on{background:var(--red);color:#fff;animation:pulseRed 1.5s infinite;border-color:var(--red);}
+.btn-danger.on{background:var(--red);color:#fff;border-color:var(--red);animation:pulseRed 1.5s infinite;}
 .btn-teal{color:var(--teal);border-color:var(--border-teal);background:rgba(0,229,204,0.04);}
 .btn-teal:hover{background:var(--teal);color:var(--black);box-shadow:0 0 20px rgba(0,229,204,0.25);}
+.btn-green{color:var(--green);border-color:rgba(0,200,83,0.25);background:rgba(0,200,83,0.04);}
+.btn-green:hover{background:var(--green);color:var(--black);}
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.btn-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;}
 @keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(255,59,59,0.6)}70%{box-shadow:0 0 0 12px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
-/* UPLOAD */
-.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.upload-zone{border:1px dashed rgba(201,168,76,0.3);border-radius:6px;padding:22px;text-align:center;background:rgba(0,0,0,0.2);cursor:pointer;transition:all 0.2s;}
-.upload-zone:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
-.upload-icon{font-size:30px;margin-bottom:10px;}
-.upload-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;}
-.upload-label.changed{color:var(--gold);}
-.field-col{display:flex;flex-direction:column;gap:10px;}
-.inp{background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);padding:11px 14px;border-radius:4px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:10px;outline:none;transition:border 0.2s;width:100%;}
+/* ── FORM INPUTS ── */
+.inp{background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);padding:11px 14px;border-radius:4px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border 0.2s;width:100%;}
 .inp:focus{border-color:var(--teal);}
-.inp::placeholder,.inp option{color:rgba(255,255,255,0.25);}
+.inp::placeholder{color:rgba(255,255,255,0.2);}
+.field{margin-bottom:12px;}
+.field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:600px){.field-row,.field-row-3{grid-template-columns:1fr;}}
 
-/* LOGS */
-.log-wrap{height:260px;overflow-y:auto;padding-right:6px;}
+/* ── TABLES ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px;}
+.data-table th{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+.data-table td{padding:11px 12px;border-bottom:1px solid rgba(201,168,76,0.06);color:rgba(255,255,255,0.8);vertical-align:middle;}
+.data-table tr:hover td{background:rgba(201,168,76,0.03);}
+.data-table-wrap{overflow-x:auto;}
+.rank-tag{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:3px 8px;border-radius:2px;}
+.rank-admin{background:rgba(201,168,76,0.2);color:var(--gold);border:1px solid var(--gold);}
+.rank-director{background:rgba(240,200,90,0.15);color:var(--gold-light);border:1px solid var(--gold-light);}
+.rank-agent{background:rgba(201,168,76,0.1);color:var(--gold-dim);border:1px solid var(--gold-dim);}
+.rank-operative{background:rgba(0,229,204,0.1);color:var(--teal);border:1px solid var(--teal);}
+.rank-recruit{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);}
+.status-paid{color:var(--green);font-family:'Share Tech Mono',monospace;font-size:9px;}
+.status-pending{color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:9px;}
+.status-failed{color:var(--red);font-family:'Share Tech Mono',monospace;font-size:9px;}
+.status-active{color:var(--green);font-family:'Share Tech Mono',monospace;font-size:9px;}
+.status-cancelled{color:var(--red);font-family:'Share Tech Mono',monospace;font-size:9px;}
+
+/* ── LOGS ── */
+.log-wrap{height:320px;overflow-y:auto;padding-right:6px;}
 .log-wrap::-webkit-scrollbar{width:3px;}
 .log-wrap::-webkit-scrollbar-thumb{background:var(--border);}
-.log-item{padding:9px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.7);}
-.log-ts{color:var(--teal-dim);font-size:9px;margin-bottom:3px;display:block;letter-spacing:1px;}
-.empty-log{text-align:center;padding:30px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;}
+.log-item{padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.75);display:flex;gap:12px;align-items:flex-start;}
+.log-ts{color:var(--teal-dim);font-size:9px;white-space:nowrap;margin-top:1px;flex-shrink:0;}
+.log-dot{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+.dot-info{background:var(--teal);}
+.dot-upload{background:var(--gold);}
+.dot-ticket{background:var(--green);}
+.dot-membership{background:var(--gold-light);}
+.dot-alert{background:var(--red);}
+.dot-lockdown{background:var(--red);animation:pulseRed 1s infinite;}
+.empty-state{text-align:center;padding:40px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:3px;}
 
-/* OPERATIVES */
-.op-row{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);padding:10px 12px;border-radius:4px;margin-bottom:8px;border-left:2px solid var(--teal);}
-.op-av{width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;}
-.op-name{font-size:12px;font-weight:700;color:#e0e0e0;letter-spacing:1px;}
-.op-rank{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
-.op-online{width:7px;height:7px;background:var(--teal);border-radius:50%;box-shadow:0 0 6px var(--teal);margin-left:auto;}
+/* ── UPLOAD ── */
+.upload-zone{border:1px dashed rgba(201,168,76,0.3);border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,0,0,0.15);}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
+.upload-icon{font-size:36px;margin-bottom:10px;}
+.upload-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
+.upload-label.ready{color:var(--gold);}
+.upload-progress{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:12px;overflow:hidden;display:none;}
+.upload-progress.show{display:block;}
+.upload-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));width:0%;border-radius:2px;transition:width 0.3s;}
 
-/* LOADING */
-.loading-screen{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:20;}
-.spinner{width:58px;height:58px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;}
-.loading-text{margin-top:24px;font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:5px;color:var(--gold);}
-[x-cloak]{display:none!important;}
+/* ── BROADCAST SCREEN ── */
+.video-feed{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-teal);}
+.radar{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.1),transparent 30%);animation:rot 4s linear infinite;}
+.feed-content{z-index:5;text-align:center;}
+.feed-icon-big{font-size:48px;display:block;margin-bottom:10px;}
+.feed-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
+.live-overlay{position:absolute;inset:0;z-index:8;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,0.5);}
+.live-overlay.show{display:flex;}
+.live-pill{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;padding:8px 24px;letter-spacing:4px;border-radius:3px;animation:livePulse 1s ease infinite;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* ── OPERATIVE ROWS ── */
+.op-row{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);padding:11px 14px;border-radius:6px;margin-bottom:8px;border-left:2px solid var(--teal);transition:background 0.2s;}
+.op-row:hover{background:rgba(201,168,76,0.04);}
+.op-av{width:34px;height:34px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;}
+.op-info{flex:1;min-width:0;}
+.op-name{font-size:13px;font-weight:700;color:#e0e0e0;letter-spacing:1px;}
+.op-email{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.op-online{width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 6px var(--teal);flex-shrink:0;}
+
+/* ── TICKET CHECKIN ── */
+.checkin-result{padding:16px;border-radius:6px;margin-top:12px;display:none;}
+.checkin-result.show{display:block;}
+.checkin-valid{background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);}
+.checkin-invalid{background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);}
+.checkin-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:8px;}
+.cv-title{color:var(--green);}
+.ci-title{color:var(--red);}
+.checkin-detail{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;line-height:1.8;}
+
+/* ── REVENUE BARS ── */
+.rev-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.rev-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;width:80px;flex-shrink:0;}
+.rev-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.rev-bar{height:100%;border-radius:3px;transition:width 1s ease;}
+.rev-gold{background:linear-gradient(90deg,var(--gold-dim),var(--gold));}
+.rev-teal{background:linear-gradient(90deg,var(--teal-dim),var(--teal));}
+.rev-green{background:linear-gradient(90deg,#007835,var(--green));}
+.rev-amount{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);width:60px;text-align:right;flex-shrink:0;}
+
+/* ── MODAL ── */
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.94);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
+.modal.open{display:flex;}
+.modal-box{width:100%;max-width:460px;background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all 0.2s;}
+.modal-close:hover{border-color:var(--gold);}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center;}
 </style>
 </head>
-<body x-data="dirCmd()" x-init="init()">
+<body>
 <div class="bg-vfx"><div class="grid-bg"></div><div class="scanlines"></div></div>
 
 <!-- LOADING -->
-<template x-if="view==='loading'">
-  <div class="loading-screen">
-    <div class="spinner"></div>
-    <p class="loading-text">AUTHENTICATING DIRECTOR ACCESS...</p>
-  </div>
-</template>
+<div class="screen-full loading-screen active" id="loadingScreen">
+  <div class="spinner"></div>
+  <div class="loading-text">VERIFYING DIRECTOR CREDENTIALS</div>
+  <div class="loading-sub" id="loadingSub">CHECKING CLEARANCE LEVEL...</div>
+</div>
 
-<!-- DASHBOARD -->
-<template x-if="view==='active'">
-  <div>
-    <nav class="command-bar">
-      <div class="brand">
-        <img src="logo.png" class="brand-logo" alt="M.O.G." onerror="this.outerHTML='<div class=\'brand-logo-fallback\'>MOG</div>'">
-        <div class="brand-text">
-          <h1>DIRECTORATE COMMAND</h1>
-          <p class="clock">UPLINK: SECURE // <span x-text="clock"></span></p>
+<!-- ACCESS DENIED -->
+<div class="screen-full" id="deniedScreen" style="background:var(--black);">
+  <div class="denied-card">
+    <div class="denied-icon">🚫</div>
+    <div class="denied-title">ACCESS DENIED</div>
+    <div class="denied-sub" id="deniedMsg">
+      DIRECTORATE CLEARANCE REQUIRED<br>
+      THIS AREA IS RESTRICTED TO<br>
+      AUTHORISED PERSONNEL ONLY
+    </div>
+    <a href="login.html" class="denied-btn">⇥ RETURN TO LOGIN</a>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div class="screen" id="mainScreen">
+
+  <!-- COMMAND BAR -->
+  <nav class="command-bar">
+    <div class="brand">
+      <img src="logo.png" class="brand-logo" alt="M.O.G." onerror="this.style.display='none'">
+      <div class="brand-text">
+        <h1>DIRECTORATE COMMAND</h1>
+        <p class="clock" id="clockEl">UPLINK: SECURE // --:--:--</p>
+      </div>
+    </div>
+    <div class="nav-right">
+      <div class="admin-badge">👑 DIRECTOR</div>
+      <button class="exit-btn" onclick="logout()">⇥ EXIT</button>
+    </div>
+  </nav>
+
+  <!-- TAB NAV -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('overview')">📊 OVERVIEW</button>
+    <button class="tab-btn" onclick="showTab('broadcast')">📡 BROADCAST</button>
+    <button class="tab-btn" onclick="showTab('media')">🎬 MEDIA VAULT</button>
+    <button class="tab-btn" onclick="showTab('tickets')">🎟️ TICKETS</button>
+    <button class="tab-btn" onclick="showTab('memberships')">👑 MEMBERSHIPS</button>
+    <button class="tab-btn" onclick="showTab('operatives')">👥 OPERATIVES</button>
+    <button class="tab-btn" onclick="showTab('polls')">🗳️ POLLS</button>
+    <button class="tab-btn" onclick="showTab('logs')">📋 LOGS</button>
+    <button class="tab-btn" onclick="showTab('settings')">⚙️ SETTINGS</button>
+  </div>
+
+  <!-- ══ OVERVIEW TAB ══ -->
+  <div class="tab-section active" id="tab-overview">
+    <div class="stats-ribbon">
+      <div class="stat-card">
+        <div class="stat-label">TOTAL REVENUE</div>
+        <div class="stat-value sv-gold" id="statRevenue">R0</div>
+        <div class="stat-sub">TICKETS + MEMBERSHIPS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">TOTAL OPERATIVES</div>
+        <div class="stat-value sv-teal" id="statOperatives">0</div>
+        <div class="stat-sub">REGISTERED USERS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">TICKETS SOLD</div>
+        <div class="stat-value sv-green" id="statTickets">0</div>
+        <div class="stat-sub">ALL EVENTS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">ACTIVE MEMBERS</div>
+        <div class="stat-value sv-gold" id="statMembers">0</div>
+        <div class="stat-sub">PAID PLANS</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">// REVENUE BREAKDOWN</div>
+          <div class="panel-badge pb-green" id="revenueMonth">THIS MONTH</div>
+        </div>
+        <div class="rev-item">
+          <div class="rev-label">TICKETS</div>
+          <div class="rev-bar-wrap"><div class="rev-bar rev-gold" id="revBarTickets" style="width:0%"></div></div>
+          <div class="rev-amount" id="revTicketAmt">R0</div>
+        </div>
+        <div class="rev-item">
+          <div class="rev-label">MEMBERSHIPS</div>
+          <div class="rev-bar-wrap"><div class="rev-bar rev-teal" id="revBarMembers" style="width:0%"></div></div>
+          <div class="rev-amount" id="revMemberAmt">R0</div>
+        </div>
+        <div class="rev-item">
+          <div class="rev-label">BOOKING FEES</div>
+          <div class="rev-bar-wrap"><div class="rev-bar rev-green" id="revBarFees" style="width:0%"></div></div>
+          <div class="rev-amount" id="revFeeAmt">R0</div>
         </div>
       </div>
-      <a href="index.html" class="exit-btn">⇥ EXIT TO HUB</a>
-    </nav>
-
-    <main class="dashboard">
-      <!-- STATS -->
-      <div class="stats-ribbon">
-        <div class="stat-card"><div class="stat-label">TOTAL REVENUE</div><div class="stat-value sv-gold" x-text="stats.revenue"></div></div>
-        <div class="stat-card"><div class="stat-label">ACTIVE OPERATIVES</div><div class="stat-value sv-teal" x-text="operatives.length||'—'"></div></div>
-        <div class="stat-card"><div class="stat-label">MEDIA FILES</div><div class="stat-value sv-gold" x-text="stats.mediaCount"></div></div>
-        <div class="stat-card"><div class="stat-label">VAULT STATUS</div><div class="stat-value sv-white">SECURED</div></div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">// MEMBERSHIP SPLIT</div>
+        </div>
+        <div id="memberSplit">
+          <div class="empty-state" style="padding:20px;">LOADING...</div>
+        </div>
       </div>
+    </div>
 
-      <!-- LEFT COLUMN -->
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// RECENT ACTIVITY</div>
+        <button class="btn btn-sm" onclick="loadLogs()">↺ REFRESH</button>
+      </div>
+      <div class="log-wrap" id="overviewLogs">
+        <div class="empty-state">LOADING LOGS...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BROADCAST TAB ══ -->
+  <div class="tab-section" id="tab-broadcast">
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:18px;">
       <div>
-        <!-- BROADCAST -->
         <div class="panel">
           <div class="panel-head">
-            <div class="panel-title">// MASTER SIGNAL OVERRIDE</div>
-            <div class="panel-status" :class="lockdown?'ps-red':'ps-teal'" x-text="lockdown?'⚠ LOCKDOWN ACTIVE':'● SYSTEMS NOMINAL'"></div>
+            <div class="panel-title">// LIVE BROADCAST CONTROL</div>
+            <div class="panel-badge" id="broadcastStatus" style="color:var(--teal);">● STANDBY</div>
           </div>
           <div class="video-feed">
             <div class="radar"></div>
             <div class="feed-content">
-              <span class="feed-icon">📡</span>
+              <span class="feed-icon-big">📡</span>
               <div class="feed-label">FEED: MOG_PRIME_STREAM</div>
             </div>
+            <div class="live-overlay" id="liveOverlay">
+              <div class="live-pill">● BROADCASTING LIVE</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:2px;" id="viewerCount">0 OPERATIVES WATCHING</div>
+            </div>
           </div>
-          <div class="console-grid">
-            <button class="btn btn-danger" :class="lockdown?'on':''" @click="toggleLockdown()">
-              ⚡ <span x-text="lockdown?'DISENGAGE LOCKDOWN':'PROTOCOL ZERO'"></span>
-            </button>
-            <button class="btn" @click="globalAlert()">📡 GLOBAL PUSH ALERT</button>
+          <div class="btn-grid">
+            <button class="btn btn-danger" id="liveBtn" onclick="toggleLive()">📡 GO LIVE</button>
+            <button class="btn" onclick="globalAlert()">📣 PUSH ALERT TO ALL</button>
+            <button class="btn btn-danger" id="lockdownBtn" onclick="toggleLockdown()">⚡ PROTOCOL ZERO</button>
+            <button class="btn btn-teal" onclick="scheduleBroadcast()">📅 SCHEDULE SESSION</button>
           </div>
         </div>
 
-        <!-- MEDIA UPLOAD -->
         <div class="panel">
           <div class="panel-head">
-            <div class="panel-title">// DEPLOY SESSION ASSETS</div>
-            <div class="panel-status ps-teal">ADMIN ONLY</div>
+            <div class="panel-title">// MANAGE EVENTS</div>
+            <button class="btn btn-sm btn-teal" onclick="openModal('eventModal')">+ NEW EVENT</button>
           </div>
-          <div class="upload-grid">
-            <div class="upload-zone" onclick="document.getElementById('fileIn').click()">
-              <div class="upload-icon">📁</div>
-              <div class="upload-label" id="uploadLabel">SELECT MEDIA FILE</div>
-              <input type="file" id="fileIn" accept="image/*,video/*" style="display:none" onchange="fileChosen(this)">
-            </div>
-            <div class="field-col">
-              <input type="text" id="sessTitle" class="inp" placeholder="SESSION TITLE...">
-              <select id="sessTag" class="inp" style="cursor:pointer;appearance:none;">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead><tr><th>EVENT</th><th>DATE</th><th>STATUS</th><th>TICKETS SOLD</th><th>ACTIONS</th></tr></thead>
+              <tbody id="eventsTable"><tr><td colspan="5" class="empty-state">LOADING...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">// SEND BROADCAST</div></div>
+        <div class="field"><label>MESSAGE TYPE</label>
+          <select class="inp" id="alertType">
+            <option value="info">📢 General Announcement</option>
+            <option value="event">🎉 Event Alert</option>
+            <option value="media">🎬 New Media Upload</option>
+            <option value="poll">🗳️ Poll Reminder</option>
+            <option value="urgent">🚨 Urgent Notice</option>
+          </select>
+        </div>
+        <div class="field"><label>MESSAGE</label>
+          <textarea class="inp" id="alertMsg" rows="4" placeholder="Type your message to all operatives..."></textarea>
+        </div>
+        <button class="btn btn-teal" style="width:100%" onclick="sendAlert()">📡 TRANSMIT TO ALL OPERATIVES</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MEDIA VAULT TAB ══ -->
+  <div class="tab-section" id="tab-media">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;">
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">// UPLOAD SESSION ASSETS</div>
+            <div class="panel-badge pb-teal">ADMIN ONLY</div>
+          </div>
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()"
+            ondragover="event.preventDefault();this.classList.add('dragover')"
+            ondragleave="this.classList.remove('dragover')"
+            ondrop="handleDrop(event)">
+            <div class="upload-icon">📁</div>
+            <div class="upload-label" id="uploadLabel">CLICK OR DRAG FILES TO UPLOAD<br><span style="font-size:8px;opacity:0.5">PHOTOS & VIDEOS SUPPORTED</span></div>
+            <div class="upload-progress" id="uploadProgress"><div class="upload-fill" id="uploadFill"></div></div>
+            <input type="file" id="fileIn" accept="image/*,video/*" style="display:none" multiple onchange="filesChosen(this)">
+          </div>
+          <div class="field-row" style="margin-top:14px;">
+            <div class="field"><label>SESSION TITLE</label><input type="text" id="sessTitle" class="inp" placeholder="e.g. SESSION 03 HIGHLIGHTS"></div>
+            <div class="field"><label>SESSION TAG</label>
+              <select id="sessTag" class="inp">
                 <option value="">SELECT SESSION</option>
                 <option value="session01">SESSION 01</option>
                 <option value="session02">SESSION 02</option>
                 <option value="session03">SESSION 03</option>
               </select>
-              <button class="btn btn-teal" @click="uploadAsset()">⬆ UPLOAD TO VAULT</button>
             </div>
           </div>
-        </div>
-
-        <!-- POLL CONTROL -->
-        <div class="panel">
-          <div class="panel-head">
-            <div class="panel-title">// POLL CONTROL</div>
-            <div class="panel-status ps-teal">WEEK 14 ACTIVE</div>
+          <div class="field-row">
+            <div class="field"><label>MEDIA TYPE</label>
+              <select id="mediaType" class="inp">
+                <option value="photo">📸 Photo</option>
+                <option value="video">🎬 Video</option>
+              </select>
+            </div>
+            <div class="field"><label>ACCESS LEVEL</label>
+              <select id="mediaAccess" class="inp">
+                <option value="free">🔓 All Operatives</option>
+                <option value="premium">🔒 Paid Members Only</option>
+              </select>
+            </div>
           </div>
-          <div class="console-grid">
-            <button class="btn" @click="resetPoll()">🔄 RESET VOTES</button>
-            <button class="btn" @click="exportResults()">📊 EXPORT RESULTS</button>
-          </div>
+          <button class="btn btn-teal" style="width:100%" onclick="uploadAsset()">⬆ DEPLOY TO VAULT</button>
         </div>
       </div>
 
-      <!-- RIGHT COLUMN -->
-      <div style="display:flex;flex-direction:column;gap:18px;">
-        <!-- LOGS -->
-        <div class="panel" style="padding:20px;margin:0;">
-          <div class="panel-head">
-            <div class="panel-title">TRANSMISSION LOGS</div>
-            <button class="btn" style="padding:5px 12px;font-size:8px;" @click="syncData()">↺ REFRESH</button>
-          </div>
-          <div class="log-wrap">
-            <template x-for="log in logs" :key="log.id">
-              <div class="log-item">
-                <span class="log-ts" x-text="fmtTime(log.created_at)"></span>
-                <span x-text="log.description"></span>
-              </div>
-            </template>
-            <div class="empty-log" x-show="logs.length===0">NO TRANSMISSIONS LOGGED</div>
-          </div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">// VAULT CONTENTS</div>
+          <div class="panel-badge pb-teal" id="mediaCount">0 FILES</div>
         </div>
-
-        <!-- OPERATIVES -->
-        <div class="panel" style="padding:20px;margin:0;">
-          <div class="panel-head">
-            <div class="panel-title">ACTIVE DOSSIERS</div>
-            <div class="panel-status ps-teal" x-text="operatives.length+' ONLINE'"></div>
-          </div>
-          <template x-for="op in operatives" :key="op.username">
-            <div class="op-row">
-              <div class="op-av" x-text="op.username.substring(0,2).toUpperCase()"></div>
-              <div>
-                <div class="op-name" x-text="op.username"></div>
-                <div class="op-rank" x-text="op.rank||'OPERATIVE'"></div>
-              </div>
-              <div class="op-online"></div>
-            </div>
-          </template>
-          <div class="empty-log" x-show="operatives.length===0">NO OPERATIVES ONLINE</div>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="mediaList">
+          <div class="empty-state">LOADING VAULT...</div>
         </div>
       </div>
-    </main>
+    </div>
   </div>
-</template>
+
+  <!-- ══ TICKETS TAB ══ -->
+  <div class="tab-section" id="tab-tickets">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// CHECK-IN OPERATIVE</div>
+        <div class="panel-badge pb-green">SCAN TICKET CODE</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="field" style="flex:1;margin:0;"><label>TICKET CODE</label>
+          <input type="text" id="checkinCode" class="inp" placeholder="e.g. MOG-A1B2-C3D4" style="text-transform:uppercase"
+            oninput="this.value=this.value.toUpperCase()"
+            onkeydown="if(event.key==='Enter')checkInTicket()">
+        </div>
+        <button class="btn btn-green" onclick="checkInTicket()" style="margin-bottom:12px;">✓ CHECK IN</button>
+      </div>
+      <div class="checkin-result" id="checkinResult"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// ALL TICKET SALES</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="exportTicketsCSV()">📊 EXPORT CSV</button>
+          <button class="btn btn-sm" onclick="loadTickets()">↺ REFRESH</button>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>CODE</th><th>NAME</th><th>EMAIL</th><th>TIER</th><th>QTY</th><th>TOTAL</th><th>STATUS</th><th>CHECK-IN</th><th>DATE</th></tr></thead>
+          <tbody id="ticketsTable"><tr><td colspan="9" class="empty-state">LOADING...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MEMBERSHIPS TAB ══ -->
+  <div class="tab-section" id="tab-memberships">
+    <div class="stats-ribbon" style="grid-template-columns:repeat(4,1fr);">
+      <div class="stat-card"><div class="stat-label">OPERATIVE PLAN</div><div class="stat-value sv-teal" id="mCountOp">0</div><div class="stat-sub">R99/month</div></div>
+      <div class="stat-card"><div class="stat-label">AGENT PLAN</div><div class="stat-value sv-gold" id="mCountAgent">0</div><div class="stat-sub">R199/month</div></div>
+      <div class="stat-card"><div class="stat-label">DIRECTOR PLAN</div><div class="stat-value sv-gold" id="mCountDir">0</div><div class="stat-sub">R499/month</div></div>
+      <div class="stat-card"><div class="stat-label">MRR</div><div class="stat-value sv-green" id="mMRR">R0</div><div class="stat-sub">MONTHLY RECURRING</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// ACTIVE MEMBERSHIPS</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="exportMembersCSV()">📊 EXPORT</button>
+          <button class="btn btn-sm" onclick="loadMemberships()">↺ REFRESH</button>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>OPERATIVE</th><th>EMAIL</th><th>PLAN</th><th>BILLING</th><th>AMOUNT</th><th>STATUS</th><th>STARTED</th><th>ACTIONS</th></tr></thead>
+          <tbody id="membersTable"><tr><td colspan="8" class="empty-state">LOADING...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ OPERATIVES TAB ══ -->
+  <div class="tab-section" id="tab-operatives">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// ALL OPERATIVES</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="exportUsersCSV()">📊 EXPORT</button>
+          <button class="btn btn-sm" onclick="loadOperatives()">↺ REFRESH</button>
+        </div>
+      </div>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>AVATAR</th><th>USERNAME</th><th>EMAIL</th><th>RANK</th><th>JOINED</th><th>ACTIONS</th></tr></thead>
+          <tbody id="operativesTable"><tr><td colspan="6" class="empty-state">LOADING...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ POLLS TAB ══ -->
+  <div class="tab-section" id="tab-polls">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">// CURRENT POLL RESULTS</div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-danger" onclick="resetPoll()">🔄 RESET VOTES</button>
+            <button class="btn btn-sm" onclick="exportResultsCSV()">📊 EXPORT</button>
+          </div>
+        </div>
+        <div id="pollResults"><div class="empty-state">LOADING RESULTS...</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">// ADD SONG TO POLL</div></div>
+        <div class="field"><label>SONG TITLE</label><input type="text" id="songTitle" class="inp" placeholder="e.g. PIANO HUB"></div>
+        <div class="field"><label>ARTIST NAME</label><input type="text" id="songArtist" class="inp" placeholder="e.g. Kabza De Small"></div>
+        <div class="field-row">
+          <div class="field"><label>WEEK NUMBER</label><input type="number" id="songWeek" class="inp" placeholder="14" value="14"></div>
+          <div class="field"><label>YEAR</label><input type="number" id="songYear" class="inp" placeholder="2026" value="2026"></div>
+        </div>
+        <button class="btn btn-teal" style="width:100%" onclick="addSong()">+ ADD TO POLL</button>
+        <div class="btn-grid" style="margin-top:10px;">
+          <button class="btn btn-danger btn-sm" onclick="closePoll()">🔒 CLOSE POLL</button>
+          <button class="btn btn-sm" onclick="openNewPoll()">🆕 NEW WEEK POLL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LOGS TAB ══ -->
+  <div class="tab-section" id="tab-logs">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">// TRANSMISSION LOGS</div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" onclick="clearLogs()">🗑️ CLEAR LOGS</button>
+          <button class="btn btn-sm" onclick="loadLogs()">↺ REFRESH</button>
+        </div>
+      </div>
+      <div class="log-wrap" style="height:500px;" id="allLogs">
+        <div class="empty-state">LOADING LOGS...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SETTINGS TAB ══ -->
+  <div class="tab-section" id="tab-settings">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">// APP SETTINGS</div></div>
+        <div class="field"><label>APP VERSION</label><input type="text" id="setVersion" class="inp" value="1.0.0"></div>
+        <div class="field"><label>BOOKING FEE %</label><input type="number" id="setBookingFee" class="inp" value="5" min="0" max="20"></div>
+        <div class="field"><label>CURRENT POLL WEEK</label><input type="number" id="setPollWeek" class="inp" value="14"></div>
+        <button class="btn btn-teal" style="width:100%" onclick="saveSettings()">✓ SAVE SETTINGS</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">// DANGER ZONE</div></div>
+        <div class="field"><label>MAINTENANCE MODE</label></div>
+        <button class="btn btn-danger" id="maintenanceBtn" onclick="toggleMaintenance()" style="width:100%;margin-bottom:10px;">⚙️ ENABLE MAINTENANCE</button>
+        <button class="btn btn-danger" id="lockdownBtnSettings" onclick="toggleLockdown()" style="width:100%;margin-bottom:10px;">⚡ PROTOCOL ZERO LOCKDOWN</button>
+        <button class="btn btn-danger btn-sm" onclick="if(confirm('DELETE ALL LOGS? Cannot be undone.'))clearLogs()" style="width:100%">🗑️ CLEAR ALL ACTIVITY LOGS</button>
+        <div style="margin-top:16px;padding:12px;background:rgba(255,59,59,0.06);border:1px solid rgba(255,59,59,0.15);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,59,59,0.6);letter-spacing:1px;line-height:1.8;">
+          ⚠ THESE ACTIONS AFFECT ALL OPERATIVES.<br>
+          PROCEED WITH EXTREME CAUTION.
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="panel-title">// DIRECTOR ACCOUNT</div></div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;line-height:2;">
+        EMAIL: <span style="color:var(--gold)">director.mog@gmail.com</span><br>
+        RANK: <span class="rank-tag rank-admin">ADMIN</span><br>
+        ACCESS: <span style="color:var(--green)">FULL DIRECTORATE CLEARANCE</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #mainScreen -->
+
+<!-- EVENT MODAL -->
+<div class="modal" id="eventModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
+    <div class="modal-title">// CREATE NEW EVENT</div>
+    <div class="field"><label>EVENT TITLE</label><input type="text" id="evTitle" class="inp" placeholder="AMAPIANO SESSIONS VOL.4"></div>
+    <div class="field"><label>DESCRIPTION</label><textarea id="evDesc" class="inp" rows="2" placeholder="Event description..."></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>DATE & TIME</label><input type="datetime-local" id="evDate" class="inp"></div>
+      <div class="field"><label>DOORS OPEN</label><input type="time" id="evDoors" class="inp" value="18:00"></div>
+    </div>
+    <div class="field"><label>LOCATION (PUBLIC)</label><input type="text" id="evLocation" class="inp" placeholder="LOCATION CLASSIFIED"></div>
+    <div class="field"><label>LOCATION (REVEALED ON TICKET)</label><input type="text" id="evLocationFull" class="inp" placeholder="123 Groove Street, Johannesburg"></div>
+    <div style="margin-top:16px;margin-bottom:14px;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:2px;">TICKET TIERS</div>
+    <div class="field-row-3">
+      <div class="field"><label>VIP PRICE (R)</label><input type="number" id="evVIPPrice" class="inp" placeholder="350"></div>
+      <div class="field"><label>VIP QTY</label><input type="number" id="evVIPQty" class="inp" placeholder="50"></div>
+      <div></div>
+    </div>
+    <div class="field-row-3">
+      <div class="field"><label>GENERAL PRICE (R)</label><input type="number" id="evGenPrice" class="inp" placeholder="150"></div>
+      <div class="field"><label>GENERAL QTY</label><input type="number" id="evGenQty" class="inp" placeholder="150"></div>
+      <div></div>
+    </div>
+    <button class="btn btn-teal" style="width:100%;margin-top:6px;" onclick="createEvent()">✓ CREATE EVENT</button>
+  </div>
+</div>
+
+<!-- CHANGE RANK MODAL -->
+<div class="modal" id="rankModal">
+  <div class="modal-box" style="max-width:360px;">
+    <button class="modal-close" onclick="closeModal('rankModal')">✕</button>
+    <div class="modal-title">// CHANGE OPERATIVE RANK</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:16px;" id="rankModalUser">OPERATIVE: —</div>
+    <div class="field"><label>NEW RANK</label>
+      <select id="newRankSelect" class="inp">
+        <option value="RECRUIT">🪖 RECRUIT (Free)</option>
+        <option value="OPERATIVE">🔫 OPERATIVE (R99/mo)</option>
+        <option value="AGENT">⭐ AGENT (R199/mo)</option>
+        <option value="DIRECTOR">👑 DIRECTOR (R499/mo)</option>
+      </select>
+    </div>
+    <button class="btn btn-gold" style="width:100%;background:var(--gold);color:var(--black);border:none;padding:13px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;" onclick="confirmRankChange()">✓ UPDATE RANK</button>
+  </div>
+</div>
 
 <script>
-function fileChosen(input){
-  if(input.files&&input.files[0]){
-    const n=input.files[0].name;
-    const lbl=document.getElementById('uploadLabel');
-    lbl.textContent='✓ '+(n.length>18?n.substring(0,18)+'…':n);
-    lbl.classList.add('changed');
+// ── CONSTANTS ──────────────────────────────────────────────
+const ADMIN_EMAIL = 'director.mog@gmail.com';
+let currentUser = null;
+let isLive = false;
+let isLockdown = false;
+let isMaintenance = false;
+let rankChangeTarget = null;
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  setInterval(() => {
+    document.getElementById('clockEl').textContent =
+      'UPLINK: SECURE // ' + new Date().toLocaleTimeString('en-ZA');
+  }, 1000);
+
+  // Try Supabase auth
+  if (typeof supabase !== 'undefined' || typeof sb !== 'undefined') {
+    const client = typeof sb !== 'undefined' ? sb : supabase;
+    try {
+      const { data: { session }, error } = await client.auth.getSession();
+      if (!session || !session.user) {
+        showDenied('NOT AUTHENTICATED<br>PLEASE LOG IN FIRST');
+        return;
+      }
+      const userEmail = session.user.email;
+      if (userEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        showDenied(`UNAUTHORISED EMAIL<br><span style="color:var(--red);opacity:0.6">${userEmail}</span><br><br>THIS AREA IS FOR THE DIRECTOR ONLY`);
+        return;
+      }
+      currentUser = session.user;
+      document.getElementById('loadingSub').textContent = 'LOADING COMMAND CENTRE...';
+      await loadAllData();
+      showMain();
+    } catch(e) {
+      console.error(e);
+      showDenied('CONNECTION ERROR<br>UNABLE TO VERIFY CREDENTIALS');
+    }
+  } else {
+    // OFFLINE MODE — check session storage for demo
+    const email = sessionStorage.getItem('mogEmail') || '';
+    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() && email !== '') {
+      showDenied(`UNAUTHORISED<br>DIRECTOR ACCESS ONLY`);
+      return;
+    }
+    document.getElementById('loadingSub').textContent = 'OFFLINE MODE — DEMO DATA';
+    setTimeout(() => {
+      loadDemoData();
+      showMain();
+    }, 1200);
   }
 }
 
-function dirCmd(){
-  return {
-    view:'loading',clock:'',lockdown:false,
-    stats:{revenue:'R45,200',mediaCount:'—'},
-    logs:[],operatives:[],
-
-    async init(){
-      setInterval(()=>{this.clock=new Date().toLocaleTimeString();},1000);
-      try{
-        if(typeof sb!=='undefined'){
-          const {data:{session}}=await sb.auth.getSession();
-          if(!session){window.location.href='login.html';return;}
-          await this.syncData();
-        } else {
-          // Offline demo data
-          this.logs=[
-            {id:1,created_at:new Date(),description:'SYSTEMS ONLINE — M.O.G. DIRECTORATE ACTIVE'},
-            {id:2,created_at:new Date(Date.now()-60000),description:'GALLERY: SESSION 02 ASSETS DEPLOYED'},
-            {id:3,created_at:new Date(Date.now()-3600000),description:'POLL: WEEK 14 VOTING PERIOD OPENED'},
-            {id:4,created_at:new Date(Date.now()-86400000),description:'OPERATIVE COUNT: 47 REGISTERED'},
-          ];
-          this.operatives=[
-            {username:'OPERATIVE_ZEN',rank:'GROOVE DIVISION'},
-            {username:'MOG_NOVA',rank:'GROOVE DIVISION'},
-            {username:'OPERATIVE_KASE',rank:'RECRUIT'},
-            {username:'OPERATIVE_RIZE',rank:'RECRUIT'},
-          ];
-          this.stats.mediaCount='12';
-        }
-        this.view='active';
-      }catch(e){console.error(e);this.view='active';}
-    },
-
-    async syncData(){
-      if(typeof sb==='undefined')return;
-      const{data:logs}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(20);
-      this.logs=logs||[];
-      const{data:ops}=await sb.from('profiles').select('username,rank').limit(10);
-      this.operatives=ops||[];
-      const{count}=await sb.from('media').select('*',{count:'exact',head:true});
-      this.stats.mediaCount=count||'—';
-    },
-
-    async toggleLockdown(){
-      const mode=!this.lockdown;
-      if(!confirm(mode?'⚠ ACTIVATE SYSTEM-WIDE LOCKDOWN?\n\nThis will restrict all operative access.':'DISENGAGE LOCKDOWN and return to normal operations?'))return;
-      this.lockdown=mode;
-      if(typeof sb!=='undefined'){
-        await sb.from('system_settings').upsert({key:'lockdown',value:String(mode)});
-        await sb.from('activity_log').insert({description:mode?'!!! PROTOCOL ZERO ENGAGED — ALL OPERATIVES LOCKED OUT !!!':'Protocol Zero DISENGAGED — Systems Nominal'});
-        await this.syncData();
-      } else {
-        this.logs.unshift({id:Date.now(),created_at:new Date(),description:mode?'!!! PROTOCOL ZERO ENGAGED !!!':'Protocol Zero Disengaged'});
-      }
-    },
-
-    async globalAlert(){
-      const msg=prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
-      if(!msg||!msg.trim())return;
-      if(typeof sb!=='undefined'){
-        await sb.from('activity_log').insert({description:'📡 GLOBAL ALERT: '+msg.trim()});
-        await this.syncData();
-      } else {
-        this.logs.unshift({id:Date.now(),created_at:new Date(),description:'📡 GLOBAL ALERT: '+msg.trim()});
-      }
-      alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
-    },
-
-    async uploadAsset(){
-      const title=document.getElementById('sessTitle').value.trim();
-      const tag=document.getElementById('sessTag').value;
-      const file=document.getElementById('fileIn').files[0];
-      if(!title){alert('⚠ Enter a session title.');return;}
-      if(!file){alert('⚠ Select a media file.');return;}
-      if(!tag){alert('⚠ Select a session.');return;}
-      if(typeof sb!=='undefined'){
-        const path=tag+'/'+Date.now()+'_'+file.name;
-        const{error}=await sb.storage.from('media').upload(path,file);
-        if(!error){
-          await sb.from('media').insert({title,session:tag,file_path:path,type:file.type.startsWith('video')?'video':'photo'});
-          await sb.from('activity_log').insert({description:'🎬 VAULT UPLOAD: '+title+' ('+tag.toUpperCase()+')'});
-          await this.syncData();
-          alert('✅ ASSET DEPLOYED TO VAULT: '+title);
-          document.getElementById('sessTitle').value='';
-          document.getElementById('sessTag').value='';
-          document.getElementById('fileIn').value='';
-          document.getElementById('uploadLabel').textContent='SELECT MEDIA FILE';
-          document.getElementById('uploadLabel').classList.remove('changed');
-        } else {alert('❌ Upload failed: '+error.message);}
-      } else {
-        this.logs.unshift({id:Date.now(),created_at:new Date(),description:'🎬 MOCK UPLOAD: '+title});
-        alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase to enable real uploads.');
-      }
-    },
-
-    async resetPoll(){
-      if(!confirm('RESET ALL VOTES FOR THE CURRENT POLL?\n\nThis cannot be undone.'))return;
-      if(typeof sb!=='undefined'){
-        await sb.from('votes').delete().neq('id',0);
-        await sb.from('activity_log').insert({description:'🗳️ POLL RESET — WEEK VOTES CLEARED'});
-        await this.syncData();
-      }
-      alert('✅ POLL RESET COMPLETE. All votes cleared.');
-    },
-
-    exportResults(){
-      if(typeof sb==='undefined'){alert('Connect Supabase to export real vote results as CSV.');return;}
-      alert('📊 Generating results export...\n\nThis will be implemented with your Supabase connection.');
-    },
-
-    fmtTime(ts){return new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-  };
+function showMain() {
+  document.getElementById('loadingScreen').classList.remove('active');
+  document.getElementById('mainScreen').classList.add('active');
 }
+function showDenied(msg) {
+  document.getElementById('loadingScreen').classList.remove('active');
+  document.getElementById('deniedMsg').innerHTML = msg;
+  document.getElementById('deniedScreen').classList.add('active');
+}
+
+// ── TABS ──────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', b.onclick.toString().includes(`'${name}'`));
+  });
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  // Lazy load
+  if(name==='logs') loadLogs();
+  if(name==='tickets') loadTickets();
+  if(name==='memberships') loadMemberships();
+  if(name==='operatives') loadOperatives();
+  if(name==='polls') loadPollResults();
+  if(name==='media') loadMedia();
+}
+
+// ── DATA LOADING ──────────────────────────────────────────
+const client = () => typeof sb !== 'undefined' ? sb : (typeof supabase !== 'undefined' ? supabase : null);
+
+async function loadAllData() {
+  await Promise.all([loadStats(), loadLogs(), loadEvents()]);
+}
+
+async function loadStats() {
+  const c = client(); if(!c) return loadDemoStats();
+  try {
+    const [{count:opCount},{data:tickets},{data:memberships}] = await Promise.all([
+      c.from('profiles').select('*',{count:'exact',head:true}),
+      c.from('tickets').select('total_paid,booking_fee,payment_status'),
+      c.from('memberships').select('plan,amount_rands,status').eq('status','active'),
+    ]);
+    const ticketRevenue = (tickets||[]).filter(t=>t.payment_status==='paid').reduce((s,t)=>s+t.total_paid,0);
+    const feeRevenue = (tickets||[]).filter(t=>t.payment_status==='paid').reduce((s,t)=>s+t.booking_fee,0);
+    const memberRevenue = (memberships||[]).reduce((s,m)=>s+m.amount_rands,0);
+    const total = ticketRevenue + memberRevenue;
+
+    document.getElementById('statRevenue').textContent = 'R'+total.toLocaleString();
+    document.getElementById('statOperatives').textContent = opCount||0;
+    document.getElementById('statTickets').textContent = (tickets||[]).filter(t=>t.payment_status==='paid').length;
+    document.getElementById('statMembers').textContent = (memberships||[]).length;
+
+    // Revenue bars
+    const maxRev = Math.max(ticketRevenue, memberRevenue, feeRevenue, 1);
+    document.getElementById('revBarTickets').style.width = Math.round(ticketRevenue/maxRev*100)+'%';
+    document.getElementById('revBarMembers').style.width = Math.round(memberRevenue/maxRev*100)+'%';
+    document.getElementById('revBarFees').style.width = Math.round(feeRevenue/maxRev*100)+'%';
+    document.getElementById('revTicketAmt').textContent = 'R'+ticketRevenue.toLocaleString();
+    document.getElementById('revMemberAmt').textContent = 'R'+memberRevenue.toLocaleString();
+    document.getElementById('revFeeAmt').textContent = 'R'+feeRevenue.toLocaleString();
+
+    // Membership split
+    const plans = {RECRUIT:0,OPERATIVE:0,AGENT:0,DIRECTOR:0};
+    (memberships||[]).forEach(m=>{ if(plans[m.plan]!==undefined) plans[m.plan]++; });
+    const mrr = (plans.OPERATIVE*99)+(plans.AGENT*199)+(plans.DIRECTOR*499);
+    document.getElementById('mMRR').textContent = 'R'+mrr.toLocaleString();
+    document.getElementById('mCountOp').textContent = plans.OPERATIVE;
+    document.getElementById('mCountAgent').textContent = plans.AGENT;
+    document.getElementById('mCountDir').textContent = plans.DIRECTOR;
+    document.getElementById('memberSplit').innerHTML = Object.entries(plans)
+      .filter(([k])=>k!=='RECRUIT')
+      .map(([k,v])=>`<div class="rev-item">
+        <div class="rev-label">${k}</div>
+        <div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:${Math.round(v/Math.max(...Object.values(plans).filter(x=>x),1)*100)}%"></div></div>
+        <div class="rev-amount">${v}</div>
+      </div>`).join('');
+  } catch(e) { console.error(e); loadDemoStats(); }
+}
+
+async function loadLogs() {
+  const c = client(); if(!c){ renderDemoLogs(); return; }
+  try {
+    const {data} = await c.from('activity_log').select('*').order('created_at',{ascending:false}).limit(50);
+    const logs = data||[];
+    const html = logs.length ? logs.map(l=>logItem(l)).join('') : '<div class="empty-state">NO LOGS YET</div>';
+    document.getElementById('allLogs') && (document.getElementById('allLogs').innerHTML = html);
+    document.getElementById('overviewLogs') && (document.getElementById('overviewLogs').innerHTML = logs.slice(0,10).map(l=>logItem(l)).join('')||'<div class="empty-state">NO ACTIVITY YET</div>');
+  } catch(e){ renderDemoLogs(); }
+}
+
+function logItem(l) {
+  const type = l.action_type||'info';
+  return `<div class="log-item">
+    <div class="log-dot dot-${type}"></div>
+    <div class="log-ts">${new Date(l.created_at).toLocaleString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'short'})}</div>
+    <div>${l.description}</div>
+  </div>`;
+}
+
+async function loadEvents() {
+  const c = client(); if(!c){ renderDemoEvents(); return; }
+  try {
+    const {data} = await c.from('events').select('*').order('event_date',{ascending:true});
+    const tbody = document.getElementById('eventsTable');
+    if(!tbody) return;
+    tbody.innerHTML = (data||[]).map(e=>`<tr>
+      <td><strong>${e.title}</strong></td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(e.event_date).toLocaleDateString('en-ZA')}</td>
+      <td><span class="panel-badge pb-${e.status==='live'?'red':e.status==='upcoming'?'teal':'green'}">${e.status.toUpperCase()}</span></td>
+      <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">—</td>
+      <td><button class="btn btn-sm btn-danger" onclick="cancelEvent('${e.id}')">CANCEL</button></td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty-state">NO EVENTS YET</td></tr>';
+  } catch(e){ renderDemoEvents(); }
+}
+
+async function loadTickets() {
+  const c = client(); if(!c){ renderDemoTickets(); return; }
+  try {
+    const {data} = await c.from('tickets').select('*').order('created_at',{ascending:false}).limit(100);
+    renderTicketsTable(data||[]);
+  } catch(e){ renderDemoTickets(); }
+}
+
+function renderTicketsTable(tickets) {
+  const tbody = document.getElementById('ticketsTable');
+  if(!tbody) return;
+  tbody.innerHTML = tickets.map(t=>`<tr>
+    <td style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--teal)">${t.ticket_code}</td>
+    <td>${t.buyer_name}</td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${t.buyer_email}</td>
+    <td><span style="font-size:9px;color:var(--gold)">${t.tier_id?'VIP':'GENERAL'}</span></td>
+    <td style="text-align:center">${t.quantity}</td>
+    <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">R${t.total_paid}</td>
+    <td><span class="status-${t.payment_status}">${t.payment_status.toUpperCase()}</span></td>
+    <td><span style="color:${t.checked_in?'var(--green)':'rgba(255,255,255,0.3)'}">${t.checked_in?'✓ IN':'—'}</span></td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(t.created_at).toLocaleDateString('en-ZA')}</td>
+  </tr>`).join('') || '<tr><td colspan="9" class="empty-state">NO TICKETS YET</td></tr>';
+}
+
+async function loadMemberships() {
+  const c = client(); if(!c){ renderDemoMemberships(); return; }
+  try {
+    const {data} = await c.from('memberships').select('*,profiles(username,email)').order('created_at',{ascending:false});
+    renderMembersTable(data||[]);
+  } catch(e){ renderDemoMemberships(); }
+}
+
+function renderMembersTable(members) {
+  const tbody = document.getElementById('membersTable');
+  if(!tbody) return;
+  tbody.innerHTML = members.map(m=>`<tr>
+    <td style="font-weight:700">${m.profiles?.username||'—'}</td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${m.profiles?.email||m.user_id}</td>
+    <td><span class="rank-tag rank-${m.plan.toLowerCase()}">${m.plan}</span></td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${m.billing_cycle.toUpperCase()}</td>
+    <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">R${m.amount_rands}</td>
+    <td><span class="status-${m.status}">${m.status.toUpperCase()}</span></td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(m.starts_at).toLocaleDateString('en-ZA')}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="cancelMembership('${m.id}')">CANCEL</button></td>
+  </tr>`).join('') || '<tr><td colspan="8" class="empty-state">NO MEMBERSHIPS YET</td></tr>';
+}
+
+async function loadOperatives() {
+  const c = client(); if(!c){ renderDemoOperatives(); return; }
+  try {
+    const {data} = await c.from('profiles').select('*').order('created_at',{ascending:false});
+    const tbody = document.getElementById('operativesTable');
+    if(!tbody) return;
+    tbody.innerHTML = (data||[]).map(p=>`<tr>
+      <td><div class="op-av">${p.username.substring(0,2).toUpperCase()}</div></td>
+      <td style="font-weight:700">${p.username}</td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${p.email}</td>
+      <td><span class="rank-tag rank-${p.rank.toLowerCase()}">${p.rank}</span></td>
+      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(p.created_at).toLocaleDateString('en-ZA')}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-sm" onclick="openRankChange('${p.id}','${p.username}','${p.rank}')">CHANGE RANK</button>
+        ${p.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-danger" onclick="banUser('${p.id}')">BAN</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr>';
+  } catch(e){ renderDemoOperatives(); }
+}
+
+async function loadPollResults() {
+  const c = client(); if(!c){ renderDemoPoll(); return; }
+  try {
+    const {data} = await c.from('poll_songs').select('*').order('votes_count',{ascending:false});
+    const max = Math.max(...(data||[]).map(s=>s.votes_count), 1);
+    document.getElementById('pollResults').innerHTML = (data||[]).map((s,i)=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07);">
+        <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:${i<3?'var(--gold)':'var(--gold-dim)'};width:28px">${i+1}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#e0e0e0">${s.title}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim)">${s.artist}</div>
+          <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden">
+            <div style="height:100%;width:${Math.round(s.votes_count/max*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;"></div>
+          </div>
+        </div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold)">${s.votes_count}</div>
+        <button class="btn btn-sm btn-danger" onclick="removeSong('${s.id}')">✕</button>
+      </div>
+    `).join('') || '<div class="empty-state">NO SONGS IN POLL</div>';
+  } catch(e){ renderDemoPoll(); }
+}
+
+async function loadMedia() {
+  const c = client(); if(!c){ renderDemoMedia(); return; }
+  try {
+    const {data,count} = await c.from('media').select('*',{count:'exact'}).order('created_at',{ascending:false});
+    document.getElementById('mediaCount').textContent = (count||0)+' FILES';
+    document.getElementById('mediaList').innerHTML = (data||[]).slice(0,15).map(m=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid ${m.type==='video'?'var(--teal)':'var(--gold)'}">
+        <div style="font-size:18px">${m.type==='video'?'🎬':'📸'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:700;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3)">${m.session} · ♥ ${m.likes_count}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteMedia('${m.id}')">✕</button>
+      </div>
+    `).join('') || '<div class="empty-state">VAULT EMPTY</div>';
+  } catch(e){ renderDemoMedia(); }
+  }
+
+  // ── ACTIONS ───────────────────────────────────────────────
+async function toggleLive() {
+  isLive = !isLive;
+  const btn = document.getElementById('liveBtn');
+  const overlay = document.getElementById('liveOverlay');
+  const status = document.getElementById('broadcastStatus');
+  btn.textContent = isLive ? '⏹ END BROADCAST' : '📡 GO LIVE';
+  btn.classList.toggle('on', isLive);
+  overlay.classList.toggle('show', isLive);
+  status.textContent = isLive ? '● BROADCASTING LIVE' : '● STANDBY';
+  status.style.color = isLive ? 'var(--red)' : 'var(--teal)';
+  await log(isLive ? '📡 LIVE BROADCAST STARTED' : '⏹ BROADCAST ENDED', 'alert');
+  if(isLive) { setInterval(()=>{ document.getElementById('viewerCount').textContent = Math.floor(Math.random()*50+20)+' OPERATIVES WATCHING'; },5000); }
+}
+
+async function toggleLockdown() {
+  isLockdown = !isLockdown;
+  const on = isLockdown;
+  if(!confirm(on ? '⚠ ACTIVATE SYSTEM-WIDE LOCKDOWN?\n\nAll operatives will be locked out.' : 'DISENGAGE LOCKDOWN?')) { isLockdown = !isLockdown; return; }
+  document.getElementById('lockdownBtn').classList.toggle('on', on);
+  document.getElementById('lockdownBtn').textContent = on ? '⚡ DISENGAGE LOCKDOWN' : '⚡ PROTOCOL ZERO';
+  const c = client();
+  if(c) await c.from('system_settings').upsert({key:'lockdown',value:String(on)});
+  await log(on ? '!!! PROTOCOL ZERO ENGAGED — ALL OPERATIVES LOCKED OUT !!!' : 'Protocol Zero DISENGAGED — Systems Nominal', 'lockdown');
+}
+
+async function toggleMaintenance() {
+  isMaintenance = !isMaintenance;
+  document.getElementById('maintenanceBtn').textContent = isMaintenance ? '⚙️ DISABLE MAINTENANCE' : '⚙️ ENABLE MAINTENANCE';
+  document.getElementById('maintenanceBtn').classList.toggle('on', isMaintenance);
+  const c = client();
+  if(c) await c.from('system_settings').upsert({key:'maintenance',value:String(isMaintenance)});
+  await log(isMaintenance ? '⚙️ MAINTENANCE MODE ENABLED' : '⚙️ MAINTENANCE MODE DISABLED', 'info');
+}
+
+async function sendAlert() {
+  const msg = document.getElementById('alertMsg').value.trim();
+  const type = document.getElementById('alertType').value;
+  if(!msg){ alert('⚠ Enter a message.'); return; }
+  await log('📡 GLOBAL ALERT ['+type.toUpperCase()+']: '+msg, 'alert');
+  alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
+  document.getElementById('alertMsg').value = '';
+}
+
+function globalAlert() {
+  const msg = prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
+  if(!msg||!msg.trim()) return;
+  log('📡 GLOBAL ALERT: '+msg.trim(), 'alert');
+  alert('✅ BROADCAST SENT.');
+}
+
+async function uploadAsset() {
+  const title = document.getElementById('sessTitle').value.trim();
+  const tag = document.getElementById('sessTag').value;
+  const file = document.getElementById('fileIn').files[0];
+  const type = document.getElementById('mediaType').value;
+  const isPremium = document.getElementById('mediaAccess').value === 'premium';
+  if(!title){ alert('⚠ Enter a session title.'); return; }
+  if(!tag){ alert('⚠ Select a session.'); return; }
+  if(!file){ alert('⚠ Select a file.'); return; }
+  const c = client();
+  if(c) {
+    const path = tag+'/'+Date.now()+'_'+file.name;
+    document.getElementById('uploadProgress').classList.add('show');
+    let prog = 0; const iv = setInterval(()=>{ prog+=10; document.getElementById('uploadFill').style.width=prog+'%'; if(prog>=90)clearInterval(iv); },200);
+    const {error} = await c.storage.from('media').upload(path, file);
+    clearInterval(iv); document.getElementById('uploadFill').style.width='100%';
+    if(!error) {
+      const {data:{publicUrl}} = c.storage.from('media').getPublicUrl(path);
+      await c.from('media').insert({title,session:tag,file_path:path,file_url:publicUrl,type,is_premium:isPremium,uploaded_by:currentUser?.id});
+      await log('🎬 VAULT UPLOAD: '+title+' ('+tag.toUpperCase()+')', 'upload');
+      alert('✅ DEPLOYED TO VAULT: '+title);
+      document.getElementById('sessTitle').value=''; document.getElementById('sessTag').value='';
+      document.getElementById('fileIn').value=''; document.getElementById('uploadLabel').textContent='CLICK OR DRAG FILES TO UPLOAD';
+      document.getElementById('uploadLabel').classList.remove('ready');
+      setTimeout(()=>document.getElementById('uploadProgress').classList.remove('show'),1000);
+      loadMedia();
+    } else { alert('❌ Upload failed: '+error.message); }
+  } else {
+    await log('🎬 MOCK UPLOAD: '+title, 'upload');
+    alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase for real uploads.');
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault(); document.getElementById('uploadZone').classList.remove('dragover');
+  const files = e.dataTransfer.files;
+  if(files.length){ document.getElementById('fileIn').files = files; filesChosen({files}); }
+}
+
+function filesChosen(input) {
+  if(input.files&&input.files[0]){
+    const n = input.files[0].name;
+    const lbl = document.getElementById('uploadLabel');
+    lbl.innerHTML = '✓ '+(n.length>24?n.substring(0,24)+'…':n)+(input.files.length>1?' + '+(input.files.length-1)+' more':'');
+    lbl.classList.add('ready');
+  }
+}
+
+async function checkInTicket() {
+  const code = document.getElementById('checkinCode').value.trim();
+  if(!code){ alert('⚠ Enter a ticket code.'); return; }
+  const el = document.getElementById('checkinResult');
+  el.className = 'checkin-result show';
+  const c = client();
+  if(c) {
+    const {data} = await c.from('tickets').select('*').eq('ticket_code', code).single();
+    if(!data) { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">❌ INVALID TICKET</div><div class="checkin-detail">No ticket found with code: '+code+'</div>'; return; }
+    if(data.payment_status !== 'paid') { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">⚠ PAYMENT PENDING</div><div class="checkin-detail">This ticket has not been paid yet.</div>'; return; }
+    if(data.checked_in) { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">⚠ ALREADY CHECKED IN</div><div class="checkin-detail">'+data.buyer_name+' checked in at '+new Date(data.checked_in_at).toLocaleTimeString('en-ZA')+'</div>'; return; }
+    await c.from('tickets').update({checked_in:true,checked_in_at:new Date().toISOString()}).eq('id',data.id);
+    el.className='checkin-result show checkin-valid';
+    el.innerHTML=`<div class="checkin-title cv-title">✅ ACCESS GRANTED</div><div class="checkin-detail">NAME: ${data.buyer_name}<br>EMAIL: ${data.buyer_email}<br>QTY: ${data.quantity} TICKET(S)<br>CODE: ${data.ticket_code}</div>`;
+    await log('✅ CHECK-IN: '+data.buyer_name+' ('+code+')', 'ticket');
+  } else {
+    el.className='checkin-result show checkin-valid';
+    el.innerHTML='<div class="checkin-title cv-title">✅ DEMO: ACCESS GRANTED</div><div class="checkin-detail">Connect Supabase for real check-in.</div>';
+  }
+}
+
+async function createEvent() {
+  const title = document.getElementById('evTitle').value.trim();
+  const date = document.getElementById('evDate').value;
+  if(!title||!date){ alert('⚠ Enter event title and date.'); return; }
+  const c = client();
+  if(c) {
+    const {data:ev} = await c.from('events').insert({title,description:document.getElementById('evDesc').value,event_date:date,doors_open:document.getElementById('evDoors').value,location:document.getElementById('evLocation').value||'LOCATION CLASSIFIED',location_revealed:document.getElementById('evLocationFull').value,created_by:currentUser?.id}).select().single();
+    if(ev) {
+      const vipP=parseInt(document.getElementById('evVIPPrice').value)||0;
+      const vipQ=parseInt(document.getElementById('evVIPQty').value)||0;
+      const genP=parseInt(document.getElementById('evGenPrice').value)||0;
+      const genQ=parseInt(document.getElementById('evGenQty').value)||0;
+      const tiers=[];
+      if(vipP&&vipQ) tiers.push({event_id:ev.id,name:'VIP OPERATIVE',price_rands:vipP,total_qty:vipQ,tier_type:'vip',perks:'Priority entry · Front section · Complimentary drink'});
+      if(genP&&genQ) tiers.push({event_id:ev.id,name:'GENERAL OPERATIVE',price_rands:genP,total_qty:genQ,tier_type:'general',perks:'Standard entry · General floor access'});
+      if(tiers.length) await c.from('ticket_tiers').insert(tiers);
+    }
+    await log('🎉 NEW EVENT CREATED: '+title, 'info');
+    alert('✅ EVENT CREATED: '+title);
+    closeModal('eventModal');
+    loadEvents();
+  } else {
+    alert('✅ MOCK EVENT: '+title+'\n\nConnect Supabase to save events.');
+    closeModal('eventModal');
+  }
+  }
+
+  async function cancelEvent(id) {
+  if(!confirm('CANCEL THIS EVENT?')) return;
+  const c = client();
+  if(c) await c.from('events').update({status:'cancelled'}).eq('id',id);
+  await log('❌ EVENT CANCELLED', 'info');
+  loadEvents();
+}
+
+async function resetPoll() {
+  if(!confirm('RESET ALL VOTES FOR THE CURRENT POLL?\n\nThis cannot be undone.')) return;
+  const c = client();
+  if(c) {
+    await c.from('poll_votes').delete().neq('id','00000000-0000-0000-0000-000000000000');
+    await c.from('poll_songs').update({votes_count:0}).neq('id','00000000-0000-0000-0000-000000000000');
+  }
+  await log('🗳️ POLL RESET — ALL VOTES CLEARED', 'info');
+  alert('✅ POLL RESET COMPLETE.');
+  loadPollResults();
+}
+
+async function addSong() {
+  const title=document.getElementById('songTitle').value.trim();
+  const artist=document.getElementById('songArtist').value.trim();
+  const week=parseInt(document.getElementById('songWeek').value)||14;
+  const year=parseInt(document.getElementById('songYear').value)||2026;
+  if(!title||!artist){ alert('⚠ Enter song title and artist.'); return; }
+  const c = client();
+  if(c) await c.from('poll_songs').insert({title,artist,week_number:week,year});
+  await log('🎵 SONG ADDED TO POLL: '+title+' — '+artist, 'info');
+  document.getElementById('songTitle').value=''; document.getElementById('songArtist').value='';
+  loadPollResults();
+}
+
+async function removeSong(id) {
+  if(!confirm('REMOVE THIS SONG FROM THE POLL?')) return;
+  const c = client();
+  if(c) await c.from('poll_songs').delete().eq('id',id);
+  await log('🗑️ SONG REMOVED FROM POLL', 'info');
+  loadPollResults();
+}
+
+async function closePoll() {
+  if(!confirm('CLOSE THE CURRENT POLL?\n\nOperatives will no longer be able to vote.')) return;
+  const c = client();
+  if(c) await c.from('system_settings').upsert({key:'poll_open',value:'false'});
+  await log('🔒 POLL CLOSED — VOTING ENDED', 'info');
+  alert('✅ POLL CLOSED.');
+}
+
+async function openNewPoll() {
+  const week = prompt('ENTER NEW POLL WEEK NUMBER:');
+  if(!week) return;
+  const c = client();
+  if(c) {
+    await c.from('system_settings').upsert({key:'poll_week',value:week});
+    await c.from('system_settings').upsert({key:'poll_open',value:'true'});
+  }
+  await log('🆕 NEW POLL OPENED — WEEK '+week, 'info');
+  alert('✅ NEW POLL STARTED FOR WEEK '+week);
+}
+
+function openRankChange(id, name, rank) {
+  rankChangeTarget = {id, name};
+  document.getElementById('rankModalUser').textContent = 'OPERATIVE: '+name;
+  document.getElementById('newRankSelect').value = rank;
+  openModal('rankModal');
+}
+
+async function confirmRankChange() {
+  if(!rankChangeTarget) return;
+  const newRank = document.getElementById('newRankSelect').value;
+  const c = client();
+  if(c) await c.from('profiles').update({rank:newRank}).eq('id',rankChangeTarget.id);
+  await log('👤 RANK CHANGED: '+rankChangeTarget.name+' → '+newRank, 'membership');
+  alert('✅ RANK UPDATED: '+rankChangeTarget.name+' is now '+newRank);
+  closeModal('rankModal');
+  loadOperatives();
+}
+
+async function banUser(id) {
+  if(!confirm('BAN THIS OPERATIVE?\n\nThey will lose access to the app.')) return;
+  const c = client();
+  if(c) {
+    await c.from('profiles').update({rank:'RECRUIT'}).eq('id',id);
+    await c.auth.admin.updateUserById(id,{ban_duration:'876600h'}).catch(()=>{});
+  }
+  await log('⛔ OPERATIVE BANNED: '+id, 'alert');
+  alert('✅ OPERATIVE BANNED.');
+  loadOperatives();
+}
+
+async function cancelMembership(id) {
+  if(!confirm('CANCEL THIS MEMBERSHIP?\n\nOperative will revert to RECRUIT.')) return;
+  const c = client();
+  if(c) await c.from('memberships').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',id);
+  await log('❌ MEMBERSHIP CANCELLED: '+id, 'membership');
+  loadMemberships();
+}
+
+async function deleteMedia(id) {
+  if(!confirm('DELETE THIS MEDIA FILE?')) return;
+  const c = client();
+  if(c) await c.from('media').delete().eq('id',id);
+  await log('🗑️ MEDIA DELETED: '+id, 'upload');
+  loadMedia();
+}
+
+async function saveSettings() {
+  const c = client();
+  const settings = [
+    {key:'app_version',value:document.getElementById('setVersion').value},
+    {key:'ticket_booking_fee_pct',value:document.getElementById('setBookingFee').value},
+    {key:'poll_week',value:document.getElementById('setPollWeek').value},
+  ];
+  if(c) for(const s of settings) await c.from('system_settings').upsert(s);
+  await log('⚙️ SETTINGS UPDATED BY DIRECTOR', 'info');
+  alert('✅ SETTINGS SAVED.');
+}
+
+async function clearLogs() {
+  if(!confirm('CLEAR ALL ACTIVITY LOGS? This cannot be undone.')) return;
+  const c = client();
+  if(c) await c.from('activity_log').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  document.getElementById('allLogs') && (document.getElementById('allLogs').innerHTML='<div class="empty-state">LOGS CLEARED</div>');
+}
+
+async function scheduleBroadcast() {
+  const dt = prompt('ENTER BROADCAST DATE & TIME (e.g. 2026-04-19 18:00):');
+  if(!dt) return;
+  await log('📅 BROADCAST SCHEDULED: '+dt, 'info');
+  alert('✅ SESSION BROADCAST SCHEDULED FOR: '+dt);
+}
+
+function scheduledPoll(){}
+
+// ── EXPORT CSV ─────────────────────────────────────────────
+function downloadCSV(data, filename) {
+  const blob = new Blob([data], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+}
+async function exportTicketsCSV() {
+  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
+  const {data} = await c.from('tickets').select('ticket_code,buyer_name,buyer_email,buyer_phone,quantity,total_paid,payment_status,checked_in,created_at');
+  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
+  downloadCSV(rows, 'mog_tickets.csv');
+}
+async function exportMembersCSV() {
+  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
+  const {data} = await c.from('memberships').select('*,profiles(username,email)');
+  const rows = ['username,email,plan,billing,amount,status,started', ...(data||[]).map(m=>`${m.profiles?.username},${m.profiles?.email},${m.plan},${m.billing_cycle},${m.amount_rands},${m.status},${m.starts_at}`)].join('\n');
+  downloadCSV(rows, 'mog_memberships.csv');
+}
+async function exportUsersCSV() {
+  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
+  const {data} = await c.from('profiles').select('username,email,rank,created_at');
+  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
+  downloadCSV(rows, 'mog_operatives.csv');
+}
+async function exportResultsCSV() {
+  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
+  const {data} = await c.from('poll_songs').select('title,artist,votes_count,week_number').order('votes_count',{ascending:false});
+  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
+  downloadCSV(rows, 'mog_poll_results.csv');
+}
+
+// ── LOGGING ───────────────────────────────────────────────
+async function log(description, action_type='info') {
+  const c = client();
+  if(c) await c.from('activity_log').insert({description, action_type, user_id:currentUser?.id}).catch(()=>{});
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if(e.target.classList.contains('modal')) closeModal(e.target.id);
+});
+
+// ── LOGOUT ────────────────────────────────────────────────
+async function logout() {
+  if(!confirm('Exit Directorate Command?')) return;
+  const c = client();
+  if(c) await c.auth.signOut().catch(()=>{});
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// ── DEMO DATA (offline) ───────────────────────────────────
+function loadDemoData() { loadDemoStats(); renderDemoLogs(); renderDemoEvents(); renderDemoTickets(); renderDemoMemberships(); renderDemoOperatives(); renderDemoPoll(); renderDemoMedia(); }
+function loadDemoStats() {
+  document.getElementById('statRevenue').textContent='R12,450';
+  document.getElementById('statOperatives').textContent='47';
+  document.getElementById('statTickets').textContent='28';
+  document.getElementById('statMembers').textContent='14';
+  document.getElementById('mCountOp').textContent='8';
+  document.getElementById('mCountAgent').textContent='4';
+  document.getElementById('mCountDir').textContent='2';
+  document.getElementById('mMRR').textContent='R2,586';
+  document.getElementById('revBarTickets').style.width='70%'; document.getElementById('revTicketAmt').textContent='R6,300';
+  document.getElementById('revBarMembers').style.width='100%'; document.getElementById('revMemberAmt').textContent='R4,950';
+  document.getElementById('revBarFees').style.width='20%'; document.getElementById('revFeeAmt').textContent='R315';
+  document.getElementById('memberSplit').innerHTML='<div class="rev-item"><div class="rev-label">OPERATIVE</div><div class="rev-bar-wrap"><div class="rev-bar rev-teal" style="width:80%"></div></div><div class="rev-amount">8</div></div><div class="rev-item"><div class="rev-label">AGENT</div><div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:40%"></div></div><div class="rev-amount">4</div></div><div class="rev-item"><div class="rev-label">DIRECTOR</div><div class="rev-bar-wrap"><div class="rev-bar rev-green" style="width:20%"></div></div><div class="rev-amount">2</div></div>';
+}
+function renderDemoLogs() {
+  const demoLogs=[{description:'SYSTEMS ONLINE — M.O.G. DIRECTORATE ACTIVE',action_type:'info',created_at:new Date()},{description:'GALLERY: SESSION 02 ASSETS DEPLOYED',action_type:'upload',created_at:new Date(Date.now()-3e5)},{description:'🎟️ TICKET PURCHASE: MOG-A1B2-C3D4',action_type:'ticket',created_at:new Date(Date.now()-9e5)},{description:'👑 MEMBERSHIP UPGRADE: OPERATIVE → AGENT',action_type:'membership',created_at:new Date(Date.now()-36e5)},{description:'🗳️ POLL WEEK 14 OPENED',action_type:'info',created_at:new Date(Date.now()-72e5)}];
+  const html=demoLogs.map(l=>logItem(l)).join('');
+  document.getElementById('allLogs')&&(document.getElementById('allLogs').innerHTML=html);
+  document.getElementById('overviewLogs')&&(document.getElementById('overviewLogs').innerHTML=html);
+}
+function renderDemoEvents(){const t=document.getElementById('eventsTable');if(t)t.innerHTML='<tr><td><strong>AMAPIANO SESSIONS VOL.3</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">19/04/2026</td><td><span class="panel-badge pb-teal">UPCOMING</span></td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">28</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr>';}
+function renderDemoTickets(){const t=document.getElementById('ticketsTable');if(t)t.innerHTML='<tr><td style="font-family:\'Orbitron\',sans-serif;font-size:10px;color:var(--teal)">MOG-A1B2-C3D4</td><td>Sipho Nkosi</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">sipho@gmail.com</td><td style="color:var(--gold);font-size:9px">VIP</td><td style="text-align:center">2</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R735</td><td><span class="status-paid">PAID</span></td><td><span style="color:var(--green)">✓ IN</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">19/04/2026</td></tr><tr><td style="font-family:\'Orbitron\',sans-serif;font-size:10px;color:var(--teal)">MOG-E5F6-G7H8</td><td>Thabo Molefe</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">thabo@gmail.com</td><td style="color:var(--gold);font-size:9px">GENERAL</td><td style="text-align:center">1</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R157</td><td><span class="status-paid">PAID</span></td><td><span style="color:rgba(255,255,255,0.3)">—</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">18/04/2026</td></tr>';}
+function renderDemoMemberships(){const t=document.getElementById('membersTable');if(t)t.innerHTML='<tr><td>MOG_NOVA</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">nova@gmail.com</td><td><span class="rank-tag rank-agent">AGENT</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">MONTHLY</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R199</td><td><span class="status-active">ACTIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">01/04/2026</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr><tr><td>OPERATIVE_ZEN</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">zen@gmail.com</td><td><span class="rank-tag rank-operative">OPERATIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">ANNUAL</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R79</td><td><span class="status-active">ACTIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">15/03/2026</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr>';}
+function renderDemoOperatives(){const t=document.getElementById('operativesTable');if(t)t.innerHTML='<tr><td><div class="op-av">DN</div></td><td><strong>DIRECTOR_NOX</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">director.mog@gmail.com</td><td><span class="rank-tag rank-admin">ADMIN</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">01/01/2026</td><td>—</td></tr><tr><td><div class="op-av">MN</div></td><td><strong>MOG_NOVA</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">nova@gmail.com</td><td><span class="rank-tag rank-agent">AGENT</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">02/04/2026</td><td><button class="btn btn-sm">CHANGE RANK</button> <button class="btn btn-sm btn-danger">BAN</button></td></tr>';}
+function renderDemoPoll(){document.getElementById('pollResults')&&(document.getElementById('pollResults').innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07)"><div style="font-family:Orbitron,sans-serif;font-size:16px;font-weight:900;color:var(--gold);width:28px">1</div><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#e0e0e0">PIANO HUB</div><div style="font-family:Share Tech Mono,monospace;font-size:9px;color:var(--teal-dim)">Kabza De Small & DJ Maphorisa</div><div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px"></div></div></div><div style="font-family:Orbitron,sans-serif;font-size:13px;font-weight:700;color:var(--gold)">312</div><button class="btn btn-sm btn-danger">✕</button></div>');}
+function renderDemoMedia(){const t=document.getElementById('mediaList');if(t)t.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid var(--teal)"><div style="font-size:18px">🎬</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#e0e0e0">SESSION 02 LIVE MIX</div><div style="font-family:Share Tech Mono,monospace;font-size:8px;color:rgba(255,255,255,0.3)">session02 · ♥ 24</div></div><button class="btn btn-sm btn-danger">✕</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid var(--gold)"><div style="font-size:18px">📸</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#e0e0e0">SESSION 01 GALLERY</div><div style="font-family:Share Tech Mono,monospace;font-size:8px;color:rgba(255,255,255,0.3)">session01 · ♥ 31</div></div><button class="btn btn-sm btn-danger">✕</button></div>';document.getElementById('mediaCount').textContent='12 FILES';}
+
+// ── START ─────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
