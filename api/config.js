@@ -1,26 +1,17 @@
 /**
  * M.O.G. CONFIG API — api/config.js
  * =====================================
- * Vercel Serverless Function.
- * Serves Supabase credentials from environment variables to the frontend.
- *
- * Set these in Vercel Dashboard → Project → Settings → Environment Variables:
- *   SUPABASE_URL
- *   SUPABASE_ANON_KEY
- *
- * This function is the PREFERRED credential source on Vercel and local dev
- * (via `vercel dev` or `node scripts/server.js`).
- * On static hosts (GitHub Pages, file://), js/config.js fallback is used instead.
- *
- * Security:
- *   - Only ANON key is served (never the service_role key)
- *   - CORS restricted to known origins
- *   - GET only, no caching
+ * Vercel Serverless Function v6.0.0
+ * * This function serves non-sensitive configuration and Supabase 
+ * public keys to the frontend.
+ * * SECURITY NOTE: 
+ * Mux Token Secrets and Supabase Service Roles are NEVER 
+ * exposed here. They are used only in api/broadcast.js.
  */
 
 export default function handler(req, res) {
 
-    // ── CORS ──────────────────────────────────────────────────────
+    // ── CORS — SECURITY PROTOCOL ─────────────────────────────────
     const origin = req.headers.origin || '';
     const ALLOWED_ORIGINS = [
         'https://ministry-of-groove.vercel.app',
@@ -29,6 +20,7 @@ export default function handler(req, res) {
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5500',
     ];
+    
     const allowOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 
     res.setHeader('Access-Control-Allow-Origin',  allowOrigin);
@@ -38,32 +30,43 @@ export default function handler(req, res) {
     res.setHeader('Content-Type',                 'application/json');
     res.setHeader('Cache-Control',                'no-store, no-cache, must-revalidate');
 
-    // ── Preflight ─────────────────────────────────────────────────
+    // ── Preflight Handshake ──────────────────────────────────────
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // ── GET only ──────────────────────────────────────────────────
+    // ── Method Restriction ───────────────────────────────────────
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // ── Credentials from env ──────────────────────────────────────
+    // ── Environment Variable Check ───────────────────────────────
     const SUPABASE_URL      = process.env.SUPABASE_URL;
     const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-        console.error('[M.O.G.] CRITICAL: SUPABASE_URL or SUPABASE_ANON_KEY env vars are missing!');
+        console.error('[M.O.G. CONFIG] CRITICAL: Supabase Environment Variables Missing!');
         return res.status(500).json({
-            error: 'Server configuration error',
-            hint:  'Add SUPABASE_URL and SUPABASE_ANON_KEY in Vercel Dashboard → Settings → Environment Variables',
+            error: 'System configuration failure',
+            hint:  'Check Vercel Dashboard → Settings → Environment Variables',
         });
     }
 
-    // ── Response ──────────────────────────────────────────────────
+    // ── Response Payload ─────────────────────────────────────────
     return res.status(200).json({
+        /* Database Intel */
         SUPABASE_URL,
         SUPABASE_ANON_KEY,
+
+        /* Broadcast Metadata */
+        broadcast: {
+            provider: 'MUX',
+            region: 'Global/South Africa',
+            latencyMode: 'Low-Latency (LL-HLS)',
+            rtmpEndpoint: 'rtmps://global-live.mux.com:443/app'
+        },
+
+        /* High-Command Contacts */
         contacts: {
             email:    'director.mog@gmail.com',
             whatsapp: '0813874921',
@@ -74,7 +77,11 @@ export default function handler(req, res) {
                 youtube:   'https://www.youtube.com/@MinistryofGroove-m1q',
             },
         },
-        network: 'M.O.G.',
-        version: '2.0.0',
+
+        /* System Versioning */
+        network: 'M.O.G. OPERATIVE NETWORK',
+        version: '6.0.0',
+        build: 'NCC-MASTER-BCAST',
+        status: 'OPERATIONAL'
     });
 }
