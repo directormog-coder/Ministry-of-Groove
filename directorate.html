@@ -8,6 +8,7 @@
 <title>M.O.G. | DIRECTORATE COMMAND</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
+<link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--red:#FF3B3B;--green:#00C853;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.95);--border:rgba(201,168,76,0.2);--border-teal:rgba(0,229,204,0.15);}
@@ -596,7 +597,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     <div class="panel">
       <div class="panel-head"><div class="panel-title">// DIRECTOR ACCOUNT</div></div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;line-height:2;">
-        EMAIL: <span style="color:var(--gold)">director.mog@gmail.com</span><br>
+        EMAIL: <span style="color:var(--gold)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8febe6fdeaecfbe0fda1e2e0e8cfe8e2eee6e3a1ece0e2">[email&#160;protected]</a></span><br>
         RANK: <span class="rank-tag rank-admin">ADMIN</span><br>
         ACCESS: <span style="color:var(--green)">FULL DIRECTORATE CLEARANCE</span>
       </div>
@@ -633,6 +634,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   </div>
 </div>
 
+  
 <!-- CHANGE RANK MODAL -->
 <div class="modal" id="rankModal">
   <div class="modal-box" style="max-width:360px;">
@@ -651,7 +653,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── CONSTANTS ──────────────────────────────────────────────
 const ADMIN_EMAIL = 'director.mog@gmail.com';
 let currentUser = null;
@@ -849,8 +851,7 @@ async function loadMemberships() {
     renderMembersTable(data||[]);
   } catch(e){ renderDemoMemberships(); }
 }
-
-function renderMembersTable(members) {
+  function renderMembersTable(members) {
   const tbody = document.getElementById('membersTable');
   if(!tbody) return;
   tbody.innerHTML = members.map(m=>`<tr>
@@ -923,9 +924,9 @@ async function loadMedia() {
       </div>
     `).join('') || '<div class="empty-state">VAULT EMPTY</div>';
   } catch(e){ renderDemoMedia(); }
-  }
+}
 
-  // ── ACTIONS ───────────────────────────────────────────────
+// ── ACTIONS ───────────────────────────────────────────────
 async function toggleLive() {
   isLive = !isLive;
   const btn = document.getElementById('liveBtn');
@@ -1071,7 +1072,6 @@ async function createEvent() {
     closeModal('eventModal');
   }
   }
-
   async function cancelEvent(id) {
   if(!confirm('CANCEL THIS EVENT?')) return;
   const c = client();
@@ -1252,7 +1252,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('open'); }
 document.addEventListener('click', e => {
   if(e.target.classList.contains('modal')) closeModal(e.target.id);
 });
-
+  
 // ── LOGOUT ────────────────────────────────────────────────
 async function logout() {
   if(!confirm('Exit Directorate Command?')) return;
@@ -1262,35 +1262,57 @@ async function logout() {
   window.location.href = 'login.html';
 }
 
-// ── DEMO DATA (offline) ───────────────────────────────────
-function loadDemoData() { loadDemoStats(); renderDemoLogs(); renderDemoEvents(); renderDemoTickets(); renderDemoMemberships(); renderDemoOperatives(); renderDemoPoll(); renderDemoMedia(); }
-function loadDemoStats() {
-  document.getElementById('statRevenue').textContent='R12,450';
-  document.getElementById('statOperatives').textContent='47';
-  document.getElementById('statTickets').textContent='28';
-  document.getElementById('statMembers').textContent='14';
-  document.getElementById('mCountOp').textContent='8';
-  document.getElementById('mCountAgent').textContent='4';
-  document.getElementById('mCountDir').textContent='2';
-  document.getElementById('mMRR').textContent='R2,586';
-  document.getElementById('revBarTickets').style.width='70%'; document.getElementById('revTicketAmt').textContent='R6,300';
-  document.getElementById('revBarMembers').style.width='100%'; document.getElementById('revMemberAmt').textContent='R4,950';
-  document.getElementById('revBarFees').style.width='20%'; document.getElementById('revFeeAmt').textContent='R315';
-  document.getElementById('memberSplit').innerHTML='<div class="rev-item"><div class="rev-label">OPERATIVE</div><div class="rev-bar-wrap"><div class="rev-bar rev-teal" style="width:80%"></div></div><div class="rev-amount">8</div></div><div class="rev-item"><div class="rev-label">AGENT</div><div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:40%"></div></div><div class="rev-amount">4</div></div><div class="rev-item"><div class="rev-label">DIRECTOR</div><div class="rev-bar-wrap"><div class="rev-bar rev-green" style="width:20%"></div></div><div class="rev-amount">2</div></div>';
+// ── DEMO DATA REMOVED — All data loads from Supabase ────────
+// When Supabase is not connected, show clean empty states
+function loadDemoData() {
+  loadEmptyStats();
+  renderEmptyLogs();
+  renderEmptyTable('eventsTable', 5, 'NO EVENTS CREATED YET');
+  renderEmptyTable('ticketsTable', 9, 'NO TICKETS SOLD YET');
+  renderEmptyTable('membersTable', 8, 'NO ACTIVE MEMBERSHIPS YET');
+  renderEmptyTable('operativesTable', 6, 'NO OPERATIVES REGISTERED YET');
+  renderEmptyPoll();
+  renderEmptyMedia();
 }
-function renderDemoLogs() {
-  const demoLogs=[{description:'SYSTEMS ONLINE — M.O.G. DIRECTORATE ACTIVE',action_type:'info',created_at:new Date()},{description:'GALLERY: SESSION 02 ASSETS DEPLOYED',action_type:'upload',created_at:new Date(Date.now()-3e5)},{description:'🎟️ TICKET PURCHASE: MOG-A1B2-C3D4',action_type:'ticket',created_at:new Date(Date.now()-9e5)},{description:'👑 MEMBERSHIP UPGRADE: OPERATIVE → AGENT',action_type:'membership',created_at:new Date(Date.now()-36e5)},{description:'🗳️ POLL WEEK 14 OPENED',action_type:'info',created_at:new Date(Date.now()-72e5)}];
-  const html=demoLogs.map(l=>logItem(l)).join('');
-  document.getElementById('allLogs')&&(document.getElementById('allLogs').innerHTML=html);
-  document.getElementById('overviewLogs')&&(document.getElementById('overviewLogs').innerHTML=html);
-}
-function renderDemoEvents(){const t=document.getElementById('eventsTable');if(t)t.innerHTML='<tr><td><strong>AMAPIANO SESSIONS VOL.3</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">19/04/2026</td><td><span class="panel-badge pb-teal">UPCOMING</span></td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">28</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr>';}
-function renderDemoTickets(){const t=document.getElementById('ticketsTable');if(t)t.innerHTML='<tr><td style="font-family:\'Orbitron\',sans-serif;font-size:10px;color:var(--teal)">MOG-A1B2-C3D4</td><td>Sipho Nkosi</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">sipho@gmail.com</td><td style="color:var(--gold);font-size:9px">VIP</td><td style="text-align:center">2</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R735</td><td><span class="status-paid">PAID</span></td><td><span style="color:var(--green)">✓ IN</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">19/04/2026</td></tr><tr><td style="font-family:\'Orbitron\',sans-serif;font-size:10px;color:var(--teal)">MOG-E5F6-G7H8</td><td>Thabo Molefe</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">thabo@gmail.com</td><td style="color:var(--gold);font-size:9px">GENERAL</td><td style="text-align:center">1</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R157</td><td><span class="status-paid">PAID</span></td><td><span style="color:rgba(255,255,255,0.3)">—</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">18/04/2026</td></tr>';}
-function renderDemoMemberships(){const t=document.getElementById('membersTable');if(t)t.innerHTML='<tr><td>MOG_NOVA</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">nova@gmail.com</td><td><span class="rank-tag rank-agent">AGENT</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">MONTHLY</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R199</td><td><span class="status-active">ACTIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">01/04/2026</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr><tr><td>OPERATIVE_ZEN</td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">zen@gmail.com</td><td><span class="rank-tag rank-operative">OPERATIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">ANNUAL</td><td style="font-family:\'Orbitron\',sans-serif;font-size:11px;color:var(--gold)">R79</td><td><span class="status-active">ACTIVE</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">15/03/2026</td><td><button class="btn btn-sm btn-danger">CANCEL</button></td></tr>';}
-function renderDemoOperatives(){const t=document.getElementById('operativesTable');if(t)t.innerHTML='<tr><td><div class="op-av">DN</div></td><td><strong>DIRECTOR_NOX</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">director.mog@gmail.com</td><td><span class="rank-tag rank-admin">ADMIN</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">01/01/2026</td><td>—</td></tr><tr><td><div class="op-av">MN</div></td><td><strong>MOG_NOVA</strong></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">nova@gmail.com</td><td><span class="rank-tag rank-agent">AGENT</span></td><td style="font-family:\'Share Tech Mono\',monospace;font-size:9px">02/04/2026</td><td><button class="btn btn-sm">CHANGE RANK</button> <button class="btn btn-sm btn-danger">BAN</button></td></tr>';}
-function renderDemoPoll(){document.getElementById('pollResults')&&(document.getElementById('pollResults').innerHTML='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07)"><div style="font-family:Orbitron,sans-serif;font-size:16px;font-weight:900;color:var(--gold);width:28px">1</div><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#e0e0e0">PIANO HUB</div><div style="font-family:Share Tech Mono,monospace;font-size:9px;color:var(--teal-dim)">Kabza De Small & DJ Maphorisa</div><div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px"></div></div></div><div style="font-family:Orbitron,sans-serif;font-size:13px;font-weight:700;color:var(--gold)">312</div><button class="btn btn-sm btn-danger">✕</button></div>');}
-function renderDemoMedia(){const t=document.getElementById('mediaList');if(t)t.innerHTML='<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid var(--teal)"><div style="font-size:18px">🎬</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#e0e0e0">SESSION 02 LIVE MIX</div><div style="font-family:Share Tech Mono,monospace;font-size:8px;color:rgba(255,255,255,0.3)">session02 · ♥ 24</div></div><button class="btn btn-sm btn-danger">✕</button></div><div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid var(--gold)"><div style="font-size:18px">📸</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#e0e0e0">SESSION 01 GALLERY</div><div style="font-family:Share Tech Mono,monospace;font-size:8px;color:rgba(255,255,255,0.3)">session01 · ♥ 31</div></div><button class="btn btn-sm btn-danger">✕</button></div>';document.getElementById('mediaCount').textContent='12 FILES';}
 
+function loadEmptyStats() {
+  ['statRevenue','statOperatives','statTickets','statMembers','mCountOp','mCountAgent','mCountDir'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='0';
+  });
+  const mrr=document.getElementById('mMRR'); if(mrr) mrr.textContent='R0';
+  ['revBarTickets','revBarMembers','revBarFees'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.width='0%';
+  });
+  ['revTicketAmt','revMemberAmt','revFeeAmt'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='R0';
+  });
+  const split=document.getElementById('memberSplit');
+  if(split) split.innerHTML='<div class="empty-state" style="padding:20px">NO MEMBERS YET</div>';
+}
+
+function renderEmptyLogs() {
+  const msg='<div class="empty-state">NO ACTIVITY YET — LOGS WILL APPEAR HERE</div>';
+  ['allLogs','overviewLogs'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML=msg;
+  });
+}
+
+function renderEmptyTable(id, cols, msg) {
+  const t=document.getElementById(id);
+  if(t) t.innerHTML=`<tr><td colspan="${cols}" class="empty-state">${msg}</td></tr>`;
+}
+
+function renderEmptyPoll() {
+  const el=document.getElementById('pollResults');
+  if(el) el.innerHTML='<div class="empty-state">NO POLL SONGS YET — ADD SONGS IN THE POLLS TAB</div>';
+}
+
+function renderEmptyMedia() {
+  const t=document.getElementById('mediaList');
+  if(t) t.innerHTML='<div class="empty-state">VAULT EMPTY — UPLOAD MEDIA ABOVE</div>';
+  const c=document.getElementById('mediaCount');
+  if(c) c.textContent='0 FILES';
+}
 // ── START ─────────────────────────────────────────────────
 init();
 </script>
