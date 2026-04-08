@@ -1,934 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#000000">
-  <title>M.O.G. — Drawer Menu</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* ═══════════════════════════════════════════
-       RESET & ROOT
-    ═══════════════════════════════════════════ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
+<title>M.O.G. — Command Menu</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--black);font-family:var(--font-main);color:#fff;overflow:hidden;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-    :root {
-      --black:        #000000;
-      --deep:         #060a07;
-      --gold:         #d4af37;
-      --gold-bright:  #f0c040;
-      --gold-dark:    #8b6914;
-      --gold-glow:    rgba(212,175,55,0.45);
-      --teal:         #00d4aa;
-      --teal-dim:     #006e59;
-      --teal-glow:    rgba(0,212,170,0.35);
-      --red:          #dc2626;
-      --text:         #e8e0cc;
-      --text-muted:   rgba(232,224,204,0.5);
-      --drawer-w:     300px;
-      --safe-bottom:  env(safe-area-inset-bottom, 0px);
-    }
+.menu-wrap{position:relative;z-index:10;height:100vh;display:flex;flex-direction:column;overflow-y:auto;}
+.menu-wrap::-webkit-scrollbar{width:3px;}
+.menu-wrap::-webkit-scrollbar-thumb{background:var(--border);}
 
-    html, body {
-      height: 100%; overflow: hidden;
-      background: var(--black);
-      font-family: 'Rajdhani', sans-serif;
-      color: var(--text);
-      -webkit-tap-highlight-color: transparent;
-      touch-action: pan-y;
-    }
+/* HEADER */
+.menu-header{padding:20px 20px 16px;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-shrink:0;position:sticky;top:0;z-index:10;backdrop-filter:blur(12px);}
+.menu-logo{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;box-shadow:0 0 14px var(--gold-glow);flex-shrink:0;}
+.menu-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.menu-brand h1{font-family:var(--font-cyber);font-size:13px;font-weight:900;color:var(--gold-light);letter-spacing:3px;}
+.menu-brand p{font-family:var(--font-mono);font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-top:2px;}
+.menu-close{margin-left:auto;background:none;border:1px solid var(--border);color:var(--gold-dim);padding:6px 12px;border-radius:3px;cursor:pointer;font-size:16px;transition:all 0.2s;}
+.menu-close:hover{border-color:var(--gold);color:var(--gold);}
 
-    /* ═══════════════════════════════════════════
-       DEMO APP BACKGROUND (simulates the hub)
-    ═══════════════════════════════════════════ */
-    .app-bg {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse at 20% 30%, rgba(0,212,170,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 70%, rgba(212,175,55,0.05) 0%, transparent 60%),
-        #060a07;
-    }
-    .app-bg-grid {
-      position: fixed; inset: 0; z-index: 1; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(0,212,170,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,170,0.025) 1px, transparent 1px);
-      background-size: 48px 48px;
-    }
-    .app-logo-watermark {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      width: clamp(200px,60vmin,400px); height: clamp(200px,60vmin,400px);
-      background: url('/assets/images/logo.png') center/contain no-repeat;
-      opacity: 0.04; pointer-events: none; z-index: 1;
-    }
+/* OPERATIVE CARD */
+.operative-card{margin:16px;background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(0,229,204,0.04));border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;}
+.operative-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
+.op-avatar{width:44px;height:44px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;flex-shrink:0;}
+.op-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.op-info{flex:1;min-width:0;}
+.op-name{font-family:var(--font-cyber);font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.op-rank{font-family:var(--font-mono);font-size:9px;color:var(--teal);letter-spacing:2px;margin-top:3px;}
+.op-id{font-family:var(--font-mono);font-size:8px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
 
-    /* ═══════════════════════════════════════════
-       TOP NAV BAR (the hamburger trigger)
-    ═══════════════════════════════════════════ */
-    .top-bar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-      height: 56px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 16px;
-      background: rgba(4,7,5,0.95);
-      border-bottom: 1px solid rgba(212,175,55,0.12);
-      backdrop-filter: blur(20px);
-    }
-    .hamburger {
-      width: 40px; height: 40px; border-radius: 10px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-      background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.2);
-      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
-    }
-    .hamburger:hover { background: rgba(212,175,55,0.18); border-color: var(--gold); }
-    .hamburger:active { transform: scale(0.93); }
-    .hamburger span {
-      display: block; width: 18px; height: 1.5px;
-      background: var(--gold); border-radius: 2px;
-      transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-      transform-origin: center;
-    }
-    /* Animated to X when open */
-    .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
-    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-    .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+/* MENU SECTIONS */
+.menu-section{padding:8px 16px 4px;}
+.section-label{font-family:var(--font-mono);font-size:9px;color:rgba(201,168,76,0.4);letter-spacing:3px;padding:0 4px;margin-bottom:4px;}
 
-    .top-bar-logo {
-      display: flex; align-items: center; gap: 10px;
-      font-family: 'Orbitron', sans-serif; font-weight: 900;
-      font-size: 1rem; letter-spacing: 0.08em;
-      color: var(--gold); text-shadow: 0 0 12px var(--gold-glow);
-    }
-    .top-bar-logo img {
-      width: 34px; height: 34px; object-fit: contain; border-radius: 50%;
-      filter: drop-shadow(0 0 6px var(--gold-glow));
-    }
+.menu-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:6px;cursor:pointer;text-decoration:none;transition:all 0.2s;margin-bottom:2px;position:relative;}
+.menu-item:hover{background:rgba(201,168,76,0.07);transform:translateX(4px);}
+.menu-item.active{background:rgba(201,168,76,0.1);border-left:3px solid var(--gold);}
+.menu-item.active .mi-label{color:var(--gold);}
+.mi-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;line-height:1;}
+.mi-text{flex:1;}
+.mi-label{font-family:var(--font-cyber);font-size:10px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:2px;}
+.mi-sub{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:2px;}
+.mi-badge{font-family:var(--font-mono);font-size:8px;padding:2px 7px;border-radius:8px;letter-spacing:1px;flex-shrink:0;}
+.badge-live{background:rgba(139,0,0,0.8);color:#fff;animation:livePulse 1.5s infinite;}
+.badge-new{background:rgba(0,229,204,0.2);color:var(--teal);border:1px solid var(--border-teal);}
+.badge-locked{background:rgba(201,168,76,0.1);color:var(--gold-dim);border:1px solid var(--border);}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
 
-    .top-bar-actions { display: flex; align-items: center; gap: 8px; }
-    .icon-btn {
-      width: 36px; height: 36px; border-radius: 9px; border: none;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,212,170,0.07); border: 1px solid rgba(0,212,170,0.18);
-      color: var(--teal); cursor: pointer; transition: all 0.2s;
-    }
-    .icon-btn:hover { background: rgba(0,212,170,0.18); }
-    .icon-btn svg { width: 16px; height: 16px; }
+.divider-line{height:1px;background:var(--border);margin:8px 16px;}
 
-    /* ═══════════════════════════════════════════
-       OVERLAY (dim the background when open)
-    ═══════════════════════════════════════════ */
-    .overlay {
-      position: fixed; inset: 0; z-index: 49;
-      background: rgba(0,0,0,0);
-      pointer-events: none;
-      transition: background 0.38s ease;
-    }
-    .overlay.show {
-      background: rgba(0,0,0,0.72);
-      pointer-events: all;
-      backdrop-filter: blur(3px);
-    }
+/* SOCIAL LINKS */
+.social-section{padding:16px;}
+.social-label{font-family:var(--font-mono);font-size:9px;color:rgba(201,168,76,0.4);letter-spacing:3px;margin-bottom:12px;}
+.social-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.social-btn{display:flex;align-items:center;justify-content:center;height:38px;border-radius:6px;background:rgba(13,31,45,0.6);border:1px solid var(--border);color:rgba(255,255,255,0.5);font-size:16px;text-decoration:none;transition:all 0.2s;}
+.social-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08);}
 
-    /* ═══════════════════════════════════════════
-       DRAWER — the main menu panel
-    ═══════════════════════════════════════════ */
-    .drawer {
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      width: var(--drawer-w);
-      z-index: 50;
-      display: flex; flex-direction: column;
-      background: linear-gradient(180deg,
-        rgba(2,8,5,0.98) 0%,
-        rgba(4,10,7,0.99) 60%,
-        rgba(6,5,2,0.99) 100%);
-      border-right: 1px solid rgba(212,175,55,0.18);
-      transform: translateX(calc(-1 * var(--drawer-w)));
-      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-      overflow: hidden;
-      /* Subtle circuit-board texture lines */
-      box-shadow: 4px 0 40px rgba(0,0,0,0.8), 1px 0 0 rgba(212,175,55,0.06);
-    }
-    .drawer.open {
-      transform: translateX(0);
-    }
+/* LOGOUT */
+.logout-wrap{padding:16px;margin-top:auto;}
+.logout-btn{width:100%;padding:13px;background:rgba(139,0,0,0.1);border:1px solid rgba(139,0,0,0.3);border-radius:6px;font-family:var(--font-cyber);font-size:10px;font-weight:700;color:#ff5555;letter-spacing:3px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.logout-btn:hover{background:rgba(139,0,0,0.2);border-color:#ff5555;}
 
-    /* Animated top flow line */
-    .drawer::before {
-      content: '';
-      position: absolute; top: 0; left: -100%; height: 2px; width: 100%;
-      background: linear-gradient(90deg, transparent, var(--teal), var(--gold-bright), var(--teal), transparent);
-      animation: drawerFlow 3.5s linear infinite;
-      pointer-events: none;
-    }
-    @keyframes drawerFlow { to { left: 100%; } }
-
-    /* Subtle vertical circuit lines on left edge */
-    .drawer::after {
-      content: '';
-      position: absolute; top: 0; left: 0; bottom: 0; width: 2px;
-      background: linear-gradient(180deg,
-        transparent 0%, var(--teal) 20%, rgba(0,212,170,0.3) 40%,
-        var(--gold) 65%, rgba(212,175,55,0.3) 80%, transparent 100%);
-      opacity: 0.35; pointer-events: none;
-    }
-
-    /* ── HEADER SECTION ── */
-    .drawer-header {
-      flex-shrink: 0;
-      padding: 52px 20px 20px; /* top padding clears the top bar when fully open */
-      border-bottom: 1px solid rgba(212,175,55,0.1);
-      position: relative;
-      background: linear-gradient(180deg, rgba(0,212,170,0.04) 0%, transparent 100%);
-    }
-
-    .drawer-logo-row {
-      display: flex; align-items: center; gap: 14px; margin-bottom: 10px;
-    }
-    .drawer-logo-ring {
-      position: relative; flex-shrink: 0;
-      width: 64px; height: 64px;
-    }
-    .drawer-logo-spin {
-      position: absolute; inset: 0; border-radius: 50%; padding: 2px;
-      background: conic-gradient(from 0deg, var(--gold-bright), var(--teal), var(--gold), var(--teal-dim), var(--gold-bright));
-      box-shadow: 0 0 18px rgba(212,175,55,0.3), 0 0 36px rgba(0,212,170,0.1);
-    }
-    .drawer-logo-spin > div {
-      width: 100%; height: 100%; border-radius: 50%;
-      background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden;
-    }
-    .drawer-logo-spin img {
-      width: 90%; height: 90%; object-fit: contain;
-      filter: drop-shadow(0 0 6px rgba(212,175,55,0.5));
-    }
-    /* Outer dashed ring — static */
-    .drawer-logo-ring::before {
-      content: ''; position: absolute; inset: -5px; border-radius: 50%;
-      border: 1px dashed rgba(212,175,55,0.2);
-      pointer-events: none;
-    }
-
-    .drawer-brand { flex: 1; min-width: 0; }
-    .drawer-brand-name {
-      font-family: 'Orbitron', sans-serif; font-weight: 900;
-      font-size: 1.15rem; letter-spacing: 0.08em;
-      background: linear-gradient(135deg, var(--gold-bright), var(--teal));
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      line-height: 1.1; margin-bottom: 3px;
-    }
-    .drawer-brand-sub {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.58rem; color: var(--teal); opacity: 0.55;
-      letter-spacing: 0.25em; text-transform: uppercase;
-    }
-    .drawer-brand-tagline {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.4rem; color: var(--teal); opacity: 0.35;
-      letter-spacing: 0.2em; text-transform: uppercase; margin-top: 2px;
-    }
-
-    /* Version + URL row */
-    .drawer-meta {
-      display: flex; align-items: center; gap: 6px; margin-bottom: 14px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.58rem; color: rgba(255,255,255,0.28); letter-spacing: 0.1em;
-    }
-    .drawer-meta svg { width: 11px; height: 11px; color: var(--teal); opacity: 0.6; flex-shrink: 0; }
-    .drawer-meta a {
-      color: var(--teal); opacity: 0.55; text-decoration: none;
-      transition: opacity 0.2s;
-    }
-    .drawer-meta a:hover { opacity: 1; }
-
-    /* Social icons row */
-    .drawer-socials {
-      display: flex; align-items: center; gap: 10px;
-    }
-    .social-btn {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      border: 1px solid rgba(212,175,55,0.2);
-      background: rgba(0,0,0,0.5);
-      color: rgba(255,255,255,0.55);
-      text-decoration: none;
-      transition: all 0.22s ease;
-      cursor: pointer;
-    }
-    .social-btn:hover { transform: translateY(-2px); }
-    .social-btn svg { width: 15px; height: 15px; }
-    .social-btn.tiktok:hover   { color: #fff; border-color: #fff; background: rgba(255,255,255,0.06); }
-    .social-btn.facebook:hover { color: #1877f2; border-color: #1877f2; background: rgba(24,119,242,0.08); }
-    .social-btn.instagram:hover{ color: #e1306c; border-color: #e1306c; background: rgba(225,48,108,0.08); }
-    .social-btn.youtube:hover  { color: #ff0000; border-color: #ff0000; background: rgba(255,0,0,0.08); }
-    .social-btn.whatsapp:hover { color: #25d366; border-color: #25d366; background: rgba(37,211,102,0.08); }
-
-    /* ── NAV ITEMS ── */
-    .drawer-nav {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      padding: 8px 0;
-      scrollbar-width: none;
-    }
-    .drawer-nav::-webkit-scrollbar { display: none; }
-
-    /* Section divider label */
-    .nav-section-label {
-      padding: 12px 20px 4px;
-      font-family: 'Orbitron', sans-serif; font-size: 0.48rem;
-      font-weight: 700; letter-spacing: 0.28em; text-transform: uppercase;
-      color: rgba(212,175,55,0.35);
-    }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 14px;
-      padding: 13px 20px;
-      cursor: pointer; position: relative;
-      transition: background 0.18s, border-left-color 0.18s;
-      border-left: 2px solid transparent;
-      text-decoration: none; color: inherit;
-      user-select: none;
-    }
-    .nav-item:hover {
-      background: rgba(212,175,55,0.06);
-      border-left-color: rgba(212,175,55,0.4);
-    }
-    .nav-item:active { background: rgba(212,175,55,0.1); }
-    .nav-item.active {
-      background: rgba(212,175,55,0.09);
-      border-left-color: var(--gold);
-    }
-    .nav-item.active .nav-icon { color: var(--gold); }
-    .nav-item.active .nav-title { color: var(--gold); }
-
-    /* Ripple effect */
-    .nav-item::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(circle at var(--rx,50%) var(--ry,50%), rgba(212,175,55,0.15) 0%, transparent 70%);
-      opacity: 0; transition: opacity 0.4s;
-      pointer-events: none;
-    }
-    .nav-item.ripple::after { opacity: 1; }
-
-    .nav-icon {
-      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(0,0,0,0.4); border: 1px solid rgba(212,175,55,0.12);
-      color: var(--teal); transition: all 0.2s;
-    }
-    .nav-item:hover .nav-icon {
-      background: rgba(212,175,55,0.1); border-color: rgba(212,175,55,0.3);
-      color: var(--gold); box-shadow: 0 0 10px rgba(212,175,55,0.15);
-    }
-    .nav-icon svg { width: 17px; height: 17px; }
-
-    .nav-text { flex: 1; min-width: 0; }
-    .nav-title {
-      font-family: 'Orbitron', sans-serif; font-weight: 700;
-      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text); line-height: 1.2; transition: color 0.2s;
-    }
-    .nav-subtitle {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.58rem; color: var(--text-muted);
-      letter-spacing: 0.06em; margin-top: 1px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    /* Badge (NEW / LIVE) */
-    .nav-badge {
-      flex-shrink: 0; padding: 2px 7px; border-radius: 99px;
-      font-family: 'Orbitron', sans-serif; font-size: 0.46rem;
-      font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
-    }
-    .nav-badge.new  { background: rgba(0,212,170,0.15); border: 1px solid rgba(0,212,170,0.4);  color: var(--teal); }
-    .nav-badge.live { background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.4);  color: #f87171; animation: livePulse 1.6s ease-in-out infinite; }
-    .nav-badge.hot  { background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.4); color: var(--gold); }
-    @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-    /* Divider line */
-    .nav-divider {
-      height: 1px; margin: 8px 20px;
-      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.12), transparent);
-    }
-
-    /* ── BOTTOM SHARE BAR ── */
-    .drawer-footer {
-      flex-shrink: 0;
-      border-top: 1px solid rgba(212,175,55,0.12);
-      padding: 12px 16px;
-      padding-bottom: calc(12px + var(--safe-bottom));
-      background: rgba(0,0,0,0.5);
-    }
-
-    /* Operative status chip */
-    .op-status {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 12px;
-      background: rgba(212,175,55,0.07); border: 1px solid rgba(212,175,55,0.15);
-      margin-bottom: 10px; cursor: pointer;
-      transition: all 0.2s;
-    }
-    .op-status:hover { background: rgba(212,175,55,0.12); border-color: rgba(212,175,55,0.3); }
-    .op-avatar {
-      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(212,175,55,0.1); border: 1.5px solid rgba(212,175,55,0.3);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--gold); overflow: hidden;
-    }
-    .op-avatar svg { width: 16px; height: 16px; }
-    .op-info { flex: 1; min-width: 0; }
-    .op-name {
-      font-family: 'Orbitron', sans-serif; font-size: 0.65rem;
-      font-weight: 700; color: var(--gold); letter-spacing: 0.06em;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .op-rank {
-      font-family: 'Share Tech Mono', monospace; font-size: 0.54rem;
-      color: var(--text-muted); letter-spacing: 0.1em;
-    }
-    .op-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--teal); flex-shrink: 0;
-      box-shadow: 0 0 8px var(--teal);
-      animation: livePulse 2s ease-in-out infinite;
-    }
-
-    /* Share row */
-    .share-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 10px; border-radius: 10px; cursor: pointer;
-      border: 1px solid rgba(220,38,38,0.25);
-      background: rgba(220,38,38,0.08);
-      transition: all 0.22s;
-    }
-    .share-row:hover { background: rgba(220,38,38,0.16); border-color: rgba(220,38,38,0.5); }
-    .share-row:active { transform: scale(0.97); }
-    .share-label-pill {
-      background: var(--red); color: #fff;
-      font-family: 'Orbitron', sans-serif; font-size: 0.48rem;
-      font-weight: 900; letter-spacing: 0.15em; padding: 2px 7px;
-      border-radius: 99px; flex-shrink: 0;
-    }
-    .share-text {
-      font-family: 'Orbitron', sans-serif; font-weight: 700;
-      font-size: 0.62rem; letter-spacing: 0.1em; color: var(--text);
-      flex: 1;
-    }
-    .share-text span { color: var(--gold); }
-    .share-icon { color: var(--teal); flex-shrink: 0; }
-    .share-icon svg { width: 15px; height: 15px; }
-
-    /* ═══════════════════════════════════════════
-       STAGGER ANIMATION (items slide in on open)
-    ═══════════════════════════════════════════ */
-    .drawer-header,
-    .nav-section-label,
-    .nav-item,
-    .nav-divider,
-    .drawer-footer {
-      opacity: 0;
-      transform: translateX(-16px);
-      transition: opacity 0.32s ease, transform 0.32s ease;
-    }
-    .drawer.open .drawer-header    { opacity:1; transform:none; transition-delay: 0.05s; }
-    .drawer.open .nav-section-label{ opacity:1; transform:none; }
-    .drawer.open .nav-item         { opacity:1; transform:none; }
-    .drawer.open .nav-divider      { opacity:1; transform:none; }
-    .drawer.open .drawer-footer    { opacity:1; transform:none; transition-delay: 0.28s; }
-
-    /* Stagger each nav item */
-    .nav-item:nth-child(1)  { transition-delay: 0.08s; }
-    .nav-item:nth-child(2)  { transition-delay: 0.11s; }
-    .nav-item:nth-child(3)  { transition-delay: 0.14s; }
-    .nav-item:nth-child(4)  { transition-delay: 0.17s; }
-    .nav-item:nth-child(5)  { transition-delay: 0.20s; }
-    .nav-item:nth-child(6)  { transition-delay: 0.23s; }
-    .nav-item:nth-child(7)  { transition-delay: 0.25s; }
-    .nav-item:nth-child(8)  { transition-delay: 0.27s; }
-    .nav-item:nth-child(9)  { transition-delay: 0.29s; }
-    .nav-item:nth-child(10) { transition-delay: 0.31s; }
-    .nav-item:nth-child(11) { transition-delay: 0.33s; }
-
-    /* ═══════════════════════════════════════════
-       DEMO CONTENT AREA (behind the menu)
-    ═══════════════════════════════════════════ */
-    .demo-content {
-      position: fixed; inset: 0; top: 56px;
-      padding: 20px 16px; overflow-y: auto;
-      z-index: 2;
-      transform: translateX(0);
-      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
-    }
-    /* Slight push effect when drawer opens (like Popcorn Time) */
-    .demo-content.pushed { transform: translateX(60px) scale(0.97); filter: blur(1px); }
-
-    .demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
-    .demo-card {
-      aspect-ratio: 9/14; border-radius: 10px;
-      background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(0,212,170,0.06));
-      border: 1px solid rgba(212,175,55,0.1); position: relative; overflow: hidden;
-    }
-    .demo-card::after {
-      content: ''; position: absolute; inset: 0;
-      background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7));
-    }
-    .demo-card-label {
-      position: absolute; bottom: 6px; left: 6px; right: 6px; z-index: 1;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.5rem;
-      color: rgba(255,255,255,0.5); letter-spacing: 0.08em;
-    }
-    .demo-label {
-      font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: 700;
-      letter-spacing: 0.15em; color: rgba(212,175,55,0.5); margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-        /* ═══════════════════════════════════════════
-       TOAST
-    ═══════════════════════════════════════════ */
-    .toast-container { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; }
-    .toast {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 16px; border-radius: 10px; white-space: nowrap;
-      font-family: 'Orbitron', sans-serif; font-size: 0.58rem; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      background: #052010; border: 1px solid rgba(0,212,170,0.35); color: #4aecd4;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-      animation: toastPop 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
-    }
-    .toast.hide { animation: toastFade 0.25s ease forwards; }
-    @keyframes toastPop  { from{opacity:0;transform:translateY(12px) scale(0.95)} to{opacity:1;transform:none} }
-    @keyframes toastFade { to{opacity:0;transform:translateY(8px) scale(0.95)} }
-
-    /* ═══════════════════════════════════════════
-       TOUCH SWIPE SUPPORT
-    ═══════════════════════════════════════════ */
-    /* handled in JS */
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-    }
-  </style>
+/* VERSION */
+.version-tag{text-align:center;padding:8px 16px 20px;font-family:var(--font-mono);font-size:8px;color:rgba(201,168,76,0.15);letter-spacing:3px;}
+</style>
 </head>
 <body>
 
-<!-- Demo background layers -->
-<div class="app-bg"></div>
-<div class="app-bg-grid"></div>
-<div class="app-logo-watermark"></div>
+<div class="menu-wrap">
 
-<!-- Top navigation bar -->
-<header class="top-bar">
-  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Toggle menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="top-bar-logo">
-    <img src="/assets/images/logo.png" alt="M.O.G." onerror="this.style.display='none'">
-    M.O.G.
+  <!-- HEADER -->
+  <div class="menu-header">
+    <div class="menu-logo">
+      <img src="logo.png" alt="M.O.G." onerror="this.style.background='#0D1F2D';this.style.display='flex'">
+    </div>
+    <div class="menu-brand">
+      <h1>M.O.G.</h1>
+      <p>MINISTRY OF GROOVE</p>
+    </div>
+    <button class="menu-close" onclick="history.back()">✕</button>
   </div>
-  <div class="top-bar-actions">
-    <button class="icon-btn" title="Search" onclick="showToast('Search coming soon')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+
+  <!-- OPERATIVE CARD -->
+  <div class="operative-card">
+    <div class="op-avatar">
+      <img src="logo.png" alt="Operative" onerror="this.outerHTML='<div style=\'width:44px;height:44px;border-radius:50%;background:#0D1F2D;border:2px solid #C9A84C;display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:12px;font-weight:900;color:#C9A84C\'>OP</div>'">
+    </div>
+    <div class="op-info">
+      <div class="op-name" id="menuUserName">OPERATIVE</div>
+      <div class="op-rank" id="menuRank">● GROOVE DIVISION</div>
+      <div class="op-id" id="menuUserId">OP-XXXXXXXX</div>
+    </div>
+  </div>
+
+  <!-- MAIN NAVIGATION -->
+  <div class="menu-section">
+    <div class="section-label">COMMAND CENTRE</div>
+
+    <a href="index.html" class="menu-item active">
+      <div class="mi-icon">⬡</div>
+      <div class="mi-text">
+        <div class="mi-label">OPERATIVE HUB</div>
+        <div class="mi-sub">Dashboard & transmissions</div>
+      </div>
+    </a>
+
+    <a href="pages/frequency.html" class="menu-item">
+      <div class="mi-icon">📡</div>
+      <div class="mi-text">
+        <div class="mi-label">FREQUENCY</div>
+        <div class="mi-sub">Live sessions & events</div>
+      </div>
+      <span class="mi-badge badge-live">LIVE</span>
+    </a>
+
+    <a href="pages/gallery.html" class="menu-item">
+      <div class="mi-icon">🎬</div>
+      <div class="mi-text">
+        <div class="mi-label">MEDIA VAULT</div>
+        <div class="mi-sub">Photos & videos</div>
+      </div>
+    </a>
+
+    <a href="pages/dispatch.html" class="menu-item">
+      <div class="mi-icon">💬</div>
+      <div class="mi-text">
+        <div class="mi-label">DISPATCH</div>
+        <div class="mi-sub">Operative chat rooms</div>
+      </div>
+    </a>
+
+    <a href="pages/dossier.html" class="menu-item">
+      <div class="mi-icon">🗳️</div>
+      <div class="mi-text">
+        <div class="mi-label">DOSSIER</div>
+        <div class="mi-sub">Vote & profile</div>
+      </div>
+    </a>
+
+    <a href="pages/archives.html" class="menu-item">
+      <div class="mi-icon">🗂️</div>
+      <div class="mi-text">
+        <div class="mi-label">ARCHIVES</div>
+        <div class="mi-sub">Past session records</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <!-- MEMBERSHIP & TICKETS -->
+  <div class="menu-section">
+    <div class="section-label">OPERATIVE STATUS</div>
+
+    <a href="pages/tickets.html" class="menu-item">
+      <div class="mi-icon">🎟️</div>
+      <div class="mi-text">
+        <div class="mi-label">EVENT TICKETS</div>
+        <div class="mi-sub">Buy event access</div>
+      </div>
+    </a>
+
+    <a href="pages/membership.html" class="menu-item">
+      <div class="mi-icon">👑</div>
+      <div class="mi-text">
+        <div class="mi-label">MEMBERSHIP</div>
+        <div class="mi-sub">Upgrade your rank</div>
+      </div>
+      <span class="mi-badge badge-new">UPGRADE</span>
+    </a>
+  </div>
+
+  <div class="divider-line"></div>
+
+  <!-- LEGAL -->
+  <div class="menu-section">
+    <div class="section-label">PROTOCOL</div>
+
+    <a href="pages/privacy.html" class="menu-item">
+      <div class="mi-icon">🔐</div>
+      <div class="mi-text">
+        <div class="mi-label">PRIVACY SHIELD</div>
+        <div class="mi-sub">Data protection policy</div>
+      </div>
+    </a>
+
+    <a href="pages/tos.html" class="menu-item">
+      <div class="mi-icon">📋</div>
+      <div class="mi-text">
+        <div class="mi-label">TERMS OF SERVICE</div>
+        <div class="mi-sub">Operative agreement</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- SOCIAL -->
+  <div class="social-section">
+    <div class="social-label">FIND US ON THE GRID</div>
+    <div class="social-grid">
+      <a href="https://www.instagram.com/ministryofgroove_hq" target="_blank" class="social-btn" title="Instagram">📸</a>
+      <a href="https://tiktok.com/@ministryofgroove" target="_blank" class="social-btn" title="TikTok">🎵</a>
+      <a href="https://www.facebook.com/share/1ELj9aECsQ/" target="_blank" class="social-btn" title="Facebook">👥</a>
+      <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" class="social-btn" title="YouTube">▶️</a>
+      <a href="https://wa.me/27813874921" target="_blank" class="social-btn" title="WhatsApp">💬</a>
+    </div>
+  </div>
+
+  <!-- LOGOUT -->
+  <div class="logout-wrap">
+    <button class="logout-btn" onclick="logout()">
+      ⇥ TERMINATE SESSION
     </button>
-    <button class="icon-btn" title="Notifications" onclick="showToast('No new transmissions')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    </button>
-  </div>
-</header>
-
-<!-- Overlay -->
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
-
-<!-- ═══════════════════════════════════════
-     THE DRAWER MENU
-═══════════════════════════════════════ -->
-<nav class="drawer" id="drawer" role="navigation" aria-label="Main menu" aria-hidden="true">
-
-  <!-- ── HEADER ── -->
-  <div class="drawer-header">
-    <div class="drawer-logo-row">
-      <div class="drawer-logo-ring">
-        <div class="drawer-logo-spin">
-          <div>
-            <img src="/assets/images/logo.png" alt="Ministry of Groove"
-                 onerror="this.style.display='none'">
-          </div>
-        </div>
-      </div>
-      <div class="drawer-brand">
-        <div class="drawer-brand-name">M.O.G.</div>
-        <div class="drawer-brand-sub">Operative Hub v3.0</div>
-        <div class="drawer-brand-tagline">Decrypting the Culture</div>
-      </div>
-    </div>
-
-    <div class="drawer-meta">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      <a href="https://ministryofgroove.com" target="_blank">ministryofgroove.com</a>
-    </div>
-
-    <div class="drawer-socials">
-      <a href="https://tiktok.com/@ministryofgroove" target="_blank" class="social-btn tiktok" title="TikTok">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg>
-      </a>
-      <a href="https://www.facebook.com/share/1ELj9aECsQ/" target="_blank" class="social-btn facebook" title="Facebook">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-      </a>
-      <a href="https://www.instagram.com/ministryofgroove_hq" target="_blank" class="social-btn instagram" title="Instagram">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-      </a>
-      <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" class="social-btn youtube" title="YouTube">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-      </a>
-      <a href="https://wa.me/27813874921" target="_blank" class="social-btn whatsapp" title="WhatsApp">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-      </a>
-    </div>
   </div>
 
-  <!-- ── NAV ITEMS ── -->
-  <div class="drawer-nav" role="list">
+  <div class="version-tag">M.O.G. v1.0 // EST. 2026 // DECRYPTING THE CULTURE</div>
 
-    <div class="nav-section-label">Navigate</div>
-
-    <a href="/index.html" class="nav-item active" role="listitem" onclick="navTo(event,'Operative Hub')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Operative Hub</div>
-        <div class="nav-subtitle">Main dashboard · Media grid</div>
-      </div>
-    </a>
-
-    <a href="/pages/gallery.html" class="nav-item" role="listitem" onclick="navTo(event,'Gallery')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Gallery</div>
-        <div class="nav-subtitle">Photos · Videos · Drops</div>
-      </div>
-      <span class="nav-badge new">NEW</span>
-    </a>
-
-    <a href="/pages/frequency.html" class="nav-item" role="listitem" onclick="navTo(event,'Frequency')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Frequency</div>
-        <div class="nav-subtitle">104.7 FM · Live streams</div>
-      </div>
-      <span class="nav-badge live">LIVE</span>
-    </a>
-
-    <a href="/pages/dispatch.html" class="nav-item" role="listitem" onclick="navTo(event,'Dispatch')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Dispatch</div>
-        <div class="nav-subtitle">Transmissions · Broadcasts</div>
-      </div>
-    </a>
-
-    <a href="/pages/archives.html" class="nav-item" role="listitem" onclick="navTo(event,'Vault')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Vault</div>
-        <div class="nav-subtitle">Archives · Field records</div>
-      </div>
-      <span class="nav-badge hot">HOT</span>
-    </a>
-
-    <div class="nav-divider"></div>
-    <div class="nav-section-label">Operative</div>
-
-    <a href="/pages/dossier.html" class="nav-item" role="listitem" onclick="navTo(event,'Dossier')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Dossier</div>
-        <div class="nav-subtitle">Operative profile · Rank</div>
-      </div>
-    </a>
-
-    <a href="#" class="nav-item" role="listitem" onclick="navTo(event,'Notifications')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Notifications</div>
-        <div class="nav-subtitle">Directives · Alerts</div>
-      </div>
-    </a>
-
-    <a href="#" class="nav-item" role="listitem" onclick="navTo(event,'Downloads')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Downloads</div>
-        <div class="nav-subtitle">Offline assets · Media cache</div>
-      </div>
-    </a>
-
-    <div class="nav-divider"></div>
-    <div class="nav-section-label">System</div>
-
-    <a href="/pages/privacy.html" class="nav-item" role="listitem" onclick="navTo(event,'Privacy')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Privacy</div>
-        <div class="nav-subtitle">Data · Security clearance</div>
-      </div>
-    </a>
-
-    <a href="#" class="nav-item" role="listitem" onclick="navTo(event,'Settings')">
-      <div class="nav-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title">Settings</div>
-        <div class="nav-subtitle">Preferences · Network config</div>
-      </div>
-    </a>
-
-    <a href="/login.html" class="nav-item" role="listitem" onclick="navTo(event,'Sign Out')">
-      <div class="nav-icon" style="border-color:rgba(220,38,38,0.2);color:#f87171">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </div>
-      <div class="nav-text">
-        <div class="nav-title" style="color:#f87171">Sign Out</div>
-        <div class="nav-subtitle">Terminate secure session</div>
-      </div>
-    </a>
-
-  </div>
-
-  <!-- ── FOOTER ── -->
-  <div class="drawer-footer">
-
-    <!-- Operative status -->
-    <div class="op-status" onclick="navTo(event,'Dossier')">
-      <div class="op-avatar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </div>
-      <div class="op-info">
-        <div class="op-name" id="opName">OPERATIVE</div>
-        <div class="op-rank" id="opRank">INITIATE · UNASSIGNED</div>
-      </div>
-      <div class="op-dot"></div>
-    </div>
-
-    <!-- Share row (mirrors Popcorn Time's bottom CTA) -->
-    <div class="share-row" onclick="shareApp()">
-      <span class="share-label-pill">SYNC</span>
-      <span class="share-text">SPREAD THE <span>GROOVE</span></span>
-      <span class="share-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      </span>
-    </div>
-  </div>
-</nav>
-
-<!-- Demo content behind drawer -->
-<div class="demo-content" id="demoContent">
-  <div class="demo-label">Asset Grid — M.O.G. Network</div>
-  <div class="demo-grid" id="demoGrid"></div>
 </div>
 
-<!-- Toast -->
-<div class="toast-container" id="toastContainer"></div>
-
 <script>
-/* ═══════════════════════════════════════════════════════
-   M.O.G. DRAWER MENU v3.0
-   Features: slide-in drawer, stagger animation, swipe gesture,
-             ripple effect, push-content, operative profile,
-             Web Share API, touch swipe to open/close
-═══════════════════════════════════════════════════════ */
+// Load operative info from session
+const name = sessionStorage.getItem('mogUser') || 'OPERATIVE';
+const email = sessionStorage.getItem('mogEmail') || '';
+const rank = sessionStorage.getItem('mogRank') || 'RECRUIT';
 
-let isOpen = false;
-let swipeStartX = 0, swipeStartY = 0;
-const SWIPE_THRESHOLD = 60;
-const EDGE_ZONE = 30; // px from left edge to trigger swipe-open
+document.getElementById('menuUserName').textContent = name.length > 16 ? name.substring(0,16)+'…' : name;
+document.getElementById('menuRank').textContent = '● ' + rank + ' // GROOVE DIVISION';
+document.getElementById('menuUserId').textContent = 'OP-' + Math.random().toString(36).substr(2,8).toUpperCase();
 
-/* ── Toggle ── */
-function toggleMenu() {
-  isOpen ? closeMenu() : openMenu();
-}
-
-function openMenu() {
-  isOpen = true;
-  const drawer   = document.getElementById('drawer');
-  const overlay  = document.getElementById('overlay');
-  const hamburger= document.getElementById('hamburger');
-  const content  = document.getElementById('demoContent');
-
-  drawer.classList.add('open');
-  overlay.classList.add('show');
-  hamburger.classList.add('open');
-  hamburger.setAttribute('aria-expanded', 'true');
-  content.classList.add('pushed');
-  drawer.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-
-  // Haptic
-  try { navigator.vibrate?.(8); } catch(_) {}
-}
-
-function closeMenu() {
-  isOpen = false;
-  const drawer   = document.getElementById('drawer');
-  const overlay  = document.getElementById('overlay');
-  const hamburger= document.getElementById('hamburger');
-  const content  = document.getElementById('demoContent');
-
-  drawer.classList.remove('open');
-  overlay.classList.remove('show');
-  hamburger.classList.remove('open');
-  hamburger.setAttribute('aria-expanded', 'false');
-  content.classList.remove('pushed');
-  drawer.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-}
-
-/* ── Nav item click with ripple ── */
-function navTo(e, label) {
-  e.preventDefault();
-  const item = e.currentTarget;
-
-  // Set active state
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  item.classList.add('active');
-
-  // Ripple effect
-  const rect = item.getBoundingClientRect();
-  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-  const y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1);
-  item.style.setProperty('--rx', x + '%');
-  item.style.setProperty('--ry', y + '%');
-  item.classList.add('ripple');
-  setTimeout(() => item.classList.remove('ripple'), 500);
-
-  // Haptic
-  try { navigator.vibrate?.(6); } catch(_) {}
-
-  // Close and navigate after brief delay
-  setTimeout(() => {
-    closeMenu();
-    showToast('→ ' + label);
-    // Real nav: window.location.href = item.href;
-  }, 180);
-}
-
-/* ── Share App ── */
-async function shareApp() {
-  try { navigator.vibrate?.(12); } catch(_) {}
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Ministry of Groove',
-        text:  'Decrypting the Culture. Synchronizing the Grid. 🎵',
-        url:   'https://ministryofgroove.com'
-      });
-    } catch(_) {}
-  } else {
-    await navigator.clipboard.writeText('https://ministryofgroove.com').catch(() => {});
-    showToast('Link copied to clipboard!');
-  }
-}
-
-/* ── Toast ── */
-function showToast(msg, duration = 2800) {
-  const container = document.getElementById('toastContainer');
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span style="width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0"></span>${msg}`;
-  container.appendChild(el);
-  setTimeout(() => {
-    el.classList.add('hide');
-    setTimeout(() => el.remove(), 300);
-  }, duration);
-}
-
-/* ── Touch Swipe Gestures ── */
-document.addEventListener('touchstart', e => {
-  swipeStartX = e.touches[0].clientX;
-  swipeStartY = e.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - swipeStartX;
-  const dy = e.changedTouches[0].clientY - swipeStartY;
-  const absDx = Math.abs(dx);
-  const absDy = Math.abs(dy);
-
-  // Only handle horizontal swipes
-  if (absDx < absDy * 0.7) return;
-
-  if (!isOpen && dx > SWIPE_THRESHOLD && swipeStartX < EDGE_ZONE) {
-    openMenu(); // Swipe right from left edge
-  } else if (isOpen && dx < -SWIPE_THRESHOLD) {
-    closeMenu(); // Swipe left to close
-  }
-}, { passive: true });
-
-/* ── Keyboard support ── */
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && isOpen) closeMenu();
+// Highlight active page
+const path = window.location.pathname;
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.classList.remove('active');
+  const href = item.getAttribute('href');
+  if(href && path.endsWith(href)) item.classList.add('active');
 });
 
-/* ── Load operative profile from Supabase (if available) ── */
-async function loadOperativeProfile() {
-  try {
-    const client = window.sb || window.supabaseClient;
-    if (!client) return;
-    const { data: { session } } = await client.auth.getSession();
-    if (!session) return;
-    const { data: profile } = await client.from('profiles')
-      .select('username,codename,rank,department')
-      .eq('id', session.user.id).single();
-    if (profile) {
-      document.getElementById('opName').textContent  = profile.codename || profile.username || 'OPERATIVE';
-      document.getElementById('opRank').textContent  = (profile.rank || 'INITIATE') + ' · ' + (profile.department || 'UNASSIGNED');
-    }
-  } catch(_) {}
+function logout() {
+  if(confirm('Terminate operative session?')) {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  }
 }
-loadOperativeProfile();
-
-/* ── Build demo grid behind the menu ── */
-(function buildDemoGrid() {
-  const grid = document.getElementById('demoGrid');
-  const colors = [
-    'rgba(212,175,55,0.12)', 'rgba(0,212,170,0.10)', 'rgba(220,38,38,0.08)',
-    'rgba(212,175,55,0.08)', 'rgba(0,212,170,0.14)', 'rgba(139,105,20,0.12)',
-    'rgba(0,212,170,0.08)', 'rgba(212,175,55,0.10)', 'rgba(220,38,38,0.06)',
-  ];
-  const labels = [
-    'Groove Drop Vol.1','Sector 7G','Field Ops','Piano Ep.2',
-    '104.7 FM Live','Directorate Brief','Uplink II','Emalahleni','Archive'
-  ];
-  colors.forEach((c, i) => {
-    const card = document.createElement('div');
-    card.className = 'demo-card';
-    card.style.background = `linear-gradient(135deg, ${c}, rgba(0,0,0,0.6))`;
-    card.innerHTML = `
-      <div style="position:absolute;top:8px;left:8px;right:8px;display:flex;align-items:center;justify-content:center;height:60%;opacity:0.3">
-        <img src="/assets/images/logo.png" style="width:40px;height:40px;object-fit:contain" onerror="this.style.display='none'">
-      </div>
-      <div class="demo-card-label">${labels[i]||'Asset'}</div>`;
-    grid.appendChild(card);
-  });
-})();
 </script>
 </body>
 </html>
