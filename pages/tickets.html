@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Event Tickets</title>
+<link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
@@ -15,7 +16,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
 .back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;}
 .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
-  
+
 /* EVENT HERO */
 .event-hero{margin:16px;position:relative;z-index:1;}
 .event-hero-card{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(0,229,204,0.05),rgba(13,31,45,0.9));border:1px solid var(--gold);border-radius:10px;padding:24px;position:relative;overflow:hidden;}
@@ -269,17 +270,24 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 </div>
 
 <script>
-const tiers=[
-  {id:'vip',name:'VIP OPERATIVE',price:350,available:12,total:50,perks:'Priority entry · Front section access\nComplimentary drink · Exclusive M.O.G. lanyard\nMeet & greet access',badge:'vip',qty:0},
-  {id:'general',name:'GENERAL OPERATIVE',price:150,available:45,total:150,perks:'Standard entry · General floor access\nAccess to all session areas',badge:'general',qty:0},
-];
+// Ticket tiers load from Supabase in production
+// Wire up: sb.from('ticket_tiers').select('*').eq('event_id', activeEventId)
+const tiers=[];
 
 let payMethod='card';
 
 function renderTiers(){
+  if(tiers.length===0){
+    document.getElementById('tierList').innerHTML=`
+      <div style="text-align:center;padding:40px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(201,168,76,0.3);letter-spacing:3px;border:1px solid rgba(201,168,76,0.1);border-radius:8px;">
+        NO EVENTS CURRENTLY TICKETED<br>
+        <span style="opacity:0.5;font-size:9px;margin-top:8px;display:block">CHECK THE FREQUENCY PAGE FOR UPCOMING SESSIONS</span>
+      </div>`;
+    document.getElementById('checkoutBtn').disabled=true;
+    return;
+  }
   document.getElementById('tierList').innerHTML=tiers.map(t=>{
     const soldOut=t.available===0;
-    const pct=Math.round((t.total-t.available)/t.total*100);
     return `<div class="tier-card ${t.qty>0?'selected':''} ${soldOut?'sold-out':''}" onclick="selectTier('${t.id}')">
       <div class="tier-badge badge-${soldOut?'sold':t.badge}">${soldOut?'SOLD OUT':t.badge.toUpperCase()}</div>
       <div class="tier-name">${t.name}</div>
@@ -379,8 +387,8 @@ function closeSuccess(){
   renderTiers();
 }
 
-// Animate sold bar on load
-setTimeout(()=>{document.getElementById('soldFill').style.width='71.5%';},400);
+// Animate sold bar — will be set dynamically from Supabase event data
+// setTimeout(()=>{document.getElementById('soldFill').style.width='71.5%';},400);
 
 // Close modals on backdrop click
 document.getElementById('payModal').addEventListener('click',function(e){if(e.target===this)closePayment();});
