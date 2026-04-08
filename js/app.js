@@ -1,6 +1,6 @@
 /**
  * Ministry of Groove - Main Application
- * NCC Master v6.0.0 — Broadcast Edition
+ * NCC Master v6.1.0 — Production Broadcast Edition
  */
 
 (function() {
@@ -14,8 +14,8 @@
         }
         
         // Log system ready
-        console.log('%c🔒 MOG NCC Master v6.0.0', 'color: #D4AF37; font-weight: bold;');
-        console.log('%cBroadcast Uplink Protocol Active', 'color: #00F2FF;');
+        console.log('%c🔒 MOG NCC Master v6.1.0', 'color: #D4AF37; font-weight: bold;');
+        console.log('%cSecure Uplink Protocol v6.1 Active', 'color: #00F2FF;');
 
         // Auto-init frequency page if on that route
         if (window.location.pathname.includes('frequency.html')) {
@@ -31,68 +31,86 @@
     
     // Expose app utilities
     window.MOGApp = {
-        version: '6.0.0',
+        version: '6.1.0',
         
         /**
          * FREQUENCY PAGE LOGIC
-         * Initializes the Director-only interface
+         * Initializes the Director-only interface and checks role
          */
         initFrequency: async function() {
-            // Wait for Auth to confirm role
+            // Wait for Auth to confirm role from Supabase
             await MOGAuth.init();
             
             if (MOGAuth.isDirector) {
                 const controls = document.getElementById('director-controls');
                 if (controls) {
                     controls.style.display = 'block';
-                    console.log('%c[M.O.G.] Director Controls Enabled', 'color: #D4AF37;');
+                    console.log('%c[M.O.G.] Director Clearance Confirmed. Controls Enabled.', 'color: #D4AF37;');
                 }
             }
         },
 
         /**
-         * UPLINK REQUEST
-         * Calls the Vercel Serverless Function to get Mux credentials
+         * UPLINK REQUEST (UPGRADED)
+         * Sends JWT for server-side verification and provisions Mux stream
          */
         requestUplink: async function() {
             const btn = document.getElementById('start-broadcast-btn');
             const intelBox = document.getElementById('director-intel');
             const keyInput = document.getElementById('stream-key');
 
-            if (!MOGAuth.user) {
-                alert("Session Expired. Re-authenticate.");
+            // 1. Check local session
+            if (!MOGAuth.isAuthenticated) {
+                alert("Clearance Denied. Please re-authenticate.");
+                window.location.href = '/login.html';
                 return;
             }
 
             try {
                 btn.disabled = true;
-                btn.innerText = "ESTABLISHING SECURE UPLINK...";
+                btn.innerText = "VERIFYING CLEARANCE...";
+
+                // 2. Retrieve the JWT (Access Token) from Supabase Client
+                const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
+                
+                if (sessionError || !session) throw new Error("Could not retrieve secure token.");
+
+                // 3. Optional: Get Event ID from UI (Falling back to a generic ID if not found)
+                const eventId = document.querySelector('.event-card')?.id || 'SESSION_03_AUTO';
 
                 const response = await fetch('/api/broadcast', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: MOGAuth.user.id })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}` // CRITICAL: Security Header
+                    },
+                    body: JSON.stringify({ 
+                        eventId: eventId,
+                        title: document.getElementById('stripTitle')?.innerText || "Live Session"
+                    })
                 });
 
-                if (!response.ok) throw new Error('Uplink rejected by server.');
-
                 const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Uplink rejected by High Command.');
+                }
 
                 if (data.streamKey) {
                     keyInput.value = data.streamKey;
                     intelBox.style.display = 'block';
                     
                     btn.innerText = "UPLINK ESTABLISHED";
+                    btn.classList.remove('btn-gold');
                     btn.classList.add('btn-teal');
-                    btn.style.borderColor = "var(--teal)";
                     
-                    console.log('%c[M.O.G.] Stream Key Received.', 'color: #00E5CC;');
+                    console.log('%c[M.O.G.] Stream Key Received. Directing data to Mux.', 'color: #00E5CC;');
                 }
             } catch (err) {
-                console.error('Broadcast Error:', err);
+                console.error('Broadcast Uplink Failure:', err);
                 btn.innerText = "UPLINK FAILED — RETRY";
                 btn.disabled = false;
-                alert("Security handshake failed. Check server logs.");
+                alert(`Protocol Error: ${err.message}`);
             }
         },
 
@@ -108,7 +126,7 @@
             try {
                 await navigator.clipboard.writeText(textToCopy);
                 
-                // Visual feedback on the button
+                // Visual feedback on the trigger button
                 const btn = event.target;
                 const originalText = btn.innerText;
                 
@@ -123,7 +141,7 @@
                 }, 2000);
 
             } catch (err) {
-                console.error('Copy failed:', err);
+                console.error('Intel copy failed:', err);
             }
         },
 
