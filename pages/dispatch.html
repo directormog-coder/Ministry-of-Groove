@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Dispatch</title>
+<link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
@@ -104,29 +105,13 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <script>
 const myName=(sessionStorage.getItem('mogUser')||'OPERATIVE').substring(0,12);
 
+// Rooms start empty — messages load from Supabase in production
+// Wire up: sb.from('messages').select('*').eq('room',key).order('created_at')
 const rooms={
-  general:{name:'GENERAL HQ',msgs:[
-    {u:'OPERATIVE_ZEN',ini:'ZN',text:'The groove is real 🔥',t:'21:05',mine:false},
-    {u:'MOG_NOVA',ini:'MN',text:'Session 02 was insane. When is the next one?',t:'21:10',mine:false},
-    {u:myName,ini:myName.substring(0,2),text:'Already counting down 🎵',t:'21:12',mine:true},
-    {u:'OPERATIVE_KASE',ini:'KS',text:'The Directorate never misses 🎯',t:'21:15',mine:false},
-  ]},
-  session01:{name:'SESSION 01 DEBRIEF',msgs:[
-    {u:'DIRECTORATE',ini:'D',text:'Session 01 recap uploaded to the vault. Check the gallery.',t:'14D',mine:false,dir:true},
-    {u:'MOG_NOVA',ini:'MN',text:'That opening set was a full takeover 🎶',t:'14D',mine:false},
-    {u:'OPERATIVE_ZEN',ini:'ZN',text:'Piano Hub killed it on the decks 🔊',t:'14D',mine:false},
-    {u:'OPERATIVE_RIZE',ini:'OR',text:'Download the pics in the vault! Quality is 🔥',t:'14D',mine:false},
-  ]},
-  session02:{name:'SESSION 02 DEBRIEF',msgs:[
-    {u:'DIRECTORATE',ini:'D',text:'SESSION 02 recap is LIVE in the vault. Download, like, and share 🔐',t:'2D',mine:false,dir:true},
-    {u:'MOG_NOVA',ini:'MN',text:'The energy was even crazier this time 🙌',t:'2D',mine:false},
-    {u:'OPERATIVE_KASE',ini:'KS',text:'Need Vol.3 ASAP',t:'2D',mine:false},
-  ]},
-  amapiano:{name:'AMAPIANO INTEL',msgs:[
-    {u:'OPERATIVE_KASE',ini:'KS',text:'Who thinks Scorpion Kings are still top 5?',t:'3HRS',mine:false},
-    {u:'OPERATIVE_ZEN',ini:'ZN',text:'Kabza De Small is untouchable right now',t:'3HRS',mine:false},
-    {u:myName,ini:myName.substring(0,2),text:'Vote in the dossier section 🗳️',t:'2HRS',mine:true},
-  ]},
+  general:  {name:'GENERAL HQ',       msgs:[]},
+  session01:{name:'SESSION 01 DEBRIEF',msgs:[]},
+  session02:{name:'SESSION 02 DEBRIEF',msgs:[]},
+  amapiano: {name:'AMAPIANO INTEL',    msgs:[]},
 };
 
 let current='general';
@@ -139,7 +124,9 @@ function renderMsgs(key){
       <div class="room-header-label">// ${room.name} //</div>
     </div>
     <div class="sys-msg">🔐 END-TO-END ENCRYPTED</div>
-    ${room.msgs.map(m=>`
+    ${room.msgs.length===0
+      ? `<div class="sys-msg" style="margin-top:40px;opacity:0.4">NO TRANSMISSIONS YET — BE THE FIRST TO BROADCAST</div>`
+      : room.msgs.map(m=>`
       <div class="msg ${m.mine?'mine':''}">
         <div class="msg-avatar ${m.dir?'directorate':''}">${m.ini}</div>
         <div class="msg-body">
