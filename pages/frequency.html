@@ -5,55 +5,92 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Frequency</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-/* Page-specific overrides for the Radar effect */
-.broadcast-zone{margin:16px;border:1px solid var(--gold);border-radius:10px;overflow:hidden;position:relative;z-index:1;background:var(--navy);}
-.broadcast-screen{width:100%;aspect-ratio:16/9;background:var(--black);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:80px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
+
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;transition:color 0.2s;}
+.back-btn:hover{color:var(--gold-light);}
+.top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+.live-pill{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;padding:4px 10px;letter-spacing:2px;border-radius:2px;animation:livePulse 1.5s ease infinite;white-space:nowrap;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
+
+/* BROADCAST ZONE */
+.broadcast-zone{margin:16px;border:1px solid var(--gold);border-radius:10px;overflow:hidden;position:relative;z-index:1;}
+.broadcast-screen{width:100%;aspect-ratio:16/9;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 .bg-radial{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,229,204,0.06) 0%,transparent 70%),repeating-linear-gradient(45deg,transparent,transparent 24px,rgba(201,168,76,0.015) 24px,rgba(201,168,76,0.015) 25px);}
 .radar-sweep{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.12),transparent 30%);animation:sweep 4s linear infinite;}
 @keyframes sweep{to{transform:rotate(360deg)}}
 .broadcast-content{position:relative;z-index:2;text-align:center;padding:16px;}
 .broadcast-icon{font-size:44px;margin-bottom:12px;display:block;}
+.broadcast-status{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:6px;}
+.broadcast-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;}
+/* Active broadcast overlay */
+.broadcast-active{display:none;position:absolute;inset:0;z-index:5;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.broadcast-active.show{display:flex;}
+.live-indicator{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;padding:6px 20px;letter-spacing:3px;border-radius:3px;animation:livePulse 1s ease infinite;}
 
-/* Director Interface Styles */
-#director-controls {
-    background: rgba(13, 31, 45, 0.95);
-    border-top: 1px solid var(--gold);
-    padding: 20px;
-    display: none; /* Controlled by js/app.js */
-}
-.intel-box {
-    margin-top: 15px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px dashed var(--border-teal);
-    border-radius: 4px;
-}
-.intel-label {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--teal);
-    letter-spacing: 2px;
-    display: block;
-    margin-bottom: 5px;
-}
-.copy-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-.copy-group .inp {
-    flex: 1;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 8px;
-    background: #000;
-}
+/* INFO STRIP */
+.info-strip{background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(0,0,0,0.3));border-top:1px solid rgba(201,168,76,0.3);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.strip-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#fff;letter-spacing:2px;}
+.strip-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(201,168,76,0.55);letter-spacing:1px;margin-top:2px;}
+.signal-bars{display:flex;align-items:flex-end;gap:3px;height:20px;}
+.sbar{width:4px;background:var(--teal);border-radius:1px;animation:signalAnim 1s ease infinite;}
+.sbar:nth-child(1){height:6px;animation-delay:0s;}
+.sbar:nth-child(2){height:10px;animation-delay:0.1s;}
+.sbar:nth-child(3){height:16px;animation-delay:0.2s;}
+.sbar:nth-child(4){height:10px;animation-delay:0.3s;}
+.sbar:nth-child(5){height:7px;animation-delay:0.4s;}
+@keyframes signalAnim{0%,100%{opacity:0.3}50%{opacity:1}}
+
+/* SECTION */
+.section{padding:0 16px 18px;position:relative;z-index:1;}
+.sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sec-hdr h2{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
+.line{flex:1;height:1px;background:var(--border);}
+
+/* UPCOMING EVENTS */
+.event-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:8px;padding:16px;margin-bottom:10px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:all 0.22s;}
+.event-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+.event-date-box{background:var(--navy);border:1px solid var(--border);border-radius:6px;padding:10px 12px;text-align:center;flex-shrink:0;min-width:52px;}
+.event-month{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal-dim);letter-spacing:2px;text-transform:uppercase;}
+.event-day{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;color:var(--gold);line-height:1;margin-top:2px;}
+.event-details{flex:1;min-width:0;}
+.event-name{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:#e0e0e0;letter-spacing:1px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.event-location{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;}
+.event-status{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;padding:4px 8px;border-radius:2px;white-space:nowrap;align-self:flex-start;flex-shrink:0;}
+.status-confirmed{border:1px solid var(--teal);color:var(--teal);}
+.status-pending{border:1px solid var(--border);color:var(--gold-dim);}
+
+/* NOTIFY BTN */
+.notify-btn{width:100%;padding:14px;background:rgba(201,168,76,0.07);border:1px solid var(--border);border-radius:6px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;cursor:pointer;margin-top:4px;transition:all 0.22s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.notify-btn:hover{background:rgba(201,168,76,0.14);box-shadow:0 0 16px rgba(201,168,76,0.2);}
+.notify-btn.enabled{background:rgba(0,229,204,0.08);border-color:var(--teal);color:var(--teal);}
+
+/* PAST SESSIONS */
+.session-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all 0.22s;text-decoration:none;}
+.session-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+.session-thumb{width:52px;height:52px;border-radius:6px;background:var(--navy);border:1px solid var(--border-teal);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.session-info{flex:1;min-width:0;}
+.session-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold-light);letter-spacing:1px;margin-bottom:4px;}
+.session-meta{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.session-arrow{color:var(--gold-dim);font-size:22px;flex-shrink:0;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
 </style>
 </head>
-<body class="has-bottom-nav">
+<body>
 
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
@@ -61,49 +98,21 @@
   <div class="live-pill">LIVE</div>
 </div>
 
+<!-- BROADCAST ZONE -->
 <div class="broadcast-zone">
   <div class="broadcast-screen">
     <div class="bg-radial"></div>
     <div class="radar-sweep"></div>
-    
-    <div class="broadcast-content" id="viewer-ui">
+    <div class="broadcast-content">
       <span class="broadcast-icon">📡</span>
       <div class="broadcast-status">AWAITING BROADCAST</div>
       <div class="broadcast-sub">NO ACTIVE SESSION — STANDBY OPERATIVE</div>
     </div>
-
-    <div class="broadcast-active" id="activeOverlay" style="display:none;">
+    <div class="broadcast-active" id="activeOverlay">
       <div class="live-indicator">● BROADCASTING LIVE</div>
-      <div id="viewerCount" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:2px;">● 47 OPERATIVES WATCHING</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:rgba(255,255,255,0.7);letter-spacing:2px;" id="viewerCount">● 47 OPERATIVES WATCHING</div>
     </div>
   </div>
-
-  <div id="director-controls">
-    <div class="panel-head" style="border:none; margin:0;">
-        <span class="panel-title">DIRECTORATE UPLINK</span>
-        <span class="rank-tag rank-director">LEVEL ALPHA</span>
-    </div>
-    
-    <button id="start-broadcast-btn" class="btn btn-gold" style="width: 100%;" onclick="MOGApp.requestUplink()">
-        INITIALIZE LIVE UPLINK
-    </button>
-
-    <div id="director-intel" style="display: none;" class="intel-box">
-        <label class="intel-label">RTMP ENDPOINT</label>
-        <div class="copy-group">
-            <input id="rtmp-url" class="inp" value="rtmps://global-live.mux.com:443/app" readonly>
-            <button class="btn btn-sm btn-teal" onclick="MOGApp.copyIntel('rtmp-url')">COPY</button>
-        </div>
-
-        <label class="intel-label">STREAM KEY (CLASSIFIED)</label>
-        <div class="copy-group">
-            <input id="stream-key" type="password" class="inp" value="" readonly>
-            <button class="btn btn-sm btn-teal" onclick="MOGApp.copyIntel('stream-key', true)">COPY</button>
-        </div>
-        <small class="text-red font-mono" style="font-size: 9px;">SECRET: Input these into OBS Studio to begin transmission.</small>
-    </div>
-  </div>
-  
   <div class="info-strip">
     <div>
       <div class="strip-title" id="stripTitle">NEXT: SESSION 03</div>
@@ -115,6 +124,7 @@
   </div>
 </div>
 
+<!-- UPCOMING -->
 <div class="section">
   <div class="sec-hdr"><div class="line"></div><h2>UPCOMING OPERATIONS</h2><div class="line"></div></div>
 
@@ -130,11 +140,24 @@
     <div class="event-status status-confirmed">CONFIRMED</div>
   </div>
 
+  <div class="event-card">
+    <div class="event-date-box">
+      <div class="event-month">MAY</div>
+      <div class="event-day">??</div>
+    </div>
+    <div class="event-details">
+      <div class="event-name">M.O.G. GROOVE SUMMIT</div>
+      <div class="event-location">📍 TBA — INTEL PENDING</div>
+    </div>
+    <div class="event-status status-pending">PENDING</div>
+  </div>
+
   <button class="notify-btn" id="notifyBtn" onclick="toggleNotify()">
     🔔 ENABLE EVENT ALERTS
   </button>
 </div>
 
+<!-- PAST SESSIONS -->
 <div class="section">
   <div class="sec-hdr"><div class="line"></div><h2>PAST TRANSMISSIONS</h2><div class="line"></div></div>
 
@@ -143,6 +166,15 @@
     <div class="session-info">
       <div class="session-name">SESSION 02 — REPLAY</div>
       <div class="session-meta">2D AGO · VIDEO + PHOTOS IN VAULT</div>
+    </div>
+    <div class="session-arrow">›</div>
+  </a>
+
+  <a href="gallery.html" class="session-card">
+    <div class="session-thumb">🎵</div>
+    <div class="session-info">
+      <div class="session-name">SESSION 01 — FULL REPLAY</div>
+      <div class="session-meta">14D AGO · VIDEO + PHOTOS IN VAULT</div>
     </div>
     <div class="session-arrow">›</div>
   </a>
@@ -156,12 +188,7 @@
   <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="../js/auth.js"></script>
-<script src="../js/app.js"></script>
-
 <script>
-// Notification Logic
 let notifyEnabled=false;
 function toggleNotify(){
   if(notifyEnabled){
@@ -178,27 +205,19 @@ function toggleNotify(){
         const btn=document.getElementById('notifyBtn');
         btn.innerHTML='✓ ALERTS ENABLED';
         btn.classList.add('enabled');
+        new Notification('M.O.G. Alerts Active',{body:'You will be notified when sessions go live.'});
+      } else {
+        alert('Enable notifications in your browser/device settings to receive M.O.G. session alerts.');
       }
     });
+  } else {
+    alert('Push notifications require the M.O.G. PWA to be installed on your device.');
   }
 }
-
-// Initialize Page Logic
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Wait for Auth to init
-    await MOGAuth.init();
-    
-    // 2. Check if user is Director to show controls
-    if (MOGAuth.isDirector) {
-        document.getElementById('director-controls').style.display = 'block';
-    }
-});
-
 // Animate viewer count randomly
 function updateViewers(){
   const count=Math.floor(Math.random()*30+30);
-  const el = document.getElementById('viewerCount');
-  if(el) el.textContent='● '+count+' OPERATIVES WATCHING';
+  document.getElementById('viewerCount').textContent='● '+count+' OPERATIVES WATCHING';
 }
 setInterval(updateViewers,8000);
 </script>
