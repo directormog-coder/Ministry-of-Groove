@@ -1,415 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#000000">
-    <title>M.O.G. | CLASSIFIED VAULT</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050A0E">
+<title>M.O.G. — Archives</title>
+<link rel="stylesheet" href="../css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);font-family:var(--font-main);color:#fff;min-height:100vh;padding-bottom:90px;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/config.js"></script>
-    <script src="../js/supabase-client.js"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;transition:color 0.2s;}
+.back-btn:hover{color:var(--gold-light);}
+.top-title{font-family:var(--font-cyber);font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+.archive-count{font-family:var(--font-mono);font-size:9px;color:var(--teal-dim);letter-spacing:1px;white-space:nowrap;}
 
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px;position:relative;z-index:1;}
+.stat-mini{background:var(--panel);border:1px solid var(--border-teal);border-radius:8px;padding:14px;text-align:center;position:relative;overflow:hidden;}
+.stat-mini::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal));}
+.sm-val{font-family:var(--font-cyber);font-size:20px;font-weight:900;color:var(--gold);}
+.sm-label{font-family:var(--font-mono);font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:4px;}
 
-    <style>
-        [x-cloak]{display:none!important}
-        :root{--black:#000;--gold:#d4af37;--gold-bright:#f0c040;--gold-dark:#8b6914;--gold-glow:rgba(212,175,55,0.4);--teal:#00d4aa;--teal-glow:rgba(0,212,170,0.3);--red:#dc2626;--red-glow:rgba(220,38,38,0.4);}
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Rajdhani',sans-serif;background:var(--black);color:#e8e0cc;min-height:100vh;min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-        .mono{font-family:'Share Tech Mono',monospace}.orbit{font-family:'Orbitron',sans-serif}
+/* SEARCH */
+.search-wrap{padding:0 16px 12px;position:relative;z-index:1;}
+.search-input{width:100%;padding:12px 16px;background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);border-radius:6px;font-family:var(--font-main);font-size:15px;color:#fff;outline:none;transition:border 0.2s;}
+.search-input:focus{border-color:var(--teal);}
+.search-input::placeholder{color:rgba(255,255,255,0.2);}
 
-        .bg-seal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:clamp(280px,75vmin,600px);height:clamp(280px,75vmin,600px);background:url('../assets/images/logo.png') center/contain no-repeat;opacity:0.04;pointer-events:none;z-index:0}
-        .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(rgba(212,175,55,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,0.022) 1px,transparent 1px);background-size:52px 52px}
-        @media (max-width:480px){.bg-grid{display:none}}
-        .bg-vignette{position:fixed;inset:0;pointer-events:none;z-index:2;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,0.85) 100%)}
+/* FILTER TABS */
+.filter-tabs{padding:0 16px 14px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;}
+.filter-tabs::-webkit-scrollbar{display:none;}
+.ftab{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;padding:7px 14px;border:1px solid var(--border);border-radius:3px;color:var(--gold-dim);background:none;cursor:pointer;white-space:nowrap;transition:all 0.2s;flex-shrink:0;}
+.ftab.active,.ftab:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.08);}
 
-        .glass{background:rgba(6,8,5,0.95);border:1px solid rgba(212,175,55,0.16);box-shadow:0 4px 40px rgba(0,0,0,0.5)}
-        @media (min-width:641px){.glass{backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}}
+/* SESSION CARDS */
+.sessions-list{padding:0 16px;position:relative;z-index:1;}
 
-        .gold-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold-dark),var(--gold),var(--teal),transparent)}
-        .slogan{font-family:'Orbitron',sans-serif;font-size:clamp(0.44rem,1.1vw,0.54rem);letter-spacing:0.28em;color:var(--teal);opacity:0.5;text-transform:uppercase}
+.session-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;transition:all 0.25s;cursor:pointer;}
+.session-card:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.1);}
+.session-card.expanded .session-body{display:block;}
+.session-card.expanded .expand-icon{transform:rotate(180deg);}
 
-        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all 0.24s ease;font-family:'Orbitron',sans-serif;font-weight:700;text-transform:uppercase}
-        .btn-gold{background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(139,105,20,0.22));border:1px solid rgba(212,175,55,0.38);color:var(--gold)}
-        .btn-gold:hover{background:linear-gradient(135deg,rgba(212,175,55,0.25),rgba(139,105,20,0.38));box-shadow:0 0 20px var(--gold-glow);border-color:var(--gold-bright);transform:translateY(-1px)}
-        .btn-red{background:linear-gradient(135deg,rgba(220,38,38,0.12),rgba(153,27,27,0.22));border:1px solid rgba(220,38,38,0.38);color:#fca5a5}
-        .btn-red:hover{box-shadow:0 0 20px var(--red-glow);border-color:var(--red);color:#fff;transform:translateY(-1px)}
-        .btn-teal{background:linear-gradient(135deg,rgba(0,212,170,0.1),rgba(0,110,89,0.2));border:1px solid rgba(0,212,170,0.35);color:var(--teal)}
-        .btn-teal:hover{background:linear-gradient(135deg,rgba(0,212,170,0.22),rgba(0,110,89,0.32));box-shadow:0 0 18px var(--teal-glow);border-color:var(--teal);transform:translateY(-1px)}
-        .btn:active{transform:scale(0.97)!important}
-        .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important}
+.session-header{padding:16px;display:flex;align-items:center;gap:14px;}
+.session-num{font-family:var(--font-cyber);font-size:28px;font-weight:900;color:rgba(201,168,76,0.15);width:48px;text-align:center;flex-shrink:0;line-height:1;}
+.session-info{flex:1;min-width:0;}
+.session-title{font-family:var(--font-cyber);font-size:13px;font-weight:700;color:var(--gold-light);letter-spacing:2px;margin-bottom:4px;}
+.session-date{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;}
+.session-meta{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.smeta{font-family:var(--font-mono);font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:2px;}
+.smeta-photos{background:rgba(201,168,76,0.1);color:var(--gold-dim);border:1px solid var(--border);}
+.smeta-video{background:rgba(0,229,204,0.1);color:var(--teal-dim);border:1px solid var(--border-teal);}
+.smeta-attendees{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.3);border:1px solid rgba(255,255,255,0.08);}
+.expand-icon{font-size:18px;color:var(--gold-dim);transition:transform 0.3s;flex-shrink:0;}
 
-        /* File row */
-        .file-row{border-left:4px solid rgba(212,175,55,0.1);border-radius:1rem;transition:all 0.3s ease}
-        .file-row:hover{border-left-color:var(--gold);background:rgba(212,175,55,0.03)!important}
+.session-body{display:none;border-top:1px solid var(--border);}
+.session-preview{width:100%;aspect-ratio:16/9;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;overflow:hidden;}
+.session-preview::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,229,204,0.04),transparent);}
+.session-actions{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.sact-btn{padding:11px;border-radius:4px;font-family:var(--font-cyber);font-size:9px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sact-gallery{background:rgba(201,168,76,0.08);border:1px solid var(--border);color:var(--gold);}
+.sact-gallery:hover{background:rgba(201,168,76,0.16);box-shadow:0 0 14px var(--gold-glow);}
+.sact-chat{background:rgba(0,229,204,0.06);border:1px solid var(--border-teal);color:var(--teal);}
+.sact-chat:hover{background:rgba(0,229,204,0.14);}
+.session-notes{padding:0 16px 14px;font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.7;border-top:1px solid rgba(201,168,76,0.06);padding-top:12px;}
 
-        /* Classification badge */
-        .class-top-secret{background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.35);color:#f87171}
-        .class-secret{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);color:#fb923c}
-        .class-confidential{background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);color:var(--gold)}
-        .class-unclassified{background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.22);color:var(--teal)}
+/* EMPTY STATE */
+.empty-archive{text-align:center;padding:60px 20px;position:relative;z-index:1;}
+.empty-icon{font-size:52px;margin-bottom:16px;opacity:0.3;}
+.empty-title{font-family:var(--font-cyber);font-size:12px;color:rgba(201,168,76,0.3);letter-spacing:3px;margin-bottom:8px;}
+.empty-sub{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,0.15);letter-spacing:2px;line-height:1.8;}
 
-        /* Upload progress */
-        .upload-bar{height:3px;background:rgba(0,0,0,0.7);border-radius:99px;overflow:hidden}
-        .upload-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold-bright));box-shadow:0 0 8px var(--gold-glow);transition:width 0.3s ease}
-
-        /* File type icon colours */
-        .ft-pdf{color:#ef4444}.ft-img{color:var(--gold)}.ft-vid{color:var(--teal)}.ft-doc{color:#60a5fa}.ft-gen{color:#9ca3af}
-
-        .fade-up{animation:fadeUp 0.5s cubic-bezier(0.22,1,0.36,1) both}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-        .dot-blink span{animation:blink 1.3s infinite}
-        .dot-blink span:nth-child(2){animation-delay:.2s}.dot-blink span:nth-child(3){animation-delay:.4s}
-        @keyframes blink{0%,80%,100%{opacity:0}40%{opacity:1}}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:rgba(0,0,0,0.6)}::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold-dark),var(--teal));border-radius:4px}
-        @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}}
-    </style>
-
-    <script>
-    function vaultEngine() {
-        return {
-            view: 'gate',
-            isDirector: false,
-            isLoading: false,
-            isUploading: false,
-            uploadProgress: 0,
-            vaultStatus: 'ENCRYPTED',
-            files: [],
-            currentUserId: null,
-
-            get sb() { return window.sb || window.supabaseClient; },
-
-            async init() {
-                const role = localStorage.getItem('userRole');
-                if (!role) { window.location.href = '../login.html'; return; }
-
-                let tries = 0;
-                while (!this.sb && tries < 30) { await new Promise(r=>setTimeout(r,100)); tries++; }
-                if (!this.sb) { this.toast('Connection failed','error'); return; }
-
-                try {
-                    const { data:{ session } } = await this.sb.auth.getSession();
-                    if (!session) { window.location.href = '../login.html'; return; }
-                    this.currentUserId = session.user.id;
-                    this.isDirector = role === 'director';
-                    this.view = 'active';
-                    await this.loadFiles();
-                    this.vaultStatus = 'DECRYPTED';
-                    this.$nextTick(() => { if (typeof lucide !== 'undefined') lucide.createIcons(); });
-                } catch(e) {
-                    console.error('[VAULT]', e);
-                    this.toast('Authentication failed','error');
-                }
-            },
-
-            async loadFiles() {
-                this.isLoading = true;
-                try {
-                    const { data, error } = await this.sb.from('archives')
-                        .select('*').order('created_at', { ascending:false });
-                    if (error) throw error;
-                    this.files = data || [];
-                } catch(e) {
-                    console.error('[VAULT] load:', e);
-                    this.files = [];
-                } finally { this.isLoading = false; }
-            },
-
-            async handleUpload(e) {
-                if (!this.isDirector) { this.toast('Director clearance required','error'); return; }
-                const file = e.target.files[0];
-                if (!file) return;
-                if (file.size > 50 * 1024 * 1024) { this.toast('Max 50MB','error'); e.target.value=''; return; }
-
-                this.isUploading = true;
-                this.uploadProgress = 10;
-                try {
-                    const ext  = file.name.split('.').pop();
-                    const name = `CLASSIFIED-${Date.now()}-${Math.random().toString(36).substr(2,8)}.${ext}`;
-                    this.uploadProgress = 35;
-                    const { error:ue } = await this.sb.storage.from('vault').upload(name, file, { cacheControl:'3600', upsert:false });
-                    if (ue) throw ue;
-                    this.uploadProgress = 70;
-                    const { data:{ publicUrl } } = this.sb.storage.from('vault').getPublicUrl(name);
-                    const { error:de } = await this.sb.from('archives').insert({
-                        name:       file.name.toUpperCase(),
-                        url:        publicUrl,
-                        size:       this.formatSize(file.size),
-                        type:       ext.toUpperCase(),
-                        classification: 'CONFIDENTIAL',
-                        uploaded_by: this.currentUserId,
-                        created_at: new Date().toISOString()
-                    });
-                    if (de) throw de;
-                    this.uploadProgress = 100;
-                    this.toast('Document archived successfully','success');
-                    await this.loadFiles();
-                } catch(err) {
-                    console.error('[VAULT] upload:', err);
-                    this.toast('Archive failed: '+(err.message||'retry'),'error');
-                } finally {
-                    this.isUploading = false;
-                    setTimeout(() => this.uploadProgress = 0, 1500);
-                    e.target.value = '';
-                }
-            },
-
-            async redactFile(id) {
-                if (!this.isDirector) { this.toast('Director clearance required','error'); return; }
-                if (!confirm('REDACT THIS DOCUMENT? IRREVERSIBLE.')) return;
-                try {
-                    const { data:f } = await this.sb.from('archives').select('url').eq('id',id).single();
-                    const { error } = await this.sb.from('archives').delete().eq('id',id);
-                    if (error) throw error;
-                    if (f?.url) {
-                        const path = f.url.split('/').pop();
-                        if (path) await this.sb.storage.from('vault').remove([path]).catch(()=>{});
-                    }
-                    this.files = this.files.filter(x => x.id !== id);
-                    this.toast('Document redacted permanently','success');
-                } catch(e) { this.toast('Redaction failed','error'); }
-            },
-
-            fileIconClass(type) {
-                const t = (type||'').toLowerCase();
-                if (['pdf'].includes(t)) return 'ft-pdf';
-                if (['jpg','jpeg','png','webp','gif','svg'].includes(t)) return 'ft-img';
-                if (['mp4','mov','avi','webm'].includes(t)) return 'ft-vid';
-                if (['doc','docx','txt','md'].includes(t)) return 'ft-doc';
-                return 'ft-gen';
-            },
-
-            fileIcon(type) {
-                const t = (type||'').toLowerCase();
-                if (['pdf'].includes(t)) return 'file-text';
-                if (['jpg','jpeg','png','webp','gif','svg'].includes(t)) return 'image';
-                if (['mp4','mov','avi','webm'].includes(t)) return 'video';
-                if (['doc','docx','txt','md'].includes(t)) return 'file-text';
-                return 'file';
-            },
-
-            classificationClass(c) {
-                return { 'TOP SECRET':'class-top-secret', 'SECRET':'class-secret', 'CONFIDENTIAL':'class-confidential', 'UNCLASSIFIED':'class-unclassified' }[c] || 'class-confidential';
-            },
-
-            formatSize(bytes) {
-                if (!bytes) return '—';
-                const k=1024, sizes=['B','KB','MB','GB'];
-                const i=Math.floor(Math.log(bytes)/Math.log(k));
-                return parseFloat((bytes/Math.pow(k,i)).toFixed(1))+' '+sizes[i];
-            },
-
-            timeAgo(ts) {
-                if (!ts) return '—';
-                const s=(Date.now()-new Date(ts))/1000;
-                if (s<60) return Math.floor(s)+'s ago';
-                if (s<3600) return Math.floor(s/60)+'m ago';
-                if (s<86400) return Math.floor(s/3600)+'h ago';
-                return Math.floor(s/86400)+'d ago';
-            },
-
-            logout() {
-                try { this.sb?.auth?.signOut(); } catch(_) {}
-                localStorage.removeItem('userRole');
-                window.location.href = '../login.html';
-            },
-
-            toast(message, type='info') {
-                const cfg={success:{bg:'#052010',border:'rgba(0,212,170,0.4)',color:'#4aecd4'},error:{bg:'#1a0404',border:'rgba(220,38,38,0.45)',color:'#f87171'},warning:{bg:'#1a1000',border:'rgba(212,175,55,0.4)',color:'#fcd34d'},info:{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'}}[type]||{bg:'#050a08',border:'rgba(0,212,170,0.2)',color:'#e8f0ee'};
-                const t=document.createElement('div');const m=window.innerWidth<640;
-                t.style.cssText=`position:fixed;z-index:99999;${m?'bottom:20px;left:50%;transform:translate(-50%,20px)':'top:16px;right:16px;transform:translateX(120%)'};background:${cfg.bg};border:1px solid ${cfg.border};color:${cfg.color};font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:12px;padding:11px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.8);display:flex;align-items:center;gap:8px;max-width:min(90vw,360px);`;
-                t.textContent=message;document.body.appendChild(t);
-                requestAnimationFrame(()=>setTimeout(()=>{t.style.transform=m?'translate(-50%,0)':'translateX(0)';t.style.transition='transform 0.3s cubic-bezier(0.34,1.56,0.64,1)';},20));
-                setTimeout(()=>{t.style.opacity='0';t.style.transform=m?'translate(-50%,20px)':'translateX(120%)';setTimeout(()=>t.remove(),350);},4000);
-            }
-        };
-    }
-    </script>
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+.nav-item.active{border-top-color:var(--gold);}
+.nav-icon{font-size:20px;line-height:1;}
+.nav-label{font-family:var(--font-mono);font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.nav-item.active .nav-label{color:var(--gold);}
+</style>
 </head>
+<body>
 
-<body x-data="vaultEngine()" x-init="init()" x-cloak class="bg-black min-h-screen">
-
-<div class="bg-seal" aria-hidden="true"></div>
-<div class="bg-grid" aria-hidden="true"></div>
-<div class="bg-vignette" aria-hidden="true"></div>
-
-<!-- Gate -->
-<template x-if="view==='gate'">
-<div class="fixed inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black">
-    <div style="width:52px;height:52px;position:relative">
-        <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--gold);animation:spin 1s linear infinite"></div>
-        <div style="position:absolute;inset:7px;border-radius:50%;border:2px solid transparent;border-bottom-color:var(--teal);animation:spin 1.6s linear infinite reverse"></div>
-    </div>
-    <div class="text-center space-y-2">
-        <p class="orbit text-xs tracking-widest" style="color:var(--gold)">Bypassing Vault Encryption <span class="dot-blink"><span>.</span><span>.</span><span>.</span></span></p>
-        <p class="slogan">Decrypting the Culture. Synchronizing the Grid.</p>
-    </div>
+<div class="top-bar">
+  <a href="../index.html" class="back-btn">←</a>
+  <div class="top-title">ARCHIVES</div>
+  <div class="archive-count" id="archiveCount">0 SESSIONS</div>
 </div>
-</template>
 
-<!-- Active -->
-<template x-if="view==='active'">
-<div class="relative z-10 min-h-screen fade-up">
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-mini">
+    <div class="sm-val" id="totalSessions">0</div>
+    <div class="sm-label">SESSIONS</div>
+  </div>
+  <div class="stat-mini">
+    <div class="sm-val" id="totalMedia">0</div>
+    <div class="sm-label">MEDIA FILES</div>
+  </div>
+  <div class="stat-mini">
+    <div class="sm-val" id="totalAttendees">0</div>
+    <div class="sm-label">OPERATIVES</div>
+  </div>
+</div>
 
-    <!-- Nav -->
-    <nav class="glass sticky top-0 z-40" style="border-bottom:1px solid rgba(212,175,55,0.12)">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <a href="../index.html" class="btn btn-gold p-2 rounded-xl" style="min-height:unset;padding:7px;font-size:0.6rem">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-                </a>
-                <img src="../assets/images/logo.png" alt="M.O.G." style="width:40px;height:40px;object-fit:contain;filter:drop-shadow(0 0 8px var(--gold-glow))" onerror="this.style.display='none'">
-                <div>
-                    <p class="orbit font-black text-base sm:text-lg uppercase" style="color:var(--gold);line-height:1.1">Classified Vault</p>
-                    <p class="slogan">Archive Repository // Sector 7G</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <!-- Vault status -->
-                <div class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.12)">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--teal)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                    <p class="orbit font-bold text-teal" style="font-size:0.58rem;letter-spacing:0.1em" x-text="vaultStatus"></p>
-                </div>
-                <!-- Upload director only -->
-                <template x-if="isDirector">
-                    <label class="btn btn-gold px-3 py-2 rounded-xl cursor-pointer" style="font-size:0.6rem;min-height:unset" :class="isUploading?'opacity-50':''">
-                        <svg x-show="!isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        <svg x-show="isUploading" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        <span x-text="isUploading?'Archiving...':'Archive Data'"></span>
-                        <input type="file" @change="handleUpload($event)" class="hidden" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.mp4,.mov,.zip" :disabled="isUploading">
-                    </label>
-                </template>
-                <button @click="logout()" class="btn btn-red p-2 rounded-xl" style="min-height:unset;padding:7px">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                </button>
-            </div>
+<!-- SEARCH -->
+<div class="search-wrap">
+  <input type="text" class="search-input" id="searchInput" placeholder="🔍 SEARCH SESSIONS..." oninput="filterSessions()">
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-tabs">
+  <button class="ftab active" onclick="setFilter('all',this)">ALL SESSIONS</button>
+  <button class="ftab" onclick="setFilter('2026',this)">2026</button>
+  <button class="ftab" onclick="setFilter('video',this)">HAS VIDEO</button>
+  <button class="ftab" onclick="setFilter('photos',this)">HAS PHOTOS</button>
+</div>
+
+<!-- SESSIONS LIST -->
+<div class="sessions-list" id="sessionsList"></div>
+
+<div class="bottom-nav">
+  <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
+  <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+  <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
+  <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+</div>
+
+<script>
+// Sessions load from Supabase in production
+// Wire up: sb.from('events').select('*,media(count),tickets(count)').eq('status','completed')
+const sessions = [];
+
+let activeFilter = 'all';
+let searchTerm = '';
+
+function getFiltered() {
+  return sessions.filter(s => {
+    const matchSearch = !searchTerm || s.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchFilter = activeFilter === 'all'
+      || (activeFilter === '2026' && s.year === 2026)
+      || (activeFilter === 'video' && s.hasVideo)
+      || (activeFilter === 'photos' && s.photoCount > 0);
+    return matchSearch && matchFilter;
+  });
+}
+
+function renderSessions() {
+  const filtered = getFiltered();
+  const list = document.getElementById('sessionsList');
+  document.getElementById('archiveCount').textContent = filtered.length + ' SESSION' + (filtered.length !== 1 ? 'S' : '');
+
+  if (sessions.length === 0) {
+    list.innerHTML = `
+      <div class="empty-archive">
+        <div class="empty-icon">🗂️</div>
+        <div class="empty-title">ARCHIVES EMPTY</div>
+        <div class="empty-sub">
+          COMPLETED SESSIONS WILL APPEAR HERE<br>
+          ONCE THE DIRECTORATE MARKS EVENTS AS COMPLETE<br>
+          AND UPLOADS MEDIA TO THE VAULT
         </div>
+      </div>`;
+    return;
+  }
 
-        <!-- Upload progress -->
-        <template x-if="uploadProgress>0">
-            <div class="upload-bar mx-4 sm:mx-6 mb-2">
-                <div class="upload-fill" :style="'width:'+uploadProgress+'%'"></div>
-            </div>
-        </template>
-        <div class="gold-line" style="opacity:0.2"></div>
-    </nav>
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-archive">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">NO RESULTS FOUND</div>
+        <div class="empty-sub">TRY A DIFFERENT SEARCH TERM OR FILTER</div>
+      </div>`;
+    return;
+  }
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
-
-        <!-- Header -->
-        <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <p class="orbit font-bold text-gold uppercase" style="font-size:0.65rem;letter-spacing:0.15em">Secure Directory</p>
-            </div>
-            <p class="mono text-gray-600" style="font-size:0.58rem" x-text="files.length+' documents found'"></p>
+  list.innerHTML = filtered.map((s, i) => `
+    <div class="session-card" id="card-${i}" onclick="toggleCard(${i})">
+      <div class="session-header">
+        <div class="session-num">0${i+1}</div>
+        <div class="session-info">
+          <div class="session-title">${s.title}</div>
+          <div class="session-date">📅 ${s.date} · 📍 ${s.location}</div>
+          <div class="session-meta">
+            ${s.photoCount > 0 ? `<span class="smeta smeta-photos">📸 ${s.photoCount} PHOTOS</span>` : ''}
+            ${s.hasVideo ? `<span class="smeta smeta-video">🎬 VIDEO</span>` : ''}
+            ${s.attendees > 0 ? `<span class="smeta smeta-attendees">👥 ${s.attendees}</span>` : ''}
+          </div>
         </div>
-
-        <!-- Loading -->
-        <template x-if="isLoading">
-            <div class="flex items-center justify-center py-16 gap-3">
-                <div style="width:28px;height:28px;border:3px solid transparent;border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite"></div>
-                <p class="orbit text-xs text-gold tracking-widest">Decrypting Contents...</p>
-            </div>
-        </template>
-
-        <!-- Files -->
-        <template x-if="!isLoading">
-            <div class="space-y-3">
-                <!-- Empty state -->
-                <template x-if="!files.length">
-                    <div class="flex flex-col items-center justify-center py-24 gap-4 rounded-3xl" style="opacity:0.2;border:2px dashed rgba(212,175,55,0.2)">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--gold)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <p class="orbit text-sm uppercase tracking-widest" style="color:var(--gold)">Vault Records Purged or Encrypted</p>
-                        <p class="mono text-gray-600" style="font-size:0.58rem" x-show="isDirector">Use Archive Data to add documents to the vault</p>
-                    </div>
-                </template>
-
-                <template x-for="file in files" :key="file.id">
-                    <div class="file-row glass p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <!-- File info -->
-                        <div class="flex items-center gap-4 flex-1 min-w-0">
-                            <!-- Icon -->
-                            <div class="p-3 rounded-xl flex-shrink-0" style="background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.1)">
-                                <i :data-lucide="fileIcon(file.type)" class="w-5 h-5" :class="fileIconClass(file.type)"></i>
-                            </div>
-                            <!-- Details -->
-                            <div class="flex-1 min-w-0">
-                                <p class="orbit font-bold text-white uppercase truncate" style="font-size:0.75rem" x-text="file.name"></p>
-                                <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                                    <span class="orbit font-bold px-2 py-0.5 rounded" style="font-size:0.52rem" :class="classificationClass(file.classification)" x-text="file.classification||'CONFIDENTIAL'"></span>
-                                    <span class="mono text-gray-600" style="font-size:0.56rem" x-text="file.size||'—'"></span>
-                                    <span class="mono text-gray-700" style="font-size:0.54rem" x-text="timeAgo(file.created_at)"></span>
-                                    <span x-show="file.type" class="mono text-gray-700 uppercase" style="font-size:0.52rem" x-text="'.'+file.type"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <a :href="file.url" :download="file.name" class="btn btn-gold p-2.5 rounded-xl" style="min-height:unset" title="Download">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            </a>
-                            <a :href="file.url" target="_blank" class="btn btn-teal p-2.5 rounded-xl" style="min-height:unset" title="Preview">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            </a>
-                            <template x-if="isDirector">
-                                <button @click="redactFile(file.id)" class="btn btn-red p-2.5 rounded-xl" style="min-height:unset" title="Redact Document">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                                </button>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </template>
-
-        <!-- Quick nav -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-8">
-            <template x-for="node in [
-                {label:'Hub',       url:'../index.html',  icon:'layout-grid'},
-                {label:'Dossier',   url:'dossier.html',   icon:'shield-check'},
-                {label:'Gallery',   url:'gallery.html',   icon:'camera'},
-                {label:'Frequency', url:'frequency.html', icon:'activity'},
-                {label:'Dispatch',  url:'dispatch.html',  icon:'radio'}
-            ]" :key="node.url">
-                <a :href="node.url" class="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all" style="background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.08)" onmouseover="this.style.borderColor='rgba(212,175,55,0.3)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.08)'">
-                    <i :data-lucide="node.icon" class="text-gold" style="width:20px;height:20px"></i>
-                    <span class="orbit font-bold text-white uppercase" style="font-size:0.56rem" x-text="node.label"></span>
-                </a>
-            </template>
+        <div class="expand-icon">▾</div>
+      </div>
+      <div class="session-body">
+        <div class="session-preview">${s.hasVideo ? '🎬' : '📸'}</div>
+        <div class="session-actions">
+          <a href="gallery.html" class="sact-btn sact-gallery">📸 VIEW GALLERY</a>
+          <a href="dispatch.html" class="sact-btn sact-chat">💬 SESSION CHAT</a>
         </div>
-    </main>
+        ${s.notes ? `<div class="session-notes">${s.notes}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
 
-        <footer class="text-center py-6 mt-4" style="">
-        <div class="gold-line mb-5" style="opacity:0.12"></div>
+  // Update stats
+  document.getElementById('totalSessions').textContent = sessions.length;
+  document.getElementById('totalMedia').textContent = sessions.reduce((s,x) => s + x.photoCount + (x.hasVideo ? 1 : 0), 0);
+  document.getElementById('totalAttendees').textContent = sessions.reduce((s,x) => s + (x.attendees || 0), 0);
+}
 
-        <!-- Social + contact icons -->
-        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-                <a href="https://tiktok.com/@ministryofgroove" target="_blank" rel="noopener noreferrer" aria-label="TikTok" title="TikTok" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#fff';this.style.borderColor='#fff';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/></svg></a>
-                <a href="https://www.facebook.com/share/1ELj9aECsQ/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#1877f2';this.style.borderColor='#1877f2';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-                <a href="https://www.instagram.com/ministryofgroove_hq" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#e1306c';this.style.borderColor='#e1306c';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
-                <a href="https://www.youtube.com/@MinistryofGroove-m1q" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#ff0000';this.style.borderColor='#ff0000';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
-                <a href="https://wa.me/27813874921" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='#25d366';this.style.borderColor='#25d366';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
-                <a href="/cdn-cgi/l/email-protection#bfdbd6cddadccbd0cd91d2d0d8ffd8d2ded6d391dcd0d2" target="_blank" rel="noopener noreferrer" aria-label="Email" title="Email" style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;border:1px solid rgba(212,175,55,0.15);color:rgba(255,255,255,0.55);transition:all 0.2s ease;background:rgba(0,0,0,0.4);" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)';this.style.background='rgba(255,255,255,0.05)';this.style.transform='translateY(-2px)'" onmouseout="this.style.color='rgba(255,255,255,0.55)';this.style.borderColor='rgba(212,175,55,0.15)';this.style.background='rgba(0,0,0,0.4)';this.style.transform=''"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></a>
-        </div>
+function toggleCard(i) {
+  const card = document.getElementById('card-' + i);
+  card.classList.toggle('expanded');
+}
 
-        <!-- Contact line -->
-        <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;margin-bottom:10px">
-            <a href="/cdn-cgi/l/email-protection#d1b5b8a3b4b2a5bea3ffbcbeb691b6bcb0b8bdffb2bebc" style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(212,175,55,0.55);letter-spacing:0.1em;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='rgba(212,175,55,0.55)'">
-                <span class="__cf_email__" data-cfemail="75111c071016011a075b181a12351218141c195b161a18">[email&#160;protected]</span>
-            </a>
-            <span style="color:rgba(212,175,55,0.2);font-size:0.5rem">◆</span>
-            <a href="https://wa.me/27813874921" target="_blank" rel="noopener noreferrer"
-               style="font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(37,211,102,0.6);letter-spacing:0.1em;text-decoration:none;transition:color 0.2s"
-               onmouseover="this.style.color='#25d366'" onmouseout="this.style.color='rgba(37,211,102,0.6)'">
-                +27 81 387 4921
-            </a>
-        </div>
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderSessions();
+}
 
-        <!-- Slogan + page tag -->
-        <p class="slogan mb-1">Decrypting the Culture. Synchronizing the Grid.</p>
-        <p class="mono text-gray-700" style="font-size:0.5rem;letter-spacing:0.2e
+function filterSessions() {
+  searchTerm = document.getElementById('searchInput').value.trim();
+  renderSessions();
+}
+
+renderSessions();
+</script>
+</body>
+</html>
