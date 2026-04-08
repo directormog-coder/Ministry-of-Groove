@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Dossier</title>
+<link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
@@ -122,7 +123,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
       <img src="../logo.png" alt="M.O.G." id="profileImg" onerror="this.style.display='none'">
     </div>
     <div class="p-name" id="pName">OPERATIVE</div>
-    <div class="p-email" id="pEmail">operative@gmail.com</div>
+    <div class="p-email" id="pEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="147b64716675607d6271547379757d783a777b79">[email&#160;protected]</a></div>
     <div class="p-rank">GROOVE DIVISION // RECRUIT</div>
     <div class="p-stats">
       <div class="pstat"><div class="pstat-val">2</div><div class="pstat-label">SESSIONS</div></div>
@@ -153,20 +154,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   <a href="dossier.html" class="nav-item active"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
-<script>
-// Songs data
-const songs=[
-  {id:1,title:'PIANO HUB',artist:'Kabza De Small & DJ Maphorisa',votes:312},
-  {id:2,title:'ASIBE HAPPY',artist:'Kabza De Small ft. Ami Faku',votes:287},
-  {id:3,title:'BUYILE',artist:'Young Stunna ft. Kabza De Small',votes:264},
-  {id:4,title:'SCORPION KINGS LIVE',artist:'Kabza De Small & DJ Maphorisa',votes:241},
-  {id:5,title:'LOVE LANGUAGE',artist:'Sun-EL Musician ft. Simmy',votes:198},
-  {id:6,title:'UMBALA',artist:'Musa Keys ft. Nobantu Vilakazi',votes:176},
-  {id:7,title:'SPONONO',artist:'Kabza De Small ft. Wizkid',votes:153},
-  {id:8,title:'IZINTO',artist:'Da Muziqal Chef',votes:131},
-  {id:9,title:'NGEKE',artist:'Various Artists',votes:109},
-  {id:10,title:'AMALOBOLO',artist:'Focalistic & Shakes',votes:94},
-];
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Poll songs load from Supabase in production
+// Wire up: sb.from('poll_songs').select('*').eq('week_number',currentWeek).order('votes_count',{ascending:false})
+const songs=[];
 
 let votesLeft=2;
 const votedFor=new Set();
@@ -174,6 +165,11 @@ const votedFor=new Set();
 function maxVotes(){return Math.max(...songs.map(s=>s.votes));}
 
 function renderSongs(){
+  if(songs.length===0){
+    document.getElementById('songList').innerHTML='<div style="text-align:center;padding:40px;font-family:\'Share Tech Mono\',monospace;font-size:10px;color:rgba(201,168,76,0.3);letter-spacing:3px;">POLL NOT YET OPEN<br><span style="opacity:0.5;font-size:9px">DIRECTORATE WILL PUBLISH THE TOP 10 SOON</span></div>';
+    document.getElementById('votesLeftEl').textContent='POLL PENDING';
+    return;
+  }
   const sorted=[...songs].sort((a,b)=>b.votes-a.votes);
   const max=maxVotes();
   document.getElementById('songList').innerHTML=sorted.map((s,i)=>{
@@ -245,7 +241,7 @@ function saveProfile(){
 function logout(){
   if(confirm('Terminate operative session?')){
     sessionStorage.clear();
-    window.location.href='../login.html';
+      window.location.href='../login.html';
   }
 }
 
