@@ -8,15 +8,20 @@
 <title>M.O.G. | DIRECTORATE COMMAND</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
-<link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--red:#FF3B3B;--green:#00C853;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.95);--border:rgba(201,168,76,0.2);--border-teal:rgba(0,229,204,0.15);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── BG ── */
 .bg-vfx{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(circle,black,transparent 85%);}
 .scanlines{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);}
+.directorate-seal-wrap{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;width:clamp(240px,55vmin,480px);height:clamp(240px,55vmin,480px);}
+.directorate-seal-wrap img{width:100%;height:100%;object-fit:contain;opacity:0.04;animation:sealPulse 8s ease-in-out infinite;}
+@keyframes sealPulse{0%,100%{opacity:0.04}50%{opacity:0.065}}
 
 /* ── SCREENS ── */
 .screen{display:none;position:relative;z-index:10;}
@@ -24,25 +29,26 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .screen-full{display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;}
 .screen-full.active{display:flex;}
 
+/* ── LOADING ── */
+.loading-screen{background:var(--black);}
+.loading-seal{width:110px;height:110px;border-radius:50%;object-fit:cover;margin-bottom:20px;border:2px solid var(--gold);box-shadow:0 0 30px rgba(201,168,76,0.4);animation:sealGlow 2s ease-in-out infinite;}
+@keyframes sealGlow{0%,100%{box-shadow:0 0 20px rgba(201,168,76,0.4)}50%{box-shadow:0 0 50px rgba(201,168,76,0.7),0 0 80px rgba(0,229,204,0.2)}}
+.spinner{width:40px;height:40px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;display:none;}
+@keyframes rot{to{transform:rotate(360deg)}}
+.loading-text{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:5px;color:var(--gold);margin-top:4px;}
+.loading-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:3px;margin-top:8px;}
+
 /* ── ACCESS DENIED ── */
 .denied-card{background:var(--panel);border:1px solid rgba(255,59,59,0.4);border-radius:10px;padding:40px 32px;max-width:400px;width:100%;}
 .denied-icon{font-size:52px;margin-bottom:16px;}
 .denied-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--red);letter-spacing:4px;margin-bottom:10px;}
 .denied-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:2px;line-height:1.8;margin-bottom:24px;}
 .denied-btn{display:block;width:100%;padding:13px;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--red);letter-spacing:3px;cursor:pointer;text-decoration:none;text-align:center;transition:all 0.2s;}
-.denied-btn:hover{background:rgba(255,59,59,0.2);}
 
-/* ── LOADING ── */
-.loading-screen{background:var(--black);}
-.spinner{width:58px;height:58px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;margin-bottom:24px;}
-@keyframes rot{to{transform:rotate(360deg)}}
-.loading-text{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:5px;color:var(--gold);}
-.loading-sub{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:3px;margin-top:8px;}
-
-/* ── TOP NAV ── */
+/* ── NAV ── */
 .command-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.99);border-bottom:1px solid var(--gold);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(20px);}
 .brand{display:flex;align-items:center;gap:14px;}
-.brand-logo{width:42px;height:42px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 14px rgba(201,168,76,0.35);object-fit:cover;}
+.brand-logo{width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 16px rgba(201,168,76,0.45);object-fit:cover;}
 .brand-text h1{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;color:var(--gold-light);letter-spacing:3px;}
 .clock{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-top:2px;}
 .nav-right{display:flex;align-items:center;gap:10px;}
@@ -50,18 +56,15 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .exit-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);border:1px solid var(--border);padding:8px 14px;border-radius:3px;background:none;cursor:pointer;transition:all 0.2s;text-decoration:none;}
 .exit-btn:hover{color:var(--gold);border-color:var(--gold);}
 
-/* ── TAB NAV ── */
+/* ── TABS ── */
 .tab-nav{background:rgba(5,10,14,0.95);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:63px;z-index:99;backdrop-filter:blur(10px);}
 .tab-nav::-webkit-scrollbar{display:none;}
-.tab-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;padding:14px 18px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;flex-shrink:0;}
+.tab-btn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;padding:14px 16px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;flex-shrink:0;}
 .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,0.04);}
-.tab-btn:hover:not(.active){color:var(--gold-light);}
-
-/* ── TAB SECTIONS ── */
 .tab-section{display:none;padding:20px;}
 .tab-section.active{display:block;}
 
-/* ── STATS RIBBON ── */
+/* ── STATS ── */
 .stats-ribbon{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
 @media(max-width:800px){.stats-ribbon{grid-template-columns:1fr 1fr;}}
 .stat-card{background:var(--panel);border:1px solid var(--border);padding:18px;border-radius:8px;position:relative;overflow:hidden;}
@@ -90,32 +93,65 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .btn:disabled{opacity:0.4;cursor:not-allowed;}
 .btn-sm{padding:7px 12px;font-size:8px;}
 .btn-danger{color:var(--red);border-color:rgba(255,59,59,0.25);background:rgba(255,59,59,0.04);}
-.btn-danger:hover{background:var(--red);color:#fff;box-shadow:0 0 20px rgba(255,59,59,0.3);}
+.btn-danger:hover{background:var(--red);color:#fff;}
 .btn-danger.on{background:var(--red);color:#fff;border-color:var(--red);animation:pulseRed 1.5s infinite;}
 .btn-teal{color:var(--teal);border-color:var(--border-teal);background:rgba(0,229,204,0.04);}
-.btn-teal:hover{background:var(--teal);color:var(--black);box-shadow:0 0 20px rgba(0,229,204,0.25);}
+.btn-teal:hover{background:var(--teal);color:var(--black);}
 .btn-green{color:var(--green);border-color:rgba(0,200,83,0.25);background:rgba(0,200,83,0.04);}
 .btn-green:hover{background:var(--green);color:var(--black);}
 .btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
-.btn-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;}
 @keyframes pulseRed{0%{box-shadow:0 0 0 0 rgba(255,59,59,0.6)}70%{box-shadow:0 0 0 12px rgba(255,59,59,0)}100%{box-shadow:0 0 0 0 rgba(255,59,59,0)}}
 
-/* ── FORM INPUTS ── */
+/* ── INPUTS ── */
 .inp{background:rgba(13,31,45,0.8);border:1px solid var(--border-teal);padding:11px 14px;border-radius:4px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;transition:border 0.2s;width:100%;}
 .inp:focus{border-color:var(--teal);}
 .inp::placeholder{color:rgba(255,255,255,0.2);}
 .field{margin-bottom:12px;}
 .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
-@media(max-width:600px){.field-row,.field-row-3{grid-template-columns:1fr;}}
+@media(max-width:600px){.field-row{grid-template-columns:1fr;}}
+
+/* ── UPLOAD ZONES ── */
+.upload-zone{border:1px dashed rgba(201,168,76,0.3);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,0,0,0.15);}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
+.upload-icon{font-size:32px;margin-bottom:8px;}
+.upload-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;line-height:1.7;}
+.upload-label.ready{color:var(--gold);}
+.upload-progress{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:10px;overflow:hidden;display:none;}
+.upload-progress.show{display:block;}
+.upload-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;width:0%;transition:width 0.3s;}
+
+/* ── CONTENT UPLOAD TABS ── */
+.upload-type-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.utab{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:8px 14px;border:1px solid var(--border);border-radius:4px;color:var(--gold-dim);background:none;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.utab.active{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.1);}
+.upload-form{display:none;}
+.upload-form.active{display:block;}
+
+/* ── WARNING BOX ── */
+.warn-box{background:rgba(255,59,59,0.06);border:1px solid rgba(255,59,59,0.2);border-radius:6px;padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,180,180,0.7);letter-spacing:1px;line-height:1.8;margin-bottom:14px;}
+.info-box{background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:6px;padding:12px 14px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(0,229,204,0.6);letter-spacing:1px;line-height:1.8;margin-bottom:14px;}
+.copyright-confirm{display:flex;align-items:flex-start;gap:10px;padding:12px;background:rgba(201,168,76,0.04);border:1px solid var(--border);border-radius:4px;margin-bottom:14px;}
+.copyright-confirm input[type=checkbox]{margin-top:2px;accent-color:var(--teal);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
+.copyright-confirm label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;line-height:1.7;cursor:pointer;}
+
+/* ── BROADCAST ── */
+.video-feed{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-teal);}
+.radar{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.1),transparent 30%);animation:rot 4s linear infinite;}
+.feed-content{z-index:5;text-align:center;}
+.feed-seal{width:80px;height:80px;object-fit:contain;opacity:0.4;display:block;margin:0 auto 10px;}
+.feed-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
+.live-overlay{position:absolute;inset:0;z-index:8;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,0.5);}
+.live-overlay.show{display:flex;}
+.live-pill{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;padding:8px 24px;letter-spacing:4px;border-radius:3px;animation:livePulse 1s ease infinite;}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
 
 /* ── TABLES ── */
+.data-table-wrap{overflow-x:auto;}
 .data-table{width:100%;border-collapse:collapse;font-size:12px;}
 .data-table th{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
 .data-table td{padding:11px 12px;border-bottom:1px solid rgba(201,168,76,0.06);color:rgba(255,255,255,0.8);vertical-align:middle;}
 .data-table tr:hover td{background:rgba(201,168,76,0.03);}
-.data-table-wrap{overflow-x:auto;}
 .rank-tag{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:3px 8px;border-radius:2px;}
 .rank-admin{background:rgba(201,168,76,0.2);color:var(--gold);border:1px solid var(--gold);}
 .rank-director{background:rgba(240,200,90,0.15);color:var(--gold-light);border:1px solid var(--gold-light);}
@@ -124,16 +160,15 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .rank-recruit{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);}
 .status-paid{color:var(--green);font-family:'Share Tech Mono',monospace;font-size:9px;}
 .status-pending{color:var(--gold);font-family:'Share Tech Mono',monospace;font-size:9px;}
-.status-failed{color:var(--red);font-family:'Share Tech Mono',monospace;font-size:9px;}
 .status-active{color:var(--green);font-family:'Share Tech Mono',monospace;font-size:9px;}
 .status-cancelled{color:var(--red);font-family:'Share Tech Mono',monospace;font-size:9px;}
 
 /* ── LOGS ── */
-.log-wrap{height:320px;overflow-y:auto;padding-right:6px;}
+.log-wrap{height:300px;overflow-y:auto;padding-right:6px;}
 .log-wrap::-webkit-scrollbar{width:3px;}
 .log-wrap::-webkit-scrollbar-thumb{background:var(--border);}
-.log-item{padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.75);display:flex;gap:12px;align-items:flex-start;}
-.log-ts{color:var(--teal-dim);font-size:9px;white-space:nowrap;margin-top:1px;flex-shrink:0;}
+.log-item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.75);}
+.log-ts{color:var(--teal-dim);font-size:9px;white-space:nowrap;flex-shrink:0;}
 .log-dot{width:6px;height:6px;border-radius:50%;margin-top:4px;flex-shrink:0;}
 .dot-info{background:var(--teal);}
 .dot-upload{background:var(--gold);}
@@ -141,49 +176,22 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .dot-membership{background:var(--gold-light);}
 .dot-alert{background:var(--red);}
 .dot-lockdown{background:var(--red);animation:pulseRed 1s infinite;}
-.empty-state{text-align:center;padding:40px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:3px;}
+.empty-state{text-align:center;padding:30px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;}
 
-/* ── UPLOAD ── */
-.upload-zone{border:1px dashed rgba(201,168,76,0.3);border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,0,0,0.15);}
-.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
-.upload-icon{font-size:36px;margin-bottom:10px;}
-.upload-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
-.upload-label.ready{color:var(--gold);}
-.upload-progress{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:12px;overflow:hidden;display:none;}
-.upload-progress.show{display:block;}
-.upload-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));width:0%;border-radius:2px;transition:width 0.3s;}
+/* ── MEDIA ITEM ── */
+.media-item{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid var(--teal);margin-bottom:8px;}
+.media-item.photo{border-left-color:var(--gold);}
 
-/* ── BROADCAST SCREEN ── */
-.video-feed{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-teal);}
-.radar{position:absolute;width:200%;height:200%;top:-50%;left:-50%;background:conic-gradient(from 0deg,transparent,rgba(0,229,204,0.1),transparent 30%);animation:rot 4s linear infinite;}
-.feed-content{z-index:5;text-align:center;}
-.feed-icon-big{font-size:48px;display:block;margin-bottom:10px;}
-.feed-label{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;}
-.live-overlay{position:absolute;inset:0;z-index:8;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:rgba(0,0,0,0.5);}
-.live-overlay.show{display:flex;}
-.live-pill{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;padding:8px 24px;letter-spacing:4px;border-radius:3px;animation:livePulse 1s ease infinite;}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
-
-/* ── OPERATIVE ROWS ── */
-.op-row{display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.2);padding:11px 14px;border-radius:6px;margin-bottom:8px;border-left:2px solid var(--teal);transition:background 0.2s;}
-.op-row:hover{background:rgba(201,168,76,0.04);}
-.op-av{width:34px;height:34px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;}
-.op-info{flex:1;min-width:0;}
-.op-name{font-size:13px;font-weight:700;color:#e0e0e0;letter-spacing:1px;}
-.op-email{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.op-online{width:8px;height:8px;background:var(--teal);border-radius:50%;box-shadow:0 0 6px var(--teal);flex-shrink:0;}
-
-/* ── TICKET CHECKIN ── */
-.checkin-result{padding:16px;border-radius:6px;margin-top:12px;display:none;}
+/* ── CHECKIN ── */
+.checkin-result{padding:14px;border-radius:6px;margin-top:12px;display:none;}
 .checkin-result.show{display:block;}
 .checkin-valid{background:rgba(0,200,83,0.1);border:1px solid rgba(0,200,83,0.3);}
 .checkin-invalid{background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);}
-.checkin-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;margin-bottom:8px;}
-.cv-title{color:var(--green);}
-.ci-title{color:var(--red);}
+.cv-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--green);letter-spacing:2px;margin-bottom:8px;}
+.ci-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--red);letter-spacing:2px;margin-bottom:8px;}
 .checkin-detail{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:1px;line-height:1.8;}
 
-/* ── REVENUE BARS ── */
+/* ── REV BARS ── */
 .rev-item{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .rev-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:1px;width:80px;flex-shrink:0;}
 .rev-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
@@ -194,21 +202,37 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 .rev-amount{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);width:60px;text-align:right;flex-shrink:0;}
 
 /* ── MODAL ── */
-.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.94);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.95);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
 .modal.open{display:flex;}
 .modal-box{width:100%;max-width:460px;background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;}
 .modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
-.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all 0.2s;}
-.modal-close:hover{border-color:var(--gold);}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;}
 .modal-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center;}
+
+/* ── LEGAL ── */
+.legal-block{background:rgba(255,59,59,0.04);border:1px solid rgba(255,59,59,0.15);border-radius:6px;padding:16px;margin-bottom:16px;}
+.legal-block-title{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:10px;}
+.legal-row{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;line-height:1.9;color:rgba(255,255,255,0.55);}
+.legal-row strong{color:var(--gold-light);}
+.legal-row a{color:var(--teal);text-decoration:none;}
+.legal-links-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.legal-link-btn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1px;padding:5px 10px;border-radius:3px;border:1px solid var(--border);color:var(--teal-dim);text-decoration:none;transition:all 0.2s;}
+.legal-link-btn:hover{border-color:var(--teal);color:var(--teal);}
+
+@media(max-width:1000px){.dash-grid{grid-template-columns:1fr!important;}.stats-ribbon{grid-template-columns:1fr 1fr!important;}}
+[x-cloak]{display:none!important;}
 </style>
 </head>
 <body>
 <div class="bg-vfx"><div class="grid-bg"></div><div class="scanlines"></div></div>
+<div class="directorate-seal-wrap" aria-hidden="true">
+  <img src="assets/images/1000219947.png" alt="" onerror="this.style.display='none'">
+</div>
 
 <!-- LOADING -->
 <div class="screen-full loading-screen active" id="loadingScreen">
-  <div class="spinner"></div>
+  <img src="assets/images/1000219947.png" class="loading-seal" alt="Directorate Seal" onerror="this.style.display='none';document.getElementById('loadSpinner').style.display='block'">
+  <div class="spinner" id="loadSpinner"></div>
   <div class="loading-text">VERIFYING DIRECTOR CREDENTIALS</div>
   <div class="loading-sub" id="loadingSub">CHECKING CLEARANCE LEVEL...</div>
 </div>
@@ -218,11 +242,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   <div class="denied-card">
     <div class="denied-icon">🚫</div>
     <div class="denied-title">ACCESS DENIED</div>
-    <div class="denied-sub" id="deniedMsg">
-      DIRECTORATE CLEARANCE REQUIRED<br>
-      THIS AREA IS RESTRICTED TO<br>
-      AUTHORISED PERSONNEL ONLY
-    </div>
+    <div class="denied-sub" id="deniedMsg">DIRECTORATE CLEARANCE REQUIRED<br>THIS AREA IS RESTRICTED TO<br>AUTHORISED PERSONNEL ONLY</div>
     <a href="login.html" class="denied-btn">⇥ RETURN TO LOGIN</a>
   </div>
 </div>
@@ -233,10 +253,11 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   <!-- COMMAND BAR -->
   <nav class="command-bar">
     <div class="brand">
-      <img src="logo.png" class="brand-logo" alt="M.O.G." onerror="this.style.display='none'">
+      <img src="logo.png" class="brand-logo" alt="M.O.G."
+        onerror="this.onerror=null;this.src='assets/images/logo.png'">
       <div class="brand-text">
         <h1>DIRECTORATE COMMAND</h1>
-        <p class="clock" id="clockEl">UPLINK: SECURE // --:--:--</p>
+        <p class="clock">UPLINK: SECURE // <span id="clockEl">--:--:--</span></p>
       </div>
     </div>
     <div class="nav-right">
@@ -247,88 +268,236 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
 
   <!-- TAB NAV -->
   <div class="tab-nav">
-    <button class="tab-btn active" onclick="showTab('overview')">📊 OVERVIEW</button>
-    <button class="tab-btn" onclick="showTab('broadcast')">📡 BROADCAST</button>
-    <button class="tab-btn" onclick="showTab('media')">🎬 MEDIA VAULT</button>
-    <button class="tab-btn" onclick="showTab('tickets')">🎟️ TICKETS</button>
-    <button class="tab-btn" onclick="showTab('memberships')">👑 MEMBERSHIPS</button>
-    <button class="tab-btn" onclick="showTab('operatives')">👥 OPERATIVES</button>
-    <button class="tab-btn" onclick="showTab('polls')">🗳️ POLLS</button>
-    <button class="tab-btn" onclick="showTab('logs')">📋 LOGS</button>
-    <button class="tab-btn" onclick="showTab('settings')">⚙️ SETTINGS</button>
+    <button class="tab-btn active"  onclick="showTab('overview')">📊 OVERVIEW</button>
+    <button class="tab-btn"         onclick="showTab('upload')">⬆ UPLOAD CENTRE</button>
+    <button class="tab-btn"         onclick="showTab('broadcast')">📡 BROADCAST</button>
+    <button class="tab-btn"         onclick="showTab('tickets')">🎟️ TICKETS</button>
+    <button class="tab-btn"         onclick="showTab('memberships')">👑 MEMBERSHIPS</button>
+    <button class="tab-btn"         onclick="showTab('operatives')">👥 OPERATIVES</button>
+    <button class="tab-btn"         onclick="showTab('polls')">🗳️ POLLS</button>
+    <button class="tab-btn"         onclick="showTab('logs')">📋 LOGS</button>
+    <button class="tab-btn"         onclick="showTab('settings')">⚙️ SETTINGS</button>
   </div>
 
-  <!-- ══ OVERVIEW TAB ══ -->
+  <!-- ══ OVERVIEW ══ -->
   <div class="tab-section active" id="tab-overview">
     <div class="stats-ribbon">
-      <div class="stat-card">
-        <div class="stat-label">TOTAL REVENUE</div>
-        <div class="stat-value sv-gold" id="statRevenue">R0</div>
-        <div class="stat-sub">TICKETS + MEMBERSHIPS</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">TOTAL OPERATIVES</div>
-        <div class="stat-value sv-teal" id="statOperatives">0</div>
-        <div class="stat-sub">REGISTERED USERS</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">TICKETS SOLD</div>
-        <div class="stat-value sv-green" id="statTickets">0</div>
-        <div class="stat-sub">ALL EVENTS</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">ACTIVE MEMBERS</div>
-        <div class="stat-value sv-gold" id="statMembers">0</div>
-        <div class="stat-sub">PAID PLANS</div>
-      </div>
+      <div class="stat-card"><div class="stat-label">TOTAL REVENUE</div><div class="stat-value sv-gold" id="statRevenue">R0</div><div class="stat-sub">TICKETS + MEMBERSHIPS</div></div>
+      <div class="stat-card"><div class="stat-label">TOTAL OPERATIVES</div><div class="stat-value sv-teal" id="statOperatives">0</div><div class="stat-sub">REGISTERED USERS</div></div>
+      <div class="stat-card"><div class="stat-label">TICKETS SOLD</div><div class="stat-value sv-green" id="statTickets">0</div><div class="stat-sub">ALL EVENTS</div></div>
+      <div class="stat-card"><div class="stat-label">ACTIVE MEMBERS</div><div class="stat-value sv-gold" id="statMembers">0</div><div class="stat-sub">PAID PLANS</div></div>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;" class="dash-grid">
       <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">// REVENUE BREAKDOWN</div>
-          <div class="panel-badge pb-green" id="revenueMonth">THIS MONTH</div>
-        </div>
-        <div class="rev-item">
-          <div class="rev-label">TICKETS</div>
-          <div class="rev-bar-wrap"><div class="rev-bar rev-gold" id="revBarTickets" style="width:0%"></div></div>
-          <div class="rev-amount" id="revTicketAmt">R0</div>
-        </div>
-        <div class="rev-item">
-          <div class="rev-label">MEMBERSHIPS</div>
-          <div class="rev-bar-wrap"><div class="rev-bar rev-teal" id="revBarMembers" style="width:0%"></div></div>
-          <div class="rev-amount" id="revMemberAmt">R0</div>
-        </div>
-        <div class="rev-item">
-          <div class="rev-label">BOOKING FEES</div>
-          <div class="rev-bar-wrap"><div class="rev-bar rev-green" id="revBarFees" style="width:0%"></div></div>
-          <div class="rev-amount" id="revFeeAmt">R0</div>
-        </div>
+        <div class="panel-head"><div class="panel-title">// REVENUE BREAKDOWN</div></div>
+        <div class="rev-item"><div class="rev-label">TICKETS</div><div class="rev-bar-wrap"><div class="rev-bar rev-gold" id="revBarTickets" style="width:0%"></div></div><div class="rev-amount" id="revTicketAmt">R0</div></div>
+        <div class="rev-item"><div class="rev-label">MEMBERSHIPS</div><div class="rev-bar-wrap"><div class="rev-bar rev-teal" id="revBarMembers" style="width:0%"></div></div><div class="rev-amount" id="revMemberAmt">R0</div></div>
+        <div class="rev-item"><div class="rev-label">BOOKING FEES</div><div class="rev-bar-wrap"><div class="rev-bar rev-green" id="revBarFees" style="width:0%"></div></div><div class="rev-amount" id="revFeeAmt">R0</div></div>
       </div>
       <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">// MEMBERSHIP SPLIT</div>
-        </div>
-        <div id="memberSplit">
-          <div class="empty-state" style="padding:20px;">LOADING...</div>
-        </div>
+        <div class="panel-head"><div class="panel-title">// MEMBERSHIP SPLIT</div></div>
+        <div id="memberSplit"><div class="empty-state" style="padding:20px">NO DATA YET</div></div>
       </div>
     </div>
-
     <div class="panel">
-      <div class="panel-head">
-        <div class="panel-title">// RECENT ACTIVITY</div>
-        <button class="btn btn-sm" onclick="loadLogs()">↺ REFRESH</button>
+      <div class="panel-head"><div class="panel-title">// RECENT ACTIVITY</div><button class="btn btn-sm" onclick="loadLogs()">↺ REFRESH</button></div>
+      <div class="log-wrap" id="overviewLogs"><div class="empty-state">LOADING LOGS...</div></div>
+    </div>
+  </div>
+
+  <!-- ══ UPLOAD CENTRE ══ -->
+  <div class="tab-section" id="tab-upload">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">// DIRECTORATE UPLOAD CENTRE</div>
+            <div class="panel-badge pb-teal">ADMIN ONLY</div>
+          </div>
+
+          <!-- CONTENT TYPE TABS -->
+          <div class="upload-type-tabs">
+            <button class="utab active" onclick="switchUploadType('media',this)">🎬 SESSION MEDIA</button>
+            <button class="utab" onclick="switchUploadType('event',this)">📅 CREATE EVENT</button>
+            <button class="utab" onclick="switchUploadType('poll',this)">🗳️ POLL SONGS</button>
+            <button class="utab" onclick="switchUploadType('announcement',this)">📣 ANNOUNCEMENT</button>
+          </div>
+
+          <!-- ── MEDIA UPLOAD ── -->
+          <div class="upload-form active" id="uform-media">
+            <div class="info-box">
+              📸 Upload photos and videos from your sessions.<br>
+              Supported: JPG, PNG, MP4, MOV, WebP · Max 500MB per file.
+            </div>
+            <div class="upload-zone" id="uploadZone"
+              onclick="document.getElementById('fileIn').click()"
+              ondragover="event.preventDefault();this.classList.add('dragover')"
+              ondragleave="this.classList.remove('dragover')"
+              ondrop="handleDrop(event)">
+              <div class="upload-icon">📁</div>
+              <div class="upload-label" id="uploadLabel">CLICK OR DRAG FILES HERE<br><span style="font-size:8px;opacity:0.5">PHOTOS & VIDEOS — MAX 500MB</span></div>
+              <div class="upload-progress" id="uploadProgress"><div class="upload-fill" id="uploadFill"></div></div>
+              <input type="file" id="fileIn" accept="image/*,video/*" style="display:none" multiple onchange="filesChosen(this)">
+            </div>
+            <div class="field-row" style="margin-top:14px;">
+              <div class="field"><label>TITLE *</label><input type="text" id="sessTitle" class="inp" placeholder="e.g. SESSION 03 HIGHLIGHTS" maxlength="80"></div>
+              <div class="field"><label>SESSION TAG *</label>
+                <select id="sessTag" class="inp">
+                  <option value="">SELECT SESSION</option>
+                  <option value="session01">SESSION 01</option>
+                  <option value="session02">SESSION 02</option>
+                  <option value="session03">SESSION 03</option>
+                  <option value="session04">SESSION 04</option>
+                  <option value="session05">SESSION 05</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>MEDIA TYPE</label>
+                <select id="mediaType" class="inp">
+                  <option value="photo">📸 Photo</option>
+                  <option value="video">🎬 Video</option>
+                </select>
+              </div>
+              <div class="field"><label>ACCESS LEVEL</label>
+                <select id="mediaAccess" class="inp">
+                  <option value="free">🔓 All Operatives (Free)</option>
+                  <option value="premium">🔒 Paid Members Only</option>
+                </select>
+              </div>
+            </div>
+            <div class="copyright-confirm">
+              <input type="checkbox" id="mediaRightsConfirm">
+              <label for="mediaRightsConfirm">
+                I confirm I own or have permission to publish this media content.
+                This content was created by or for Ministry of Groove.
+                <strong style="color:var(--teal)">No copyrighted third-party music is audible in any uploaded video.</strong>
+                If background music is present, I hold a valid SAMRO/RISA licence.
+              </label>
+            </div>
+            <button class="btn btn-teal" style="width:100%" onclick="uploadAsset()">⬆ DEPLOY TO VAULT</button>
+          </div>
+
+          <!-- ── CREATE EVENT ── -->
+          <div class="upload-form" id="uform-event">
+            <div class="info-box">
+              📅 Create a new event. Ticket tiers are added here.<br>
+              Location is hidden until ticket purchase.
+            </div>
+            <div class="field"><label>EVENT TITLE *</label><input type="text" id="evTitle" class="inp" placeholder="AMAPIANO SESSIONS VOL.4" maxlength="80"></div>
+            <div class="field"><label>DESCRIPTION</label><textarea id="evDesc" class="inp" rows="2" placeholder="Event description for operatives..." style="resize:vertical;"></textarea></div>
+            <div class="field-row">
+              <div class="field"><label>DATE & TIME *</label><input type="datetime-local" id="evDate" class="inp"></div>
+              <div class="field"><label>DOORS OPEN</label><input type="time" id="evDoors" class="inp" value="18:00"></div>
+            </div>
+            <div class="field"><label>PUBLIC LOCATION (shown before purchase)</label><input type="text" id="evLocation" class="inp" placeholder="LOCATION CLASSIFIED" maxlength="100"></div>
+            <div class="field"><label>FULL LOCATION (revealed on ticket after purchase)</label><input type="text" id="evLocationFull" class="inp" placeholder="123 Groove Street, Emalahleni" maxlength="150"></div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold);letter-spacing:2px;margin:14px 0 10px;">TICKET TIERS</div>
+            <div class="field-row">
+              <div class="field"><label>VIP PRICE (R)</label><input type="number" id="evVIPPrice" class="inp" placeholder="350" min="0"></div>
+              <div class="field"><label>VIP QUANTITY</label><input type="number" id="evVIPQty" class="inp" placeholder="50" min="0"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>GENERAL PRICE (R)</label><input type="number" id="evGenPrice" class="inp" placeholder="150" min="0"></div>
+              <div class="field"><label>GENERAL QUANTITY</label><input type="number" id="evGenQty" class="inp" placeholder="150" min="0"></div>
+            </div>
+            <button class="btn btn-teal" style="width:100%;margin-top:4px;" onclick="createEvent()">✓ CREATE EVENT + TICKETS</button>
+          </div>
+
+          <!-- ── POLL SONGS ── -->
+          <div class="upload-form" id="uform-poll">
+            <div class="legal-block">
+              <div class="legal-block-title">⚖️ MUSIC RIGHTS — READ BEFORE ADDING SONGS</div>
+              <div class="legal-row">
+                <strong>✅ YOU MAY:</strong> List song titles &amp; artist names for fan voting.<br>
+                This is protected <strong>editorial / commentary use</strong> under SA Copyright Act 98 of 1978.<br><br>
+                <strong style="color:#ff8888;">🚫 YOU MUST NOT:</strong> Upload audio files, stream music,
+                post lyrics, or claim ownership of any listed song.<br><br>
+                <strong>📋 FOR AUDIO STREAMING</strong> you need a <strong>SAMRO licence</strong> (samro.org.za)
+                AND a <strong>RISA licence</strong> (risa.org.za).<br><br>
+                <strong>📩 TAKEDOWN REQUESTS:</strong> <a href="mailto:director.mog@gmail.com">director.mog@gmail.com</a>
+                · <a href="https://wa.me/27813874921">+27 81 387 4921</a>
+              </div>
+              <div class="legal-links-row">
+                <a href="https://www.samro.org.za" target="_blank" class="legal-link-btn">SAMRO ↗</a>
+                <a href="https://www.capasso.co.za" target="_blank" class="legal-link-btn">CAPASSO ↗</a>
+                <a href="https://www.risa.org.za" target="_blank" class="legal-link-btn">RISA ↗</a>
+                <a href="https://www.cipc.co.za" target="_blank" class="legal-link-btn">CIPC ↗</a>
+              </div>
+            </div>
+            <div class="warn-box">⚠ ADD SONG TITLE &amp; ARTIST NAME ONLY.<br>DO NOT UPLOAD AUDIO. POLL = VOTING ONLY — NOT STREAMING.</div>
+            <div class="field"><label>SONG TITLE *</label><input type="text" id="songTitle" class="inp" placeholder="e.g. PIANO HUB" maxlength="80"></div>
+            <div class="field"><label>ARTIST NAME *</label><input type="text" id="songArtist" class="inp" placeholder="e.g. Kabza De Small" maxlength="80"></div>
+            <div class="field"><label>RECORD LABEL (recommended)</label><input type="text" id="songLabel" class="inp" placeholder="e.g. Sony Music Africa" maxlength="80"></div>
+            <div class="field-row">
+              <div class="field"><label>WEEK NUMBER</label><input type="number" id="songWeek" class="inp" value="14" min="1" max="52"></div>
+              <div class="field"><label>YEAR</label><input type="number" id="songYear" class="inp" value="2026" min="2026"></div>
+            </div>
+            <div class="copyright-confirm">
+              <input type="checkbox" id="copyrightConfirm">
+              <label for="copyrightConfirm">
+                I confirm this entry is for <strong style="color:var(--teal)">fan voting / editorial commentary only</strong>.
+                No audio content is being shared or streamed.
+                All rights belong to the original artist and their label.
+                M.O.G. does not claim ownership of this music.
+              </label>
+            </div>
+            <button class="btn btn-teal" style="width:100%" onclick="addSong()">+ ADD TO POLL</button>
+            <div class="btn-grid" style="margin-top:10px;">
+              <button class="btn btn-danger btn-sm" onclick="resetPoll()">🔄 RESET POLL VOTES</button>
+              <button class="btn btn-sm" onclick="openNewPoll()">🆕 START NEW WEEK POLL</button>
+              <button class="btn btn-danger btn-sm" onclick="closePoll()">🔒 CLOSE POLL</button>
+              <button class="btn btn-sm" onclick="exportResultsCSV()">📊 EXPORT RESULTS</button>
+            </div>
+            <!-- Current poll results inline -->
+            <div style="margin-top:16px;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;">CURRENT POLL</div>
+            <div id="inlinePollResults"><div class="empty-state">NO SONGS YET</div></div>
+          </div>
+
+          <!-- ── ANNOUNCEMENT ── -->
+          <div class="upload-form" id="uform-announcement">
+            <div class="info-box">
+              📣 Send a message to all operatives. Appears in their activity feed and can trigger a push notification.
+            </div>
+            <div class="field"><label>MESSAGE TYPE</label>
+              <select id="alertType" class="inp">
+                <option value="info">📢 General Announcement</option>
+                <option value="event">🎉 Event Alert</option>
+                <option value="media">🎬 New Media Upload</option>
+                <option value="poll">🗳️ Poll Reminder</option>
+                <option value="urgent">🚨 Urgent Notice</option>
+              </select>
+            </div>
+            <div class="field"><label>MESSAGE TO ALL OPERATIVES *</label>
+              <textarea id="alertMsg" class="inp" rows="4" placeholder="Type your broadcast message here..." style="resize:vertical;" maxlength="500"></textarea>
+            </div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:12px;" id="alertCharCount">0 / 500</div>
+            <button class="btn btn-teal" style="width:100%" onclick="sendAlert()">📡 TRANSMIT TO ALL OPERATIVES</button>
+          </div>
+        </div>
       </div>
-      <div class="log-wrap" id="overviewLogs">
-        <div class="empty-state">LOADING LOGS...</div>
+
+      <!-- VAULT SIDEBAR -->
+      <div>
+        <div class="panel" style="margin:0;">
+          <div class="panel-head">
+            <div class="panel-title">// VAULT CONTENTS</div>
+            <div style="display:flex;gap:6px;">
+              <div class="panel-badge pb-teal" id="mediaCount">0 FILES</div>
+              <button class="btn btn-sm" onclick="loadMedia()">↺</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="mediaList">
+            <div class="empty-state">VAULT EMPTY</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ══ BROADCAST TAB ══ -->
+  <!-- ══ BROADCAST ══ -->
   <div class="tab-section" id="tab-broadcast">
-    <div style="display:grid;grid-template-columns:1fr 360px;gap:18px;">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
       <div>
         <div class="panel">
           <div class="panel-head">
@@ -338,7 +507,8 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
           <div class="video-feed">
             <div class="radar"></div>
             <div class="feed-content">
-              <span class="feed-icon-big">📡</span>
+              <img src="assets/images/1000219947.png" class="feed-seal" alt="Directorate Seal"
+                onerror="this.outerHTML='<span style=\'font-size:48px;display:block;margin-bottom:10px\'>📡</span>'">
               <div class="feed-label">FEED: MOG_PRIME_STREAM</div>
             </div>
             <div class="live-overlay" id="liveOverlay">
@@ -348,109 +518,36 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
           </div>
           <div class="btn-grid">
             <button class="btn btn-danger" id="liveBtn" onclick="toggleLive()">📡 GO LIVE</button>
-            <button class="btn" onclick="globalAlert()">📣 PUSH ALERT TO ALL</button>
+            <button class="btn" onclick="globalAlert()">📣 QUICK PUSH ALERT</button>
             <button class="btn btn-danger" id="lockdownBtn" onclick="toggleLockdown()">⚡ PROTOCOL ZERO</button>
             <button class="btn btn-teal" onclick="scheduleBroadcast()">📅 SCHEDULE SESSION</button>
           </div>
         </div>
-
         <div class="panel">
           <div class="panel-head">
             <div class="panel-title">// MANAGE EVENTS</div>
-            <button class="btn btn-sm btn-teal" onclick="openModal('eventModal')">+ NEW EVENT</button>
+            <button class="btn btn-sm btn-teal" onclick="showTab('upload');switchUploadType('event',document.querySelectorAll('.utab')[1])">+ NEW EVENT</button>
           </div>
           <div class="data-table-wrap">
             <table class="data-table">
-              <thead><tr><th>EVENT</th><th>DATE</th><th>STATUS</th><th>TICKETS SOLD</th><th>ACTIONS</th></tr></thead>
+              <thead><tr><th>EVENT</th><th>DATE</th><th>STATUS</th><th>SOLD</th><th>ACTIONS</th></tr></thead>
               <tbody id="eventsTable"><tr><td colspan="5" class="empty-state">LOADING...</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
-
-      <div class="panel">
-        <div class="panel-head"><div class="panel-title">// SEND BROADCAST</div></div>
-        <div class="field"><label>MESSAGE TYPE</label>
-          <select class="inp" id="alertType">
-            <option value="info">📢 General Announcement</option>
-            <option value="event">🎉 Event Alert</option>
-            <option value="media">🎬 New Media Upload</option>
-            <option value="poll">🗳️ Poll Reminder</option>
-            <option value="urgent">🚨 Urgent Notice</option>
-          </select>
-        </div>
-        <div class="field"><label>MESSAGE</label>
-          <textarea class="inp" id="alertMsg" rows="4" placeholder="Type your message to all operatives..."></textarea>
-        </div>
-        <button class="btn btn-teal" style="width:100%" onclick="sendAlert()">📡 TRANSMIT TO ALL OPERATIVES</button>
+      <div class="panel" style="margin:0;">
+        <div class="panel-head"><div class="panel-title">// TRANSMISSION LOGS</div><button class="btn btn-sm" onclick="loadLogs()">↺</button></div>
+        <div class="log-wrap" id="broadcastLogs"><div class="empty-state">NO LOGS YET</div></div>
       </div>
     </div>
   </div>
 
-  <!-- ══ MEDIA VAULT TAB ══ -->
-  <div class="tab-section" id="tab-media">
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;">
-      <div>
-        <div class="panel">
-          <div class="panel-head">
-            <div class="panel-title">// UPLOAD SESSION ASSETS</div>
-            <div class="panel-badge pb-teal">ADMIN ONLY</div>
-          </div>
-          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileIn').click()"
-            ondragover="event.preventDefault();this.classList.add('dragover')"
-            ondragleave="this.classList.remove('dragover')"
-            ondrop="handleDrop(event)">
-            <div class="upload-icon">📁</div>
-            <div class="upload-label" id="uploadLabel">CLICK OR DRAG FILES TO UPLOAD<br><span style="font-size:8px;opacity:0.5">PHOTOS & VIDEOS SUPPORTED</span></div>
-            <div class="upload-progress" id="uploadProgress"><div class="upload-fill" id="uploadFill"></div></div>
-            <input type="file" id="fileIn" accept="image/*,video/*" style="display:none" multiple onchange="filesChosen(this)">
-          </div>
-          <div class="field-row" style="margin-top:14px;">
-            <div class="field"><label>SESSION TITLE</label><input type="text" id="sessTitle" class="inp" placeholder="e.g. SESSION 03 HIGHLIGHTS"></div>
-            <div class="field"><label>SESSION TAG</label>
-              <select id="sessTag" class="inp">
-                <option value="">SELECT SESSION</option>
-                <option value="session01">SESSION 01</option>
-                <option value="session02">SESSION 02</option>
-                <option value="session03">SESSION 03</option>
-              </select>
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field"><label>MEDIA TYPE</label>
-              <select id="mediaType" class="inp">
-                <option value="photo">📸 Photo</option>
-                <option value="video">🎬 Video</option>
-              </select>
-            </div>
-            <div class="field"><label>ACCESS LEVEL</label>
-              <select id="mediaAccess" class="inp">
-                <option value="free">🔓 All Operatives</option>
-                <option value="premium">🔒 Paid Members Only</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn btn-teal" style="width:100%" onclick="uploadAsset()">⬆ DEPLOY TO VAULT</button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <div class="panel-title">// VAULT CONTENTS</div>
-          <div class="panel-badge pb-teal" id="mediaCount">0 FILES</div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;" id="mediaList">
-          <div class="empty-state">LOADING VAULT...</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ TICKETS TAB ══ -->
+  <!-- ══ TICKETS ══ -->
   <div class="tab-section" id="tab-tickets">
     <div class="panel">
       <div class="panel-head">
-        <div class="panel-title">// CHECK-IN OPERATIVE</div>
+        <div class="panel-title">// CHECK-IN OPERATIVE AT THE DOOR</div>
         <div class="panel-badge pb-green">SCAN TICKET CODE</div>
       </div>
       <div style="display:flex;gap:10px;align-items:flex-end;">
@@ -463,7 +560,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
       </div>
       <div class="checkin-result" id="checkinResult"></div>
     </div>
-
     <div class="panel">
       <div class="panel-head">
         <div class="panel-title">// ALL TICKET SALES</div>
@@ -475,13 +571,13 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
       <div class="data-table-wrap">
         <table class="data-table">
           <thead><tr><th>CODE</th><th>NAME</th><th>EMAIL</th><th>TIER</th><th>QTY</th><th>TOTAL</th><th>STATUS</th><th>CHECK-IN</th><th>DATE</th></tr></thead>
-          <tbody id="ticketsTable"><tr><td colspan="9" class="empty-state">LOADING...</td></tr></tbody>
+          <tbody id="ticketsTable"><tr><td colspan="9" class="empty-state">NO TICKETS YET</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ══ MEMBERSHIPS TAB ══ -->
+  <!-- ══ MEMBERSHIPS ══ -->
   <div class="tab-section" id="tab-memberships">
     <div class="stats-ribbon" style="grid-template-columns:repeat(4,1fr);">
       <div class="stat-card"><div class="stat-label">OPERATIVE PLAN</div><div class="stat-value sv-teal" id="mCountOp">0</div><div class="stat-sub">R99/month</div></div>
@@ -489,7 +585,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
       <div class="stat-card"><div class="stat-label">DIRECTOR PLAN</div><div class="stat-value sv-gold" id="mCountDir">0</div><div class="stat-sub">R499/month</div></div>
       <div class="stat-card"><div class="stat-label">MRR</div><div class="stat-value sv-green" id="mMRR">R0</div><div class="stat-sub">MONTHLY RECURRING</div></div>
     </div>
-
     <div class="panel">
       <div class="panel-head">
         <div class="panel-title">// ACTIVE MEMBERSHIPS</div>
@@ -501,13 +596,13 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
       <div class="data-table-wrap">
         <table class="data-table">
           <thead><tr><th>OPERATIVE</th><th>EMAIL</th><th>PLAN</th><th>BILLING</th><th>AMOUNT</th><th>STATUS</th><th>STARTED</th><th>ACTIONS</th></tr></thead>
-          <tbody id="membersTable"><tr><td colspan="8" class="empty-state">LOADING...</td></tr></tbody>
+          <tbody id="membersTable"><tr><td colspan="8" class="empty-state">NO MEMBERSHIPS YET</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ══ OPERATIVES TAB ══ -->
+  <!-- ══ OPERATIVES ══ -->
   <div class="tab-section" id="tab-operatives">
     <div class="panel">
       <div class="panel-head">
@@ -520,122 +615,92 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
       <div class="data-table-wrap">
         <table class="data-table">
           <thead><tr><th>AVATAR</th><th>USERNAME</th><th>EMAIL</th><th>RANK</th><th>JOINED</th><th>ACTIONS</th></tr></thead>
-          <tbody id="operativesTable"><tr><td colspan="6" class="empty-state">LOADING...</td></tr></tbody>
+          <tbody id="operativesTable"><tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ══ POLLS TAB ══ -->
+  <!-- ══ POLLS ══ -->
   <div class="tab-section" id="tab-polls">
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;">
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
       <div class="panel">
         <div class="panel-head">
           <div class="panel-title">// CURRENT POLL RESULTS</div>
           <div style="display:flex;gap:8px;">
-            <button class="btn btn-sm btn-danger" onclick="resetPoll()">🔄 RESET VOTES</button>
+            <button class="btn btn-sm btn-danger" onclick="resetPoll()">🔄 RESET</button>
             <button class="btn btn-sm" onclick="exportResultsCSV()">📊 EXPORT</button>
+            <button class="btn btn-sm" onclick="loadPollResults()">↺</button>
           </div>
         </div>
-        <div id="pollResults"><div class="empty-state">LOADING RESULTS...</div></div>
+        <div id="pollResults"><div class="empty-state">NO POLL SONGS YET</div></div>
       </div>
-      <div class="panel">
-        <div class="panel-head"><div class="panel-title">// ADD SONG TO POLL</div></div>
-        <div class="field"><label>SONG TITLE</label><input type="text" id="songTitle" class="inp" placeholder="e.g. PIANO HUB"></div>
-        <div class="field"><label>ARTIST NAME</label><input type="text" id="songArtist" class="inp" placeholder="e.g. Kabza De Small"></div>
-        <div class="field-row">
-          <div class="field"><label>WEEK NUMBER</label><input type="number" id="songWeek" class="inp" placeholder="14" value="14"></div>
-          <div class="field"><label>YEAR</label><input type="number" id="songYear" class="inp" placeholder="2026" value="2026"></div>
+      <div class="panel" style="margin:0;">
+        <div class="panel-head"><div class="panel-title">// QUICK ADD SONG</div></div>
+        <div class="warn-box" style="font-size:8px;padding:10px;">⚠ SONG TITLE &amp; ARTIST ONLY — NO AUDIO FILES</div>
+        <div class="field"><label>SONG TITLE *</label><input type="text" id="pollSongTitle" class="inp" placeholder="e.g. PIANO HUB" maxlength="80"></div>
+        <div class="field"><label>ARTIST NAME *</label><input type="text" id="pollSongArtist" class="inp" placeholder="e.g. Kabza De Small" maxlength="80"></div>
+        <div class="field"><label>LABEL (recommended)</label><input type="text" id="pollSongLabel" class="inp" placeholder="e.g. Sony Music Africa" maxlength="80"></div>
+        <div class="copyright-confirm">
+          <input type="checkbox" id="pollCopyrightConfirm">
+          <label for="pollCopyrightConfirm" style="font-size:8px;">For voting only. No audio shared. All rights belong to original artist.</label>
         </div>
-        <button class="btn btn-teal" style="width:100%" onclick="addSong()">+ ADD TO POLL</button>
+        <button class="btn btn-teal" style="width:100%" onclick="quickAddSong()">+ ADD TO POLL</button>
         <div class="btn-grid" style="margin-top:10px;">
-          <button class="btn btn-danger btn-sm" onclick="closePoll()">🔒 CLOSE POLL</button>
-          <button class="btn btn-sm" onclick="openNewPoll()">🆕 NEW WEEK POLL</button>
+          <button class="btn btn-sm" onclick="closePoll()">🔒 CLOSE POLL</button>
+          <button class="btn btn-sm" onclick="openNewPoll()">🆕 NEW WEEK</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ══ LOGS TAB ══ -->
+  <!-- ══ LOGS ══ -->
   <div class="tab-section" id="tab-logs">
     <div class="panel">
       <div class="panel-head">
-        <div class="panel-title">// TRANSMISSION LOGS</div>
+        <div class="panel-title">// FULL ACTIVITY LOG</div>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-sm" onclick="clearLogs()">🗑️ CLEAR LOGS</button>
+          <button class="btn btn-sm btn-danger" onclick="if(confirm('CLEAR ALL LOGS?'))clearLogs()">🗑️ CLEAR</button>
           <button class="btn btn-sm" onclick="loadLogs()">↺ REFRESH</button>
         </div>
       </div>
-      <div class="log-wrap" style="height:500px;" id="allLogs">
-        <div class="empty-state">LOADING LOGS...</div>
-      </div>
+      <div class="log-wrap" style="height:500px;" id="allLogs"><div class="empty-state">LOADING LOGS...</div></div>
     </div>
   </div>
 
-  <!-- ══ SETTINGS TAB ══ -->
+    <!-- ══ SETTINGS ══ -->
   <div class="tab-section" id="tab-settings">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="dash-grid">
       <div class="panel">
         <div class="panel-head"><div class="panel-title">// APP SETTINGS</div></div>
         <div class="field"><label>APP VERSION</label><input type="text" id="setVersion" class="inp" value="1.0.0"></div>
         <div class="field"><label>BOOKING FEE %</label><input type="number" id="setBookingFee" class="inp" value="5" min="0" max="20"></div>
-        <div class="field"><label>CURRENT POLL WEEK</label><input type="number" id="setPollWeek" class="inp" value="14"></div>
+        <div class="field"><label>CURRENT POLL WEEK</label><input type="number" id="setPollWeek" class="inp" value="14" min="1" max="52"></div>
         <button class="btn btn-teal" style="width:100%" onclick="saveSettings()">✓ SAVE SETTINGS</button>
       </div>
       <div class="panel">
         <div class="panel-head"><div class="panel-title">// DANGER ZONE</div></div>
-        <div class="field"><label>MAINTENANCE MODE</label></div>
         <button class="btn btn-danger" id="maintenanceBtn" onclick="toggleMaintenance()" style="width:100%;margin-bottom:10px;">⚙️ ENABLE MAINTENANCE</button>
         <button class="btn btn-danger" id="lockdownBtnSettings" onclick="toggleLockdown()" style="width:100%;margin-bottom:10px;">⚡ PROTOCOL ZERO LOCKDOWN</button>
-        <button class="btn btn-danger btn-sm" onclick="if(confirm('DELETE ALL LOGS? Cannot be undone.'))clearLogs()" style="width:100%">🗑️ CLEAR ALL ACTIVITY LOGS</button>
-        <div style="margin-top:16px;padding:12px;background:rgba(255,59,59,0.06);border:1px solid rgba(255,59,59,0.15);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,59,59,0.6);letter-spacing:1px;line-height:1.8;">
-          ⚠ THESE ACTIONS AFFECT ALL OPERATIVES.<br>
-          PROCEED WITH EXTREME CAUTION.
+        <div style="margin-top:14px;padding:12px;background:rgba(255,59,59,0.05);border:1px solid rgba(255,59,59,0.12);border-radius:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,59,59,0.5);letter-spacing:1px;line-height:1.8;">
+          ⚠ THESE ACTIONS AFFECT ALL OPERATIVES.<br>PROCEED WITH EXTREME CAUTION.
         </div>
       </div>
     </div>
     <div class="panel">
       <div class="panel-head"><div class="panel-title">// DIRECTOR ACCOUNT</div></div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;line-height:2;">
-        EMAIL: <span style="color:var(--gold)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8febe6fdeaecfbe0fda1e2e0e8cfe8e2eee6e3a1ece0e2">[email&#160;protected]</a></span><br>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;line-height:2.2;">
+        EMAIL: <span style="color:var(--gold)">director.mog@gmail.com</span><br>
         RANK: <span class="rank-tag rank-admin">ADMIN</span><br>
-        ACCESS: <span style="color:var(--green)">FULL DIRECTORATE CLEARANCE</span>
+        ACCESS: <span style="color:var(--green)">FULL DIRECTORATE CLEARANCE</span><br>
+        MUSIC RIGHTS CONTACT: <a href="mailto:director.mog@gmail.com" style="color:var(--teal);text-decoration:none;">director.mog@gmail.com</a>
       </div>
     </div>
   </div>
 
-</div><!-- end #mainScreen -->
+</div><!-- end mainScreen -->
 
-<!-- EVENT MODAL -->
-<div class="modal" id="eventModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closeModal('eventModal')">✕</button>
-    <div class="modal-title">// CREATE NEW EVENT</div>
-    <div class="field"><label>EVENT TITLE</label><input type="text" id="evTitle" class="inp" placeholder="AMAPIANO SESSIONS VOL.4"></div>
-    <div class="field"><label>DESCRIPTION</label><textarea id="evDesc" class="inp" rows="2" placeholder="Event description..."></textarea></div>
-    <div class="field-row">
-      <div class="field"><label>DATE & TIME</label><input type="datetime-local" id="evDate" class="inp"></div>
-      <div class="field"><label>DOORS OPEN</label><input type="time" id="evDoors" class="inp" value="18:00"></div>
-    </div>
-    <div class="field"><label>LOCATION (PUBLIC)</label><input type="text" id="evLocation" class="inp" placeholder="LOCATION CLASSIFIED"></div>
-    <div class="field"><label>LOCATION (REVEALED ON TICKET)</label><input type="text" id="evLocationFull" class="inp" placeholder="123 Groove Street, Johannesburg"></div>
-    <div style="margin-top:16px;margin-bottom:14px;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:2px;">TICKET TIERS</div>
-    <div class="field-row-3">
-      <div class="field"><label>VIP PRICE (R)</label><input type="number" id="evVIPPrice" class="inp" placeholder="350"></div>
-      <div class="field"><label>VIP QTY</label><input type="number" id="evVIPQty" class="inp" placeholder="50"></div>
-      <div></div>
-    </div>
-    <div class="field-row-3">
-      <div class="field"><label>GENERAL PRICE (R)</label><input type="number" id="evGenPrice" class="inp" placeholder="150"></div>
-      <div class="field"><label>GENERAL QTY</label><input type="number" id="evGenQty" class="inp" placeholder="150"></div>
-      <div></div>
-    </div>
-    <button class="btn btn-teal" style="width:100%;margin-top:6px;" onclick="createEvent()">✓ CREATE EVENT</button>
-  </div>
-</div>
-
-  
-<!-- CHANGE RANK MODAL -->
+<!-- RANK CHANGE MODAL -->
 <div class="modal" id="rankModal">
   <div class="modal-box" style="max-width:360px;">
     <button class="modal-close" onclick="closeModal('rankModal')">✕</button>
@@ -649,11 +714,11 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
         <option value="DIRECTOR">👑 DIRECTOR (R499/mo)</option>
       </select>
     </div>
-    <button class="btn btn-gold" style="width:100%;background:var(--gold);color:var(--black);border:none;padding:13px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;" onclick="confirmRankChange()">✓ UPDATE RANK</button>
+    <button class="btn btn-teal" style="width:100%;padding:13px;" onclick="confirmRankChange()">✓ UPDATE RANK</button>
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ── CONSTANTS ──────────────────────────────────────────────
 const ADMIN_EMAIL = 'director.mog@gmail.com';
 let currentUser = null;
@@ -662,659 +727,548 @@ let isLockdown = false;
 let isMaintenance = false;
 let rankChangeTarget = null;
 
-// ── INIT ───────────────────────────────────────────────────
-async function init() {
-  setInterval(() => {
-    document.getElementById('clockEl').textContent =
-      'UPLINK: SECURE // ' + new Date().toLocaleTimeString('en-ZA');
-  }, 1000);
+// ── CLOCK ─────────────────────────────────────────────────
+setInterval(()=>{
+  const el = document.getElementById('clockEl');
+  if(el) el.textContent = new Date().toLocaleTimeString('en-ZA');
+}, 1000);
 
-  // Try Supabase auth
-  if (typeof supabase !== 'undefined' || typeof sb !== 'undefined') {
-    const client = typeof sb !== 'undefined' ? sb : supabase;
-    try {
-      const { data: { session }, error } = await client.auth.getSession();
-      if (!session || !session.user) {
-        showDenied('NOT AUTHENTICATED<br>PLEASE LOG IN FIRST');
-        return;
-      }
-      const userEmail = session.user.email;
-      if (userEmail.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-        showDenied(`UNAUTHORISED EMAIL<br><span style="color:var(--red);opacity:0.6">${userEmail}</span><br><br>THIS AREA IS FOR THE DIRECTOR ONLY`);
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  const c = client();
+  if(c){
+    try{
+      const {data:{session}} = await c.auth.getSession();
+      if(!session){ showDenied('NOT AUTHENTICATED<br>PLEASE LOG IN FIRST'); return; }
+      const email = session.user.email;
+      if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+        showDenied(`UNAUTHORISED<br><span style="color:rgba(255,59,59,0.5);font-size:9px">${email}</span><br><br>DIRECTORATE ACCESS: DIRECTOR ONLY`);
         return;
       }
       currentUser = session.user;
       document.getElementById('loadingSub').textContent = 'LOADING COMMAND CENTRE...';
       await loadAllData();
       showMain();
-    } catch(e) {
-      console.error(e);
-      showDenied('CONNECTION ERROR<br>UNABLE TO VERIFY CREDENTIALS');
-    }
+    } catch(e){ showDenied('CONNECTION ERROR<br>UNABLE TO VERIFY CREDENTIALS'); }
   } else {
-    // OFFLINE MODE — check session storage for demo
+    // Offline / no Supabase — check session email
     const email = sessionStorage.getItem('mogEmail') || '';
-    if (email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() && email !== '') {
-      showDenied(`UNAUTHORISED<br>DIRECTOR ACCESS ONLY`);
+    if(email && email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+      showDenied('UNAUTHORISED<br>DIRECTOR ACCESS ONLY');
       return;
     }
-    document.getElementById('loadingSub').textContent = 'OFFLINE MODE — DEMO DATA';
-    setTimeout(() => {
-      loadDemoData();
-      showMain();
-    }, 1200);
+    document.getElementById('loadingSub').textContent = 'OFFLINE MODE — SUPABASE NOT CONNECTED';
+    setTimeout(()=>{ loadEmptyData(); showMain(); }, 1000);
   }
 }
 
-function showMain() {
+function client(){ return typeof sb !== 'undefined' ? sb : null; }
+
+function showMain(){
   document.getElementById('loadingScreen').classList.remove('active');
   document.getElementById('mainScreen').classList.add('active');
 }
-function showDenied(msg) {
+function showDenied(msg){
   document.getElementById('loadingScreen').classList.remove('active');
   document.getElementById('deniedMsg').innerHTML = msg;
   document.getElementById('deniedScreen').classList.add('active');
 }
 
-// ── TABS ──────────────────────────────────────────────────
-function showTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', b.onclick.toString().includes(`'${name}'`));
+// ── TABS ─────────────────────────────────────────────────
+function showTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(
+      name==='upload'?'upload':
+      name==='overview'?'overview':
+      name==='broadcast'?'broadcast':
+      name==='tickets'?'ticket':
+      name==='memberships'?'membership':
+      name==='operatives'?'operative':
+      name==='polls'?'poll':
+      name==='logs'?'log':
+      name==='settings'?'setting':name
+    ));
   });
-  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  // Lazy load
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  const sec = document.getElementById('tab-'+name);
+  if(sec) sec.classList.add('active');
   if(name==='logs') loadLogs();
   if(name==='tickets') loadTickets();
   if(name==='memberships') loadMemberships();
   if(name==='operatives') loadOperatives();
   if(name==='polls') loadPollResults();
-  if(name==='media') loadMedia();
+  if(name==='upload') loadMedia();
 }
 
-// ── DATA LOADING ──────────────────────────────────────────
-const client = () => typeof sb !== 'undefined' ? sb : (typeof supabase !== 'undefined' ? supabase : null);
-
-async function loadAllData() {
-  await Promise.all([loadStats(), loadLogs(), loadEvents()]);
+// ── UPLOAD TYPE SWITCHER ──────────────────────────────────
+function switchUploadType(type, btn){
+  document.querySelectorAll('.utab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.upload-form').forEach(f=>f.classList.remove('active'));
+  const form = document.getElementById('uform-'+type);
+  if(form) form.classList.add('active');
+  if(type==='poll') loadInlinePollResults();
 }
 
-async function loadStats() {
-  const c = client(); if(!c) return loadDemoStats();
-  try {
+// Character count for announcement
+document.getElementById('alertMsg')?.addEventListener('input', function(){
+  document.getElementById('alertCharCount').textContent = this.value.length + ' / 500';
+});
+
+// ── DATA LOADING ─────────────────────────────────────────
+async function loadAllData(){
+  await Promise.all([loadStats(), loadLogs(), loadEvents(), loadMedia()]);
+}
+
+async function loadStats(){
+  const c = client(); if(!c){ loadEmptyStats(); return; }
+  try{
     const [{count:opCount},{data:tickets},{data:memberships}] = await Promise.all([
       c.from('profiles').select('*',{count:'exact',head:true}),
       c.from('tickets').select('total_paid,booking_fee,payment_status'),
       c.from('memberships').select('plan,amount_rands,status').eq('status','active'),
     ]);
-    const ticketRevenue = (tickets||[]).filter(t=>t.payment_status==='paid').reduce((s,t)=>s+t.total_paid,0);
-    const feeRevenue = (tickets||[]).filter(t=>t.payment_status==='paid').reduce((s,t)=>s+t.booking_fee,0);
-    const memberRevenue = (memberships||[]).reduce((s,m)=>s+m.amount_rands,0);
-    const total = ticketRevenue + memberRevenue;
-
-    document.getElementById('statRevenue').textContent = 'R'+total.toLocaleString();
-    document.getElementById('statOperatives').textContent = opCount||0;
-    document.getElementById('statTickets').textContent = (tickets||[]).filter(t=>t.payment_status==='paid').length;
-    document.getElementById('statMembers').textContent = (memberships||[]).length;
-
-    // Revenue bars
-    const maxRev = Math.max(ticketRevenue, memberRevenue, feeRevenue, 1);
-    document.getElementById('revBarTickets').style.width = Math.round(ticketRevenue/maxRev*100)+'%';
-    document.getElementById('revBarMembers').style.width = Math.round(memberRevenue/maxRev*100)+'%';
-    document.getElementById('revBarFees').style.width = Math.round(feeRevenue/maxRev*100)+'%';
-    document.getElementById('revTicketAmt').textContent = 'R'+ticketRevenue.toLocaleString();
-    document.getElementById('revMemberAmt').textContent = 'R'+memberRevenue.toLocaleString();
-    document.getElementById('revFeeAmt').textContent = 'R'+feeRevenue.toLocaleString();
-
-    // Membership split
-    const plans = {RECRUIT:0,OPERATIVE:0,AGENT:0,DIRECTOR:0};
-    (memberships||[]).forEach(m=>{ if(plans[m.plan]!==undefined) plans[m.plan]++; });
-    const mrr = (plans.OPERATIVE*99)+(plans.AGENT*199)+(plans.DIRECTOR*499);
-    document.getElementById('mMRR').textContent = 'R'+mrr.toLocaleString();
-    document.getElementById('mCountOp').textContent = plans.OPERATIVE;
-    document.getElementById('mCountAgent').textContent = plans.AGENT;
-    document.getElementById('mCountDir').textContent = plans.DIRECTOR;
-    document.getElementById('memberSplit').innerHTML = Object.entries(plans)
-      .filter(([k])=>k!=='RECRUIT')
-      .map(([k,v])=>`<div class="rev-item">
-        <div class="rev-label">${k}</div>
-        <div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:${Math.round(v/Math.max(...Object.values(plans).filter(x=>x),1)*100)}%"></div></div>
-        <div class="rev-amount">${v}</div>
-      </div>`).join('');
-  } catch(e) { console.error(e); loadDemoStats(); }
+    const paid = (tickets||[]).filter(t=>t.payment_status==='paid');
+    const ticketRev = paid.reduce((s,t)=>s+t.total_paid,0);
+    const feeRev    = paid.reduce((s,t)=>s+t.booking_fee,0);
+    const memberRev = (memberships||[]).reduce((s,m)=>s+m.amount_rands,0);
+    const total = ticketRev + memberRev;
+    setEl('statRevenue','R'+total.toLocaleString());
+    setEl('statOperatives',opCount||0);
+    setEl('statTickets',paid.length);
+    setEl('statMembers',(memberships||[]).length);
+    const maxRev = Math.max(ticketRev,memberRev,feeRev,1);
+    setWidth('revBarTickets',ticketRev/maxRev*100);
+    setWidth('revBarMembers',memberRev/maxRev*100);
+    setWidth('revBarFees',feeRev/maxRev*100);
+    setEl('revTicketAmt','R'+ticketRev.toLocaleString());
+    setEl('revMemberAmt','R'+memberRev.toLocaleString());
+    setEl('revFeeAmt','R'+feeRev.toLocaleString());
+    const plans={OPERATIVE:0,AGENT:0,DIRECTOR:0};
+    (memberships||[]).forEach(m=>{if(plans[m.plan]!==undefined)plans[m.plan]++;});
+    setEl('mMRR','R'+((plans.OPERATIVE*99)+(plans.AGENT*199)+(plans.DIRECTOR*499)).toLocaleString());
+    setEl('mCountOp',plans.OPERATIVE);setEl('mCountAgent',plans.AGENT);setEl('mCountDir',plans.DIRECTOR);
+    const maxP=Math.max(...Object.values(plans),1);
+    setEl('memberSplit',Object.entries(plans).map(([k,v])=>`<div class="rev-item"><div class="rev-label">${k}</div><div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:${Math.round(v/maxP*100)}%"></div></div><div class="rev-amount">${v}</div></div>`).join(''));
+  }catch(e){ loadEmptyStats(); }
 }
 
-async function loadLogs() {
-  const c = client(); if(!c){ renderDemoLogs(); return; }
-  try {
-    const {data} = await c.from('activity_log').select('*').order('created_at',{ascending:false}).limit(50);
-    const logs = data||[];
-    const html = logs.length ? logs.map(l=>logItem(l)).join('') : '<div class="empty-state">NO LOGS YET</div>';
-    document.getElementById('allLogs') && (document.getElementById('allLogs').innerHTML = html);
-    document.getElementById('overviewLogs') && (document.getElementById('overviewLogs').innerHTML = logs.slice(0,10).map(l=>logItem(l)).join('')||'<div class="empty-state">NO ACTIVITY YET</div>');
-  } catch(e){ renderDemoLogs(); }
+async function loadLogs(){
+  const c = client();
+  if(!c){ setEl('allLogs','<div class="empty-state">CONNECT SUPABASE TO VIEW LOGS</div>'); setEl('overviewLogs','<div class="empty-state">NO LOGS</div>'); setEl('broadcastLogs','<div class="empty-state">NO LOGS</div>'); return; }
+  const {data} = await c.from('activity_log').select('*').order('created_at',{ascending:false}).limit(50);
+  const html = (data||[]).map(l=>logItem(l)).join('') || '<div class="empty-state">NO ACTIVITY YET</div>';
+  setEl('allLogs',html);
+  setEl('overviewLogs',(data||[]).slice(0,8).map(l=>logItem(l)).join('')||'<div class="empty-state">NO ACTIVITY YET</div>');
+  setEl('broadcastLogs',(data||[]).filter(l=>['alert','lockdown'].includes(l.action_type)).slice(0,10).map(l=>logItem(l)).join('')||'<div class="empty-state">NO BROADCAST LOGS</div>');
 }
 
-function logItem(l) {
-  const type = l.action_type||'info';
-  return `<div class="log-item">
-    <div class="log-dot dot-${type}"></div>
-    <div class="log-ts">${new Date(l.created_at).toLocaleString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit',day:'2-digit',month:'short'})}</div>
-    <div>${l.description}</div>
-  </div>`;
+function logItem(l){
+  const type=l.action_type||'info';
+  return `<div class="log-item"><div class="log-dot dot-${type}"></div><div class="log-ts">${fmtTime(l.created_at)}</div><div>${escHtml(l.description)}</div></div>`;
 }
 
-async function loadEvents() {
-  const c = client(); if(!c){ renderDemoEvents(); return; }
-  try {
-    const {data} = await c.from('events').select('*').order('event_date',{ascending:true});
-    const tbody = document.getElementById('eventsTable');
-    if(!tbody) return;
-    tbody.innerHTML = (data||[]).map(e=>`<tr>
-      <td><strong>${e.title}</strong></td>
-      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(e.event_date).toLocaleDateString('en-ZA')}</td>
-      <td><span class="panel-badge pb-${e.status==='live'?'red':e.status==='upcoming'?'teal':'green'}">${e.status.toUpperCase()}</span></td>
-      <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">—</td>
-      <td><button class="btn btn-sm btn-danger" onclick="cancelEvent('${e.id}')">CANCEL</button></td>
-    </tr>`).join('') || '<tr><td colspan="5" class="empty-state">NO EVENTS YET</td></tr>';
-  } catch(e){ renderDemoEvents(); }
+async function loadEvents(){
+  const c = client(); if(!c){ setEl('eventsTable','<tr><td colspan="5" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const {data} = await c.from('events').select('*').order('event_date',{ascending:true});
+  setEl('eventsTable',(data||[]).map(e=>`<tr>
+    <td><strong>${escHtml(e.title)}</strong></td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(e.event_date).toLocaleDateString('en-ZA')}</td>
+    <td><span class="panel-badge pb-${e.status==='live'?'red':e.status==='upcoming'?'teal':'green'}">${e.status.toUpperCase()}</span></td>
+    <td style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold)">—</td>
+    <td><button class="btn btn-sm btn-danger" onclick="cancelEvent('${e.id}')">CANCEL</button></td>
+  </tr>`).join('')||'<tr><td colspan="5" class="empty-state">NO EVENTS YET — CREATE ONE IN UPLOAD CENTRE</td></tr>');
 }
 
-async function loadTickets() {
-  const c = client(); if(!c){ renderDemoTickets(); return; }
-  try {
-    const {data} = await c.from('tickets').select('*').order('created_at',{ascending:false}).limit(100);
-    renderTicketsTable(data||[]);
-  } catch(e){ renderDemoTickets(); }
+async function loadMedia(){
+  const c = client(); if(!c){ setEl('mediaList','<div class="empty-state">CONNECT SUPABASE</div>'); setEl('mediaCount','0 FILES'); return; }
+  const {data,count} = await c.from('media').select('*',{count:'exact'}).order('created_at',{ascending:false});
+  setEl('mediaCount',(count||0)+' FILES');
+  setEl('mediaList',(data||[]).slice(0,20).map(m=>`
+    <div class="media-item ${m.type}">
+      <div style="font-size:18px">${m.type==='video'?'🎬':'📸'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(m.title)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3)">${m.session} · ♥ ${m.likes_count||0} · ${m.is_premium?'🔒 PAID':'🔓 FREE'}</div>
+      </div>
+      <button class="btn btn-sm btn-danger" onclick="deleteMedia('${m.id}')">✕</button>
+    </div>`).join('')||'<div class="empty-state">VAULT EMPTY</div>');
 }
 
-function renderTicketsTable(tickets) {
-  const tbody = document.getElementById('ticketsTable');
-  if(!tbody) return;
-  tbody.innerHTML = tickets.map(t=>`<tr>
-    <td style="font-family:'Orbitron',sans-serif;font-size:10px;color:var(--teal)">${t.ticket_code}</td>
-    <td>${t.buyer_name}</td>
-    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${t.buyer_email}</td>
-    <td><span style="font-size:9px;color:var(--gold)">${t.tier_id?'VIP':'GENERAL'}</span></td>
+async function loadTickets(){
+  const c = client(); if(!c){ setEl('ticketsTable','<tr><td colspan="9" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const {data} = await c.from('tickets').select('*').order('created_at',{ascending:false}).limit(100);
+  setEl('ticketsTable',(data||[]).map(t=>`<tr>
+    <td style="font-family:'Orbitron',monospace;font-size:10px;color:var(--teal)">${t.ticket_code}</td>
+    <td>${escHtml(t.buyer_name)}</td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${escHtml(t.buyer_email)}</td>
+    <td style="font-size:9px;color:var(--gold)">${t.tier_id?'VIP':'GENERAL'}</td>
     <td style="text-align:center">${t.quantity}</td>
-    <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">R${t.total_paid}</td>
+    <td style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold)">R${t.total_paid}</td>
     <td><span class="status-${t.payment_status}">${t.payment_status.toUpperCase()}</span></td>
     <td><span style="color:${t.checked_in?'var(--green)':'rgba(255,255,255,0.3)'}">${t.checked_in?'✓ IN':'—'}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(t.created_at).toLocaleDateString('en-ZA')}</td>
-  </tr>`).join('') || '<tr><td colspan="9" class="empty-state">NO TICKETS YET</td></tr>';
+  </tr>`).join('')||'<tr><td colspan="9" class="empty-state">NO TICKETS YET</td></tr>');
 }
 
-async function loadMemberships() {
-  const c = client(); if(!c){ renderDemoMemberships(); return; }
-  try {
-    const {data} = await c.from('memberships').select('*,profiles(username,email)').order('created_at',{ascending:false});
-    renderMembersTable(data||[]);
-  } catch(e){ renderDemoMemberships(); }
-}
-  function renderMembersTable(members) {
-  const tbody = document.getElementById('membersTable');
-  if(!tbody) return;
-  tbody.innerHTML = members.map(m=>`<tr>
-    <td style="font-weight:700">${m.profiles?.username||'—'}</td>
-    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${m.profiles?.email||m.user_id}</td>
+async function loadMemberships(){
+  const c = client(); if(!c){ setEl('membersTable','<tr><td colspan="8" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const {data} = await c.from('memberships').select('*,profiles(username,email)').order('created_at',{ascending:false});
+  setEl('membersTable',(data||[]).map(m=>`<tr>
+    <td style="font-weight:700">${escHtml(m.profiles?.username||'—')}</td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${escHtml(m.profiles?.email||'')}</td>
     <td><span class="rank-tag rank-${m.plan.toLowerCase()}">${m.plan}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${m.billing_cycle.toUpperCase()}</td>
-    <td style="font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold)">R${m.amount_rands}</td>
+    <td style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold)">R${m.amount_rands}</td>
     <td><span class="status-${m.status}">${m.status.toUpperCase()}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(m.starts_at).toLocaleDateString('en-ZA')}</td>
     <td><button class="btn btn-sm btn-danger" onclick="cancelMembership('${m.id}')">CANCEL</button></td>
-  </tr>`).join('') || '<tr><td colspan="8" class="empty-state">NO MEMBERSHIPS YET</td></tr>';
+  </tr>`).join('')||'<tr><td colspan="8" class="empty-state">NO MEMBERSHIPS YET</td></tr>');
 }
 
-async function loadOperatives() {
-  const c = client(); if(!c){ renderDemoOperatives(); return; }
-  try {
-    const {data} = await c.from('profiles').select('*').order('created_at',{ascending:false});
-    const tbody = document.getElementById('operativesTable');
-    if(!tbody) return;
-    tbody.innerHTML = (data||[]).map(p=>`<tr>
-      <td><div class="op-av">${p.username.substring(0,2).toUpperCase()}</div></td>
-      <td style="font-weight:700">${p.username}</td>
-      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${p.email}</td>
-      <td><span class="rank-tag rank-${p.rank.toLowerCase()}">${p.rank}</span></td>
-      <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(p.created_at).toLocaleDateString('en-ZA')}</td>
-      <td style="display:flex;gap:6px;">
-        <button class="btn btn-sm" onclick="openRankChange('${p.id}','${p.username}','${p.rank}')">CHANGE RANK</button>
-        ${p.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-danger" onclick="banUser('${p.id}')">BAN</button>`:''}
-      </td>
-    </tr>`).join('') || '<tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr>';
-  } catch(e){ renderDemoOperatives(); }
+async function loadOperatives(){
+  const c = client(); if(!c){ setEl('operativesTable','<tr><td colspan="6" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const {data} = await c.from('profiles').select('*').order('created_at',{ascending:false});
+  setEl('operativesTable',(data||[]).map(p=>`<tr>
+    <td><div style="width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold)">${p.username.substring(0,2).toUpperCase()}</div></td>
+    <td style="font-weight:700">${escHtml(p.username)}</td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${escHtml(p.email)}</td>
+    <td><span class="rank-tag rank-${p.rank.toLowerCase()}">${p.rank}</span></td>
+    <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(p.created_at).toLocaleDateString('en-ZA')}</td>
+    <td style="display:flex;gap:6px;">
+      <button class="btn btn-sm" onclick="openRankChange('${p.id}','${escHtml(p.username)}','${p.rank}')">RANK</button>
+      ${p.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-danger" onclick="banUser('${p.id}')">BAN</button>`:''}
+    </td>
+  </tr>`).join('')||'<tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr>');
 }
 
-async function loadPollResults() {
-  const c = client(); if(!c){ renderDemoPoll(); return; }
-  try {
-    const {data} = await c.from('poll_songs').select('*').order('votes_count',{ascending:false});
-    const max = Math.max(...(data||[]).map(s=>s.votes_count), 1);
-    document.getElementById('pollResults').innerHTML = (data||[]).map((s,i)=>`
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07);">
-        <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:${i<3?'var(--gold)':'var(--gold-dim)'};width:28px">${i+1}</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;color:#e0e0e0">${s.title}</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim)">${s.artist}</div>
-          <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden">
-            <div style="height:100%;width:${Math.round(s.votes_count/max*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;"></div>
-          </div>
-        </div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold)">${s.votes_count}</div>
-        <button class="btn btn-sm btn-danger" onclick="removeSong('${s.id}')">✕</button>
+  async function loadPollResults(){
+  const c = client(); if(!c){ setEl('pollResults','<div class="empty-state">CONNECT SUPABASE</div>'); loadInlinePollResults(); return; }
+  const {data} = await c.from('poll_songs').select('*').order('votes_count',{ascending:false});
+  const max = Math.max(...(data||[]).map(s=>s.votes_count),1);
+  const html = (data||[]).map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07);">
+      <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:${i<3?'var(--gold)':'var(--gold-dim)'};width:28px">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.title)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim)">${escHtml(s.artist)}${s.label?` · <span style="color:rgba(255,255,255,0.2)">${escHtml(s.label)}</span>`:''}</div>
+        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(s.votes_count/max*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;"></div></div>
       </div>
-    `).join('') || '<div class="empty-state">NO SONGS IN POLL</div>';
-  } catch(e){ renderDemoPoll(); }
+      <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold)">${s.votes_count}</div>
+      <button class="btn btn-sm btn-danger" onclick="removeSong('${s.id}')">✕</button>
+    </div>`).join('') || '<div class="empty-state">NO SONGS IN POLL</div>';
+  setEl('pollResults',html);
+  setEl('inlinePollResults',html);
 }
 
-async function loadMedia() {
-  const c = client(); if(!c){ renderDemoMedia(); return; }
-  try {
-    const {data,count} = await c.from('media').select('*',{count:'exact'}).order('created_at',{ascending:false});
-    document.getElementById('mediaCount').textContent = (count||0)+' FILES';
-    document.getElementById('mediaList').innerHTML = (data||[]).slice(0,15).map(m=>`
-      <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(0,0,0,0.2);border-radius:4px;border-left:2px solid ${m.type==='video'?'var(--teal)':'var(--gold)'}">
-        <div style="font-size:18px">${m.type==='video'?'🎬':'📸'}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:700;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</div>
-          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3)">${m.session} · ♥ ${m.likes_count}</div>
-        </div>
-        <button class="btn btn-sm btn-danger" onclick="deleteMedia('${m.id}')">✕</button>
-      </div>
-    `).join('') || '<div class="empty-state">VAULT EMPTY</div>';
-  } catch(e){ renderDemoMedia(); }
-}
+async function loadInlinePollResults(){ await loadPollResults(); }
 
-// ── ACTIONS ───────────────────────────────────────────────
-async function toggleLive() {
-  isLive = !isLive;
-  const btn = document.getElementById('liveBtn');
-  const overlay = document.getElementById('liveOverlay');
-  const status = document.getElementById('broadcastStatus');
-  btn.textContent = isLive ? '⏹ END BROADCAST' : '📡 GO LIVE';
-  btn.classList.toggle('on', isLive);
-  overlay.classList.toggle('show', isLive);
-  status.textContent = isLive ? '● BROADCASTING LIVE' : '● STANDBY';
-  status.style.color = isLive ? 'var(--red)' : 'var(--teal)';
-  await log(isLive ? '📡 LIVE BROADCAST STARTED' : '⏹ BROADCAST ENDED', 'alert');
-  if(isLive) { setInterval(()=>{ document.getElementById('viewerCount').textContent = Math.floor(Math.random()*50+20)+' OPERATIVES WATCHING'; },5000); }
-}
+// ── ACTIONS ──────────────────────────────────────────────
 
-async function toggleLockdown() {
-  isLockdown = !isLockdown;
-  const on = isLockdown;
-  if(!confirm(on ? '⚠ ACTIVATE SYSTEM-WIDE LOCKDOWN?\n\nAll operatives will be locked out.' : 'DISENGAGE LOCKDOWN?')) { isLockdown = !isLockdown; return; }
-  document.getElementById('lockdownBtn').classList.toggle('on', on);
-  document.getElementById('lockdownBtn').textContent = on ? '⚡ DISENGAGE LOCKDOWN' : '⚡ PROTOCOL ZERO';
+// ── MEDIA UPLOAD ─────────────────────────────────────────
+async function uploadAsset(){
+  const title  = document.getElementById('sessTitle')?.value.trim();
+  const tag    = document.getElementById('sessTag')?.value;
+  const type   = document.getElementById('mediaType')?.value;
+  const access = document.getElementById('mediaAccess')?.value;
+  const file   = document.getElementById('fileIn')?.files[0];
+  const rights = document.getElementById('mediaRightsConfirm')?.checked;
+  if(!title){ alert('⚠ Enter a media title.'); return; }
+  if(!tag){ alert('⚠ Select a session tag.'); return; }
+  if(!file){ alert('⚠ Select a file to upload.'); return; }
+  if(!rights){ alert('⚠ Please confirm you own rights to this content before uploading.'); return; }
   const c = client();
-  if(c) await c.from('system_settings').upsert({key:'lockdown',value:String(on)});
-  await log(on ? '!!! PROTOCOL ZERO ENGAGED — ALL OPERATIVES LOCKED OUT !!!' : 'Protocol Zero DISENGAGED — Systems Nominal', 'lockdown');
-}
-
-async function toggleMaintenance() {
-  isMaintenance = !isMaintenance;
-  document.getElementById('maintenanceBtn').textContent = isMaintenance ? '⚙️ DISABLE MAINTENANCE' : '⚙️ ENABLE MAINTENANCE';
-  document.getElementById('maintenanceBtn').classList.toggle('on', isMaintenance);
-  const c = client();
-  if(c) await c.from('system_settings').upsert({key:'maintenance',value:String(isMaintenance)});
-  await log(isMaintenance ? '⚙️ MAINTENANCE MODE ENABLED' : '⚙️ MAINTENANCE MODE DISABLED', 'info');
-}
-
-async function sendAlert() {
-  const msg = document.getElementById('alertMsg').value.trim();
-  const type = document.getElementById('alertType').value;
-  if(!msg){ alert('⚠ Enter a message.'); return; }
-  await log('📡 GLOBAL ALERT ['+type.toUpperCase()+']: '+msg, 'alert');
-  alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
-  document.getElementById('alertMsg').value = '';
-}
-
-function globalAlert() {
-  const msg = prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
-  if(!msg||!msg.trim()) return;
-  log('📡 GLOBAL ALERT: '+msg.trim(), 'alert');
-  alert('✅ BROADCAST SENT.');
-}
-
-async function uploadAsset() {
-  const title = document.getElementById('sessTitle').value.trim();
-  const tag = document.getElementById('sessTag').value;
-  const file = document.getElementById('fileIn').files[0];
-  const type = document.getElementById('mediaType').value;
-  const isPremium = document.getElementById('mediaAccess').value === 'premium';
-  if(!title){ alert('⚠ Enter a session title.'); return; }
-  if(!tag){ alert('⚠ Select a session.'); return; }
-  if(!file){ alert('⚠ Select a file.'); return; }
-  const c = client();
-  if(c) {
+  if(c){
+    const prog = document.getElementById('uploadProgress');
+    const fill = document.getElementById('uploadFill');
+    prog.classList.add('show');
+    let p=0; const iv=setInterval(()=>{p+=8;fill.style.width=Math.min(p,90)+'%';if(p>=90)clearInterval(iv);},150);
     const path = tag+'/'+Date.now()+'_'+file.name;
-    document.getElementById('uploadProgress').classList.add('show');
-    let prog = 0; const iv = setInterval(()=>{ prog+=10; document.getElementById('uploadFill').style.width=prog+'%'; if(prog>=90)clearInterval(iv); },200);
-    const {error} = await c.storage.from('media').upload(path, file);
-    clearInterval(iv); document.getElementById('uploadFill').style.width='100%';
-    if(!error) {
+    const {error} = await c.storage.from('media').upload(path,file);
+    clearInterval(iv); fill.style.width='100%';
+    if(!error){
       const {data:{publicUrl}} = c.storage.from('media').getPublicUrl(path);
-      await c.from('media').insert({title,session:tag,file_path:path,file_url:publicUrl,type,is_premium:isPremium,uploaded_by:currentUser?.id});
+      await c.from('media').insert({title,session:tag,file_path:path,file_url:publicUrl,type,is_premium:access==='premium',uploaded_by:currentUser?.id});
       await log('🎬 VAULT UPLOAD: '+title+' ('+tag.toUpperCase()+')', 'upload');
       alert('✅ DEPLOYED TO VAULT: '+title);
-      document.getElementById('sessTitle').value=''; document.getElementById('sessTag').value='';
-      document.getElementById('fileIn').value=''; document.getElementById('uploadLabel').textContent='CLICK OR DRAG FILES TO UPLOAD';
+      document.getElementById('sessTitle').value='';
+      document.getElementById('sessTag').value='';
+      document.getElementById('fileIn').value='';
+      document.getElementById('uploadLabel').textContent='CLICK OR DRAG FILES HERE';
       document.getElementById('uploadLabel').classList.remove('ready');
-      setTimeout(()=>document.getElementById('uploadProgress').classList.remove('show'),1000);
+      document.getElementById('mediaRightsConfirm').checked=false;
+      setTimeout(()=>prog.classList.remove('show'),1000);
       loadMedia();
     } else { alert('❌ Upload failed: '+error.message); }
   } else {
-    await log('🎬 MOCK UPLOAD: '+title, 'upload');
-    alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase for real uploads.');
+    await log('🎬 MOCK UPLOAD: '+title,'upload');
+    alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase to enable real uploads.');
   }
 }
 
-function handleDrop(e) {
-  e.preventDefault(); document.getElementById('uploadZone').classList.remove('dragover');
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragover');
   const files = e.dataTransfer.files;
-  if(files.length){ document.getElementById('fileIn').files = files; filesChosen({files}); }
+  if(files.length){ document.getElementById('fileIn').files=files; filesChosen({files}); }
 }
-
-function filesChosen(input) {
+function filesChosen(input){
   if(input.files&&input.files[0]){
-    const n = input.files[0].name;
-    const lbl = document.getElementById('uploadLabel');
-    lbl.innerHTML = '✓ '+(n.length>24?n.substring(0,24)+'…':n)+(input.files.length>1?' + '+(input.files.length-1)+' more':'');
+    const n=input.files[0].name;
+    const lbl=document.getElementById('uploadLabel');
+    lbl.innerHTML='✓ '+(n.length>22?n.substring(0,22)+'…':n)+(input.files.length>1?' + '+(input.files.length-1)+' more':'');
     lbl.classList.add('ready');
   }
 }
-
-async function checkInTicket() {
-  const code = document.getElementById('checkinCode').value.trim();
-  if(!code){ alert('⚠ Enter a ticket code.'); return; }
-  const el = document.getElementById('checkinResult');
-  el.className = 'checkin-result show';
-  const c = client();
-  if(c) {
-    const {data} = await c.from('tickets').select('*').eq('ticket_code', code).single();
-    if(!data) { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">❌ INVALID TICKET</div><div class="checkin-detail">No ticket found with code: '+code+'</div>'; return; }
-    if(data.payment_status !== 'paid') { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">⚠ PAYMENT PENDING</div><div class="checkin-detail">This ticket has not been paid yet.</div>'; return; }
-    if(data.checked_in) { el.className='checkin-result show checkin-invalid'; el.innerHTML='<div class="checkin-title ci-title">⚠ ALREADY CHECKED IN</div><div class="checkin-detail">'+data.buyer_name+' checked in at '+new Date(data.checked_in_at).toLocaleTimeString('en-ZA')+'</div>'; return; }
-    await c.from('tickets').update({checked_in:true,checked_in_at:new Date().toISOString()}).eq('id',data.id);
-    el.className='checkin-result show checkin-valid';
-    el.innerHTML=`<div class="checkin-title cv-title">✅ ACCESS GRANTED</div><div class="checkin-detail">NAME: ${data.buyer_name}<br>EMAIL: ${data.buyer_email}<br>QTY: ${data.quantity} TICKET(S)<br>CODE: ${data.ticket_code}</div>`;
-    await log('✅ CHECK-IN: '+data.buyer_name+' ('+code+')', 'ticket');
-  } else {
-    el.className='checkin-result show checkin-valid';
-    el.innerHTML='<div class="checkin-title cv-title">✅ DEMO: ACCESS GRANTED</div><div class="checkin-detail">Connect Supabase for real check-in.</div>';
-  }
-}
-
-async function createEvent() {
-  const title = document.getElementById('evTitle').value.trim();
-  const date = document.getElementById('evDate').value;
-  if(!title||!date){ alert('⚠ Enter event title and date.'); return; }
-  const c = client();
-  if(c) {
-    const {data:ev} = await c.from('events').insert({title,description:document.getElementById('evDesc').value,event_date:date,doors_open:document.getElementById('evDoors').value,location:document.getElementById('evLocation').value||'LOCATION CLASSIFIED',location_revealed:document.getElementById('evLocationFull').value,created_by:currentUser?.id}).select().single();
-    if(ev) {
-      const vipP=parseInt(document.getElementById('evVIPPrice').value)||0;
-      const vipQ=parseInt(document.getElementById('evVIPQty').value)||0;
-      const genP=parseInt(document.getElementById('evGenPrice').value)||0;
-      const genQ=parseInt(document.getElementById('evGenQty').value)||0;
-      const tiers=[];
-      if(vipP&&vipQ) tiers.push({event_id:ev.id,name:'VIP OPERATIVE',price_rands:vipP,total_qty:vipQ,tier_type:'vip',perks:'Priority entry · Front section · Complimentary drink'});
-      if(genP&&genQ) tiers.push({event_id:ev.id,name:'GENERAL OPERATIVE',price_rands:genP,total_qty:genQ,tier_type:'general',perks:'Standard entry · General floor access'});
-      if(tiers.length) await c.from('ticket_tiers').insert(tiers);
-    }
-    await log('🎉 NEW EVENT CREATED: '+title, 'info');
-    alert('✅ EVENT CREATED: '+title);
-    closeModal('eventModal');
-    loadEvents();
-  } else {
-    alert('✅ MOCK EVENT: '+title+'\n\nConnect Supabase to save events.');
-    closeModal('eventModal');
-  }
-  }
-  async function cancelEvent(id) {
-  if(!confirm('CANCEL THIS EVENT?')) return;
-  const c = client();
-  if(c) await c.from('events').update({status:'cancelled'}).eq('id',id);
-  await log('❌ EVENT CANCELLED', 'info');
-  loadEvents();
-}
-
-async function resetPoll() {
-  if(!confirm('RESET ALL VOTES FOR THE CURRENT POLL?\n\nThis cannot be undone.')) return;
-  const c = client();
-  if(c) {
-    await c.from('poll_votes').delete().neq('id','00000000-0000-0000-0000-000000000000');
-    await c.from('poll_songs').update({votes_count:0}).neq('id','00000000-0000-0000-0000-000000000000');
-  }
-  await log('🗳️ POLL RESET — ALL VOTES CLEARED', 'info');
-  alert('✅ POLL RESET COMPLETE.');
-  loadPollResults();
-}
-
-async function addSong() {
-  const title=document.getElementById('songTitle').value.trim();
-  const artist=document.getElementById('songArtist').value.trim();
-  const week=parseInt(document.getElementById('songWeek').value)||14;
-  const year=parseInt(document.getElementById('songYear').value)||2026;
-  if(!title||!artist){ alert('⚠ Enter song title and artist.'); return; }
-  const c = client();
-  if(c) await c.from('poll_songs').insert({title,artist,week_number:week,year});
-  await log('🎵 SONG ADDED TO POLL: '+title+' — '+artist, 'info');
-  document.getElementById('songTitle').value=''; document.getElementById('songArtist').value='';
-  loadPollResults();
-}
-
-async function removeSong(id) {
-  if(!confirm('REMOVE THIS SONG FROM THE POLL?')) return;
-  const c = client();
-  if(c) await c.from('poll_songs').delete().eq('id',id);
-  await log('🗑️ SONG REMOVED FROM POLL', 'info');
-  loadPollResults();
-}
-
-async function closePoll() {
-  if(!confirm('CLOSE THE CURRENT POLL?\n\nOperatives will no longer be able to vote.')) return;
-  const c = client();
-  if(c) await c.from('system_settings').upsert({key:'poll_open',value:'false'});
-  await log('🔒 POLL CLOSED — VOTING ENDED', 'info');
-  alert('✅ POLL CLOSED.');
-}
-
-async function openNewPoll() {
-  const week = prompt('ENTER NEW POLL WEEK NUMBER:');
-  if(!week) return;
-  const c = client();
-  if(c) {
-    await c.from('system_settings').upsert({key:'poll_week',value:week});
-    await c.from('system_settings').upsert({key:'poll_open',value:'true'});
-  }
-  await log('🆕 NEW POLL OPENED — WEEK '+week, 'info');
-  alert('✅ NEW POLL STARTED FOR WEEK '+week);
-}
-
-function openRankChange(id, name, rank) {
-  rankChangeTarget = {id, name};
-  document.getElementById('rankModalUser').textContent = 'OPERATIVE: '+name;
-  document.getElementById('newRankSelect').value = rank;
-  openModal('rankModal');
-}
-
-async function confirmRankChange() {
-  if(!rankChangeTarget) return;
-  const newRank = document.getElementById('newRankSelect').value;
-  const c = client();
-  if(c) await c.from('profiles').update({rank:newRank}).eq('id',rankChangeTarget.id);
-  await log('👤 RANK CHANGED: '+rankChangeTarget.name+' → '+newRank, 'membership');
-  alert('✅ RANK UPDATED: '+rankChangeTarget.name+' is now '+newRank);
-  closeModal('rankModal');
-  loadOperatives();
-}
-
-async function banUser(id) {
-  if(!confirm('BAN THIS OPERATIVE?\n\nThey will lose access to the app.')) return;
-  const c = client();
-  if(c) {
-    await c.from('profiles').update({rank:'RECRUIT'}).eq('id',id);
-    await c.auth.admin.updateUserById(id,{ban_duration:'876600h'}).catch(()=>{});
-  }
-  await log('⛔ OPERATIVE BANNED: '+id, 'alert');
-  alert('✅ OPERATIVE BANNED.');
-  loadOperatives();
-}
-
-async function cancelMembership(id) {
-  if(!confirm('CANCEL THIS MEMBERSHIP?\n\nOperative will revert to RECRUIT.')) return;
-  const c = client();
-  if(c) await c.from('memberships').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',id);
-  await log('❌ MEMBERSHIP CANCELLED: '+id, 'membership');
-  loadMemberships();
-}
-
-async function deleteMedia(id) {
-  if(!confirm('DELETE THIS MEDIA FILE?')) return;
-  const c = client();
-  if(c) await c.from('media').delete().eq('id',id);
-  await log('🗑️ MEDIA DELETED: '+id, 'upload');
+async function deleteMedia(id){
+  if(!confirm('DELETE THIS MEDIA FILE? Cannot be undone.')) return;
+  const c=client(); if(c) await c.from('media').delete().eq('id',id);
+  await log('🗑️ MEDIA DELETED: '+id,'upload');
   loadMedia();
 }
 
-async function saveSettings() {
-  const c = client();
-  const settings = [
-    {key:'app_version',value:document.getElementById('setVersion').value},
-    {key:'ticket_booking_fee_pct',value:document.getElementById('setBookingFee').value},
-    {key:'poll_week',value:document.getElementById('setPollWeek').value},
-  ];
+// ── EVENT CREATION ────────────────────────────────────────
+async function createEvent(){
+  const title=document.getElementById('evTitle')?.value.trim();
+  const date=document.getElementById('evDate')?.value;
+  if(!title||!date){alert('⚠ Enter event title and date.');return;}
+  const c=client();
+  if(c){
+    const {data:ev}=await c.from('events').insert({
+      title,description:document.getElementById('evDesc')?.value,
+      event_date:date,doors_open:document.getElementById('evDoors')?.value||'18:00',
+      location:document.getElementById('evLocation')?.value||'LOCATION CLASSIFIED',
+      location_revealed:document.getElementById('evLocationFull')?.value,
+      created_by:currentUser?.id
+    }).select().single();
+    if(ev){
+      const tiers=[];
+      const vP=parseInt(document.getElementById('evVIPPrice')?.value)||0;
+      const vQ=parseInt(document.getElementById('evVIPQty')?.value)||0;
+      const gP=parseInt(document.getElementById('evGenPrice')?.value)||0;
+      const gQ=parseInt(document.getElementById('evGenQty')?.value)||0;
+      if(vP&&vQ) tiers.push({event_id:ev.id,name:'VIP OPERATIVE',price_rands:vP,total_qty:vQ,tier_type:'vip',perks:'Priority entry · Front section · Complimentary drink'});
+      if(gP&&gQ) tiers.push({event_id:ev.id,name:'GENERAL OPERATIVE',price_rands:gP,total_qty:gQ,tier_type:'general',perks:'Standard entry · General floor access'});
+      if(tiers.length) await c.from('ticket_tiers').insert(tiers);
+    }
+    await log('🎉 NEW EVENT CREATED: '+title,'info');
+    alert('✅ EVENT CREATED: '+title);
+    document.getElementById('evTitle').value='';
+    loadEvents();
+  } else {
+    alert('✅ MOCK EVENT CREATED: '+title+'\n\nConnect Supabase to save events.');
+  }
+}
+async function cancelEvent(id){
+  if(!confirm('CANCEL THIS EVENT?')) return;
+  const c=client(); if(c) await c.from('events').update({status:'cancelled'}).eq('id',id);
+  await log('❌ EVENT CANCELLED','info'); loadEvents();
+}
+
+// ── POLL MANAGEMENT ───────────────────────────────────────
+async function addSong(){
+  const title  = document.getElementById('songTitle')?.value.trim();
+  const artist = document.getElementById('songArtist')?.value.trim();
+  const label  = document.getElementById('songLabel')?.value.trim();
+  const week   = parseInt(document.getElementById('songWeek')?.value)||14;
+  const year   = parseInt(document.getElementById('songYear')?.value)||2026;
+  const conf   = document.getElementById('copyrightConfirm')?.checked;
+  if(!title||!artist){alert('⚠ Enter song title and artist name.');return;}
+  if(!conf){alert('⚠ Please tick the copyright confirmation checkbox before adding a song.');return;}
+  await insertSong(title,artist,label,week,year);
+  document.getElementById('songTitle').value='';
+  document.getElementById('songArtist').value='';
+  document.getElementById('songLabel').value='';
+  document.getElementById('copyrightConfirm').checked=false;
+  loadInlinePollResults();
+}
+async function quickAddSong(){
+  const title  = document.getElementById('pollSongTitle')?.value.trim();
+  const artist = document.getElementById('pollSongArtist')?.value.trim();
+  const label  = document.getElementById('pollSongLabel')?.value.trim();
+  const conf   = document.getElementById('pollCopyrightConfirm')?.checked;
+  if(!title||!artist){alert('⚠ Enter song title and artist.');return;}
+  if(!conf){alert('⚠ Please confirm copyright before adding.');return;}
+  const week=parseInt(document.getElementById('setPollWeek')?.value)||14;
+  await insertSong(title,artist,label,week,2026);
+  document.getElementById('pollSongTitle').value='';
+  document.getElementById('pollSongArtist').value='';
+  document.getElementById('pollSongLabel').value='';
+  document.getElementById('pollCopyrightConfirm').checked=false;
+  loadPollResults();
+}
+async function insertSong(title,artist,label,week,year){
+  const c=client();
+  if(c) await c.from('poll_songs').insert({title,artist,label:label||null,week_number:week,year});
+  await log('🎵 SONG ADDED TO POLL: '+title+' — '+artist+' [VOTING ONLY]','info');
+  alert('✅ SONG ADDED: '+title+' — '+artist);
+}
+async function removeSong(id){
+  if(!confirm('REMOVE THIS SONG FROM THE POLL?')) return;
+  const c=client(); if(c) await c.from('poll_songs').delete().eq('id',id);
+  await log('🗑️ SONG REMOVED FROM POLL','info'); loadPollResults();
+}
+async function resetPoll(){
+  if(!confirm('RESET ALL VOTES?\n\nThis cannot be undone.')) return;
+  const c=client();
+  if(c){ await c.from('poll_votes').delete().neq('id','00000000-0000-0000-0000-000000000000'); await c.from('poll_songs').update({votes_count:0}).neq('id','00000000-0000-0000-0000-000000000000'); }
+  await log('🗳️ POLL RESET — ALL VOTES CLEARED','info'); alert('✅ POLL RESET.'); loadPollResults();
+}
+async function closePoll(){
+  if(!confirm('CLOSE THE CURRENT POLL?')) return;
+  const c=client(); if(c) await c.from('system_settings').upsert({key:'poll_open',value:'false'});
+  await log('🔒 POLL CLOSED','info'); alert('✅ POLL CLOSED.');
+}
+async function openNewPoll(){
+  const week=prompt('ENTER NEW POLL WEEK NUMBER:'); if(!week) return;
+  const c=client();
+  if(c){ await c.from('system_settings').upsert([{key:'poll_week',value:week},{key:'poll_open',value:'true'}]); }
+  await log('🆕 NEW POLL OPENED — WEEK '+week,'info'); alert('✅ NEW POLL STARTED FOR WEEK '+week);
+                      }
+
+  // ── BROADCAST ─────────────────────────────────────────────
+async function toggleLive(){
+  isLive=!isLive;
+  const btn=document.getElementById('liveBtn');
+  const overlay=document.getElementById('liveOverlay');
+  const status=document.getElementById('broadcastStatus');
+  btn.textContent=isLive?'⏹ END BROADCAST':'📡 GO LIVE';
+  btn.classList.toggle('on',isLive);
+  overlay.classList.toggle('show',isLive);
+  status.textContent=isLive?'● BROADCASTING LIVE':'● STANDBY';
+  status.style.color=isLive?'var(--red)':'var(--teal)';
+  await log(isLive?'📡 LIVE BROADCAST STARTED':'⏹ BROADCAST ENDED','alert');
+  if(isLive) setInterval(()=>{setEl('viewerCount',Math.floor(Math.random()*50+20)+' OPERATIVES WATCHING');},5000);
+}
+async function toggleLockdown(){
+  isLockdown=!isLockdown;
+  if(!confirm(isLockdown?'⚠ ACTIVATE LOCKDOWN?':'DISENGAGE LOCKDOWN?')){isLockdown=!isLockdown;return;}
+  document.getElementById('lockdownBtn').classList.toggle('on',isLockdown);
+  document.getElementById('lockdownBtn').textContent=isLockdown?'⚡ DISENGAGE LOCKDOWN':'⚡ PROTOCOL ZERO';
+  const c=client(); if(c) await c.from('system_settings').upsert({key:'lockdown',value:String(isLockdown)});
+  await log(isLockdown?'!!! PROTOCOL ZERO ENGAGED !!!':'Protocol Zero DISENGAGED','lockdown');
+}
+async function toggleMaintenance(){
+  isMaintenance=!isMaintenance;
+  document.getElementById('maintenanceBtn').textContent=isMaintenance?'⚙️ DISABLE MAINTENANCE':'⚙️ ENABLE MAINTENANCE';
+  document.getElementById('maintenanceBtn').classList.toggle('on',isMaintenance);
+  const c=client(); if(c) await c.from('system_settings').upsert({key:'maintenance',value:String(isMaintenance)});
+  await log(isMaintenance?'⚙️ MAINTENANCE MODE ENABLED':'⚙️ MAINTENANCE MODE DISABLED','info');
+}
+function globalAlert(){
+  const msg=prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
+  if(!msg||!msg.trim()) return;
+  sendAlert(msg.trim(),'urgent');
+}
+async function sendAlert(customMsg,customType){
+  const msg=customMsg||document.getElementById('alertMsg')?.value.trim();
+  const type=customType||document.getElementById('alertType')?.value||'info';
+  if(!msg){alert('⚠ Enter a message.');return;}
+  const c=client(); if(c) await c.from('activity_log').insert({description:'📡 ALERT ['+type.toUpperCase()+']: '+msg,action_type:'alert',user_id:currentUser?.id});
+  await log('📡 GLOBAL ALERT SENT: '+msg.substring(0,60),'alert');
+  alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
+  if(document.getElementById('alertMsg')) document.getElementById('alertMsg').value='';
+}
+async function scheduleBroadcast(){
+  const dt=prompt('ENTER BROADCAST DATE & TIME (e.g. 2026-04-19 18:00):'); if(!dt) return;
+  await log('📅 BROADCAST SCHEDULED: '+dt,'info'); alert('✅ BROADCAST SCHEDULED FOR: '+dt);
+}
+
+// ── OPERATIVES ────────────────────────────────────────────
+let rankChangeTarget=null;
+function openRankChange(id,name,rank){
+  rankChangeTarget={id,name};
+  document.getElementById('rankModalUser').textContent='OPERATIVE: '+name;
+  document.getElementById('newRankSelect').value=rank;
+  openModal('rankModal');
+}
+async function confirmRankChange(){
+  if(!rankChangeTarget) return;
+  const newRank=document.getElementById('newRankSelect').value;
+  const c=client(); if(c) await c.from('profiles').update({rank:newRank}).eq('id',rankChangeTarget.id);
+  await log('👤 RANK CHANGED: '+rankChangeTarget.name+' → '+newRank,'membership');
+  alert('✅ RANK UPDATED: '+rankChangeTarget.name+' → '+newRank);
+  closeModal('rankModal'); loadOperatives();
+}
+async function banUser(id){
+  if(!confirm('BAN THIS OPERATIVE?')) return;
+  const c=client(); if(c) await c.from('profiles').update({rank:'RECRUIT'}).eq('id',id);
+  await log('⛔ OPERATIVE BANNED: '+id,'alert'); alert('✅ OPERATIVE BANNED.'); loadOperatives();
+}
+
+// ── MEMBERSHIPS ───────────────────────────────────────────
+async function cancelMembership(id){
+  if(!confirm('CANCEL THIS MEMBERSHIP?')) return;
+  const c=client(); if(c) await c.from('memberships').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',id);
+  await log('❌ MEMBERSHIP CANCELLED','membership'); loadMemberships();
+}
+
+// ── TICKET CHECK-IN ───────────────────────────────────────
+async function checkInTicket(){
+  const code=document.getElementById('checkinCode').value.trim();
+  if(!code){alert('⚠ Enter a ticket code.');return;}
+  const el=document.getElementById('checkinResult');
+  el.className='checkin-result show';
+  const c=client();
+  if(c){
+    const {data}=await c.from('tickets').select('*').eq('ticket_code',code).single();
+    if(!data){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">❌ INVALID TICKET</div><div class="checkin-detail">No ticket found: '+code+'</div>';return;}
+    if(data.payment_status!=='paid'){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">⚠ PAYMENT PENDING</div><div class="checkin-detail">Ticket not paid yet.</div>';return;}
+    if(data.checked_in){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">⚠ ALREADY CHECKED IN</div><div class="checkin-detail">'+data.buyer_name+' already checked in at '+new Date(data.checked_in_at).toLocaleTimeString('en-ZA')+'</div>';return;}
+    await c.from('tickets').update({checked_in:true,checked_in_at:new Date().toISOString()}).eq('id',data.id);
+    el.classList.add('checkin-valid');
+    el.innerHTML='<div class="cv-title">✅ ACCESS GRANTED</div><div class="checkin-detail">NAME: '+data.buyer_name+'<br>EMAIL: '+data.buyer_email+'<br>QTY: '+data.quantity+' TICKET(S)<br>CODE: '+data.ticket_code+'</div>';
+    await log('✅ CHECK-IN: '+data.buyer_name+' ('+code+')','ticket');
+  } else {
+    el.classList.add('checkin-valid');
+    el.innerHTML='<div class="cv-title">✅ DEMO: ACCESS GRANTED</div><div class="checkin-detail">Connect Supabase for real check-in.</div>';
+  }
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+async function saveSettings(){
+  const c=client();
+  const settings=[{key:'app_version',value:document.getElementById('setVersion').value},{key:'ticket_booking_fee_pct',value:document.getElementById('setBookingFee').value},{key:'poll_week',value:document.getElementById('setPollWeek').value}];
   if(c) for(const s of settings) await c.from('system_settings').upsert(s);
-  await log('⚙️ SETTINGS UPDATED BY DIRECTOR', 'info');
-  alert('✅ SETTINGS SAVED.');
+  await log('⚙️ SETTINGS UPDATED BY DIRECTOR','info'); alert('✅ SETTINGS SAVED.');
+}
+async function clearLogs(){
+  const c=client(); if(c) await c.from('activity_log').delete().neq('id','00000000-0000-0000-0000-000000000000');
+  setEl('allLogs','<div class="empty-state">LOGS CLEARED</div>');
 }
 
-async function clearLogs() {
-  if(!confirm('CLEAR ALL ACTIVITY LOGS? This cannot be undone.')) return;
-  const c = client();
-  if(c) await c.from('activity_log').delete().neq('id','00000000-0000-0000-0000-000000000000');
-  document.getElementById('allLogs') && (document.getElementById('allLogs').innerHTML='<div class="empty-state">LOGS CLEARED</div>');
-}
-
-async function scheduleBroadcast() {
-  const dt = prompt('ENTER BROADCAST DATE & TIME (e.g. 2026-04-19 18:00):');
-  if(!dt) return;
-  await log('📅 BROADCAST SCHEDULED: '+dt, 'info');
-  alert('✅ SESSION BROADCAST SCHEDULED FOR: '+dt);
-}
-
-function scheduledPoll(){}
-
-// ── EXPORT CSV ─────────────────────────────────────────────
-function downloadCSV(data, filename) {
-  const blob = new Blob([data], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-}
-async function exportTicketsCSV() {
-  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
-  const {data} = await c.from('tickets').select('ticket_code,buyer_name,buyer_email,buyer_phone,quantity,total_paid,payment_status,checked_in,created_at');
-  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
-  downloadCSV(rows, 'mog_tickets.csv');
-}
-async function exportMembersCSV() {
-  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
-  const {data} = await c.from('memberships').select('*,profiles(username,email)');
-  const rows = ['username,email,plan,billing,amount,status,started', ...(data||[]).map(m=>`${m.profiles?.username},${m.profiles?.email},${m.plan},${m.billing_cycle},${m.amount_rands},${m.status},${m.starts_at}`)].join('\n');
-  downloadCSV(rows, 'mog_memberships.csv');
-}
-async function exportUsersCSV() {
-  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
-  const {data} = await c.from('profiles').select('username,email,rank,created_at');
-  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
-  downloadCSV(rows, 'mog_operatives.csv');
-}
-async function exportResultsCSV() {
-  const c = client(); if(!c){ alert('Connect Supabase to export.'); return; }
-  const {data} = await c.from('poll_songs').select('title,artist,votes_count,week_number').order('votes_count',{ascending:false});
-  const rows = [Object.keys(data[0]||{}).join(','), ...(data||[]).map(r=>Object.values(r).join(','))].join('\n');
-  downloadCSV(rows, 'mog_poll_results.csv');
-}
-
-// ── LOGGING ───────────────────────────────────────────────
-async function log(description, action_type='info') {
-  const c = client();
-  if(c) await c.from('activity_log').insert({description, action_type, user_id:currentUser?.id}).catch(()=>{});
-}
+// ── CSV EXPORTS ───────────────────────────────────────────
+function downloadCSV(data,filename){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv'}));a.download=filename;a.click();}
+async function exportTicketsCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('tickets').select('ticket_code,buyer_name,buyer_email,quantity,total_paid,payment_status,checked_in,created_at');downloadCSV(['ticket_code,buyer_name,buyer_email,quantity,total_paid,payment_status,checked_in,created_at',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_tickets.csv');}
+async function exportMembersCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('memberships').select('*,profiles(username,email)');downloadCSV(['username,email,plan,billing,amount,status,started',...(data||[]).map(m=>`${m.profiles?.username},${m.profiles?.email},${m.plan},${m.billing_cycle},${m.amount_rands},${m.status},${m.starts_at}`)].join('\n'),'mog_memberships.csv');}
+async function exportUsersCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('profiles').select('username,email,rank,created_at');downloadCSV(['username,email,rank,created_at',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_operatives.csv');}
+async function exportResultsCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('poll_songs').select('title,artist,label,votes_count,week_number').order('votes_count',{ascending:false});downloadCSV(['title,artist,label,votes_count,week_number',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_poll_results.csv');}
 
 // ── MODAL ─────────────────────────────────────────────────
-function openModal(id){ document.getElementById(id).classList.add('open'); }
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-document.addEventListener('click', e => {
-  if(e.target.classList.contains('modal')) closeModal(e.target.id);
-});
-  
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal'))closeModal(e.target.id);});
+
 // ── LOGOUT ────────────────────────────────────────────────
-async function logout() {
+async function logout(){
   if(!confirm('Exit Directorate Command?')) return;
-  const c = client();
-  if(c) await c.auth.signOut().catch(()=>{});
-  sessionStorage.clear();
-  window.location.href = 'login.html';
+  const c=client(); if(c) await c.auth.signOut().catch(()=>{});
+  sessionStorage.clear(); window.location.href='login.html';
 }
 
-// ── DEMO DATA REMOVED — All data loads from Supabase ────────
-// When Supabase is not connected, show clean empty states
-function loadDemoData() {
-  loadEmptyStats();
-  renderEmptyLogs();
-  renderEmptyTable('eventsTable', 5, 'NO EVENTS CREATED YET');
-  renderEmptyTable('ticketsTable', 9, 'NO TICKETS SOLD YET');
-  renderEmptyTable('membersTable', 8, 'NO ACTIVE MEMBERSHIPS YET');
-  renderEmptyTable('operativesTable', 6, 'NO OPERATIVES REGISTERED YET');
-  renderEmptyPoll();
-  renderEmptyMedia();
-}
+// ── HELPERS ───────────────────────────────────────────────
+function setEl(id,html){const el=document.getElementById(id);if(el){if(typeof html==='number')el.textContent=html;else el.innerHTML=html;}}
+function setWidth(id,pct){const el=document.getElementById(id);if(el)el.style.width=pct+'%';}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
+function escHtml(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+async function log(desc,type='info'){const c=client();if(c)await c.from('activity_log').insert({description:desc,action_type:type,user_id:currentUser?.id}).catch(()=>{});}
 
-function loadEmptyStats() {
-  ['statRevenue','statOperatives','statTickets','statMembers','mCountOp','mCountAgent','mCountDir'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent='0';
-  });
-  const mrr=document.getElementById('mMRR'); if(mrr) mrr.textContent='R0';
-  ['revBarTickets','revBarMembers','revBarFees'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.style.width='0%';
-  });
-  ['revTicketAmt','revMemberAmt','revFeeAmt'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent='R0';
-  });
-  const split=document.getElementById('memberSplit');
-  if(split) split.innerHTML='<div class="empty-state" style="padding:20px">NO MEMBERS YET</div>';
-}
+function loadEmptyData(){ loadEmptyStats(); ['eventsTable','ticketsTable','membersTable','operativesTable'].forEach(id=>setEl(id,'<tr><td colspan="9" class="empty-state">CONNECT SUPABASE TO VIEW DATA</td></tr>')); setEl('allLogs','<div class="empty-state">CONNECT SUPABASE TO VIEW LOGS</div>'); setEl('overviewLogs','<div class="empty-state">NO LOGS</div>'); setEl('broadcastLogs','<div class="empty-state">NO LOGS</div>'); setEl('mediaList','<div class="empty-state">VAULT EMPTY</div>'); setEl('pollResults','<div class="empty-state">NO POLL SONGS YET</div>'); setEl('inlinePollResults','<div class="empty-state">NO POLL SONGS YET</div>'); }
+function loadEmptyStats(){ ['statRevenue','statOperatives','statTickets','statMembers','mMRR','mCountOp','mCountAgent','mCountDir'].forEach(id=>setEl(id,'0')); ['revBarTickets','revBarMembers','revBarFees'].forEach(id=>setWidth(id,0)); ['revTicketAmt','revMemberAmt','revFeeAmt'].forEach(id=>setEl(id,'R0')); setEl('memberSplit','<div class="empty-state" style="padding:20px">NO MEMBERS YET</div>'); }
 
-function renderEmptyLogs() {
-  const msg='<div class="empty-state">NO ACTIVITY YET — LOGS WILL APPEAR HERE</div>';
-  ['allLogs','overviewLogs'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.innerHTML=msg;
-  });
-}
-
-function renderEmptyTable(id, cols, msg) {
-  const t=document.getElementById(id);
-  if(t) t.innerHTML=`<tr><td colspan="${cols}" class="empty-state">${msg}</td></tr>`;
-}
-
-function renderEmptyPoll() {
-  const el=document.getElementById('pollResults');
-  if(el) el.innerHTML='<div class="empty-state">NO POLL SONGS YET — ADD SONGS IN THE POLLS TAB</div>';
-}
-
-function renderEmptyMedia() {
-  const t=document.getElementById('mediaList');
-  if(t) t.innerHTML='<div class="empty-state">VAULT EMPTY — UPLOAD MEDIA ABOVE</div>';
-  const c=document.getElementById('mediaCount');
-  if(c) c.textContent='0 FILES';
-}
 // ── START ─────────────────────────────────────────────────
 init();
 </script>
 </body>
 </html>
+  
