@@ -21,7 +21,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .rank-banner{margin:16px;position:relative;z-index:1;}
 .rank-card{background:linear-gradient(135deg,rgba(13,31,45,0.95),rgba(201,168,76,0.08));border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;}
 .rank-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
-.rank-badge-big{width:58px;height:58px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.rank-badge-big{width:58px;height:58px;border-radius:50%;border:2px solid;overflow:hidden;flex-shrink:0;position:relative;}
+.rank-badge-big img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.rank-badge-icon{width:58px;height:58px;border-radius:50%;border:2px solid;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
 .rank-info{flex:1;}
 .rank-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:4px;}
 .rank-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;margin-bottom:4px;}
@@ -153,7 +155,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <!-- CURRENT RANK -->
 <div class="rank-banner">
   <div class="rank-card">
-    <div class="rank-badge-big" id="currentBadge" style="border-color:#8A6E2F">🪖</div>
+    <div class="rank-badge-big" id="currentBadge" style="border-color:#8A6E2F">
+      <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+    </div>
     <div class="rank-info">
       <div class="rank-label">CURRENT RANK</div>
       <div class="rank-name" id="currentRankName" style="color:#C9A84C">RECRUIT</div>
@@ -422,7 +426,8 @@ function updatePrices(){
     }
   });
 }
-function selectPlan(name,price,amount){
+
+  function selectPlan(name,price,amount){
   const annualAmount=planPrices[name.toLowerCase()]?.annual||amount;
   const finalAmount=isAnnual?annualAmount:amount;
   const finalPrice='R'+finalAmount;
@@ -464,10 +469,9 @@ function closeSuccess(){
 }
 
 function updateCurrentRank(rank){
-  const icons={RECRUIT:'🪖',OPERATIVE:'🔫',AGENT:'⭐',DIRECTOR:'👑'};
   const colors={RECRUIT:'#8A6E2F',OPERATIVE:'#00E5CC',AGENT:'#C9A84C',DIRECTOR:'#F0C85A'};
-  document.getElementById('currentBadge').textContent=icons[rank]||'🪖';
-  document.getElementById('currentBadge').style.borderColor=colors[rank]||'#8A6E2F';
+  const badge=document.getElementById('currentBadge');
+  if(badge){badge.style.borderColor=colors[rank]||'#8A6E2F';}
   document.getElementById('currentRankName').textContent=rank;
   document.getElementById('currentRankName').style.color=colors[rank]||'#8A6E2F';
 }
@@ -483,4 +487,4 @@ updateCurrentRank(savedRank);
 updatePrices();
 </script>
 </body>
-</html>  
+</html>
