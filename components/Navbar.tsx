@@ -5,7 +5,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/store";
 import { useUnreadCount } from "@/lib/supabase";
-import { ShoppingBag, X, Plus, Minus, Menu, ArrowRight, MessageCircle } from "lucide-react";
+import {
+  ShoppingBag, X, Plus, Minus, Menu, ArrowRight, MessageCircle, Hash
+} from "lucide-react";
 
 export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -36,15 +38,21 @@ export default function Navbar() {
           <Link href="/artisans" className="hover:text-[var(--gold)] transition-colors">Artisans</Link>
           <Link href="/about" className="hover:text-[var(--gold)] transition-colors">Our Story</Link>
 
-          {/* Chat link with unread badge */}
+          {/* Chat with unread badge */}
           <Link href="/chat" className="relative hover:text-[var(--gold)] transition-colors flex items-center gap-1">
             <MessageCircle size={16} strokeWidth={1.5} />
             <span>Chat</span>
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[9px] rounded-full min-w-[16px] h-4 flex items-center justify-center font-bold px-1 animate-pulse">
-                {unreadCount > 99 ? '99+' : unreadCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
+          </Link>
+
+          {/* Rooms */}
+          <Link href="/chat/rooms" className="hover:text-[var(--gold)] transition-colors flex items-center gap-1">
+            <Hash size={14} />
+            <span>Rooms</span>
           </Link>
         </div>
 
@@ -76,7 +84,6 @@ export default function Navbar() {
               </Link>
             ))}
 
-            {/* Chat in mobile menu */}
             <Link
               href="/chat"
               onClick={() => setIsMenuOpen(false)}
@@ -85,9 +92,18 @@ export default function Navbar() {
               Chat
               {unreadCount > 0 && (
                 <span className="bg-red-500 text-white text-sm rounded-full min-w-[28px] h-7 flex items-center justify-center font-bold px-2">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
+            </Link>
+
+            <Link
+              href="/chat/rooms"
+              onClick={() => setIsMenuOpen(false)}
+              className="font-display text-4xl text-[var(--cream)] uppercase tracking-widest hover:text-[var(--gold)] transition-colors flex items-center gap-3"
+            >
+              <Hash size={28} />
+              Rooms
             </Link>
           </nav>
         </div>
@@ -127,7 +143,9 @@ export default function Navbar() {
                     )}
                     <div className="flex-1">
                       <p className="font-serif text-sm font-medium text-[var(--charcoal)]">{item.name}</p>
-                      <p className="font-serif text-xs text-[var(--charcoal)]/50 mb-2">R{item.price.toLocaleString()}</p>
+                      <p className="font-serif text-xs text-[var(--charcoal)]/50 mb-2">
+                        R{item.price.toLocaleString()}
+                      </p>
                       <div className="flex items-center gap-3">
                         <button onClick={() => removeFromCart(item.id)} className="text-[var(--charcoal)]/60 hover:text-[var(--charcoal)]">
                           <Minus size={14} />
