@@ -11,59 +11,77 @@
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.88);--border:rgba(201,168,76,0.28);--border-teal:rgba(0,229,204,0.18);}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;background:var(--black);font-family:'Rajdhani',sans-serif;overflow:hidden;}
-canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.15;}
+
+/* ── CIRCUIT BACKGROUND ── */
+canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.18;}
 .scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-/* STATUS BAR */
-.status-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 20px;background:rgba(5,10,14,0.95);border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;}
+/* ── TOP STATUS BAR ── */
+.status-bar{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 20px;background:rgba(5,10,14,0.95);border-bottom:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;backdrop-filter:blur(10px);}
 .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.25}}
 .status-right{margin-left:auto;color:rgba(201,168,76,0.45);}
 
-/* WRAPPER & LOGO */
+/* ── MAIN WRAPPER ── */
 .wrap{position:relative;z-index:10;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 24px 30px;overflow-y:auto;}
 .wrap::-webkit-scrollbar{display:none;}
-.logo-ring{width:108px;height:108px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(201,168,76,0.35);margin-bottom:12px;animation:logoGlow 3s ease-in-out infinite;flex-shrink:0;}
+
+/* ── LOGO BRANDING ── */
+.logo-ring{width:108px;height:108px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(201,168,76,0.35);margin-bottom:12px;animation:logoGlow 3s ease-in-out infinite;flex-shrink:0;background:var(--black);}
 @keyframes logoGlow{0%,100%{box-shadow:0 0 20px rgba(201,168,76,0.35)}50%{box-shadow:0 0 55px rgba(201,168,76,0.65),0 0 90px rgba(0,229,204,0.15)}}
 .logo-ring img{width:100px;height:100px;border-radius:50%;object-fit:cover;display:block;}
 
-/* BRANDING UPGRADE */
 .org-name{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--gold);letter-spacing:5px;text-align:center;margin-bottom:2px;}
-.org-slogan{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal);letter-spacing:1.5px;text-align:center;margin-bottom:28px;text-transform:uppercase;opacity:0.8;}
+.org-slogan{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal);letter-spacing:1.5px;text-align:center;margin-bottom:28px;text-transform:uppercase;opacity:0.9;}
 
-/* FORM PANEL */
-.panel{width:100%;max-width:390px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px 24px;backdrop-filter:blur(16px);position:relative;}
+/* ── AUTH PANEL ── */
+.panel{width:100%;max-width:390px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:28px 24px;backdrop-filter:blur(16px);position:relative;box-shadow:0 20px 40px rgba(0,0,0,0.4);}
 .panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),var(--gold),transparent);}
 .panel-title{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold-light);letter-spacing:4px;margin-bottom:22px;text-align:center;}
 
-.btn-google{width:100%;padding:13px 16px;background:rgba(201,168,76,0.07);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:var(--gold-light);letter-spacing:2px;cursor:pointer;transition:all 0.3s;text-decoration:none;}
-.btn-google:hover{background:rgba(201,168,76,0.16);border-color:var(--gold);box-shadow:0 0 22px rgba(201,168,76,0.2);}
+/* ── BUTTONS ── */
+.btn-google{width:100%;padding:13px 16px;background:rgba(201,168,76,0.07);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:12px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:var(--gold-light);letter-spacing:2px;cursor:pointer;transition:all 0.3s;text-decoration:none;outline:none;}
+.btn-google:hover{background:rgba(201,168,76,0.16);border-color:var(--gold);box-shadow:0 0 22px rgba(201,168,76,0.2);transform:translateY(-1px);}
+.btn-google svg{width:18px;height:18px;flex-shrink:0;}
 
 .divider{display:flex;align-items:center;gap:10px;margin:18px 0;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:2px;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
 
+/* ── INPUT FIELDS ── */
 .field{margin-bottom:14px;}
 .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
 .field input{width:100%;padding:12px 14px;background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:4px;outline:none;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;transition:all 0.25s;}
 .field input:focus{border-color:var(--teal);box-shadow:0 0 12px rgba(0,229,204,0.12);background:rgba(0,229,204,0.08);}
+.field input::placeholder{color:rgba(255,255,255,0.15);}
 
-.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;margin-top:6px;min-height:48px;display:flex;align-items:center;justify-content:center;}
+/* ── ACTION BUTTON ── */
+.btn-login{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;margin-top:6px;min-height:48px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
 .btn-login:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 28px rgba(201,168,76,0.45);}
+.btn-login:disabled{opacity:0.6;cursor:not-allowed;}
 
-.classify{margin-top:22px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(201,168,76,0.22);letter-spacing:3px;border:1px solid rgba(201,168,76,0.1);padding:5px 14px;border-radius:2px;}
-
-/* MODALS & MISC */
-.error-msg{display:none;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#ff6b6b;letter-spacing:1px;}
-.error-msg.show{display:block;}
 .spinner{width:18px;height:18px;border:2px solid rgba(5,10,14,0.4);border-top-color:var(--black);border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.register-link{text-align:center;margin-top:16px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold-dim);letter-spacing:1px;}
-.register-link a{color:var(--teal);text-decoration:none;cursor:pointer;}
-.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.92);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px;}
+
+/* ── ERROR & LINKS ── */
+.error-msg{display:none;background:rgba(255,59,59,0.1);border:1px solid rgba(255,59,59,0.3);border-radius:4px;padding:10px 14px;margin-bottom:12px;font-family:'Share Tech Mono',monospace;font-size:10px;color:#ff6b6b;letter-spacing:1px;text-align:center;}
+.error-msg.show{display:block;animation:shake 0.4s ease-in-out;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.register-link{text-align:center;margin-top:18px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--gold-dim);letter-spacing:1px;}
+.register-link a{color:var(--teal);text-decoration:none;cursor:pointer;font-weight:700;}
+.register-link a:hover{text-decoration:underline;}
+
+.classify{margin-top:24px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(201,168,76,0.22);letter-spacing:3px;border:1px solid rgba(201,168,76,0.1);padding:6px 16px;border-radius:2px;}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.94);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:24px;}
 .modal-overlay.open{display:flex;}
-.modal-box{width:100%;max-width:380px;background:var(--navy);border:1px solid var(--border-teal);border-radius:6px;padding:28px 24px;position:relative;}
-.modal-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--teal);letter-spacing:3px;margin-bottom:20px;text-align:center;}
-.btn-register{width:100%;padding:13px;margin-top:6px;background:linear-gradient(135deg,var(--teal-dim),var(--teal));border:none;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;}
+.modal-box{width:100%;max-width:380px;background:var(--navy);border:1px solid var(--border-teal);border-radius:6px;padding:30px 24px;position:relative;}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.modal-close{position:absolute;top:12px;right:12px;background:none;border:none;color:var(--gold-dim);font-size:18px;cursor:pointer;transition:0.2s;}
+.modal-close:hover{color:var(--gold);}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--teal);letter-spacing:3px;margin-bottom:22px;text-align:center;}
+.btn-register{width:100%;padding:14px;background:linear-gradient(135deg,var(--teal-dim),var(--teal));border:none;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:0.3s;}
 </style>
 </head>
 <body>
@@ -78,17 +96,17 @@ canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.15;}
 
 <div class="wrap">
   <div class="logo-ring">
-    <img src="logo.png" alt="M.O.G." id="logoImg" onerror="this.src='assets/images/logo.png'">
+    <img src="logo.png" alt="M.O.G." id="logoImg" onerror="this.onerror=null;this.src='assets/images/logo.png'">
   </div>
   
   <div class="org-name">MINISTRY OF GROOVE</div>
-  <div class="org-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+  <div class="org-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</div>
 
   <div class="panel">
     <div class="panel-title">— OPERATIVE AUTHENTICATION —</div>
     
     <button class="btn-google" onclick="handleGoogleLogin()">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -99,7 +117,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.15;}
 
     <div class="divider">OR</div>
 
-    <div class="error-msg" id="errorMsg">⚠ INVALID CREDENTIALS</div>
+    <div class="error-msg" id="errorMsg">⚠ INVALID CREDENTIALS — ACCESS DENIED</div>
 
     <div class="field">
       <label for="emailInput">OPERATIVE ID (EMAIL)</label>
@@ -108,7 +126,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.15;}
 
     <div class="field">
       <label for="passInput">CIPHER (PASSWORD)</label>
-      <input type="password" id="passInput" placeholder="••••••••••" onkeydown="if(event.key==='Enter')handleEmailLogin()">
+      <input type="password" id="passInput" placeholder="••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleEmailLogin()">
     </div>
 
     <button class="btn-login" id="loginBtn" onclick="handleEmailLogin()">
@@ -124,22 +142,28 @@ canvas#bg{position:fixed;inset:0;z-index:0;opacity:0.15;}
 
 <div class="modal-overlay" id="registerModal">
   <div class="modal-box">
-    <button style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--gold);cursor:pointer;" onclick="closeRegister()">✕</button>
-    <div class="modal-title">// NEW OPERATIVE //</div>
-    <div class="field"><label>OPERATIVE NAME</label><input type="text" id="regName" placeholder="e.g. NOVA_CORE"></div>
-    <div class="field"><label>EMAIL ADDRESS</label><input type="email" id="regEmail" placeholder="recruit@gmail.com"></div>
-    <div class="field"><label>CIPHER (MIN. 8 CHARS)</label><input type="password" id="regPass" placeholder="••••••••"></div>
-    <button class="btn-register" onclick="handleRegister()">SEND REQUEST</button>
+    <button class="modal-close" onclick="closeRegister()">✕</button>
+    <div class="modal-title">// NEW OPERATIVE ENROLLMENT //</div>
+    <div class="error-msg" id="regError">⚠ PLEASE FILL ALL FIELDS</div>
+    <div class="field"><label>OPERATIVE NAME</label><input type="text" id="regName" placeholder="e.g. OPERATIVE_NOVA"></div>
+    <div class="field"><label>EMAIL ADDRESS</label><input type="email" id="regEmail" placeholder="operative@gmail.com"></div>
+    <div class="field"><label>CREATE CIPHER (MIN. 8 CHARS)</label><input type="password" id="regPass" placeholder="••••••••"></div>
+    <button class="btn-register" onclick="handleRegister()">REQUEST CLEARANCE</button>
   </div>
 </div>
 
 <script>
-// Logic remains identical to your working version but updated with visual fixes
+// --- CANVAS BACKGROUND LOGIC ---
 const canvas=document.getElementById('bg');
 const ctx=canvas.getContext('2d');
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
 resize();window.addEventListener('resize',resize);
-const nodes=Array.from({length:55},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35}));
+const nodes=Array.from({length:60},()=>({
+  x:Math.random()*canvas.width,
+  y:Math.random()*canvas.height,
+  vx:(Math.random()-.5)*.4,
+  vy:(Math.random()-.5)*.4
+}));
 (function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   nodes.forEach(n=>{
@@ -150,25 +174,79 @@ const nodes=Array.from({length:55},()=>({x:Math.random()*canvas.width,y:Math.ran
   });
   for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
     const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
-    if(d<130){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(0,229,204,${(1-d/130)*.45})`;ctx.lineWidth=.5;ctx.stroke();}
+    if(d<140){
+      ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);
+      ctx.strokeStyle=`rgba(0,229,204,${(1-d/140)*.35})`;ctx.lineWidth=.5;ctx.stroke();
+    }
   }
   requestAnimationFrame(draw);
 })();
 
-function handleEmailLogin(){
+// --- AUTH LOGIC ---
+function showError(msg, id='errorMsg'){
+  const el = document.getElementById(id);
+  el.textContent = '⚠ ' + msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 4000);
+}
+
+function setLoading(on){
   const btn = document.getElementById('loginBtn');
-  document.getElementById('loginText').style.display = 'none';
-  document.getElementById('loginSpinner').style.display = 'block';
-  btn.disabled = true;
-  
-  // Fake delay for effect
-  setTimeout(() => {
+  document.getElementById('loginText').style.display = on ? 'none' : 'block';
+  document.getElementById('loginSpinner').style.display = on ? 'block' : 'none';
+  btn.disabled = on;
+}
+
+async function handleGoogleLogin(){
+  setLoading(true);
+  // Supabase implementation: 
+  // await sb.auth.signInWithOAuth({provider:'google', options:{redirectTo: window.location.origin + '/index.html'}})
+  setTimeout(()=>{
+    sessionStorage.setItem('mogUser','OPERATIVE');
     window.location.href='index.html';
-  }, 1500);
+  },1500);
+}
+
+async function handleEmailLogin(){
+  const email = document.getElementById('emailInput').value.trim();
+  const pass = document.getElementById('passInput').value;
+  
+  if(!email || !pass){ showError('ID AND CIPHER REQUIRED'); return; }
+  
+  setLoading(true);
+  
+  // Simulation of Supabase call
+  setTimeout(()=>{
+    if(email === 'director.mog@gmail.com' && pass === 'director2026'){
+       window.location.href='directorate.html';
+    } else {
+       sessionStorage.setItem('mogUser', email.split('@')[0].toUpperCase());
+       window.location.href='index.html';
+    }
+    setLoading(false);
+  }, 1800);
 }
 
 function openRegister(){document.getElementById('registerModal').classList.add('open');}
 function closeRegister(){document.getElementById('registerModal').classList.remove('open');}
+
+function handleRegister(){
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  
+  if(!name || !email || !pass){ showError('FIELDS INCOMPLETE', 'regError'); return; }
+  
+  // Simulation
+  closeRegister();
+  setLoading(true);
+  setTimeout(()=>{
+    window.location.href='index.html';
+  }, 1500);
+}
+
+// Close modal on outside click
+document.getElementById('registerModal').addEventListener('click',function(e){if(e.target===this)closeRegister();});
 </script>
 </body>
 </html>
