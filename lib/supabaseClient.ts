@@ -1,11 +1,25 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export type Profile = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+  role: 'operative' | 'director'
+  created_at: string
+}
 
-// CRITICAL: This allows your js/app.js to access window.sb
-if (typeof window !== 'undefined') {
-  (window as any).sb = supabase;
+export type Message = {
+  id: string
+  sender_id: string
+  receiver_id: string
+  content: string
+  read: boolean
+  created_at: string
+  sender?: Profile
+  receiver?: Profile
 }
