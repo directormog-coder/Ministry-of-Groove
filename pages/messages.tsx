@@ -5,33 +5,26 @@ import { supabase } from '@/lib/supabaseClient';
 
 export default function MessagesHub() {
   const [chats, setChats] = useState<any[]>([]);
+  const [operatives, setOperatives] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchConversations();
+    fetchData();
   }, []);
 
-  const fetchConversations = async () => {
+  const fetchData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Fetch conversations where the user is a participant
-    const { data, error } = await supabase
+    // 1. Fetch Active Chats
+    const { data: partData } = await supabase
       .from('participants')
-      .select(`
-        conversation_id,
-        conversations (
-          id,
-          type,
-          messages ( content, created_at )
-        )
-      `)
+      .select(`conversation_id, conversations(id, type, messages(content, created_at))`)
       .eq('user_id', user.id);
 
-    if (data) {
-      // Map data to get the "other" participant's name for each chat
-      const formattedChats = await Promise.all(data.map(async (item: any) => {
-        const { data: otherPart } = await supabase
+    if (partData) {
+      const formatted = await Promise.all(partData.map(async (item: any) => {
+        const { data: other } = await supabase
           .from('participants')
           .select('profiles(username)')
           .eq('conversation_id', item.conversation_id)
@@ -40,12 +33,17 @@ export default function MessagesHub() {
         
         return {
           id: item.conversation_id,
-          name: otherPart?.profiles?.username || "Unknown Operative",
-          lastMsg: item.conversations.messages[0]?.content || "No transmissions yet..."
+          name: other?.profiles?.username || "Unknown",
+          lastMsg: item.conversations.messages[0]?.content || "No transmissions..."
         };
       }));
-      setChats(formattedChats);
+      setChats(formatted);
     }
+
+    // 2. Fetch Potential Operatives (Directory Quick-Bar)
+    const { data: opData } = await supabase.from('profiles').select('id, username').neq('id', user.id).limit(5);
+    setOperatives(opData || []);
+    
     setLoading(false);
   };
 
@@ -53,42 +51,31 @@ export default function MessagesHub() {
     <div className="hub-container">
       <Head><title>M.O.G. | SECURE CHANNELS</title></Head>
       <div className="circuit-grid"></div>
-      
-      <div className="top-bar">
-        <div className="top-title">ENCRYPTED CHANNELS</div>
-      </div>
+      <div className="top-bar"><div class="top-title">ENCRYPTED CHANNELS</div></div>
 
       <main style={{ padding: '20px' }}>
-        <div className="section-hdr">
-          <h2>ACTIVE UPLINKS</h2>
-          <div className="line"></div>
+        <div className="section-hdr"><h2>QUICK UPLINK</h2><div class="line"></div></div>
+        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '15px' }}>
+          {operatives.map(op => (
+            <button key={op.id} className="btn btn-sm btn-teal" onClick={() => (window as any).MOGApp.establishUplink(op.id)}>
+              + {op.username}
+            </button>
+          ))}
+          <Link href="/directory" className="btn btn-sm">VIEW ALL</Link>
         </div>
 
-        {loading ? (
-          <div className="spinner" style={{ margin: '40px auto' }}></div>
-        ) : chats.length === 0 ? (
-          <div className="empty-state">NO ACTIVE TRANSMISSIONS FOUND.</div>
-        ) : (
-          <div className="chat-list" style={{ display: 'grid', gap: '12px' }}>
-            {chats.map(chat => (
-              <Link href={`/chat?id=${chat.id}`} key={chat.id} style={{ textDecoration: 'none' }}>
-                <div className="hero-card" style={{ cursor: 'pointer' }}>
-                  <div className="presence-indicator">
-                    <div className="hero-avatar">
-                      <img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${chat.name}`} alt="avatar" />
-                    </div>
-                    <div className="dot dot-teal"></div>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="font-cyber" style={{ color: 'var(--gold)', fontSize: '12px' }}>{chat.name.toUpperCase()}</div>
-                    <div className="font-mono" style={{ color: 'rgba(255,255,255,0.5)', fontSize: '10px' }}>{chat.lastMsg}</div>
-                  </div>
-                  <div className="rank-tag rank-operative">OPEN</div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <div className="section-hdr"><h2>ACTIVE UPLINKS</h2><div class="line"></div></div>
+        {loading ? <div className="spinner"></div> : chats.map(chat => (
+          <Link href={`/chat?id=${chat.id}`} key={chat.id} style={{ textDecoration: 'none' }}>
+            <div className="hero-card" style={{ marginBottom: '10px' }}>
+              <div className="hero-avatar"><img src={`https://api.dicebear.com/7.x/identicon/svg?seed=${chat.name}`} /></div>
+              <div style={{ flex: 1 }}>
+                <div className="font-cyber" style={{ color: 'var(--gold)' }}>{chat.name.toUpperCase()}</div>
+                <div className="font-mono" style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px' }}>{chat.lastMsg}</div>
+              </div>
+            </div>
+          </Link>
+        ))}
       </main>
       <div className="scanlines"></div>
     </div>
