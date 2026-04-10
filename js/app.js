@@ -1,21 +1,35 @@
 /**
  * Ministry of Groove - Main Application
- * NCC Master v6.1.0 — Production Broadcast Edition
+ * NCC Master v6.2.0 — Production Broadcast + Realtime Edition
+ * Integrated: Heartbeat System & Presence Uplink
  */
 
 (function() {
     'use strict';
     
     // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         // Initialize Lucide icons
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
         
         // Log system ready
-        console.log('%c🔒 MOG NCC Master v6.1.0', 'color: #D4AF37; font-weight: bold;');
-        console.log('%cSecure Uplink Protocol v6.1 Active', 'color: #00F2FF;');
+        console.log('%c🔒 MOG NCC Master v6.2.0', 'color: #C9A84C; font-weight: bold;');
+        console.log('%cSecure Uplink + Realtime Protocol Active', 'color: #00E5CC;');
+
+        // --- REALTIME HEARTBEAT INITIALIZATION ---
+        // Checks if Supabase client is present and user is authenticated
+        if (window.sb) {
+            try {
+                const { data: { session } } = await window.sb.auth.getSession();
+                if (session) {
+                    window.MOGApp.startHeartbeat();
+                }
+            } catch (err) {
+                console.warn('[M.O.G.] Auth sync delayed or unavailable.');
+            }
+        }
 
         // Auto-init frequency page if on that route
         if (window.location.pathname.includes('frequency.html')) {
@@ -31,21 +45,43 @@
     
     // Expose app utilities
     window.MOGApp = {
-        version: '6.1.0',
+        version: '6.2.0',
         
+        /**
+         * HEARTBEAT SYSTEM
+         * Updates the user_presence table to keep the operative 'Online'
+         */
+        startHeartbeat: function() {
+            const updateStatus = async () => {
+                // Calls the Postgres function defined in Supabase
+                const { error } = await window.sb.rpc('update_user_status');
+                if (error) console.error('[M.O.G.] Heartbeat failed:', error);
+            };
+
+            // Immediate pulse on load
+            updateStatus();
+
+            // Frequency: 60 seconds (Matches the 'active_users' View threshold)
+            setInterval(updateStatus, 60000);
+            
+            console.log('%c[M.O.G.] Presence Heartbeat Synchronized', 'color: #00E5CC;');
+        },
+
         /**
          * FREQUENCY PAGE LOGIC
          * Initializes the Director-only interface and checks role
          */
         initFrequency: async function() {
             // Wait for Auth to confirm role from Supabase
-            await MOGAuth.init();
-            
-            if (MOGAuth.isDirector) {
-                const controls = document.getElementById('director-controls');
-                if (controls) {
-                    controls.style.display = 'block';
-                    console.log('%c[M.O.G.] Director Clearance Confirmed. Controls Enabled.', 'color: #D4AF37;');
+            if (typeof MOGAuth !== 'undefined') {
+                await MOGAuth.init();
+                
+                if (MOGAuth.isDirector) {
+                    const controls = document.getElementById('director-controls');
+                    if (controls) {
+                        controls.style.display = 'block';
+                        console.log('%c[M.O.G.] Director Clearance Confirmed. Controls Enabled.', 'color: #C9A84C;');
+                    }
                 }
             }
         },
@@ -75,14 +111,14 @@
                 
                 if (sessionError || !session) throw new Error("Could not retrieve secure token.");
 
-                // 3. Optional: Get Event ID from UI (Falling back to a generic ID if not found)
+                // 3. Get Event ID from UI
                 const eventId = document.querySelector('.event-card')?.id || 'SESSION_03_AUTO';
 
                 const response = await fetch('/api/broadcast', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}` // CRITICAL: Security Header
+                        'Authorization': `Bearer ${session.access_token}` 
                     },
                     body: JSON.stringify({ 
                         eventId: eventId,
