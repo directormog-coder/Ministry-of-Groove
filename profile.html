@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>M.O.G. — Profile Update</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.95);--border:rgba(201,168,76,0.25);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px;}
+
+.profile-card{width:100%;max-width:450px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:30px;position:relative;overflow:hidden;}
+.profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
+
+.back-link{align-self:flex-start;max-width:450px;width:100%;margin-bottom:20px;color:var(--gold-dim);text-decoration:none;font-family:'Share Tech Mono';font-size:12px;display:flex;align-items:center;gap:8px;}
+.back-link:hover{color:var(--gold);}
+
+.header h1{font-family:'Orbitron';font-size:18px;letter-spacing:4px;color:var(--gold);margin-bottom:5px;text-transform:uppercase;}
+.header p{font-family:'Share Tech Mono';font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:30px;}
+
+/* ── AVATAR UPLOAD ── */
+.avatar-section{display:flex;flex-direction:column;align-items:center;margin-bottom:30px;}
+.avatar-circle{width:120px;height:120px;border-radius:50%;border:3px solid var(--gold);position:relative;background:var(--black);overflow:visible;box-shadow:0 0 20px rgba(201,168,76,0.2);}
+.avatar-circle img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+.upload-btn{position:absolute;bottom:0;right:0;background:var(--gold);color:var(--black);width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--black);font-weight:bold;transition:0.2s;}
+.upload-btn:hover{transform:scale(1.1);background:var(--gold-light);}
+
+/* ── FORM ── */
+.field{margin-bottom:20px;}
+.field label{display:block;font-family:'Share Tech Mono';font-size:10px;color:var(--gold-dim);letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;}
+.field input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);padding:12px 15px;color:#fff;font-family:'Rajdhani';font-size:16px;border-radius:4px;outline:none;}
+.field input:focus{border-color:var(--teal);background:rgba(0,229,204,0.05);}
+.readonly-field{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);padding:12px 15px;color:rgba(255,255,255,0.4);font-size:14px;border-radius:4px;font-family:'Share Tech Mono';}
+
+.save-btn{width:100%;background:var(--gold);color:var(--black);border:none;padding:15px;font-family:'Orbitron';font-size:12px;font-weight:700;letter-spacing:3px;border-radius:4px;cursor:pointer;transition:0.3s;margin-top:10px;}
+.save-btn:hover{background:var(--gold-light);box-shadow:0 0 20px rgba(201,168,76,0.4);}
+.save-btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+.status-msg{text-align:center;font-family:'Share Tech Mono';font-size:11px;margin-top:15px;height:15px;}
+.status-msg.success{color:var(--teal);}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">⟵ RETURN TO HUB</a>
+
+<div class="profile-card">
+    <div class="header">
+        <h1>Operative Profile</h1>
+        <p>IDENTITY SYNC // DATABASE UPDATES</p>
+    </div>
+
+    <div class="avatar-section">
+        <div class="avatar-circle">
+            <img src="logo.png" id="profileDisplay">
+            <label class="upload-btn" for="avatarInput">📷</label>
+        </div>
+        <input type="file" id="avatarInput" hidden accept="image/*">
+        <p style="font-size:9px; color:var(--gold-dim); margin-top:10px; font-family:'Share Tech Mono';">UPLOAD NEW AVATAR</p>
+    </div>
+
+    <div class="field">
+        <label>Display Name</label>
+        <input type="text" id="nameInput" placeholder="Enter operative name...">
+    </div>
+
+    <div class="field">
+        <label>Operative Rank (Locked)</label>
+        <div class="readonly-field" id="rankDisplay">OPERATIVE</div>
+    </div>
+
+    <button class="save-btn" id="saveBtn" onclick="saveProfile()">SYNC CHANGES</button>
+    <div class="status-msg" id="statusMsg"></div>
+</div>
+
+<script>
+let currentUser = null;
+let profileData = null;
+
+async function initProfile() {
+    if(!window.sb) return;
+
+    const { data: { session } } = await window.sb.auth.getSession();
+    if (session) {
+        currentUser = session.user;
+        loadProfile();
+    } else {
+        window.location.href = 'login.html';
+    }
+}
+
+async function loadProfile() {
+    const { data: profile } = await window.sb
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+
+    if(profile) {
+        profileData = profile;
+        document.getElementById('nameInput').value = profile.username || '';
+        document.getElementById('rankDisplay').textContent = (profile.rank || 'OPERATIVE').toUpperCase();
+        if(profile.avatar_url) {
+            document.getElementById('profileDisplay').src = profile.avatar_url;
+        }
+    }
+}
+
+// Avatar Upload Logic from Origin 54
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file || !currentUser) return;
+
+    const status = document.getElementById('statusMsg');
+    status.textContent = "UPLOADING TO VAULT...";
+    
+    const ext = file.name.split('.').pop();
+    const path = `${currentUser.id}/avatar-${Date.now()}.${ext}`;
+
+    const { error } = await window.sb.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+
+    if(!error) {
+        const { data } = window.sb.storage.from('avatars').getPublicUrl(path);
+        document.getElementById('profileDisplay').src = data.publicUrl;
+        profileData.avatar_url = data.publicUrl; // Update local ref
+        status.textContent = "AVATAR READY. SYNC TO SAVE.";
+        status.className = "status-msg success";
+    } else {
+        status.textContent = "UPLOAD FAILED.";
+    }
+});
+
+async function saveProfile() {
+    const name = document.getElementById('nameInput').value.trim();
+    const saveBtn = document.getElementById('saveBtn');
+    const status = document.getElementById('statusMsg');
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = "SYNCING...";
+
+    const { error } = await window.sb
+        .from('profiles')
+        .update({ 
+            username: name, 
+            avatar_url: profileData.avatar_url 
+        })
+        .eq('id', currentUser.id);
+
+    if(!error) {
+        status.textContent = "DATABASE SYNCHRONIZED SUCCESSFULLY.";
+        status.className = "status-msg success";
+        saveBtn.textContent = "SYNC CHANGES";
+        saveBtn.disabled = false;
+        
+        // Refresh Hub if necessary or just wait
+        setTimeout(() => { status.textContent = ""; }, 3000);
+    } else {
+        status.textContent = "SYNC ERROR.";
+        saveBtn.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initProfile);
+</script>
+</body>
+</html>
