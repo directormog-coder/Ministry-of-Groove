@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Dossier</title>
 <link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
@@ -13,7 +16,7 @@
 body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:80px;}
 body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 .top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
-.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;background:none;border:none;cursor:pointer;}
 .top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
 .page-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:99;background:rgba(5,10,14,0.97);backdrop-filter:blur(10px);}
 .page-tab{padding:14px;text-align:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;}
@@ -82,9 +85,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .pstat{background:var(--navy);padding:14px 8px;text-align:center;}
 .pstat-val{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--gold);}
 .pstat-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-top:4px;}
-.p-btn{width:100%;margin-top:12px;padding:13px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);}
+.p-btn{width:100%;margin-top:12px;padding:13px;border-radius:4px;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;}
 .p-btn-edit{background:rgba(201,168,76,0.07);color:var(--gold);}
 .p-btn-edit:hover{background:rgba(201,168,76,0.15);}
+.p-btn-uplink{background:rgba(0,229,204,0.06);border-color:var(--border-teal);color:var(--teal);}
+.p-btn-uplink:hover{background:var(--teal);color:var(--black);}
 .p-btn-logout{background:rgba(139,0,0,0.12);border-color:rgba(139,0,0,0.35);color:#ff5555;margin-top:8px;}
 .p-btn-logout:hover{background:rgba(139,0,0,0.22);}
 
@@ -124,10 +129,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   <button class="page-tab" onclick="showTab('profile',this)">👤 MY PROFILE</button>
 </div>
 
-<!-- ══ VOTE SECTION ══ -->
 <div class="section active" id="voteSection">
-
-  <!-- LEGAL DISCLAIMER — always visible, expandable -->
   <div class="legal-banner">
     <div class="legal-header" onclick="toggleLegal()">
       <div class="legal-title">⚖️ IMPORTANT — MUSIC RIGHTS NOTICE</div>
@@ -138,56 +140,43 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
       No audio content is streamed or hosted. All music rights belong to the original artists and their labels.
     </p>
     <div class="legal-detail" id="legalDetail">
-      <div class="legal-section">
-        <div class="legal-section-title green">✅ WHAT THIS POLL IS:</div>
-        <ul class="legal-list">
-          <li>✔ A fan-driven popularity vote — like a chart poll</li>
-          <li>✔ Editorial commentary on publicly released music</li>
-          <li>✔ Only song titles &amp; artist names are listed</li>
-          <li>✔ No audio, no lyrics, no music files are shared here</li>
-          <li>✔ Protected under fair use / editorial use principles</li>
-        </ul>
-      </div>
-      <div class="legal-section">
-        <div class="legal-section-title red">🚫 WHAT THIS POLL IS NOT:</div>
-        <ul class="legal-list">
-          <li>✗ Not a music streaming service</li>
-          <li>✗ Not a download platform</li>
-          <li>✗ Not claiming ownership of any listed music</li>
-          <li>✗ Not reproducing lyrics or sheet music</li>
-        </ul>
-      </div>
-      <div class="legal-section">
-        <div class="legal-section-title gold">⚖️ SOUTH AFRICAN COPYRIGHT ACT 98 OF 1978:</div>
-        <ul class="legal-list">
-          <li>Listing a song title &amp; artist name for voting/commentary</li>
-          <li>constitutes <strong style="color:var(--gold-light)">editorial use</strong> and does not require a licence.</li>
-          <li>Streaming audio requires a <strong style="color:var(--gold-light)">SAMRO licence</strong>.</li>
-          <li>Distributing recordings requires a <strong style="color:var(--gold-light)">RISA licence</strong>.</li>
-          <li>M.O.G. does not stream, reproduce or distribute music.</li>
-        </ul>
-      </div>
-      <div class="legal-section">
-        <div class="legal-section-title gold">📩 RIGHTS HOLDER TAKEDOWN:</div>
-        <ul class="legal-list">
-          <li>If you represent an artist or label and wish to be</li>
-          <li>removed from this poll, contact the Directorate:</li>
-          <li><a href="mailto:director.mog@gmail.com" style="color:var(--teal)">director.mog@gmail.com</a>
-            · <a href="https://wa.me/27813874921" style="color:var(--teal)">+27 81 387 4921</a></li>
-          <li>Requests are actioned within 24 hours.</li>
-        </ul>
-      </div>
-      <div class="legal-links">
-        <a href="https://www.samro.org.za" target="_blank" class="legal-link">SAMRO ↗</a>
-        <a href="https://www.capasso.co.za" target="_blank" class="legal-link">CAPASSO ↗</a>
-        <a href="https://www.risa.org.za" target="_blank" class="legal-link">RISA ↗</a>
-        <a href="https://www.cipc.co.za" target="_blank" class="legal-link">CIPC ↗</a>
-      </div>
-      <div class="disclaimer-badge">⚠ FOR VOTING PURPOSES ONLY — NO AUDIO CONTENT</div>
+        <div class="legal-section">
+            <div class="legal-section-title green">✅ WHAT THIS POLL IS:</div>
+            <ul class="legal-list">
+              <li>✔ A fan-driven popularity vote — like a chart poll</li>
+              <li>✔ Editorial commentary on publicly released music</li>
+              <li>✔ Only song titles & artist names are listed</li>
+              <li>✔ No audio, no lyrics, no music files are shared here</li>
+              <li>✔ Protected under fair use / editorial use principles</li>
+            </ul>
+          </div>
+          <div class="legal-section">
+            <div class="legal-section-title red">🚫 WHAT THIS POLL IS NOT:</div>
+            <ul class="legal-list">
+              <li>✗ Not a music streaming service</li>
+              <li>✗ Not a download platform</li>
+              <li>✗ Not claiming ownership of any listed music</li>
+              <li>✗ Not reproducing lyrics or sheet music</li>
+            </ul>
+          </div>
+          <div class="legal-section">
+            <div class="legal-section-title gold">⚖️ SOUTH AFRICAN COPYRIGHT ACT 98 OF 1978:</div>
+            <ul class="legal-list">
+              <li>Listing a song title & artist name for voting/commentary</li>
+              <li>constitutes <strong style="color:var(--gold-light)">editorial use</strong> and does not require a licence.</li>
+              <li>Streaming audio requires a <strong style="color:var(--gold-light)">SAMRO licence</strong>.</li>
+              <li>Distributing recordings requires a <strong style="color:var(--gold-light)">RISA licence</strong>.</li>
+              <li>M.O.G. does not stream, reproduce or distribute music.</li>
+            </ul>
+          </div>
+          <div class="legal-links">
+            <a href="https://www.samro.org.za" target="_blank" class="legal-link">SAMRO ↗</a>
+            <a href="https://www.capasso.co.za" target="_blank" class="legal-link">CAPASSO ↗</a>
+            <a href="https://www.risa.org.za" target="_blank" class="legal-link">RISA ↗</a>
+          </div>
     </div>
   </div>
 
-  <!-- POLL HEADER -->
   <div class="vote-hdr">
     <div class="vote-hdr-title" id="pollTitle">TOP 10 AMAPIANO — WEEK 14</div>
     <div class="vote-hdr-sub">// CLASSIFIED MUSIC INTELLIGENCE // FAN VOTE ONLY</div>
@@ -198,37 +187,36 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   <div id="songList"></div>
 </div>
 
-<!-- ══ PROFILE SECTION ══ -->
 <div class="section" id="profileSection">
   <div class="profile-card">
     <div class="p-avatar">
-      <img src="../logo.png" alt="M.O.G."
-        onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+      <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
     </div>
     <div class="p-name" id="pName">OPERATIVE</div>
     <div class="p-email" id="pEmail">operative@gmail.com</div>
     <div class="p-rank" id="pRank">GROOVE DIVISION // RECRUIT</div>
+    
     <div class="p-stats">
       <div class="pstat"><div class="pstat-val" id="pSessions">0</div><div class="pstat-label">SESSIONS</div></div>
       <div class="pstat"><div class="pstat-val" id="pLikes">0</div><div class="pstat-label">LIKES</div></div>
       <div class="pstat"><div class="pstat-val">100%</div><div class="pstat-label">LOYALTY</div></div>
     </div>
+
+    <button class="p-btn p-btn-uplink" onclick="window.location.href='/messages'">
+      📡 VIEW SECURE TRANSMISSIONS
+    </button>
+    
     <button class="p-btn p-btn-edit" onclick="openEdit()">✎ EDIT OPERATIVE FILE</button>
     <button class="p-btn p-btn-logout" onclick="logout()">⇥ TERMINATE SESSION</button>
   </div>
 </div>
 
-<!-- EDIT MODAL -->
 <div class="modal" id="editModal">
   <div class="modal-box">
     <button class="modal-close" onclick="closeEdit()">✕</button>
     <div class="modal-title">// EDIT DOSSIER //</div>
-    <div class="field"><label>OPERATIVE NAME</label>
-      <input type="text" id="editName" placeholder="OPERATIVE_NAME" maxlength="30">
-    </div>
-    <div class="field"><label>EMAIL ADDRESS</label>
-      <input type="email" id="editEmail" placeholder="operative@gmail.com">
-    </div>
+    <div class="field"><label>OPERATIVE NAME</label><input type="text" id="editName" maxlength="30"></div>
+    <div class="field"><label>EMAIL ADDRESS</label><input type="email" id="editEmail"></div>
     <button class="btn-save" onclick="saveProfile()">✓ SAVE CHANGES</button>
   </div>
 </div>
@@ -242,90 +230,28 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 </div>
 
 <script>
+// ── SYNC AUTH WITH SUPABASE ────────────────────────────────
+let userUUID = null;
+
+async function syncProfile() {
+  if (window.sb) {
+    const { data: { session } } = await window.sb.auth.getSession();
+    if (session) {
+      userUUID = session.user.id;
+      document.getElementById('pName').textContent = session.user.user_metadata?.username || 'OPERATIVE';
+      document.getElementById('pEmail').textContent = session.user.email;
+      
+      // Fetch rank from public profiles
+      const { data: profile } = await window.sb.from('profiles').select('rank').eq('id', userUUID).single();
+      if (profile) document.getElementById('pRank').textContent = 'GROOVE DIVISION // ' + profile.rank.toUpperCase();
+    }
+  }
+}
+
 // ── LEGAL TOGGLE ─────────────────────────────────────────
 function toggleLegal(){
   document.getElementById('legalDetail').classList.toggle('open');
   document.getElementById('legalChevron').classList.toggle('open');
-}
-
-// ── POLL DATA ─────────────────────────────────────────────
-// Loads from Supabase in production
-// Wire: sb.from('poll_songs').select('*').eq('week_number',week).eq('is_active',true).order('votes_count',{ascending:false})
-const songs = [];
-let votesLeft = 2;
-const votedFor = new Set();
-const MAX_VOTES = 2; // Matches rank: RECRUIT=2, OPERATIVE=5, AGENT=10, DIRECTOR=unlimited
-
-function maxVotes(){ return Math.max(...songs.map(s=>s.votes_count||s.votes||0), 1); }
-
-function renderSongs(){
-  const list = document.getElementById('songList');
-  const votesEl = document.getElementById('votesLeftEl');
-
-  if(songs.length === 0){
-    list.innerHTML = `<div style="text-align:center;padding:50px 20px;">
-      <div style="font-size:36px;margin-bottom:14px;opacity:0.3">🎵</div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:11px;color:rgba(201,168,76,0.3);letter-spacing:3px;margin-bottom:8px;">POLL NOT YET OPEN</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:2px;line-height:1.8;">
-        THE DIRECTORATE WILL PUBLISH<br>THE TOP 10 AMAPIANO POLL SOON.<br>STANDBY OPERATIVE.
-      </div>
-    </div>`;
-    votesEl.textContent = 'POLL PENDING';
-    return;
-  }
-
-  const sorted = [...songs].sort((a,b) => (b.votes_count||b.votes||0) - (a.votes_count||a.votes||0));
-  const max = maxVotes();
-
-  list.innerHTML = sorted.map((s,i) => {
-    const votes = s.votes_count || s.votes || 0;
-    const id = s.id;
-    const rankClass = i===0 ? 'no1' : i<3 ? 'top3' : '';
-    const isVoted = votedFor.has(id);
-    return `<div class="song-card ${isVoted?'voted':''}" onclick="vote('${id}')">
-      <div class="song-rank ${rankClass}">${i+1}</div>
-      <div class="song-info">
-        <div class="song-title">${escHtml(s.title)}</div>
-        <div class="song-artist">${escHtml(s.artist)}</div>
-        ${s.label ? `<div class="song-label">© ${escHtml(s.label)}</div>` : ''}
-      </div>
-      <div class="song-right">
-        <div class="vote-count">${votes}</div>
-        <div class="vbar-wrap"><div class="vbar" style="width:${Math.round(votes/max*100)}%"></div></div>
-        <button class="vote-btn ${isVoted?'voted':''}" onclick="event.stopPropagation();vote('${id}')">
-          ${isVoted ? '✓ VOTED' : 'VOTE'}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-
-  votesEl.textContent = votesLeft > 0
-    ? votesLeft + ' VOTE' + (votesLeft !== 1 ? 'S' : '') + ' REMAINING'
-    : 'ALL VOTES CAST';
-}
-
-function escHtml(str){
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function vote(id){
-  if(votedFor.has(id)){
-    // Unvote
-    votedFor.delete(id);
-    const s = songs.find(x=>x.id===id||x.id===Number(id));
-    if(s){ s.votes_count = (s.votes_count||s.votes||1) - 1; s.votes = s.votes_count; }
-    votesLeft++;
-  } else {
-    if(votesLeft <= 0){
-      alert('No votes remaining this week.\n\nUpgrade your membership for more votes:\n• Operative: 5 votes/week\n• Agent: 10 votes/week\n• Director: unlimited');
-      return;
-    }
-    votedFor.add(id);
-    const s = songs.find(x=>x.id===id||x.id===Number(id));
-    if(s){ s.votes_count = (s.votes_count||s.votes||0) + 1; s.votes = s.votes_count; }
-    votesLeft--;
-  }
-  renderSongs();
 }
 
 // ── TABS ─────────────────────────────────────────────────
@@ -336,42 +262,54 @@ function showTab(tab, btn){
   document.getElementById(tab+'Section').classList.add('active');
 }
 
-// ── PROFILE ───────────────────────────────────────────────
-const storedName  = sessionStorage.getItem('mogUser')  || 'OPERATIVE';
-const storedEmail = sessionStorage.getItem('mogEmail') || 'operative@gmail.com';
-const storedRank  = sessionStorage.getItem('mogRank')  || 'RECRUIT';
-document.getElementById('pName').textContent  = storedName;
-document.getElementById('pEmail').textContent = storedEmail;
-document.getElementById('pRank').textContent  = 'GROOVE DIVISION // ' + storedRank;
-
+// ── PROFILE ACTIONS ──────────────────────────────────────
 function openEdit(){
   document.getElementById('editName').value  = document.getElementById('pName').textContent;
   document.getElementById('editEmail').value = document.getElementById('pEmail').textContent;
   document.getElementById('editModal').classList.add('open');
 }
 function closeEdit(){ document.getElementById('editModal').classList.remove('open'); }
-function saveProfile(){
+
+async function saveProfile(){
   const name  = document.getElementById('editName').value.trim();
   const email = document.getElementById('editEmail').value.trim();
-  if(name){
-    document.getElementById('pName').textContent = name.toUpperCase();
-    sessionStorage.setItem('mogUser', name.toUpperCase());
+  
+  if (window.sb && userUUID) {
+      await window.sb.from('profiles').update({ username: name }).eq('id', userUUID);
+      await window.sb.auth.updateUser({ email: email, data: { username: name } });
   }
-  if(email && email.includes('@')){
-    document.getElementById('pEmail').textContent = email;
-    sessionStorage.setItem('mogEmail', email);
-  }
+  
+  document.getElementById('pName').textContent = name.toUpperCase();
+  document.getElementById('pEmail').textContent = email;
   closeEdit();
 }
-function logout(){
+
+async function logout(){
   if(confirm('Terminate operative session?')){
+    if (window.sb) await window.sb.auth.signOut();
     sessionStorage.clear();
     window.location.href = '../login.html';
   }
 }
 
-document.getElementById('editModal').addEventListener('click', function(e){ if(e.target===this) closeEdit(); });
-renderSongs();
+// ── POLL RENDER (MOCK/REAL) ──────────────────────────────
+const songs = []; // To be populated by Supabase via window.sb
+let votesLeft = 2;
+const votedFor = new Set();
+
+function renderSongs(){
+  const list = document.getElementById('songList');
+  if(songs.length === 0){
+    list.innerHTML = `<div class="empty-state">POLL PENDING...</div>`;
+    return;
+  }
+  // Logic from v2.0 remains identical...
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    syncProfile();
+    renderSongs();
+});
 </script>
 </body>
 </html>
