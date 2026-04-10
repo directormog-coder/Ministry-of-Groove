@@ -38,7 +38,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:2px;}
 .hero-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* Added Slogan Style */
 .hero-slogan {font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal);letter-spacing:1px;margin-top:2px;text-transform:uppercase;opacity:0.9;}
 
 .hero-id{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
@@ -108,13 +107,15 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 </head>
 <body>
 
+<div id="toast-root" class="toast-container"></div>
+
 <div class="status-bar">
   <div class="status-live">LIVE</div>
   <div class="status-items">
     <div class="status-item"><div class="dot"></div>UPLINK STABLE</div>
     <div class="status-item"><div class="dot"></div>ENCRYPTED</div>
   </div>
-  <button class="status-logout" onclick="logout()">⇥ EXIT</button>
+  <button class="status-logout" onclick="MOGApp.logout()">⇥ EXIT</button>
 </div>
 
 <div class="hero">
@@ -126,11 +127,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
       <div class="hero-name">MINISTRY OF GROOVE</div>
-      <div class="hero-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+      <div class="hero-slogan shimmer-text">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
       <div class="hero-id" id="userId">OP-XXXXXXXX</div>
       <div class="hero-dept" id="pDept">● GROOVE DIVISION</div>
     </div>
-    <button class="hero-exit" onclick="logout()" title="Logout">⇥</button>
+    <button class="hero-exit" onclick="MOGApp.logout()" title="Logout">⇥</button>
   </div>
 </div>
 
@@ -141,11 +142,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
     <div class="stat-value">100%</div>
     <div class="stat-sub">FULLY COMMITTED</div>
   </div>
-  <div class="stat-card">
-    <div class="stat-label">GROOVE SYNC</div>
+  <div class="stat-card" onclick="MOGApp.toggleCart()" style="cursor:pointer">
+    <div class="stat-label">TICKET CART</div>
     <div class="stat-bar-wrap"><div class="stat-bar teal" id="syncBar"></div></div>
-    <div class="stat-value" id="syncVal">—</div>
-    <div class="stat-sub">SESSIONS ATTENDED</div>
+    <div class="stat-value" id="cart-count-display">0 ITEMS</div>
+    <div class="stat-sub">READY FOR CHECKOUT</div>
   </div>
 </div>
 
@@ -153,9 +154,9 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <div class="quick-actions">
   <a href="pages/gallery.html" class="qa-btn"><div class="qa-icon">🎬</div><div class="qa-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="qa-btn"><div class="qa-icon">📡</div><div class="qa-label">LIVE</div></a>
-  <a href="/messages" class="qa-btn"><div class="qa-icon">💬</div><div class="qa-label">DISPATCH</div></a>
+  <a href="dispatch.html" class="qa-btn"><div class="qa-icon" style="position:relative;">💬<span id="unread-badge-hub" class="badge"></span></div><div class="qa-label">DISPATCH</div></a>
   <a href="pages/dossier.html" class="qa-btn"><div class="qa-icon">🗳️</div><div class="qa-label">VOTE</div></a>
-  <a href="pages/tickets.html" class="qa-btn" style="border-color:rgba(201,168,76,0.4)"><div class="qa-icon">🎟️</div><div class="qa-label">TICKETS</div></a>
+  <a href="javascript:void(0)" onclick="MOGApp.toggleCart()" class="qa-btn" style="border-color:rgba(201,168,76,0.4)"><div class="qa-icon">🎟️</div><div class="qa-label">CART</div></a>
   <a href="pages/membership.html" class="qa-btn" style="border-color:rgba(0,229,204,0.3)"><div class="qa-icon">👑</div><div class="qa-label">UPGRADE</div></a>
 </div>
 
@@ -184,18 +185,40 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 
 <div class="watermark">M.O.G. NETWORK // DECRYPTING THE CULTURE // EST. 2026</div>
 
+<div id="cart-modal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="MOGApp.toggleCart()">✕</button>
+    <div class="modal-title">// TICKET VAULT //</div>
+    <div id="cart-items-list" class="log-wrap" style="height:auto; max-height:250px;">
+        </div>
+    <div class="field" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
+        <div style="display:flex; justify-content:space-between; font-family:'Share Tech Mono';">
+            <span>TOTAL DUE:</span>
+            <span id="cart-total-price" style="color:var(--gold-light); font-weight:bold;">R0</span>
+        </div>
+        <button class="btn btn-gold" style="width:100%; margin-top:15px;" onclick="MOGApp.checkout()">PROCEED TO CHECKOUT</button>
+    </div>
+  </div>
+</div>
+
 <div class="bottom-nav">
   <a href="index.html" class="nav-item active"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="pages/gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
-  <a href="/messages" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
-  <a href="pages/dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+  <a href="dispatch.html" class="nav-item">
+    <div class="nav-icon" style="position:relative;">
+        💬
+        <span id="unread-badge-nav" class="badge"></span>
+    </div>
+    <div class="nav-label">CHAT</div>
+  </a>
+  <a href="profile.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
 /**
- * NCC MASTER v6.3.0 - Hub Logic
- * Syncing Auth, Realtime Presence, and UI State
+ * NCC MASTER v7.0.0 - Hub Logic
+ * Unified Hub Logic + Realtime + Cart System
  */
 
 async function initHub() {
@@ -207,8 +230,6 @@ async function initHub() {
       const metadata = user.user_metadata;
 
       // 1. Sync Profile Data
-      const name = metadata.username || user.email.split('@')[0];
-      // Note: Removed userName sync to keep "Ministry of Groove" branding permanent
       document.getElementById('userId').textContent = 'ID: ' + user.id.slice(0, 8).toUpperCase();
       
       // 2. Fetch Sync Stats from Supabase
@@ -223,10 +244,7 @@ async function initHub() {
         if (deptEl) deptEl.textContent = '● ' + profile.rank.toUpperCase() + ' DIVISION';
       }
 
-      // 3. Kickstart Heartbeat
-      if (window.MOGApp && window.MOGApp.startHeartbeat) {
-          window.MOGApp.startHeartbeat();
-      }
+      // 3. Heartbeat & App Logic initialized in app.js
     } else {
       window.location.href = 'login.html';
     }
@@ -236,26 +254,9 @@ async function initHub() {
 // Animate bars on load
 setTimeout(() => {
   const loyalty = document.getElementById('loyaltyBar');
-  const sync = document.getElementById('syncBar');
   if(loyalty) loyalty.style.width = '100%';
-  if(sync) sync.style.width = '40%';
-  const syncVal = document.getElementById('syncVal');
-  if(syncVal) syncVal.textContent = '40%';
+  // cart/sync bar width is controlled by MOGApp.renderCart in app.js
 }, 350);
-
-function logout() {
-  if (confirm('Terminate operative session?')) {
-    if (window.sb) {
-      window.sb.auth.signOut().then(() => {
-        sessionStorage.clear();
-        window.location.href = 'login.html';
-      });
-    } else {
-      sessionStorage.clear();
-      window.location.href = 'login.html';
-    }
-  }
-}
 
 document.addEventListener('DOMContentLoaded', initHub);
 </script>
