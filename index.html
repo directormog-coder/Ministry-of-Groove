@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Operative Hub</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/app.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -113,7 +116,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <div class="hero">
   <div class="hero-card">
     <div class="hero-avatar">
-      <img src="logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='assets/images/logo.png'" onerror="this.onerror=null;this.src='assets/images/logo.png'" onerror="this.style.background='#0D1F2D';this.style.display='flex';this.outerHTML='<div style=\'width:58px;height:58px;border-radius:50%;background:#0D1F2D;display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:12px;font-weight:900;color:#C9A84C\'>MOG</div>'">
+      <img src="logo.png" id="heroAvatarImg" alt="M.O.G." 
+           onerror="this.onerror=null;this.src='assets/images/logo.png'">
     </div>
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
@@ -144,7 +148,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <div class="quick-actions">
   <a href="pages/gallery.html" class="qa-btn"><div class="qa-icon">🎬</div><div class="qa-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="qa-btn"><div class="qa-icon">📡</div><div class="qa-label">LIVE</div></a>
-  <a href="pages/dispatch.html" class="qa-btn"><div class="qa-icon">💬</div><div class="qa-label">DISPATCH</div></a>
+  <a href="/messages" class="qa-btn"><div class="qa-icon">💬</div><div class="qa-label">DISPATCH</div></a>
   <a href="pages/dossier.html" class="qa-btn"><div class="qa-icon">🗳️</div><div class="qa-label">VOTE</div></a>
   <a href="pages/tickets.html" class="qa-btn" style="border-color:rgba(201,168,76,0.4)"><div class="qa-icon">🎟️</div><div class="qa-label">TICKETS</div></a>
   <a href="pages/membership.html" class="qa-btn" style="border-color:rgba(0,229,204,0.3)"><div class="qa-icon">👑</div><div class="qa-label">UPGRADE</div></a>
@@ -179,27 +183,74 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   <a href="index.html" class="nav-item active"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="pages/gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
-  <a href="pages/dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="/messages" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
   <a href="pages/dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
 </div>
 
 <script>
-// Load user from session
-const storedName=sessionStorage.getItem('mogUser')||'OPERATIVE';
-document.getElementById('userName').textContent=storedName.length>14?storedName.substring(0,14)+'…':storedName;
-document.getElementById('userId').textContent='OP-'+Math.random().toString(36).substr(2,8).toUpperCase();
-// Animate bars
-setTimeout(()=>{
-  document.getElementById('loyaltyBar').style.width='100%';
-  document.getElementById('syncBar').style.width='40%';
-  document.getElementById('syncVal').textContent='40%';
-},350);
-function logout(){
-  if(confirm('Terminate operative session?')){
-    sessionStorage.clear();
-    window.location.href='login.html';
+/**
+ * NCC MASTER v6.3.0 - Hub Logic
+ * Syncing Auth, Realtime Presence, and UI State
+ */
+
+async function initHub() {
+  if (window.sb) {
+    const { data: { session } } = await window.sb.auth.getSession();
+    
+    if (session) {
+      const user = session.user;
+      const metadata = user.user_metadata;
+
+      // 1. Sync Profile Data
+      const name = metadata.username || user.email.split('@')[0];
+      document.getElementById('userName').textContent = name.toUpperCase();
+      document.getElementById('userId').textContent = 'ID: ' + user.id.slice(0, 8).toUpperCase();
+      
+      // 2. Fetch Sync Stats from Supabase
+      const { data: profile } = await window.sb
+        .from('profiles')
+        .select('rank')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        document.getElementById('pDept')?.textContent = '● ' + profile.rank.toUpperCase() + ' DIVISION';
+      }
+
+      // 3. Kickstart Heartbeat (MOGApp handles this globally in app.js)
+      if (window.MOGApp && window.MOGApp.startHeartbeat) {
+          window.MOGApp.startHeartbeat();
+      }
+    } else {
+      // Not logged in? Go to login
+      window.location.href = 'login.html';
+    }
   }
 }
+
+// Animate bars on load
+setTimeout(() => {
+  document.getElementById('loyaltyBar').style.width = '100%';
+  document.getElementById('syncBar').style.width = '40%';
+  document.getElementById('syncVal').textContent = '40%';
+}, 350);
+
+function logout() {
+  if (confirm('Terminate operative session?')) {
+    if (window.sb) {
+      window.sb.auth.signOut().then(() => {
+        sessionStorage.clear();
+        window.location.href = 'login.html';
+      });
+    } else {
+      sessionStorage.clear();
+      window.location.href = 'login.html';
+    }
+  }
+}
+
+// Start protocol
+document.addEventListener('DOMContentLoaded', initHub);
 </script>
 </body>
 </html>
