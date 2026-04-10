@@ -1,7 +1,7 @@
 /**
  * Ministry of Groove - Main Application
- * NCC Master v6.2.0 — Production Broadcast + Realtime Edition
- * Integrated: Heartbeat System & Presence Uplink
+ * NCC Master v6.3.0 — Production Broadcast + Realtime + Messaging
+ * UNIFIED COMMAND SCRIPT — DO NOT REMOVE EXISTING LOGIC
  */
 
 (function() {
@@ -15,11 +15,10 @@
         }
         
         // Log system ready
-        console.log('%c🔒 MOG NCC Master v6.2.0', 'color: #C9A84C; font-weight: bold;');
+        console.log('%c🔒 MOG NCC Master v6.3.0', 'color: #C9A84C; font-weight: bold;');
         console.log('%cSecure Uplink + Realtime Protocol Active', 'color: #00E5CC;');
 
         // --- REALTIME HEARTBEAT INITIALIZATION ---
-        // Checks if Supabase client is present and user is authenticated
         if (window.sb) {
             try {
                 const { data: { session } } = await window.sb.auth.getSession();
@@ -45,7 +44,7 @@
     
     // Expose app utilities
     window.MOGApp = {
-        version: '6.2.0',
+        version: '6.3.0',
         
         /**
          * HEARTBEAT SYSTEM
@@ -53,18 +52,69 @@
          */
         startHeartbeat: function() {
             const updateStatus = async () => {
-                // Calls the Postgres function defined in Supabase
                 const { error } = await window.sb.rpc('update_user_status');
-                if (error) console.error('[M.O.G.] Heartbeat failed:', error);
+                if (error) console.error("[M.O.G.] Presence Uplink Error", error);
             };
 
             // Immediate pulse on load
             updateStatus();
 
-            // Frequency: 60 seconds (Matches the 'active_users' View threshold)
+            // Frequency: 60 seconds
             setInterval(updateStatus, 60000);
             
-            console.log('%c[M.O.G.] Presence Heartbeat Synchronized', 'color: #00E5CC;');
+            console.log('%c[M.O.G.] Heartbeat Protocol Synchronized', 'color: #00E5CC;');
+        },
+
+        /**
+         * ESTABLISH UPLINK
+         * Intelligently creates or opens existing chat between users
+         */
+        establishUplink: async function(targetUserId) {
+            try {
+                const { data: { session } } = await window.sb.auth.getSession();
+                if (!session) {
+                    alert("Clearance Denied. Please re-authenticate.");
+                    return;
+                }
+                const currentUserId = session.user.id;
+
+                // 1. Check for existing DM to prevent duplicates
+                const { data: existingId, error: checkError } = await window.sb.rpc('get_existing_conversation', {
+                    user_a: currentUserId,
+                    user_b: targetUserId
+                });
+
+                if (existingId) {
+                    window.location.href = `/chat?id=${existingId}`;
+                    return;
+                }
+
+                // 2. Create new conversation if none exists
+                const { data: conv, error: convErr } = await window.sb
+                    .from('conversations')
+                    .insert({ type: 'dm' })
+                    .select()
+                    .single();
+
+                if (convErr) throw convErr;
+
+                // 3. Add both participants
+                const { error: partErr } = await window.sb
+                    .from('participants')
+                    .insert([
+                        { conversation_id: conv.id, user_id: currentUserId },
+                        { conversation_id: conv.id, user_id: targetUserId }
+                    ]);
+
+                if (partErr) throw partErr;
+
+                // 4. Redirect to the Chat Page
+                window.location.href = `/chat?id=${conv.id}`;
+                
+            } catch (err) {
+                console.error('Uplink Establishment Failed:', err);
+                alert('Protocol Error: Could not establish secure channel.');
+            }
         },
 
         /**
@@ -87,7 +137,7 @@
         },
 
         /**
-         * UPLINK REQUEST (UPGRADED)
+         * UPLINK REQUEST (BROADCAST)
          * Sends JWT for server-side verification and provisions Mux stream
          */
         requestUplink: async function() {
@@ -95,7 +145,6 @@
             const intelBox = document.getElementById('director-intel');
             const keyInput = document.getElementById('stream-key');
 
-            // 1. Check local session
             if (!MOGAuth.isAuthenticated) {
                 alert("Clearance Denied. Please re-authenticate.");
                 window.location.href = '/login.html';
@@ -106,19 +155,17 @@
                 btn.disabled = true;
                 btn.innerText = "VERIFYING CLEARANCE...";
 
-                // 2. Retrieve the JWT (Access Token) from Supabase Client
                 const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
                 
                 if (sessionError || !session) throw new Error("Could not retrieve secure token.");
 
-                // 3. Get Event ID from UI
                 const eventId = document.querySelector('.event-card')?.id || 'SESSION_03_AUTO';
 
                 const response = await fetch('/api/broadcast', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}` 
+                        'Authorization': `Bearer ${session.access_token}`
                     },
                     body: JSON.stringify({ 
                         eventId: eventId,
@@ -162,7 +209,6 @@
             try {
                 await navigator.clipboard.writeText(textToCopy);
                 
-                // Visual feedback on the trigger button
                 const btn = event.target;
                 const originalText = btn.innerText;
                 
