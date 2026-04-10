@@ -32,27 +32,23 @@ export function useUnreadCount() {
     const fetchUnread = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
       const { count } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('read', false)
-
       setUnreadCount(count || 0)
     }
 
     fetchUnread()
 
-    // Real-time updates for new messages
     const setupChannel = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const channel = supabase
         .channel('unread-messages')
-        .on(
-          'postgres_changes',
+        .on('postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages' },
           (payload) => {
             const msg = payload.new as Message
@@ -61,8 +57,7 @@ export function useUnreadCount() {
             }
           }
         )
-        .on(
-          'postgres_changes',
+        .on('postgres_changes',
           { event: 'UPDATE', schema: 'public', table: 'messages' },
           () => { fetchUnread() }
         )
