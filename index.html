@@ -37,6 +37,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .hero-info{flex:1;min-width:0;}
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:2px;}
 .hero-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* Added Slogan Style */
+.hero-slogan {font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal);letter-spacing:1px;margin-top:2px;text-transform:uppercase;opacity:0.9;}
+
 .hero-id{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
 .hero-dept{font-size:11px;color:var(--teal);font-weight:600;letter-spacing:2px;margin-top:5px;}
 .hero-exit{background:none;border:1px solid var(--border);color:var(--gold-dim);padding:8px 10px;border-radius:4px;cursor:pointer;font-size:16px;transition:all 0.2s;flex-shrink:0;}
@@ -121,9 +125,10 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
     </div>
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
-      <div class="hero-name" id="userName">OPERATIVE</div>
+      <div class="hero-name">MINISTRY OF GROOVE</div>
+      <div class="hero-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
       <div class="hero-id" id="userId">OP-XXXXXXXX</div>
-      <div class="hero-dept">● GROOVE DIVISION</div>
+      <div class="hero-dept" id="pDept">● GROOVE DIVISION</div>
     </div>
     <button class="hero-exit" onclick="logout()" title="Logout">⇥</button>
   </div>
@@ -203,7 +208,7 @@ async function initHub() {
 
       // 1. Sync Profile Data
       const name = metadata.username || user.email.split('@')[0];
-      document.getElementById('userName').textContent = name.toUpperCase();
+      // Note: Removed userName sync to keep "Ministry of Groove" branding permanent
       document.getElementById('userId').textContent = 'ID: ' + user.id.slice(0, 8).toUpperCase();
       
       // 2. Fetch Sync Stats from Supabase
@@ -213,16 +218,16 @@ async function initHub() {
         .eq('id', user.id)
         .single();
       
-      if (profile) {
-        document.getElementById('pDept')?.textContent = '● ' + profile.rank.toUpperCase() + ' DIVISION';
+      if (profile && profile.rank) {
+        const deptEl = document.getElementById('pDept');
+        if (deptEl) deptEl.textContent = '● ' + profile.rank.toUpperCase() + ' DIVISION';
       }
 
-      // 3. Kickstart Heartbeat (MOGApp handles this globally in app.js)
+      // 3. Kickstart Heartbeat
       if (window.MOGApp && window.MOGApp.startHeartbeat) {
           window.MOGApp.startHeartbeat();
       }
     } else {
-      // Not logged in? Go to login
       window.location.href = 'login.html';
     }
   }
@@ -230,9 +235,12 @@ async function initHub() {
 
 // Animate bars on load
 setTimeout(() => {
-  document.getElementById('loyaltyBar').style.width = '100%';
-  document.getElementById('syncBar').style.width = '40%';
-  document.getElementById('syncVal').textContent = '40%';
+  const loyalty = document.getElementById('loyaltyBar');
+  const sync = document.getElementById('syncBar');
+  if(loyalty) loyalty.style.width = '100%';
+  if(sync) sync.style.width = '40%';
+  const syncVal = document.getElementById('syncVal');
+  if(syncVal) syncVal.textContent = '40%';
 }, 350);
 
 function logout() {
@@ -249,7 +257,6 @@ function logout() {
   }
 }
 
-// Start protocol
 document.addEventListener('DOMContentLoaded', initHub);
 </script>
 </body>
