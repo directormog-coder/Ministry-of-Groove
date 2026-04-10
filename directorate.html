@@ -8,6 +8,7 @@
 <title>M.O.G. | DIRECTORATE COMMAND</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/js/supabase-client.js"></script>
+<script src="/js/app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <style>
@@ -229,7 +230,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   <img src="assets/images/1000219947.png" alt="" onerror="this.style.display='none'">
 </div>
 
-<!-- LOADING -->
 <div class="screen-full loading-screen active" id="loadingScreen">
   <img src="assets/images/1000219947.png" class="loading-seal" alt="Directorate Seal" onerror="this.style.display='none';document.getElementById('loadSpinner').style.display='block'">
   <div class="spinner" id="loadSpinner"></div>
@@ -237,7 +237,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   <div class="loading-sub" id="loadingSub">CHECKING CLEARANCE LEVEL...</div>
 </div>
 
-<!-- ACCESS DENIED -->
 <div class="screen-full" id="deniedScreen" style="background:var(--black);">
   <div class="denied-card">
     <div class="denied-icon">🚫</div>
@@ -247,10 +246,8 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
   </div>
 </div>
 
-<!-- MAIN DASHBOARD -->
 <div class="screen" id="mainScreen">
 
-  <!-- COMMAND BAR -->
   <nav class="command-bar">
     <div class="brand">
       <img src="logo.png" class="brand-logo" alt="M.O.G."
@@ -266,7 +263,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </nav>
 
-  <!-- TAB NAV -->
   <div class="tab-nav">
     <button class="tab-btn active"  onclick="showTab('overview')">📊 OVERVIEW</button>
     <button class="tab-btn"         onclick="showTab('upload')">⬆ UPLOAD CENTRE</button>
@@ -279,7 +275,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     <button class="tab-btn"         onclick="showTab('settings')">⚙️ SETTINGS</button>
   </div>
 
-  <!-- ══ OVERVIEW ══ -->
   <div class="tab-section active" id="tab-overview">
     <div class="stats-ribbon">
       <div class="stat-card"><div class="stat-label">TOTAL REVENUE</div><div class="stat-value sv-gold" id="statRevenue">R0</div><div class="stat-sub">TICKETS + MEMBERSHIPS</div></div>
@@ -305,7 +300,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ UPLOAD CENTRE ══ -->
   <div class="tab-section" id="tab-upload">
     <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
       <div>
@@ -315,7 +309,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
             <div class="panel-badge pb-teal">ADMIN ONLY</div>
           </div>
 
-          <!-- CONTENT TYPE TABS -->
           <div class="upload-type-tabs">
             <button class="utab active" onclick="switchUploadType('media',this)">🎬 SESSION MEDIA</button>
             <button class="utab" onclick="switchUploadType('event',this)">📅 CREATE EVENT</button>
@@ -323,7 +316,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
             <button class="utab" onclick="switchUploadType('announcement',this)">📣 ANNOUNCEMENT</button>
           </div>
 
-          <!-- ── MEDIA UPLOAD ── -->
           <div class="upload-form active" id="uform-media">
             <div class="info-box">
               📸 Upload photos and videos from your sessions.<br>
@@ -332,6 +324,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
             <div class="upload-zone" id="uploadZone"
               onclick="document.getElementById('fileIn').click()"
               ondragover="event.preventDefault();this.classList.add('dragover')"
+              ondragleave="this.classList.remove('dragover')"
               ondragleave="this.classList.remove('dragover')"
               ondrop="handleDrop(event)">
               <div class="upload-icon">📁</div>
@@ -378,7 +371,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
             <button class="btn btn-teal" style="width:100%" onclick="uploadAsset()">⬆ DEPLOY TO VAULT</button>
           </div>
 
-          <!-- ── CREATE EVENT ── -->
           <div class="upload-form" id="uform-event">
             <div class="info-box">
               📅 Create a new event. Ticket tiers are added here.<br>
@@ -404,7 +396,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
             <button class="btn btn-teal" style="width:100%;margin-top:4px;" onclick="createEvent()">✓ CREATE EVENT + TICKETS</button>
           </div>
 
-          <!-- ── POLL SONGS ── -->
           <div class="upload-form" id="uform-poll">
             <div class="legal-block">
               <div class="legal-block-title">⚖️ MUSIC RIGHTS — READ BEFORE ADDING SONGS</div>
@@ -449,12 +440,10 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
               <button class="btn btn-danger btn-sm" onclick="closePoll()">🔒 CLOSE POLL</button>
               <button class="btn btn-sm" onclick="exportResultsCSV()">📊 EXPORT RESULTS</button>
             </div>
-            <!-- Current poll results inline -->
             <div style="margin-top:16px;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--gold);letter-spacing:2px;margin-bottom:10px;">CURRENT POLL</div>
             <div id="inlinePollResults"><div class="empty-state">NO SONGS YET</div></div>
           </div>
 
-          <!-- ── ANNOUNCEMENT ── -->
           <div class="upload-form" id="uform-announcement">
             <div class="info-box">
               📣 Send a message to all operatives. Appears in their activity feed and can trigger a push notification.
@@ -476,9 +465,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
           </div>
         </div>
       </div>
-
-      <!-- VAULT SIDEBAR -->
-      <div>
+<div>
         <div class="panel" style="margin:0;">
           <div class="panel-head">
             <div class="panel-title">// VAULT CONTENTS</div>
@@ -495,7 +482,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ BROADCAST ══ -->
   <div class="tab-section" id="tab-broadcast">
     <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
       <div>
@@ -543,7 +529,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ TICKETS ══ -->
   <div class="tab-section" id="tab-tickets">
     <div class="panel">
       <div class="panel-head">
@@ -577,7 +562,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ MEMBERSHIPS ══ -->
   <div class="tab-section" id="tab-memberships">
     <div class="stats-ribbon" style="grid-template-columns:repeat(4,1fr);">
       <div class="stat-card"><div class="stat-label">OPERATIVE PLAN</div><div class="stat-value sv-teal" id="mCountOp">0</div><div class="stat-sub">R99/month</div></div>
@@ -602,7 +586,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ OPERATIVES ══ -->
   <div class="tab-section" id="tab-operatives">
     <div class="panel">
       <div class="panel-head">
@@ -619,9 +602,8 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
         </table>
       </div>
     </div>
-  </div>
-
-  <!-- ══ POLLS ══ -->
+                                                                                                                               </div>
+                                                                                                                               
   <div class="tab-section" id="tab-polls">
     <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
       <div class="panel">
@@ -654,7 +636,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-  <!-- ══ LOGS ══ -->
   <div class="tab-section" id="tab-logs">
     <div class="panel">
       <div class="panel-head">
@@ -668,8 +649,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-    <!-- ══ SETTINGS ══ -->
-  <div class="tab-section" id="tab-settings">
+    <div class="tab-section" id="tab-settings">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="dash-grid">
       <div class="panel">
         <div class="panel-head"><div class="panel-title">// APP SETTINGS</div></div>
@@ -698,10 +678,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-</div><!-- end mainScreen -->
-
-<!-- RANK CHANGE MODAL -->
-<div class="modal" id="rankModal">
+</div><div class="modal" id="rankModal">
   <div class="modal-box" style="max-width:360px;">
     <button class="modal-close" onclick="closeModal('rankModal')">✕</button>
     <div class="modal-title">// CHANGE OPERATIVE RANK</div>
@@ -774,7 +751,7 @@ function showDenied(msg){
   document.getElementById('deniedScreen').classList.add('active');
 }
 
-// ── TABS ─────────────────────────────────────────────────
+  // ── TABS ─────────────────────────────────────────────────
 function showTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>{
     b.classList.toggle('active', b.textContent.toLowerCase().includes(
@@ -936,12 +913,12 @@ async function loadOperatives(){
     <td><span class="rank-tag rank-${p.rank.toLowerCase()}">${p.rank}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(p.created_at).toLocaleDateString('en-ZA')}</td>
     <td style="display:flex;gap:6px;">
+      <button class="btn btn-sm btn-teal" onclick="MOGApp.establishUplink('${p.id}')">UPLINK</button>
       <button class="btn btn-sm" onclick="openRankChange('${p.id}','${escHtml(p.username)}','${p.rank}')">RANK</button>
       ${p.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-danger" onclick="banUser('${p.id}')">BAN</button>`:''}
     </td>
   </tr>`).join('')||'<tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr>');
-}
-
+                                                              }
   async function loadPollResults(){
   const c = client(); if(!c){ setEl('pollResults','<div class="empty-state">CONNECT SUPABASE</div>'); loadInlinePollResults(); return; }
   const {data} = await c.from('poll_songs').select('*').order('votes_count',{ascending:false});
@@ -962,7 +939,6 @@ async function loadOperatives(){
 }
 
 async function loadInlinePollResults(){ await loadPollResults(); }
-
 // ── ACTIONS ──────────────────────────────────────────────
 
 // ── MEDIA UPLOAD ─────────────────────────────────────────
@@ -1124,7 +1100,7 @@ async function openNewPoll(){
   const c=client();
   if(c){ await c.from('system_settings').upsert([{key:'poll_week',value:week},{key:'poll_open',value:'true'}]); }
   await log('🆕 NEW POLL OPENED — WEEK '+week,'info'); alert('✅ NEW POLL STARTED FOR WEEK '+week);
-                      }
+    }
 
   // ── BROADCAST ─────────────────────────────────────────────
 async function toggleLive(){
@@ -1175,7 +1151,6 @@ async function scheduleBroadcast(){
 }
 
 // ── OPERATIVES ────────────────────────────────────────────
-let rankChangeTarget=null;
 function openRankChange(id,name,rank){
   rankChangeTarget={id,name};
   document.getElementById('rankModalUser').textContent='OPERATIVE: '+name;
@@ -1271,4 +1246,3 @@ init();
 </script>
 </body>
 </html>
-  
