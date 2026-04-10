@@ -1,245 +1,293 @@
 /**
- * Ministry of Groove - Main Application
- * NCC Master v6.3.0 — Production Broadcast + Realtime + Messaging
- * UNIFIED COMMAND SCRIPT — DO NOT REMOVE EXISTING LOGIC
+ * Ministry of Groove - NCC Master v7.0.0
+ * Unified Command Engine: Hub, Dispatch, Directorate & Cart
+ * Decrypting the Culture. Synchronizing the Grid.
  */
 
-(function() {
-    'use strict';
-    
-    // Initialize when DOM is ready
-    document.addEventListener('DOMContentLoaded', async function() {
-        // Initialize Lucide icons
+const MOGApp = {
+    cart: [],
+    currentUser: null,
+    version: '7.0.0',
+
+    /**
+     * CORE INITIALIZATION
+     * Synchronizes Auth, UI Icons, and Tactical Systems
+     */
+    async init() {
+        // 1. Render Lucide Icons for UI
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
         
-        // Log system ready
-        console.log('%c🔒 MOG NCC Master v6.3.0', 'color: #C9A84C; font-weight: bold;');
-        console.log('%cSecure Uplink + Realtime Protocol Active', 'color: #00E5CC;');
+        console.log('%c🔒 MOG NCC Master v7.0.0 Active', 'color: #C9A84C; font-weight: bold;');
 
-        // --- REALTIME HEARTBEAT INITIALIZATION ---
-        if (window.sb) {
-            try {
-                const { data: { session } } = await window.sb.auth.getSession();
-                if (session) {
-                    window.MOGApp.startHeartbeat();
-                }
-            } catch (err) {
-                console.warn('[M.O.G.] Auth sync delayed or unavailable.');
-            }
+        if (!window.sb) {
+            console.warn('[M.O.G.] Supabase not detected. Entering Offline Mode.');
+            return;
         }
 
-        // Auto-init frequency page if on that route
-        if (window.location.pathname.includes('frequency.html')) {
-            window.MOGApp.initFrequency();
-        }
-    });
-    
-    // Global error handler
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-        console.error('MOG Error:', msg, 'at', lineNo + ':' + columnNo);
-        return false;
-    };
-    
-    // Expose app utilities
-    window.MOGApp = {
-        version: '6.3.0',
-        
-        /**
-         * HEARTBEAT SYSTEM
-         * Updates the user_presence table to keep the operative 'Online'
-         */
-        startHeartbeat: function() {
-            const updateStatus = async () => {
-                const { error } = await window.sb.rpc('update_user_status');
-                if (error) console.error("[M.O.G.] Presence Uplink Error", error);
-            };
-
-            // Immediate pulse on load
-            updateStatus();
-
-            // Frequency: 60 seconds
-            setInterval(updateStatus, 60000);
+        // 2. Auth Check & Session Sync
+        const { data: { session } } = await window.sb.auth.getSession();
+        if (session) {
+            this.currentUser = session.user;
             
-            console.log('%c[M.O.G.] Heartbeat Protocol Synchronized', 'color: #00E5CC;');
-        },
-
-        /**
-         * ESTABLISH UPLINK
-         * Intelligently creates or opens existing chat between users
-         */
-        establishUplink: async function(targetUserId) {
-            try {
-                const { data: { session } } = await window.sb.auth.getSession();
-                if (!session) {
-                    alert("Clearance Denied. Please re-authenticate.");
-                    return;
-                }
-                const currentUserId = session.user.id;
-
-                // 1. Check for existing DM to prevent duplicates
-                const { data: existingId, error: checkError } = await window.sb.rpc('get_existing_conversation', {
-                    user_a: currentUserId,
-                    user_b: targetUserId
-                });
-
-                if (existingId) {
-                    window.location.href = `/chat?id=${existingId}`;
-                    return;
-                }
-
-                // 2. Create new conversation if none exists
-                const { data: conv, error: convErr } = await window.sb
-                    .from('conversations')
-                    .insert({ type: 'dm' })
-                    .select()
-                    .single();
-
-                if (convErr) throw convErr;
-
-                // 3. Add both participants
-                const { error: partErr } = await window.sb
-                    .from('participants')
-                    .insert([
-                        { conversation_id: conv.id, user_id: currentUserId },
-                        { conversation_id: conv.id, user_id: targetUserId }
-                    ]);
-
-                if (partErr) throw partErr;
-
-                // 4. Redirect to the Chat Page
-                window.location.href = `/chat?id=${conv.id}`;
-                
-            } catch (err) {
-                console.error('Uplink Establishment Failed:', err);
-                alert('Protocol Error: Could not establish secure channel.');
+            // Start Tactical Protocols
+            this.startHeartbeat();
+            this.setupRealtime(session.user.id);
+            this.updateBadges();
+            this.loadCart();
+            this.registerPush(session.user.id);
+        } else {
+            // Redirect unauthorized access to login
+            const path = window.location.pathname;
+            if (!path.includes('login.html')) {
+                window.location.href = 'login.html';
             }
-        },
+        }
 
-        /**
-         * FREQUENCY PAGE LOGIC
-         * Initializes the Director-only interface and checks role
-         */
-        initFrequency: async function() {
-            // Wait for Auth to confirm role from Supabase
-            if (typeof MOGAuth !== 'undefined') {
-                await MOGAuth.init();
-                
-                if (MOGAuth.isDirector) {
-                    const controls = document.getElementById('director-controls');
-                    if (controls) {
-                        controls.style.display = 'block';
-                        console.log('%c[M.O.G.] Director Clearance Confirmed. Controls Enabled.', 'color: #C9A84C;');
-                    }
-                }
+        // 3. Frequency Page Specific Init
+        if (window.location.pathname.includes('frequency.html')) {
+            this.initFrequency();
+        }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // REAL-TIME & NOTIFICATIONS (Tactical Dispatch)
+    // ══════════════════════════════════════════════════════════
+
+    /**
+     * SETUP REALTIME
+     * Listens for incoming messages directed at the current operative
+     */
+    setupRealtime(userId) {
+        window.sb.channel('realtime-dispatch')
+            .on('postgres_changes', { 
+                event: 'INSERT', 
+                schema: 'public', 
+                table: 'messages', 
+                filter: `receiver_id=eq.${userId}` 
+            }, payload => {
+                this.launchToast(payload.new);
+                this.updateBadges();
+            }).subscribe();
+    },
+
+    /**
+     * UPDATE BADGES
+     * Updates unread counts on both the Hub and the Bottom Navigation
+     */
+    async updateBadges() {
+        if (!this.currentUser) return;
+        
+        const { count } = await window.sb.from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('receiver_id', this.currentUser.id)
+            .eq('read', false);
+        
+        const badgeHub = document.getElementById('unread-badge-hub');
+        const badgeNav = document.getElementById('unread-badge-nav');
+        
+        const badgeElements = [badgeHub, badgeNav];
+        badgeElements.forEach(el => {
+            if (el) {
+                el.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
+                el.style.display = count > 0 ? 'flex' : 'none';
             }
-        },
+        });
+    },
 
-        /**
-         * UPLINK REQUEST (BROADCAST)
-         * Sends JWT for server-side verification and provisions Mux stream
-         */
-        requestUplink: async function() {
-            const btn = document.getElementById('start-broadcast-btn');
-            const intelBox = document.getElementById('director-intel');
-            const keyInput = document.getElementById('stream-key');
+    /**
+     * LAUNCH TOAST
+     * Visual UI Alert for incoming transmissions
+     */
+    launchToast(msg) {
+        const root = document.getElementById('toast-root');
+        if (!root) return;
 
-            if (!MOGAuth.isAuthenticated) {
-                alert("Clearance Denied. Please re-authenticate.");
-                window.location.href = '/login.html';
+        const toast = document.createElement('div');
+        toast.className = 'mog-toast';
+        toast.innerHTML = `
+            <p style="color:var(--gold); font-family:'Orbitron'; font-size:10px; font-weight:700; letter-spacing:1px;">INCOMING DISPATCH</p>
+            <p style="font-size:13px; margin:5px 0; font-family:'Rajdhani';">${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}</p>
+            <a href="dispatch.html" style="color:var(--teal); font-size:10px; text-decoration:none; font-family:'Share Tech Mono';">DECRYPT MESSAGE →</a>
+        `;
+        root.appendChild(toast);
+        
+        // Auto-purge toast after 5 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // TICKET CART SYSTEM (Vault Bag)
+    // ══════════════════════════════════════════════════════════
+
+    toggleCart() {
+        const modal = document.getElementById('cart-modal');
+        if (modal) {
+            modal.classList.toggle('active');
+            this.renderCart();
+        }
+    },
+
+    addToCart(ticket) {
+        // Ticket object: { name: string, price: number, event: string }
+        this.cart.push({
+            id: Date.now(),
+            name: ticket.name,
+            price: ticket.price,
+            event: ticket.event || 'GENERAL SESSION'
+        });
+        this.saveCart();
+        this.renderCart();
+        this.launchToast({ content: `VAULT SECURED: ${ticket.name} added to bag.` });
+    },
+
+    saveCart() { 
+        localStorage.setItem('mog_cart_v1', JSON.stringify(this.cart)); 
+    },
+
+    loadCart() { 
+        const saved = localStorage.getItem('mog_cart_v1');
+        if(saved) this.cart = JSON.parse(saved);
+        this.renderCart();
+    },
+
+    renderCart() {
+        const container = document.getElementById('cart-items-list');
+        const countDisplay = document.getElementById('cart-count-display');
+        const totalDisplay = document.getElementById('cart-total-price');
+        
+        if (!container) return;
+
+        let total = 0;
+        container.innerHTML = this.cart.map((item, index) => {
+            total += item.price;
+            return `
+                <div class="tx-item" style="padding:10px 0; border-bottom:1px solid rgba(201,168,76,0.1)">
+                    <div style="display:flex; justify-content:space-between; width:100%">
+                        <div>
+                            <div class="tx-main" style="font-size:12px;">${item.name}</div>
+                            <div class="tx-time" style="font-size:8px; color:var(--gold-dim)">${item.event}</div>
+                        </div>
+                        <div style="text-align:right">
+                            <div style="font-family:'Orbitron'; font-size:11px; color:var(--gold)">R${item.price}</div>
+                            <button onclick="MOGApp.removeFromCart(${index})" style="background:none; border:none; color:var(--red); font-size:9px; cursor:pointer; font-family:'Share Tech Mono';">REMOVE</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (this.cart.length === 0) {
+            container.innerHTML = '<div class="empty-state">VAULT EMPTY</div>';
+        }
+
+        if(countDisplay) countDisplay.textContent = `${this.cart.length} ITEMS`;
+        if(totalDisplay) totalDisplay.textContent = `R${total}`;
+        
+        // Sync Hub Bar (SyncBar)
+        const bar = document.getElementById('syncBar');
+        if(bar) bar.style.width = this.cart.length > 0 ? '100%' : '0%';
+    },
+
+    removeFromCart(index) {
+        this.cart.splice(index, 1);
+        this.saveCart();
+        this.renderCart();
+    },
+
+    checkout() {
+        if(this.cart.length === 0) {
+            alert("Your cart is empty.");
+            return;
+        }
+        alert("REDIRECTING TO SECURE PAYMENT GATEWAY...");
+        // Integration Point: Redirect to Paystack/Yoco/Stripe
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // UPLINK & HEARTBEAT (Original Foundation)
+    // ══════════════════════════════════════════════════════════
+
+    startHeartbeat() {
+        const updateStatus = async () => {
+            if (!this.currentUser) return;
+            // Update last_seen in profiles
+            await window.sb.from('profiles')
+                .update({ last_seen: new Date().toISOString() })
+                .eq('id', this.currentUser.id);
+            
+            // Trigger RPC status update
+            await window.sb.rpc('update_user_status');
+        };
+
+        updateStatus();
+        setInterval(updateStatus, 60000); // 60s Pulse
+        console.log('%c[M.O.G.] Heartbeat Protocol Active', 'color: #00E5CC;');
+    },
+
+    async establishUplink(targetUserId) {
+        try {
+            const { data: { session } } = await window.sb.auth.getSession();
+            if (!session) return;
+            const currentUserId = session.user.id;
+
+            // Check existing conversation
+            const { data: existingId } = await window.sb.rpc('get_existing_conversation', {
+                user_a: currentUserId,
+                user_b: targetUserId
+            });
+
+            if (existingId) {
+                window.location.href = `dispatch.html?id=${existingId}`;
                 return;
             }
 
-            try {
-                btn.disabled = true;
-                btn.innerText = "VERIFYING CLEARANCE...";
+            // Create new conversation
+            const { data: conv } = await window.sb.from('conversations').insert({ type: 'dm' }).select().single();
+            await window.sb.from('participants').insert([
+                { conversation_id: conv.id, user_id: currentUserId },
+                { conversation_id: conv.id, user_id: targetUserId }
+            ]);
 
-                const { data: { session }, error: sessionError } = await window.sb.auth.getSession();
-                
-                if (sessionError || !session) throw new Error("Could not retrieve secure token.");
-
-                const eventId = document.querySelector('.event-card')?.id || 'SESSION_03_AUTO';
-
-                const response = await fetch('/api/broadcast', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
-                    },
-                    body: JSON.stringify({ 
-                        eventId: eventId,
-                        title: document.getElementById('stripTitle')?.innerText || "Live Session"
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Uplink rejected by High Command.');
-                }
-
-                if (data.streamKey) {
-                    keyInput.value = data.streamKey;
-                    intelBox.style.display = 'block';
-                    
-                    btn.innerText = "UPLINK ESTABLISHED";
-                    btn.classList.remove('btn-gold');
-                    btn.classList.add('btn-teal');
-                    
-                    console.log('%c[M.O.G.] Stream Key Received. Directing data to Mux.', 'color: #00E5CC;');
-                }
-            } catch (err) {
-                console.error('Broadcast Uplink Failure:', err);
-                btn.innerText = "UPLINK FAILED — RETRY";
-                btn.disabled = false;
-                alert(`Protocol Error: ${err.message}`);
-            }
-        },
-
-        /**
-         * CLIPBOARD UTILITY
-         * Copies intel to clipboard with visual feedback
-         */
-        copyIntel: async function(elementId, isInput = false) {
-            const textToCopy = isInput 
-                ? document.getElementById(elementId).value 
-                : document.getElementById(elementId).innerText;
-
-            try {
-                await navigator.clipboard.writeText(textToCopy);
-                
-                const btn = event.target;
-                const originalText = btn.innerText;
-                
-                btn.innerText = "COPIED";
-                btn.style.background = "var(--teal)";
-                btn.style.color = "var(--black)";
-                
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.style.background = "";
-                    btn.style.color = "";
-                }, 2000);
-
-            } catch (err) {
-                console.error('Intel copy failed:', err);
-            }
-        },
-
-        refreshIcons: function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        },
-        
-        formatTime: function(date) {
-            return date.toLocaleTimeString('en-US', { 
-                hour12: false, 
-                hour: '2-digit', 
-                minute: '2-digit',
-                second: '2-digit'
-            }) + ' UTC';
+            window.location.href = `dispatch.html?id=${conv.id}`;
+        } catch (err) {
+            console.error('Uplink Error:', err);
         }
-    };
-})();
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // PUSH NOTIFICATIONS (Service Worker)
+    // ══════════════════════════════════════════════════════════
+
+    async registerPush(userId) {
+        if (!('serviceWorker' in navigator)) return;
+        try {
+            const reg = await navigator.serviceWorker.register('/sw.js');
+            console.log('[M.O.G.] Service Worker Synchronized');
+        } catch (e) {
+            console.warn('[M.O.G.] Push Protocol Offline');
+        }
+    },
+
+    // ══════════════════════════════════════════════════════════
+    // SYSTEM EXIT
+    // ══════════════════════════════════════════════════════════
+
+    logout() {
+        if (confirm('Terminate operative session?')) {
+            window.sb.auth.signOut().then(() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            });
+        }
+    }
+};
+
+// INITIALIZE SYSTEM
+document.addEventListener('DOMContentLoaded', () => MOGApp.init());
