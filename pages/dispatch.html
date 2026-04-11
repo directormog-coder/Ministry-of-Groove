@@ -8,90 +8,99 @@
 <link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);--red:#FF3B3B;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;overflow:hidden;}
 body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;display:flex;flex-direction:column;}
 body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-/* TOP BAR */
-.top-bar{background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;height:52px;gap:10px;backdrop-filter:blur(10px);flex-shrink:0;z-index:10;position:relative;}
-.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;transition:color 0.2s;}
-.back-btn:hover{color:var(--gold-light);}
-.top-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
-.online-badge{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;white-space:nowrap;}
+/* ── TOP BAR ── */
+.top-bar{background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;height:58px;gap:10px;backdrop-filter:blur(10px);flex-shrink:0;z-index:10;position:relative;}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;}
+.top-logo{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--gold);overflow:hidden;flex-shrink:0;}
+.top-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.top-brand{flex:1;min-width:0;}
+.top-brand-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:var(--gold-light);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-brand-slogan{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--teal-dim);letter-spacing:1px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.online-badge{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;white-space:nowrap;flex-shrink:0;}
 .dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
 
-/* ROOM TABS */
-.rooms-bar{background:rgba(13,31,45,0.7);border-bottom:1px solid var(--border-teal);display:flex;gap:0;overflow-x:auto;scrollbar-width:none;flex-shrink:0;z-index:9;position:relative;}
+/* ── DIRECTOR TOOLBAR ── */
+.director-toolbar{display:none;background:rgba(0,229,204,0.04);border-bottom:1px solid var(--border-teal);padding:8px 14px;gap:8px;flex-shrink:0;z-index:9;flex-wrap:wrap;}
+.director-toolbar.show{display:flex;}
+.dir-btn{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;padding:6px 12px;border-radius:4px;cursor:pointer;border:1px solid var(--border-teal);color:var(--teal);background:rgba(0,229,204,0.05);transition:all 0.2s;white-space:nowrap;}
+.dir-btn:hover{background:rgba(0,229,204,0.15);border-color:var(--teal);}
+.dir-btn.danger{color:var(--red);border-color:rgba(255,59,59,0.3);background:rgba(255,59,59,0.04);}
+.dir-btn.danger:hover{background:rgba(255,59,59,0.12);}
+
+/* ── ROOM TABS ── */
+.rooms-bar{background:rgba(13,31,45,0.7);border-bottom:1px solid var(--border-teal);display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;z-index:9;}
 .rooms-bar::-webkit-scrollbar{display:none;}
-.room-tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;padding:11px 14px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;background:none;border-top:none;border-left:none;border-right:none;display:flex;align-items:center;gap:6px;}
+.room-tab{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;padding:10px 14px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;background:none;border-top:none;border-left:none;border-right:none;display:flex;align-items:center;gap:5px;}
 .room-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
 .room-tab:hover:not(.active){color:var(--gold-light);}
-.room-tab .room-icon{font-size:12px;}
-.unread-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;flex-shrink:0;animation:pulse 1.5s infinite;}
-/* Director-only VIP tab */
-.room-tab.vip-tab{color:var(--gold-dim);display:none;}
+.unread-dot{width:7px;height:7px;background:var(--teal);border-radius:50%;flex-shrink:0;animation:pulse 1.5s infinite;}
+.room-tab.vip-tab{display:none;}
 .room-tab.vip-tab.visible{display:flex;}
-.room-tab.vip-tab.active{color:var(--gold);}
 
-/* MESSAGES AREA */
+/* ── MESSAGES ── */
 .messages-wrap{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px;position:relative;z-index:1;}
 .messages-wrap::-webkit-scrollbar{width:3px;}
 .messages-wrap::-webkit-scrollbar-thumb{background:var(--border);}
-
 .room-header-label{text-align:center;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold-dim);letter-spacing:3px;border:1px solid var(--border);padding:5px 14px;border-radius:2px;display:inline-block;align-self:center;margin-bottom:4px;}
 .sys-msg{text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:4px;}
-.date-divider{text-align:center;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:2px;margin:8px 0;display:flex;align-items:center;gap:10px;}
+.date-divider{text-align:center;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:2px;margin:6px 0;display:flex;align-items:center;gap:10px;}
 .date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
 
-/* MESSAGE BUBBLES */
+/* ── MESSAGE BUBBLES ── */
 .msg{display:flex;gap:9px;max-width:88%;animation:msgIn 0.25s ease;}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg.mine{flex-direction:row-reverse;align-self:flex-end;}
-.msg.director-msg{max-width:95%;}
-
-/* AVATAR */
+.msg.director-msg{max-width:96%;}
 .msg-avatar{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;align-self:flex-end;overflow:hidden;background:var(--navy);}
 .msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .msg-avatar.is-director{border-color:var(--teal);border-width:2px;box-shadow:0 0 8px rgba(0,229,204,0.4);}
 .msg-avatar.is-mine{border-color:var(--gold);}
-
 .msg-body{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.msg-header{display:flex;align-items:center;gap:6px;}
 .msg-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;}
 .msg.mine .msg-name{text-align:right;color:var(--gold-dim);}
-.director-crown{font-size:10px;}
-
-/* BUBBLE */
 .bubble{background:var(--panel);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:3px;padding:10px 14px;font-size:14px;font-weight:500;color:#ddd;line-height:1.45;word-break:break-word;position:relative;}
 .msg.mine .bubble{background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);border-bottom-right-radius:3px;border-bottom-left-radius:12px;}
 .bubble.director-bubble{background:linear-gradient(135deg,rgba(0,229,204,0.06),rgba(13,31,45,0.95));border-color:rgba(0,229,204,0.35);border-bottom-left-radius:3px;}
-.bubble.director-bubble::before{content:'👑 DIRECTORATE';position:absolute;top:-9px;left:10px;font-family:'Orbitron',sans-serif;font-size:7px;color:var(--teal);letter-spacing:2px;background:var(--black);padding:0 6px;border-radius:2px;}
-
-/* IMAGE MESSAGE */
-.bubble-img{padding:6px;background:var(--navy);border:1px solid var(--border);border-radius:10px;cursor:pointer;}
+.bubble.director-bubble::before{content:'👑 DIRECTORATE';position:absolute;top:-9px;left:10px;font-family:'Orbitron',sans-serif;font-size:7px;color:var(--teal);letter-spacing:2px;background:var(--black);padding:0 5px;border-radius:2px;}
+.bubble-img{padding:5px;background:var(--navy);border:1px solid var(--border);border-radius:10px;cursor:pointer;}
 .bubble-img img{max-width:200px;max-height:200px;border-radius:6px;display:block;object-fit:cover;}
-
 .msg-footer{display:flex;align-items:center;gap:8px;}
-.msg-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.22);letter-spacing:1px;}
 .msg.mine .msg-footer{flex-direction:row-reverse;}
+.msg-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.22);letter-spacing:1px;}
+.msg-tick{font-size:10px;color:rgba(255,255,255,0.2);}
+.msg-tick.read{color:var(--teal);}
+
+/* DIRECTOR BROADCAST BANNER */
+.director-announce{display:block;background:linear-gradient(135deg,rgba(0,229,204,0.07),rgba(13,31,45,0.97));border:1px solid rgba(0,229,204,0.3);border-radius:8px;padding:12px 14px;margin:4px 0;position:relative;overflow:hidden;animation:msgIn 0.3s ease;}
+.director-announce::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
+.da-label{font-family:'Orbitron',sans-serif;font-size:8px;color:var(--teal);letter-spacing:3px;margin-bottom:4px;}
+.da-text{font-size:14px;font-weight:600;color:#e0e0e0;line-height:1.4;}
+.da-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);margin-top:4px;}
 
 /* REACTIONS */
 .reactions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.reaction-pill{background:rgba(201,168,76,0.1);border:1px solid var(--border);border-radius:10px;padding:2px 8px;font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);}
-.reaction-pill:hover,.reaction-pill.reacted{background:rgba(201,168,76,0.2);border-color:var(--gold);color:var(--gold);}
-
-/* REACTION PICKER */
-.reaction-bar{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:rgba(13,31,45,0.98);border:1px solid var(--border);border-radius:20px;padding:6px 10px;display:none;gap:6px;z-index:50;backdrop-filter:blur(10px);}
+.reaction-pill{background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:10px;padding:2px 8px;font-size:11px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:3px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);}
+.reaction-pill.reacted,.reaction-pill:hover{background:rgba(201,168,76,0.18);border-color:var(--gold);color:var(--gold);}
+.reaction-bar{display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:rgba(13,31,45,0.98);border:1px solid var(--border);border-radius:20px;padding:6px 10px;gap:6px;z-index:50;backdrop-filter:blur(10px);}
 .reaction-bar.show{display:flex;}
 .msg.mine .reaction-bar{left:auto;right:0;}
 .react-emoji{font-size:18px;cursor:pointer;transition:transform 0.15s;padding:2px;}
 .react-emoji:hover{transform:scale(1.4);}
 
-/* INPUT AREA */
-.input-wrap{background:rgba(5,10,14,0.97);border-top:1px solid var(--border);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));flex-shrink:0;z-index:10;position:relative;}
+/* ── INPUT AREA ── */
+.input-wrap{background:rgba(5,10,14,0.97);border-top:1px solid var(--border);padding:10px 14px;padding-bottom:calc(10px + env(safe-area-inset-bottom));flex-shrink:0;z-index:10;}
+.preview-strip{display:none;padding:6px 0;gap:8px;overflow-x:auto;}
+.preview-strip.show{display:flex;}
+.preview-thumb{position:relative;flex-shrink:0;}
+.preview-thumb img{width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
+.preview-remove{position:absolute;top:-5px;right:-5px;background:var(--black);border:1px solid var(--border);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:var(--gold-dim);}
 .input-actions{display:flex;gap:8px;align-items:flex-end;}
 .attach-btn{background:none;border:1px solid var(--border);border-radius:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--gold-dim);transition:all 0.2s;flex-shrink:0;}
 .attach-btn:hover{border-color:var(--gold);color:var(--gold);}
@@ -101,44 +110,24 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .send-btn{background:var(--gold);border:none;border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;flex-shrink:0;color:var(--black);}
 .send-btn:hover{background:var(--gold-light);box-shadow:0 0 16px rgba(201,168,76,0.4);}
 .send-btn:active{transform:scale(0.95);}
-/* Image preview strip */
-.preview-strip{display:none;padding:8px 0;gap:8px;overflow-x:auto;}
-.preview-strip.show{display:flex;}
-.preview-thumb{position:relative;flex-shrink:0;}
-.preview-thumb img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
-.preview-remove{position:absolute;top:-6px;right:-6px;background:var(--black);border:1px solid var(--border);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:var(--gold-dim);}
 
-/* DIRECTOR BROADCAST BANNER */
-.director-announce{display:none;background:linear-gradient(135deg,rgba(0,229,204,0.08),rgba(13,31,45,0.95));border:1px solid rgba(0,229,204,0.3);border-radius:8px;padding:12px 14px;margin:0 0 10px;position:relative;overflow:hidden;animation:msgIn 0.3s ease;}
-.director-announce::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
-.da-label{font-family:'Orbitron',sans-serif;font-size:8px;color:var(--teal);letter-spacing:3px;margin-bottom:4px;}
-.da-text{font-size:14px;font-weight:600;color:#e0e0e0;line-height:1.4;}
-
-/* DIRECTOR CONTROLS (only shown when director) */
-.director-toolbar{display:none;background:rgba(0,229,204,0.04);border-bottom:1px solid var(--border-teal);padding:8px 14px;gap:8px;flex-shrink:0;z-index:9;position:relative;flex-wrap:wrap;}
-.director-toolbar.show{display:flex;}
-.dir-btn{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:6px 12px;border-radius:4px;cursor:pointer;border:1px solid var(--border-teal);color:var(--teal);background:rgba(0,229,204,0.06);transition:all 0.2s;white-space:nowrap;}
-.dir-btn:hover{background:rgba(0,229,204,0.15);border-color:var(--teal);}
-.dir-btn.danger{color:#ff5555;border-color:rgba(255,59,59,0.3);background:rgba(255,59,59,0.04);}
-.dir-btn.danger:hover{background:rgba(255,59,59,0.12);}
-
-/* TYPING INDICATOR */
-.typing-indicator{display:none;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:4px 0;animation:fadeIn 0.3s ease;}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* TYPING */
+.typing-indicator{display:none;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;padding:4px 14px;flex-shrink:0;}
+.typing-indicator.show{display:block;}
 .typing-dots{display:inline-flex;gap:3px;margin-left:6px;}
 .typing-dots span{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.3);animation:tdot 1.4s infinite;}
 .typing-dots span:nth-child(2){animation-delay:0.2s;}
 .typing-dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes tdot{0%,80%,100%{opacity:0.3}40%{opacity:1}}
 
-/* IMAGE LIGHTBOX */
+/* LIGHTBOX */
 .lightbox{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 .lightbox.open{display:flex;}
 .lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;}
 .lightbox-close{position:absolute;top:16px;right:16px;background:rgba(13,31,45,0.8);border:1px solid var(--border);color:var(--gold);font-size:18px;padding:6px 12px;border-radius:4px;cursor:pointer;}
 
 /* BOTTOM NAV */
-.bottom-nav{background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;z-index:10;position:relative;}
+.bottom-nav{background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;z-index:10;}
 .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
 .nav-item.active{border-top-color:var(--gold);}
 .nav-icon{font-size:20px;line-height:1;}
@@ -150,48 +139,42 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
-  <div class="top-title">DISPATCH</div>
+  <div class="top-logo">
+    <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+  </div>
+  <div class="top-brand">
+    <div class="top-brand-name">MINISTRY OF GROOVE</div>
+    <div class="top-brand-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+  </div>
   <div class="online-badge"><div class="dot"></div><span id="onlineCount">— ONLINE</span></div>
 </div>
 
-<!-- Director Toolbar (only visible to Director) -->
+<!-- DIRECTOR TOOLBAR — only shown to director -->
 <div class="director-toolbar" id="directorToolbar">
-  <button class="dir-btn" onclick="dirAnnounce()">📣 BROADCAST TO ROOM</button>
-  <button class="dir-btn" onclick="dirPin()">📌 PIN MESSAGE</button>
-  <button class="dir-btn danger" onclick="dirClear()">🗑️ CLEAR CHAT</button>
+  <button class="dir-btn" onclick="dirAnnounce()">📣 BROADCAST</button>
+  <button class="dir-btn" onclick="dirPin()">📌 PIN MSG</button>
+  <button class="dir-btn danger" onclick="dirClear()">🗑️ CLEAR ROOM</button>
 </div>
 
 <div class="rooms-bar">
-  <button class="room-tab active" onclick="switchRoom('general',this)">
-    <span class="room-icon">💬</span>GENERAL HQ
-  </button>
-  <button class="room-tab" onclick="switchRoom('session01',this)">
-    <span class="room-icon">🎬</span>SESSION 01
-  </button>
-  <button class="room-tab" onclick="switchRoom('session02',this)">
-    <span class="room-icon">🎬</span>SESSION 02
-  </button>
-  <button class="room-tab" onclick="switchRoom('amapiano',this)">
-    <span class="room-icon">🎵</span>AMAPIANO
-  </button>
-  <button class="room-tab vip-tab" id="vipTab" onclick="switchRoom('vip',this)">
-    <span class="room-icon">👑</span>VIP
-  </button>
+  <button class="room-tab active" onclick="switchRoom('general',this)">💬 GENERAL HQ</button>
+  <button class="room-tab" onclick="switchRoom('session01',this)">🎬 SESSION 01</button>
+  <button class="room-tab" onclick="switchRoom('session02',this)">🎬 SESSION 02</button>
+  <button class="room-tab" onclick="switchRoom('amapiano',this)">🎵 AMAPIANO</button>
+  <button class="room-tab vip-tab" id="vipTab" onclick="switchRoom('vip',this)">👑 VIP</button>
 </div>
 
 <div class="messages-wrap" id="msgWrap"></div>
 
-<!-- Typing indicator -->
 <div class="typing-indicator" id="typingIndicator">
   <span id="typingText">Someone is typing</span>
   <span class="typing-dots"><span></span><span></span><span></span></span>
 </div>
 
-<!-- Input -->
 <div class="input-wrap">
   <div class="preview-strip" id="previewStrip"></div>
   <div class="input-actions">
-    <button class="attach-btn" onclick="document.getElementById('imgUpload').click()" title="Share image">📎</button>
+    <button class="attach-btn" onclick="document.getElementById('imgUpload').click()" title="Attach image">📎</button>
     <input type="file" id="imgUpload" accept="image/*" style="display:none" onchange="handleImageAttach(this)">
     <textarea class="msg-input" id="msgInput" placeholder="TRANSMIT MESSAGE..." rows="1"
       oninput="autoResize(this);handleTyping()"
@@ -200,190 +183,289 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   </div>
 </div>
 
-<div class="bottom-nav">
+<nav class="bottom-nav">
   <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
   <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
   <a href="dispatch.html" class="nav-item active"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
   <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
-</div>
+</nav>
 
-<!-- Image Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close">✕</button>
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img id="lightboxImg" src="" alt="">
 </div>
 
 <script>
-// ── USER STATE ─────────────────────────────────────────────
+// ── IDENTITY ──────────────────────────────────────────────
 const DIRECTOR_EMAIL = 'director.mog@gmail.com';
-const myName   = (sessionStorage.getItem('mogUser') || 'OPERATIVE').substring(0, 14).toUpperCase();
-const myEmail  = sessionStorage.getItem('mogEmail') || '';
-const myRank   = sessionStorage.getItem('mogRank') || 'RECRUIT';
-const myAvatar = sessionStorage.getItem('mogAvatar') || null;
-const isDirector = myEmail.toLowerCase() === DIRECTOR_EMAIL.toLowerCase() || myRank === 'ADMIN';
+const myName     = (sessionStorage.getItem('mogUser')   || 'OPERATIVE').substring(0,14).toUpperCase();
+const myEmail    = sessionStorage.getItem('mogEmail')   || '';
+const myRank     = sessionStorage.getItem('mogRank')    || 'RECRUIT';
+const myAvatar   = sessionStorage.getItem('mogAvatar')  || null;
 const myInitials = myName.substring(0, 2);
+const isDirector = myEmail.toLowerCase() === DIRECTOR_EMAIL.toLowerCase() || myRank === 'ADMIN';
 
-// ── ROOMS ──────────────────────────────────────────────────
+// ── ROOMS ─────────────────────────────────────────────────
 const rooms = {
-  general:  { name: 'GENERAL HQ',        icon: '💬', msgs: [] },
-  session01:{ name: 'SESSION 01 DEBRIEF', icon: '🎬', msgs: [] },
-  session02:{ name: 'SESSION 02 DEBRIEF', icon: '🎬', msgs: [] },
-  amapiano: { name: 'AMAPIANO INTEL',     icon: '🎵', msgs: [] },
-  vip:      { name: 'VIP — DIRECTORS ONLY', icon: '👑', msgs: [], restricted: true },
+  general:  { name:'GENERAL HQ',          icon:'💬', msgs:[], restricted:false },
+  session01:{ name:'SESSION 01 DEBRIEF',   icon:'🎬', msgs:[], restricted:false },
+  session02:{ name:'SESSION 02 DEBRIEF',   icon:'🎬', msgs:[], restricted:false },
+  amapiano: { name:'AMAPIANO INTEL',       icon:'🎵', msgs:[], restricted:false },
+  vip:      { name:'VIP — DIRECTORS ONLY', icon:'👑', msgs:[], restricted:true  },
 };
-
 let currentRoom = 'general';
 let pendingImage = null;
 let typingTimer = null;
-let messageIdCounter = 0;
+let msgIdCounter = 0;
+let realtimeChannel = null;
 
-// ── INIT ───────────────────────────────────────────────────
+// ── SUPABASE REALTIME ─────────────────────────────────────
+// Wire this up by replacing placeholders with your Supabase client `sb`
+function connectRealtime(room) {
+  if(typeof sb === 'undefined') return; // offline mode
+  if(realtimeChannel) sb.removeChannel(realtimeChannel);
+
+  realtimeChannel = sb.channel('room-' + room)
+    // New messages from any operative
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'messages',
+      filter: 'room=eq.' + room
+    }, payload => {
+      const msg = payload.new;
+      // Don't re-add own messages (already added optimistically)
+      const currentUserId = sessionStorage.getItem('mogUserId');
+      if(msg.user_id === currentUserId) return;
+      // Fetch sender profile for avatar/name
+      fetchAndAddMessage(msg);
+    })
+    // Typing presence
+    .on('presence', { event: 'sync' }, () => {
+      const state = realtimeChannel.presenceState();
+      const typingUsers = Object.values(state)
+        .flat()
+        .filter(p => p.typing && p.user !== myName)
+        .map(p => p.user);
+      if(typingUsers.length > 0) {
+        document.getElementById('typingText').textContent =
+          typingUsers.slice(0,2).join(', ') + (typingUsers.length > 1 ? ' are' : ' is') + ' typing';
+        document.getElementById('typingIndicator').classList.add('show');
+      } else {
+        document.getElementById('typingIndicator').classList.remove('show');
+      }
+    })
+    .subscribe();
+}
+
+async function fetchAndAddMessage(msgData) {
+  let senderName = msgData.user_id?.substring(0,8)?.toUpperCase() || 'OPERATIVE';
+  let senderAvatar = null;
+  let senderRank = 'RECRUIT';
+  if(typeof sb !== 'undefined') {
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('username, avatar_url, rank, email')
+      .eq('id', msgData.user_id)
+      .single();
+    if(profile) {
+      senderName   = profile.username || senderName;
+      senderAvatar = profile.avatar_url || null;
+      senderRank   = profile.rank || 'RECRUIT';
+    }
+  }
+  const senderIsDirector = senderRank === 'ADMIN';
+  const id = 'msg-' + (++msgIdCounter);
+  const t  = new Date(msgData.created_at).toLocaleTimeString('en-ZA', {hour:'2-digit',minute:'2-digit'});
+
+  rooms[currentRoom].msgs.push({
+    id, u: senderName, initials: senderName.substring(0,2),
+    avatar: senderAvatar, type: 'text',
+    text: esc(msgData.content), t,
+    mine: false, isDirector: senderIsDirector,
+    reactions: {}, myReactions: []
+  });
+  renderMsgs(currentRoom);
+}
+
+// ── INIT ──────────────────────────────────────────────────
 function init() {
-  // Show director controls
-  if (isDirector) {
+  if(isDirector) {
     document.getElementById('directorToolbar').classList.add('show');
     document.getElementById('vipTab').classList.add('visible');
   }
-
-  // Set online count
-  document.getElementById('onlineCount').textContent = Math.floor(Math.random() * 18 + 5) + ' ONLINE';
-
+  document.getElementById('onlineCount').textContent = Math.floor(Math.random()*18+5) + ' ONLINE';
   renderMsgs('general');
-
-  // Supabase realtime — wire up here:
-  // const channel = sb.channel('room-'+currentRoom)
-  //   .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room=eq.'+currentRoom},
-  //     payload => { addIncomingMsg(payload.new); })
-  //   .subscribe()
+  connectRealtime('general');
+  // Load existing messages from Supabase
+  loadMessages('general');
 }
 
-// ── RENDER MESSAGES ────────────────────────────────────────
+// ── LOAD MESSAGES FROM DB ─────────────────────────────────
+async function loadMessages(room) {
+  if(typeof sb === 'undefined') return;
+  const { data } = await sb
+    .from('messages')
+    .select('*, profiles(username, avatar_url, rank, email)')
+    .eq('room', room)
+    .eq('deleted', false)
+    .order('created_at', { ascending: true })
+    .limit(80);
+
+  if(!data || data.length === 0) return;
+  rooms[room].msgs = [];
+  data.forEach(m => {
+    const profile    = m.profiles || {};
+    const senderName = profile.username || 'OPERATIVE';
+    const isDir      = profile.rank === 'ADMIN' || profile.email === DIRECTOR_EMAIL;
+    const t          = new Date(m.created_at).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+    const isMine     = m.user_id === sessionStorage.getItem('mogUserId');
+    rooms[room].msgs.push({
+      id: 'db-'+m.id, u: senderName,
+      initials: senderName.substring(0,2),
+      avatar: profile.avatar_url || null,
+      type: 'text', text: esc(m.content), t,
+      mine: isMine, isDirector: isDir,
+      reactions: {}, myReactions: [],
+      dbId: m.id
+    });
+  });
+  renderMsgs(room);
+}
+
+// ── RENDER ────────────────────────────────────────────────
 function renderMsgs(key) {
   const room = rooms[key];
   const wrap = document.getElementById('msgWrap');
-  const msgs = room.msgs;
-
   wrap.innerHTML = `
     <div style="display:flex;justify-content:center;margin-bottom:8px;">
       <div class="room-header-label">${room.icon} ${room.name}</div>
     </div>
-    <div class="sys-msg">🔐 END-TO-END ENCRYPTED · OPERATIVE EYES ONLY</div>
-    ${msgs.length === 0
-      ? `<div class="sys-msg" style="margin-top:40px;opacity:0.4">
-           NO TRANSMISSIONS YET<br>
-           <span style="font-size:8px;opacity:0.6">BE THE FIRST TO BROADCAST IN THIS ROOM</span>
+    <div class="sys-msg">🔐 OPERATIVE EYES ONLY · END-TO-END ENCRYPTED</div>
+    ${room.msgs.length === 0
+      ? `<div class="sys-msg" style="margin-top:40px;opacity:0.35">
+           NO TRANSMISSIONS YET IN THIS ROOM<br>
+           <span style="font-size:8px;opacity:0.6">START THE CONVERSATION, OPERATIVE</span>
          </div>`
-      : msgs.map(m => renderMsg(m)).join('')
+      : room.msgs.map(m => renderMsg(m)).join('')
     }
   `;
   wrap.scrollTop = wrap.scrollHeight;
 }
 
 function renderMsg(m) {
-  const isMine = m.mine;
-  const isDir  = m.isDirector;
+  if(m.type === 'announce') {
+    return `<div class="director-announce">
+      <div class="da-label">📣 DIRECTORATE BROADCAST</div>
+      <div class="da-text">${m.text}</div>
+      <div class="da-time">${m.t}</div>
+    </div>`;
+  }
   const avatarContent = m.avatar
     ? `<img src="${m.avatar}" alt="${m.u}" onerror="this.outerHTML='${m.initials}'">`
     : m.initials;
-
-  const reactionsHtml = m.reactions && Object.keys(m.reactions).length > 0
-    ? `<div class="reactions">${
-        Object.entries(m.reactions).map(([emoji, count]) =>
-          `<span class="reaction-pill ${m.myReactions?.includes(emoji)?'reacted':''}"
-            onclick="toggleReaction('${m.id}','${emoji}')">${emoji} ${count}</span>`
-        ).join('')
-      }</div>` : '';
-
-  if (m.type === 'announce') {
-    return `<div class="director-announce" style="display:block">
-      <div class="da-label">📣 DIRECTORATE BROADCAST</div>
-      <div class="da-text">${m.text}</div>
-    </div>`;
-  }
-
-  return `<div class="msg ${isMine?'mine':''} ${isDir?'director-msg':''}"
-    onlongpress="showReactions('${m.id}')" ontouchstart="startLongPress('${m.id}')" ontouchend="cancelLongPress()">
-    <div class="msg-avatar ${isDir?'is-director':''} ${isMine?'is-mine':''}">${avatarContent}</div>
+  const reactHtml = m.reactions && Object.keys(m.reactions).length
+    ? `<div class="reactions">${Object.entries(m.reactions).map(([e,c])=>
+        `<span class="reaction-pill ${m.myReactions?.includes(e)?'reacted':''}"
+          onclick="toggleReaction('${m.id}','${e}')">${e} ${c}</span>`
+      ).join('')}</div>` : '';
+  const bubbleCls = m.isDirector ? 'director-bubble' : '';
+  const content   = m.type === 'image'
+    ? `<div class="bubble-img" onclick="openLightbox('${m.imageUrl}')"><img src="${m.imageUrl}" alt="img"></div>`
+    : `<div class="bubble ${bubbleCls}" style="position:relative">${m.text}
+        <div class="reaction-bar" id="rbar-${m.id}">
+          ${['❤️','🔥','🎵','💃','😂','👑','🙌','💯'].map(e=>
+            `<span class="react-emoji" onclick="addReaction('${m.id}','${e}')">${e}</span>`
+          ).join('')}
+        </div>
+       </div>`;
+  return `
+  <div class="msg ${m.mine?'mine':''} ${m.isDirector?'director-msg':''}"
+    ontouchstart="startLongPress('${m.id}')" ontouchend="cancelLongPress()"
+    oncontextmenu="showReactions('${m.id}');return false;">
+    <div class="msg-avatar ${m.isDirector?'is-director':''} ${m.mine?'is-mine':''}">${avatarContent}</div>
     <div class="msg-body">
-      <div class="msg-header">
-        ${!isMine ? `<span class="msg-name">${m.u}${isDir?' <span class="director-crown">👑</span>':''}</span>` : ''}
-        ${isMine ? `<span class="msg-name">${m.u}</span>` : ''}
-      </div>
-      ${m.type === 'image'
-        ? `<div class="bubble-img" onclick="openLightbox('${m.imageUrl}')"><img src="${m.imageUrl}" alt="image"></div>`
-        : `<div class="bubble ${isDir?'director-bubble':''}">${m.text}</div>`
-      }
+      <span class="msg-name">${m.u}${m.isDirector?' 👑':''}</span>
+      ${content}
       <div class="msg-footer">
         <span class="msg-time">${m.t}</span>
-        ${isMine ? '<span style="font-size:10px;color:rgba(255,255,255,0.2)">✓</span>' : ''}
+        ${m.mine ? `<span class="msg-tick ${m.read?'read':''}">✓${m.read?'✓':''}</span>` : ''}
       </div>
-      ${reactionsHtml}
-      <div class="reaction-bar" id="rbar-${m.id}">
-        ${['❤️','🔥','🎵','💃','😂','👑'].map(e =>
-          `<span class="react-emoji" onclick="addReaction('${m.id}','${e}')">${e}</span>`
-        ).join('')}
-      </div>
+      ${reactHtml}
     </div>
   </div>`;
 }
 
-// ── SEND MESSAGE ───────────────────────────────────────────
-function send() {
+// ── SEND ──────────────────────────────────────────────────
+async function send() {
   const input = document.getElementById('msgInput');
-  const text = input.value.trim();
-  if (!text && !pendingImage) return;
-
+  const text  = input.value.trim();
+  if(!text && !pendingImage) return;
   const now = new Date();
-  const t = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
-  const id = 'msg-' + (++messageIdCounter);
+  const t   = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  const id  = 'msg-' + (++msgIdCounter);
 
-  if (pendingImage) {
+  if(pendingImage) {
     rooms[currentRoom].msgs.push({
       id, u: myName, initials: myInitials, avatar: myAvatar,
-      type: 'image', imageUrl: pendingImage, t,
-      mine: true, isDirector, reactions: {}, myReactions: []
+      type:'image', imageUrl: pendingImage, t,
+      mine:true, isDirector, reactions:{}, myReactions:[]
     });
     clearImagePreview();
   }
-
-  if (text) {
+  if(text) {
+    // Optimistic UI — add immediately
     rooms[currentRoom].msgs.push({
       id, u: myName, initials: myInitials, avatar: myAvatar,
-      type: 'text', text: sanitize(text), t,
-      mine: true, isDirector, reactions: {}, myReactions: []
+      type:'text', text: esc(text), t,
+      mine:true, isDirector, reactions:{}, myReactions:[], read:false
     });
-    // Supabase: sb.from('messages').insert({room:currentRoom,content:text,user_id:currentUserId})
+    input.value = '';
+    input.style.height = '42px';
+    renderMsgs(currentRoom);
+
+    // Persist to Supabase
+    if(typeof sb !== 'undefined') {
+      const { data: { session } } = await sb.auth.getSession();
+      if(session) {
+        await sb.from('messages').insert({
+          room:    currentRoom,
+          content: text,
+          user_id: session.user.id
+        });
+        // Also log typing stopped
+        if(realtimeChannel) {
+          realtimeChannel.track({ user: myName, typing: false });
+        }
+      }
+    }
+  } else {
+    renderMsgs(currentRoom);
   }
-
-  input.value = '';
-  input.style.height = '42px';
-  renderMsgs(currentRoom);
 }
 
-function sanitize(str) {
-  return str.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── SWITCH ROOM ────────────────────────────────────────────
+// ── SWITCH ROOM ───────────────────────────────────────────
 function switchRoom(key, btn) {
-  if (rooms[key].restricted && !isDirector) {
+  if(rooms[key].restricted && !isDirector) {
     alert('⚠ VIP ROOM — DIRECTOR ACCESS ONLY');
     return;
   }
   currentRoom = key;
-  document.querySelectorAll('.room-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   const dot = btn.querySelector('.unread-dot');
-  if (dot) dot.remove();
+  if(dot) dot.remove();
   renderMsgs(key);
+  connectRealtime(key);
+  loadMessages(key);
 }
 
-// ── IMAGE ATTACH ───────────────────────────────────────────
+// ── IMAGE ATTACH ──────────────────────────────────────────
 function handleImageAttach(input) {
-  if (!input.files || !input.files[0]) return;
+  if(!input.files || !input.files[0]) return;
   const file = input.files[0];
-  if (file.size > 5 * 1024 * 1024) { alert('⚠ Image must be under 5MB.'); return; }
+  if(file.size > 5*1024*1024) { alert('⚠ Image must be under 5MB.'); return; }
   const reader = new FileReader();
   reader.onload = e => {
     pendingImage = e.target.result;
@@ -396,106 +478,90 @@ function handleImageAttach(input) {
   };
   reader.readAsDataURL(file);
 }
-
 function clearImagePreview() {
   pendingImage = null;
-  const strip = document.getElementById('previewStrip');
-  strip.innerHTML = '';
-  strip.classList.remove('show');
+  const s = document.getElementById('previewStrip');
+  s.innerHTML = ''; s.classList.remove('show');
   document.getElementById('imgUpload').value = '';
 }
 
-// ── REACTIONS ──────────────────────────────────────────────
+// ── REACTIONS ─────────────────────────────────────────────
 function showReactions(id) {
-  document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
-  const bar = document.getElementById('rbar-' + id);
-  if (bar) bar.classList.add('show');
+  document.querySelectorAll('.reaction-bar').forEach(b=>b.classList.remove('show'));
+  const bar = document.getElementById('rbar-'+id);
+  if(bar) bar.classList.add('show');
 }
-
 function addReaction(msgId, emoji) {
-  document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
+  document.querySelectorAll('.reaction-bar').forEach(b=>b.classList.remove('show'));
   toggleReaction(msgId, emoji);
 }
-
 function toggleReaction(msgId, emoji) {
-  for (const room of Object.values(rooms)) {
-    const msg = room.msgs.find(m => m.id === msgId);
-    if (!msg) continue;
-    if (!msg.reactions) msg.reactions = {};
-    if (!msg.myReactions) msg.myReactions = [];
-    if (msg.myReactions.includes(emoji)) {
-      msg.myReactions = msg.myReactions.filter(e => e !== emoji);
-      msg.reactions[emoji] = Math.max((msg.reactions[emoji] || 1) - 1, 0);
-      if (msg.reactions[emoji] === 0) delete msg.reactions[emoji];
+  for(const room of Object.values(rooms)) {
+    const msg = room.msgs.find(m=>m.id===msgId);
+    if(!msg) continue;
+    if(!msg.reactions) msg.reactions = {};
+    if(!msg.myReactions) msg.myReactions = [];
+    if(msg.myReactions.includes(emoji)) {
+      msg.myReactions = msg.myReactions.filter(e=>e!==emoji);
+      msg.reactions[emoji] = Math.max((msg.reactions[emoji]||1)-1, 0);
+      if(msg.reactions[emoji]===0) delete msg.reactions[emoji];
     } else {
       msg.myReactions.push(emoji);
-      msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
+      msg.reactions[emoji] = (msg.reactions[emoji]||0)+1;
     }
     break;
   }
   renderMsgs(currentRoom);
 }
-
-// Long press for mobile reactions
 let longPressTimer;
-function startLongPress(id) { longPressTimer = setTimeout(() => showReactions(id), 500); }
-function cancelLongPress() { clearTimeout(longPressTimer); }
+function startLongPress(id) { longPressTimer = setTimeout(()=>showReactions(id), 500); }
+function cancelLongPress()  { clearTimeout(longPressTimer); }
 
-// ── DIRECTOR CONTROLS ──────────────────────────────────────
-function dirAnnounce() {
-  const msg = prompt('📣 ENTER BROADCAST MESSAGE TO THIS ROOM:');
-  if (!msg || !msg.trim()) return;
-  const now = new Date();
-  const t = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+// ── TYPING ────────────────────────────────────────────────
+function handleTyping() {
+  if(realtimeChannel) realtimeChannel.track({ user: myName, typing: true });
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(()=>{
+    if(realtimeChannel) realtimeChannel.track({ user: myName, typing: false });
+  }, 2000);
+}
+
+// ── DIRECTOR CONTROLS ─────────────────────────────────────
+async function dirAnnounce() {
+  const msg = prompt('📣 ENTER BROADCAST TO THIS ROOM:');
+  if(!msg || !msg.trim()) return;
+  const t = new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
   rooms[currentRoom].msgs.push({
-    id: 'msg-' + (++messageIdCounter),
-    type: 'announce', text: sanitize(msg.trim()), t,
-    u: 'DIRECTORATE', initials: 'D', mine: false, isDirector: true
+    id:'msg-'+(++msgIdCounter), type:'announce',
+    text: esc(msg.trim()), t, u:'DIRECTORATE',
+    initials:'D', mine:false, isDirector:true
   });
   renderMsgs(currentRoom);
-  // Supabase: sb.from('messages').insert({room:currentRoom,content:msg,user_id:directorId,is_pinned:true})
+  if(typeof sb !== 'undefined') {
+    const {data:{session}} = await sb.auth.getSession();
+    if(session) await sb.from('messages').insert({room:currentRoom,content:'[BROADCAST] '+msg,user_id:session.user.id,is_pinned:true});
+  }
 }
-
 function dirPin() {
   const msgs = rooms[currentRoom].msgs;
-  if (msgs.length === 0) { alert('No messages to pin.'); return; }
-  const last = msgs[msgs.length - 1];
-  last.pinned = true;
-  alert('📌 Message pinned: "' + (last.text || 'image').substring(0, 40) + '"');
+  if(!msgs.length) { alert('No messages to pin.'); return; }
+  alert('📌 Message pinned: "' + (msgs[msgs.length-1].text||'image').substring(0,40) + '"');
 }
-
 function dirClear() {
-  if (!confirm('CLEAR ALL MESSAGES IN ' + rooms[currentRoom].name + '?\n\nThis cannot be undone.')) return;
+  if(!confirm('CLEAR ALL MESSAGES IN ' + rooms[currentRoom].name + '?\nCannot be undone.')) return;
   rooms[currentRoom].msgs = [];
   renderMsgs(currentRoom);
-  // Supabase: sb.from('messages').update({deleted:true}).eq('room',currentRoom)
+  if(typeof sb !== 'undefined') sb.from('messages').update({deleted:true}).eq('room',currentRoom);
 }
 
-// ── TYPING INDICATOR ───────────────────────────────────────
-function handleTyping() {
-  clearTimeout(typingTimer);
-  typingTimer = setTimeout(() => {}, 2000);
-  // Supabase Realtime presence: sb.channel('typing-'+currentRoom).send({type:'broadcast',event:'typing',payload:{user:myName}})
-}
-
-// ── LIGHTBOX ───────────────────────────────────────────────
-function openLightbox(src) {
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
-}
-function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
-
-// ── AUTO RESIZE ────────────────────────────────────────────
-function autoResize(el) {
-  el.style.height = '42px';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-// ── CLOSE REACTION BAR ON OUTSIDE CLICK ───────────────────
-document.addEventListener('click', e => {
-  if (!e.target.closest('.reaction-bar') && !e.target.closest('.msg')) {
-    document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
-  }
+// ── HELPERS ───────────────────────────────────────────────
+function esc(str){ return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function autoResize(el){ el.style.height='42px'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+function openLightbox(src){ document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox(){ document.getElementById('lightbox').classList.remove('open'); }
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.reaction-bar') && !e.target.closest('.msg'))
+    document.querySelectorAll('.reaction-bar').forEach(b=>b.classList.remove('show'));
 });
 
 init();
