@@ -325,7 +325,6 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
               onclick="document.getElementById('fileIn').click()"
               ondragover="event.preventDefault();this.classList.add('dragover')"
               ondragleave="this.classList.remove('dragover')"
-              ondragleave="this.classList.remove('dragover')"
               ondrop="handleDrop(event)">
               <div class="upload-icon">📁</div>
               <div class="upload-label" id="uploadLabel">CLICK OR DRAG FILES HERE<br><span style="font-size:8px;opacity:0.5">PHOTOS & VIDEOS — MAX 500MB</span></div>
@@ -465,7 +464,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
           </div>
         </div>
       </div>
-<div>
+      <div>
         <div class="panel" style="margin:0;">
           <div class="panel-head">
             <div class="panel-title">// VAULT CONTENTS</div>
@@ -602,7 +601,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
         </table>
       </div>
     </div>
-                                                                                                                               </div>
+  </div>
                                                                                                                                
   <div class="tab-section" id="tab-polls">
     <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;" class="dash-grid">
@@ -649,7 +648,7 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-    <div class="tab-section" id="tab-settings">
+  <div class="tab-section" id="tab-settings">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="dash-grid">
       <div class="panel">
         <div class="panel-head"><div class="panel-title">// APP SETTINGS</div></div>
@@ -678,7 +677,9 @@ body{background:var(--black);color:#fff;font-family:'Rajdhani',sans-serif;min-he
     </div>
   </div>
 
-</div><div class="modal" id="rankModal">
+</div>
+
+<div class="modal" id="rankModal">
   <div class="modal-box" style="max-width:360px;">
     <button class="modal-close" onclick="closeModal('rankModal')">✕</button>
     <div class="modal-title">// CHANGE OPERATIVE RANK</div>
@@ -715,22 +716,43 @@ async function init() {
   const c = client();
   if(c){
     try{
-      const {data:{session}} = await c.auth.getSession();
-      if(!session){ showDenied('NOT AUTHENTICATED<br>PLEASE LOG IN FIRST'); return; }
-      const email = session.user.email;
-      if(email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+      // SUPABASE V2 GET SESSION
+      const { data, error } = await c.auth.getSession();
+      
+      if(error || !data.session){ 
+        showDenied('NOT AUTHENTICATED<br>PLEASE LOG IN FIRST'); 
+        return; 
+      }
+      
+      const email = data.session.user.email;
+      // TRIM AND LOWERCASE TO PREVENT LOGIN FAILURES
+      if(email.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
         showDenied(`UNAUTHORISED<br><span style="color:rgba(255,59,59,0.5);font-size:9px">${email}</span><br><br>DIRECTORATE ACCESS: DIRECTOR ONLY`);
         return;
       }
-      currentUser = session.user;
+      
+      currentUser = data.session.user;
       document.getElementById('loadingSub').textContent = 'LOADING COMMAND CENTRE...';
+      
+      // LOAD SYSTEM STATE
+      const { data: system } = await c.from('system_settings').select('*');
+      if(system) {
+        system.forEach(s => {
+          if(s.key === 'lockdown' && s.value === 'true') syncLockdownUI(true);
+          if(s.key === 'maintenance' && s.value === 'true') syncMaintenanceUI(true);
+        });
+      }
+
       await loadAllData();
       showMain();
-    } catch(e){ showDenied('CONNECTION ERROR<br>UNABLE TO VERIFY CREDENTIALS'); }
+    } catch(e){ 
+      console.error(e);
+      showDenied('CONNECTION ERROR<br>UNABLE TO VERIFY CREDENTIALS'); 
+    }
   } else {
-    // Offline / no Supabase — check session email
+    // OFFLINE FALLBACK
     const email = sessionStorage.getItem('mogEmail') || '';
-    if(email && email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
+    if(email && email.trim().toLowerCase() !== ADMIN_EMAIL.toLowerCase()){
       showDenied('UNAUTHORISED<br>DIRECTOR ACCESS ONLY');
       return;
     }
@@ -742,39 +764,38 @@ async function init() {
 function client(){ return typeof sb !== 'undefined' ? sb : null; }
 
 function showMain(){
-  document.getElementById('loadingScreen').classList.remove('active');
+  const ls = document.getElementById('loadingScreen');
+  if(ls) ls.classList.remove('active');
   document.getElementById('mainScreen').classList.add('active');
 }
+
 function showDenied(msg){
-  document.getElementById('loadingScreen').classList.remove('active');
+  const ls = document.getElementById('loadingScreen');
+  if(ls) ls.classList.remove('active');
   document.getElementById('deniedMsg').innerHTML = msg;
   document.getElementById('deniedScreen').classList.add('active');
 }
 
-  // ── TABS ─────────────────────────────────────────────────
+// ── TABS ─────────────────────────────────────────────────
 function showTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>{
-    b.classList.toggle('active', b.textContent.toLowerCase().includes(
-      name==='upload'?'upload':
-      name==='overview'?'overview':
-      name==='broadcast'?'broadcast':
-      name==='tickets'?'ticket':
-      name==='memberships'?'membership':
-      name==='operatives'?'operative':
-      name==='polls'?'poll':
-      name==='logs'?'log':
-      name==='settings'?'setting':name
-    ));
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(name));
   });
   document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
   const sec = document.getElementById('tab-'+name);
   if(sec) sec.classList.add('active');
-  if(name==='logs') loadLogs();
-  if(name==='tickets') loadTickets();
-  if(name==='memberships') loadMemberships();
-  if(name==='operatives') loadOperatives();
-  if(name==='polls') loadPollResults();
-  if(name==='upload') loadMedia();
+  
+  // Refresh data on tab switch
+  const loadMap = {
+    'logs': loadLogs,
+    'tickets': loadTickets,
+    'memberships': loadMemberships,
+    'operatives': loadOperatives,
+    'polls': loadPollResults,
+    'upload': loadMedia,
+    'overview': loadStats
+  };
+  if(loadMap[name]) loadMap[name]();
 }
 
 // ── UPLOAD TYPE SWITCHER ──────────────────────────────────
@@ -787,12 +808,7 @@ function switchUploadType(type, btn){
   if(type==='poll') loadInlinePollResults();
 }
 
-// Character count for announcement
-document.getElementById('alertMsg')?.addEventListener('input', function(){
-  document.getElementById('alertCharCount').textContent = this.value.length + ' / 500';
-});
-
-// ── DATA LOADING ─────────────────────────────────────────
+  // ── DATA LOADING ─────────────────────────────────────────
 async function loadAllData(){
   await Promise.all([loadStats(), loadLogs(), loadEvents(), loadMedia()]);
 }
@@ -810,10 +826,12 @@ async function loadStats(){
     const feeRev    = paid.reduce((s,t)=>s+t.booking_fee,0);
     const memberRev = (memberships||[]).reduce((s,m)=>s+m.amount_rands,0);
     const total = ticketRev + memberRev;
+    
     setEl('statRevenue','R'+total.toLocaleString());
     setEl('statOperatives',opCount||0);
     setEl('statTickets',paid.length);
     setEl('statMembers',(memberships||[]).length);
+    
     const maxRev = Math.max(ticketRev,memberRev,feeRev,1);
     setWidth('revBarTickets',ticketRev/maxRev*100);
     setWidth('revBarMembers',memberRev/maxRev*100);
@@ -821,10 +839,12 @@ async function loadStats(){
     setEl('revTicketAmt','R'+ticketRev.toLocaleString());
     setEl('revMemberAmt','R'+memberRev.toLocaleString());
     setEl('revFeeAmt','R'+feeRev.toLocaleString());
+    
     const plans={OPERATIVE:0,AGENT:0,DIRECTOR:0};
     (memberships||[]).forEach(m=>{if(plans[m.plan]!==undefined)plans[m.plan]++;});
     setEl('mMRR','R'+((plans.OPERATIVE*99)+(plans.AGENT*199)+(plans.DIRECTOR*499)).toLocaleString());
     setEl('mCountOp',plans.OPERATIVE);setEl('mCountAgent',plans.AGENT);setEl('mCountDir',plans.DIRECTOR);
+    
     const maxP=Math.max(...Object.values(plans),1);
     setEl('memberSplit',Object.entries(plans).map(([k,v])=>`<div class="rev-item"><div class="rev-label">${k}</div><div class="rev-bar-wrap"><div class="rev-bar rev-gold" style="width:${Math.round(v/maxP*100)}%"></div></div><div class="rev-amount">${v}</div></div>`).join(''));
   }catch(e){ loadEmptyStats(); }
@@ -832,11 +852,11 @@ async function loadStats(){
 
 async function loadLogs(){
   const c = client();
-  if(!c){ setEl('allLogs','<div class="empty-state">CONNECT SUPABASE TO VIEW LOGS</div>'); setEl('overviewLogs','<div class="empty-state">NO LOGS</div>'); setEl('broadcastLogs','<div class="empty-state">NO LOGS</div>'); return; }
+  if(!c){ setEl('allLogs','<div class="empty-state">CONNECT SUPABASE</div>'); return; }
   const {data} = await c.from('activity_log').select('*').order('created_at',{ascending:false}).limit(50);
-  const html = (data||[]).map(l=>logItem(l)).join('') || '<div class="empty-state">NO ACTIVITY YET</div>';
+  const html = (data||[]).map(l=>logItem(l)).join('') || '<div class="empty-state">NO ACTIVITY</div>';
   setEl('allLogs',html);
-  setEl('overviewLogs',(data||[]).slice(0,8).map(l=>logItem(l)).join('')||'<div class="empty-state">NO ACTIVITY YET</div>');
+  setEl('overviewLogs',(data||[]).slice(0,8).map(l=>logItem(l)).join('')||'<div class="empty-state">NO ACTIVITY</div>');
   setEl('broadcastLogs',(data||[]).filter(l=>['alert','lockdown'].includes(l.action_type)).slice(0,10).map(l=>logItem(l)).join('')||'<div class="empty-state">NO BROADCAST LOGS</div>');
 }
 
@@ -846,7 +866,7 @@ function logItem(l){
 }
 
 async function loadEvents(){
-  const c = client(); if(!c){ setEl('eventsTable','<tr><td colspan="5" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const c = client(); if(!c){ return; }
   const {data} = await c.from('events').select('*').order('event_date',{ascending:true});
   setEl('eventsTable',(data||[]).map(e=>`<tr>
     <td><strong>${escHtml(e.title)}</strong></td>
@@ -854,11 +874,11 @@ async function loadEvents(){
     <td><span class="panel-badge pb-${e.status==='live'?'red':e.status==='upcoming'?'teal':'green'}">${e.status.toUpperCase()}</span></td>
     <td style="font-family:'Orbitron',monospace;font-size:11px;color:var(--gold)">—</td>
     <td><button class="btn btn-sm btn-danger" onclick="cancelEvent('${e.id}')">CANCEL</button></td>
-  </tr>`).join('')||'<tr><td colspan="5" class="empty-state">NO EVENTS YET — CREATE ONE IN UPLOAD CENTRE</td></tr>');
+  </tr>`).join('')||'<tr><td colspan="5" class="empty-state">NO EVENTS YET</td></tr>');
 }
 
 async function loadMedia(){
-  const c = client(); if(!c){ setEl('mediaList','<div class="empty-state">CONNECT SUPABASE</div>'); setEl('mediaCount','0 FILES'); return; }
+  const c = client(); if(!c){ return; }
   const {data,count} = await c.from('media').select('*',{count:'exact'}).order('created_at',{ascending:false});
   setEl('mediaCount',(count||0)+' FILES');
   setEl('mediaList',(data||[]).slice(0,20).map(m=>`
@@ -866,14 +886,14 @@ async function loadMedia(){
       <div style="font-size:18px">${m.type==='video'?'🎬':'📸'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:700;color:#e0e0e0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(m.title)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3)">${m.session} · ♥ ${m.likes_count||0} · ${m.is_premium?'🔒 PAID':'🔓 FREE'}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3)">${m.session} · ${m.is_premium?'🔒 PAID':'🔓 FREE'}</div>
       </div>
       <button class="btn btn-sm btn-danger" onclick="deleteMedia('${m.id}')">✕</button>
     </div>`).join('')||'<div class="empty-state">VAULT EMPTY</div>');
 }
 
 async function loadTickets(){
-  const c = client(); if(!c){ setEl('ticketsTable','<tr><td colspan="9" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const c = client(); if(!c){ return; }
   const {data} = await c.from('tickets').select('*').order('created_at',{ascending:false}).limit(100);
   setEl('ticketsTable',(data||[]).map(t=>`<tr>
     <td style="font-family:'Orbitron',monospace;font-size:10px;color:var(--teal)">${t.ticket_code}</td>
@@ -885,11 +905,11 @@ async function loadTickets(){
     <td><span class="status-${t.payment_status}">${t.payment_status.toUpperCase()}</span></td>
     <td><span style="color:${t.checked_in?'var(--green)':'rgba(255,255,255,0.3)'}">${t.checked_in?'✓ IN':'—'}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(t.created_at).toLocaleDateString('en-ZA')}</td>
-  </tr>`).join('')||'<tr><td colspan="9" class="empty-state">NO TICKETS YET</td></tr>');
+  </tr>`).join('')||'<tr><td colspan="9" class="empty-state">NO TICKETS</td></tr>');
 }
 
 async function loadMemberships(){
-  const c = client(); if(!c){ setEl('membersTable','<tr><td colspan="8" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const c = client(); if(!c){ return; }
   const {data} = await c.from('memberships').select('*,profiles(username,email)').order('created_at',{ascending:false});
   setEl('membersTable',(data||[]).map(m=>`<tr>
     <td style="font-weight:700">${escHtml(m.profiles?.username||'—')}</td>
@@ -900,11 +920,11 @@ async function loadMemberships(){
     <td><span class="status-${m.status}">${m.status.toUpperCase()}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(m.starts_at).toLocaleDateString('en-ZA')}</td>
     <td><button class="btn btn-sm btn-danger" onclick="cancelMembership('${m.id}')">CANCEL</button></td>
-  </tr>`).join('')||'<tr><td colspan="8" class="empty-state">NO MEMBERSHIPS YET</td></tr>');
+  </tr>`).join('')||'<tr><td colspan="8" class="empty-state">NO MEMBERSHIPS</td></tr>');
 }
 
 async function loadOperatives(){
-  const c = client(); if(!c){ setEl('operativesTable','<tr><td colspan="6" class="empty-state">CONNECT SUPABASE</td></tr>'); return; }
+  const c = client(); if(!c){ return; }
   const {data} = await c.from('profiles').select('*').order('created_at',{ascending:false});
   setEl('operativesTable',(data||[]).map(p=>`<tr>
     <td><div style="width:32px;height:32px;border-radius:50%;background:var(--navy);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold)">${p.username.substring(0,2).toUpperCase()}</div></td>
@@ -913,14 +933,14 @@ async function loadOperatives(){
     <td><span class="rank-tag rank-${p.rank.toLowerCase()}">${p.rank}</span></td>
     <td style="font-family:'Share Tech Mono',monospace;font-size:9px">${new Date(p.created_at).toLocaleDateString('en-ZA')}</td>
     <td style="display:flex;gap:6px;">
-      <button class="btn btn-sm btn-teal" onclick="MOGApp.establishUplink('${p.id}')">UPLINK</button>
       <button class="btn btn-sm" onclick="openRankChange('${p.id}','${escHtml(p.username)}','${p.rank}')">RANK</button>
       ${p.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-danger" onclick="banUser('${p.id}')">BAN</button>`:''}
     </td>
-  </tr>`).join('')||'<tr><td colspan="6" class="empty-state">NO OPERATIVES YET</td></tr>');
-                                                              }
-  async function loadPollResults(){
-  const c = client(); if(!c){ setEl('pollResults','<div class="empty-state">CONNECT SUPABASE</div>'); loadInlinePollResults(); return; }
+  </tr>`).join('')||'<tr><td colspan="6" class="empty-state">NO OPERATIVES</td></tr>');
+}
+
+async function loadPollResults(){
+  const c = client(); if(!c){ return; }
   const {data} = await c.from('poll_songs').select('*').order('votes_count',{ascending:false});
   const max = Math.max(...(data||[]).map(s=>s.votes_count),1);
   const html = (data||[]).map((s,i)=>`
@@ -928,321 +948,197 @@ async function loadOperatives(){
       <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:${i<3?'var(--gold)':'var(--gold-dim)'};width:28px">${i+1}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.title)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim)">${escHtml(s.artist)}${s.label?` · <span style="color:rgba(255,255,255,0.2)">${escHtml(s.label)}</span>`:''}</div>
-        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(s.votes_count/max*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;"></div></div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim)">${escHtml(s.artist)}</div>
+        <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${Math.round(s.votes_count/max*100)}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));"></div></div>
       </div>
       <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold)">${s.votes_count}</div>
       <button class="btn btn-sm btn-danger" onclick="removeSong('${s.id}')">✕</button>
-    </div>`).join('') || '<div class="empty-state">NO SONGS IN POLL</div>';
+    </div>`).join('') || '<div class="empty-state">NO SONGS</div>';
   setEl('pollResults',html);
   setEl('inlinePollResults',html);
 }
 
-async function loadInlinePollResults(){ await loadPollResults(); }
 // ── ACTIONS ──────────────────────────────────────────────
-
-// ── MEDIA UPLOAD ─────────────────────────────────────────
 async function uploadAsset(){
   const title  = document.getElementById('sessTitle')?.value.trim();
   const tag    = document.getElementById('sessTag')?.value;
   const type   = document.getElementById('mediaType')?.value;
   const access = document.getElementById('mediaAccess')?.value;
-  const file   = document.getElementById('fileIn')?.files[0];
+  const fileIn = document.getElementById('fileIn');
   const rights = document.getElementById('mediaRightsConfirm')?.checked;
-  if(!title){ alert('⚠ Enter a media title.'); return; }
-  if(!tag){ alert('⚠ Select a session tag.'); return; }
-  if(!file){ alert('⚠ Select a file to upload.'); return; }
-  if(!rights){ alert('⚠ Please confirm you own rights to this content before uploading.'); return; }
+  
+  if(!title || !tag || !fileIn.files[0] || !rights){ 
+    alert('⚠ Missing required fields or rights confirmation.'); 
+    return; 
+  }
+  
+  const file = fileIn.files[0];
   const c = client();
+  
   if(c){
     const prog = document.getElementById('uploadProgress');
     const fill = document.getElementById('uploadFill');
     prog.classList.add('show');
-    let p=0; const iv=setInterval(()=>{p+=8;fill.style.width=Math.min(p,90)+'%';if(p>=90)clearInterval(iv);},150);
-    const path = tag+'/'+Date.now()+'_'+file.name;
-    const {error} = await c.storage.from('media').upload(path,file);
-    clearInterval(iv); fill.style.width='100%';
+    fill.style.width = '10%';
+    
+    const path = tag + '/' + Date.now() + '_' + file.name;
+    const { error } = await c.storage.from('media').upload(path, file);
+    
     if(!error){
-      const {data:{publicUrl}} = c.storage.from('media').getPublicUrl(path);
-      await c.from('media').insert({title,session:tag,file_path:path,file_url:publicUrl,type,is_premium:access==='premium',uploaded_by:currentUser?.id});
-      await log('🎬 VAULT UPLOAD: '+title+' ('+tag.toUpperCase()+')', 'upload');
-      alert('✅ DEPLOYED TO VAULT: '+title);
-      document.getElementById('sessTitle').value='';
-      document.getElementById('sessTag').value='';
-      document.getElementById('fileIn').value='';
-      document.getElementById('uploadLabel').textContent='CLICK OR DRAG FILES HERE';
-      document.getElementById('uploadLabel').classList.remove('ready');
-      document.getElementById('mediaRightsConfirm').checked=false;
-      setTimeout(()=>prog.classList.remove('show'),1000);
+      const { data: { publicUrl } } = c.storage.from('media').getPublicUrl(path);
+      await c.from('media').insert({
+        title, session: tag, file_path: path, file_url: publicUrl, 
+        type, is_premium: access === 'premium', uploaded_by: currentUser?.id
+      });
+      await log('🎬 VAULT UPLOAD: ' + title, 'upload');
+      alert('✅ DEPLOYED: ' + title);
+      fileIn.value = '';
+      document.getElementById('sessTitle').value = '';
       loadMedia();
-    } else { alert('❌ Upload failed: '+error.message); }
-  } else {
-    await log('🎬 MOCK UPLOAD: '+title,'upload');
-    alert('✅ MOCK UPLOAD: '+title+'\n\nConnect Supabase to enable real uploads.');
+    } else { alert('❌ Upload failed: ' + error.message); }
+    
+    fill.style.width = '100%';
+    setTimeout(() => prog.classList.remove('show'), 1000);
   }
 }
 
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('uploadZone').classList.remove('dragover');
-  const files = e.dataTransfer.files;
-  if(files.length){ document.getElementById('fileIn').files=files; filesChosen({files}); }
-}
-function filesChosen(input){
-  if(input.files&&input.files[0]){
-    const n=input.files[0].name;
-    const lbl=document.getElementById('uploadLabel');
-    lbl.innerHTML='✓ '+(n.length>22?n.substring(0,22)+'…':n)+(input.files.length>1?' + '+(input.files.length-1)+' more':'');
-    lbl.classList.add('ready');
-  }
-}
-async function deleteMedia(id){
-  if(!confirm('DELETE THIS MEDIA FILE? Cannot be undone.')) return;
-  const c=client(); if(c) await c.from('media').delete().eq('id',id);
-  await log('🗑️ MEDIA DELETED: '+id,'upload');
-  loadMedia();
-}
-
-// ── EVENT CREATION ────────────────────────────────────────
-async function createEvent(){
-  const title=document.getElementById('evTitle')?.value.trim();
-  const date=document.getElementById('evDate')?.value;
-  if(!title||!date){alert('⚠ Enter event title and date.');return;}
-  const c=client();
-  if(c){
-    const {data:ev}=await c.from('events').insert({
-      title,description:document.getElementById('evDesc')?.value,
-      event_date:date,doors_open:document.getElementById('evDoors')?.value||'18:00',
-      location:document.getElementById('evLocation')?.value||'LOCATION CLASSIFIED',
-      location_revealed:document.getElementById('evLocationFull')?.value,
-      created_by:currentUser?.id
-    }).select().single();
-    if(ev){
-      const tiers=[];
-      const vP=parseInt(document.getElementById('evVIPPrice')?.value)||0;
-      const vQ=parseInt(document.getElementById('evVIPQty')?.value)||0;
-      const gP=parseInt(document.getElementById('evGenPrice')?.value)||0;
-      const gQ=parseInt(document.getElementById('evGenQty')?.value)||0;
-      if(vP&&vQ) tiers.push({event_id:ev.id,name:'VIP OPERATIVE',price_rands:vP,total_qty:vQ,tier_type:'vip',perks:'Priority entry · Front section · Complimentary drink'});
-      if(gP&&gQ) tiers.push({event_id:ev.id,name:'GENERAL OPERATIVE',price_rands:gP,total_qty:gQ,tier_type:'general',perks:'Standard entry · General floor access'});
-      if(tiers.length) await c.from('ticket_tiers').insert(tiers);
-    }
-    await log('🎉 NEW EVENT CREATED: '+title,'info');
-    alert('✅ EVENT CREATED: '+title);
-    document.getElementById('evTitle').value='';
-    loadEvents();
-  } else {
-    alert('✅ MOCK EVENT CREATED: '+title+'\n\nConnect Supabase to save events.');
-  }
-}
-async function cancelEvent(id){
-  if(!confirm('CANCEL THIS EVENT?')) return;
-  const c=client(); if(c) await c.from('events').update({status:'cancelled'}).eq('id',id);
-  await log('❌ EVENT CANCELLED','info'); loadEvents();
-}
-
-// ── POLL MANAGEMENT ───────────────────────────────────────
-async function addSong(){
-  const title  = document.getElementById('songTitle')?.value.trim();
-  const artist = document.getElementById('songArtist')?.value.trim();
-  const label  = document.getElementById('songLabel')?.value.trim();
-  const week   = parseInt(document.getElementById('songWeek')?.value)||14;
-  const year   = parseInt(document.getElementById('songYear')?.value)||2026;
-  const conf   = document.getElementById('copyrightConfirm')?.checked;
-  if(!title||!artist){alert('⚠ Enter song title and artist name.');return;}
-  if(!conf){alert('⚠ Please tick the copyright confirmation checkbox before adding a song.');return;}
-  await insertSong(title,artist,label,week,year);
-  document.getElementById('songTitle').value='';
-  document.getElementById('songArtist').value='';
-  document.getElementById('songLabel').value='';
-  document.getElementById('copyrightConfirm').checked=false;
-  loadInlinePollResults();
-}
-async function quickAddSong(){
-  const title  = document.getElementById('pollSongTitle')?.value.trim();
-  const artist = document.getElementById('pollSongArtist')?.value.trim();
-  const label  = document.getElementById('pollSongLabel')?.value.trim();
-  const conf   = document.getElementById('pollCopyrightConfirm')?.checked;
-  if(!title||!artist){alert('⚠ Enter song title and artist.');return;}
-  if(!conf){alert('⚠ Please confirm copyright before adding.');return;}
-  const week=parseInt(document.getElementById('setPollWeek')?.value)||14;
-  await insertSong(title,artist,label,week,2026);
-  document.getElementById('pollSongTitle').value='';
-  document.getElementById('pollSongArtist').value='';
-  document.getElementById('pollSongLabel').value='';
-  document.getElementById('pollCopyrightConfirm').checked=false;
-  loadPollResults();
-}
-async function insertSong(title,artist,label,week,year){
-  const c=client();
-  if(c) await c.from('poll_songs').insert({title,artist,label:label||null,week_number:week,year});
-  await log('🎵 SONG ADDED TO POLL: '+title+' — '+artist+' [VOTING ONLY]','info');
-  alert('✅ SONG ADDED: '+title+' — '+artist);
-}
-async function removeSong(id){
-  if(!confirm('REMOVE THIS SONG FROM THE POLL?')) return;
-  const c=client(); if(c) await c.from('poll_songs').delete().eq('id',id);
-  await log('🗑️ SONG REMOVED FROM POLL','info'); loadPollResults();
-}
-async function resetPoll(){
-  if(!confirm('RESET ALL VOTES?\n\nThis cannot be undone.')) return;
-  const c=client();
-  if(c){ await c.from('poll_votes').delete().neq('id','00000000-0000-0000-0000-000000000000'); await c.from('poll_songs').update({votes_count:0}).neq('id','00000000-0000-0000-0000-000000000000'); }
-  await log('🗳️ POLL RESET — ALL VOTES CLEARED','info'); alert('✅ POLL RESET.'); loadPollResults();
-}
-async function closePoll(){
-  if(!confirm('CLOSE THE CURRENT POLL?')) return;
-  const c=client(); if(c) await c.from('system_settings').upsert({key:'poll_open',value:'false'});
-  await log('🔒 POLL CLOSED','info'); alert('✅ POLL CLOSED.');
-}
-async function openNewPoll(){
-  const week=prompt('ENTER NEW POLL WEEK NUMBER:'); if(!week) return;
-  const c=client();
-  if(c){ await c.from('system_settings').upsert([{key:'poll_week',value:week},{key:'poll_open',value:'true'}]); }
-  await log('🆕 NEW POLL OPENED — WEEK '+week,'info'); alert('✅ NEW POLL STARTED FOR WEEK '+week);
-    }
-
-  // ── BROADCAST ─────────────────────────────────────────────
 async function toggleLive(){
-  isLive=!isLive;
-  const btn=document.getElementById('liveBtn');
-  const overlay=document.getElementById('liveOverlay');
-  const status=document.getElementById('broadcastStatus');
-  btn.textContent=isLive?'⏹ END BROADCAST':'📡 GO LIVE';
-  btn.classList.toggle('on',isLive);
-  overlay.classList.toggle('show',isLive);
-  status.textContent=isLive?'● BROADCASTING LIVE':'● STANDBY';
-  status.style.color=isLive?'var(--red)':'var(--teal)';
-  await log(isLive?'📡 LIVE BROADCAST STARTED':'⏹ BROADCAST ENDED','alert');
-  if(isLive) setInterval(()=>{setEl('viewerCount',Math.floor(Math.random()*50+20)+' OPERATIVES WATCHING');},5000);
+  isLive = !isLive;
+  const btn = document.getElementById('liveBtn');
+  const overlay = document.getElementById('liveOverlay');
+  const status = document.getElementById('broadcastStatus');
+  
+  btn.textContent = isLive ? '⏹ END BROADCAST' : '📡 GO LIVE';
+  btn.classList.toggle('on', isLive);
+  overlay.classList.toggle('show', isLive);
+  status.textContent = isLive ? '● BROADCASTING LIVE' : '● STANDBY';
+  status.style.color = isLive ? 'var(--red)' : 'var(--teal)';
+  
+  await log(isLive ? '📡 LIVE BROADCAST STARTED' : '⏹ BROADCAST ENDED', 'alert');
 }
+
 async function toggleLockdown(){
-  isLockdown=!isLockdown;
-  if(!confirm(isLockdown?'⚠ ACTIVATE LOCKDOWN?':'DISENGAGE LOCKDOWN?')){isLockdown=!isLockdown;return;}
-  document.getElementById('lockdownBtn').classList.toggle('on',isLockdown);
-  document.getElementById('lockdownBtn').textContent=isLockdown?'⚡ DISENGAGE LOCKDOWN':'⚡ PROTOCOL ZERO';
-  const c=client(); if(c) await c.from('system_settings').upsert({key:'lockdown',value:String(isLockdown)});
-  await log(isLockdown?'!!! PROTOCOL ZERO ENGAGED !!!':'Protocol Zero DISENGAGED','lockdown');
+  const targetState = !isLockdown;
+  if(!confirm(targetState ? '⚠ ACTIVATE LOCKDOWN?' : 'DISENGAGE LOCKDOWN?')) return;
+  
+  isLockdown = targetState;
+  syncLockdownUI(isLockdown);
+
+  const c = client(); 
+  if(c) await c.from('system_settings').upsert({key: 'lockdown', value: String(isLockdown)});
+  await log(isLockdown ? '!!! PROTOCOL ZERO ENGAGED !!!' : 'Protocol Zero DISENGAGED', 'lockdown');
 }
+
+function syncLockdownUI(state) {
+  isLockdown = state;
+  const btns = [document.getElementById('lockdownBtn'), document.getElementById('lockdownBtnSettings')];
+  btns.forEach(b => {
+    if(b) {
+      b.classList.toggle('on', state);
+      b.textContent = state ? '⚡ DISENGAGE LOCKDOWN' : '⚡ PROTOCOL ZERO LOCKDOWN';
+    }
+  });
+}
+
 async function toggleMaintenance(){
-  isMaintenance=!isMaintenance;
-  document.getElementById('maintenanceBtn').textContent=isMaintenance?'⚙️ DISABLE MAINTENANCE':'⚙️ ENABLE MAINTENANCE';
-  document.getElementById('maintenanceBtn').classList.toggle('on',isMaintenance);
-  const c=client(); if(c) await c.from('system_settings').upsert({key:'maintenance',value:String(isMaintenance)});
-  await log(isMaintenance?'⚙️ MAINTENANCE MODE ENABLED':'⚙️ MAINTENANCE MODE DISABLED','info');
-}
-function globalAlert(){
-  const msg=prompt('ENTER BROADCAST MESSAGE TO ALL OPERATIVES:');
-  if(!msg||!msg.trim()) return;
-  sendAlert(msg.trim(),'urgent');
-}
-async function sendAlert(customMsg,customType){
-  const msg=customMsg||document.getElementById('alertMsg')?.value.trim();
-  const type=customType||document.getElementById('alertType')?.value||'info';
-  if(!msg){alert('⚠ Enter a message.');return;}
-  const c=client(); if(c) await c.from('activity_log').insert({description:'📡 ALERT ['+type.toUpperCase()+']: '+msg,action_type:'alert',user_id:currentUser?.id});
-  await log('📡 GLOBAL ALERT SENT: '+msg.substring(0,60),'alert');
-  alert('✅ BROADCAST TRANSMITTED TO ALL OPERATIVES.');
-  if(document.getElementById('alertMsg')) document.getElementById('alertMsg').value='';
-}
-async function scheduleBroadcast(){
-  const dt=prompt('ENTER BROADCAST DATE & TIME (e.g. 2026-04-19 18:00):'); if(!dt) return;
-  await log('📅 BROADCAST SCHEDULED: '+dt,'info'); alert('✅ BROADCAST SCHEDULED FOR: '+dt);
+  const targetState = !isMaintenance;
+  isMaintenance = targetState;
+  syncMaintenanceUI(isMaintenance);
+  
+  const c = client(); 
+  if(c) await c.from('system_settings').upsert({key: 'maintenance', value: String(isMaintenance)});
+  await log(isMaintenance ? '⚙️ MAINTENANCE ENABLED' : '⚙️ MAINTENANCE DISABLED', 'info');
 }
 
-// ── OPERATIVES ────────────────────────────────────────────
-function openRankChange(id,name,rank){
-  rankChangeTarget={id,name};
-  document.getElementById('rankModalUser').textContent='OPERATIVE: '+name;
-  document.getElementById('newRankSelect').value=rank;
-  openModal('rankModal');
-}
-async function confirmRankChange(){
-  if(!rankChangeTarget) return;
-  const newRank=document.getElementById('newRankSelect').value;
-  const c=client(); if(c) await c.from('profiles').update({rank:newRank}).eq('id',rankChangeTarget.id);
-  await log('👤 RANK CHANGED: '+rankChangeTarget.name+' → '+newRank,'membership');
-  alert('✅ RANK UPDATED: '+rankChangeTarget.name+' → '+newRank);
-  closeModal('rankModal'); loadOperatives();
-}
-async function banUser(id){
-  if(!confirm('BAN THIS OPERATIVE?')) return;
-  const c=client(); if(c) await c.from('profiles').update({rank:'RECRUIT'}).eq('id',id);
-  await log('⛔ OPERATIVE BANNED: '+id,'alert'); alert('✅ OPERATIVE BANNED.'); loadOperatives();
-}
-
-// ── MEMBERSHIPS ───────────────────────────────────────────
-async function cancelMembership(id){
-  if(!confirm('CANCEL THIS MEMBERSHIP?')) return;
-  const c=client(); if(c) await c.from('memberships').update({status:'cancelled',cancelled_at:new Date().toISOString()}).eq('id',id);
-  await log('❌ MEMBERSHIP CANCELLED','membership'); loadMemberships();
-}
-
-// ── TICKET CHECK-IN ───────────────────────────────────────
-async function checkInTicket(){
-  const code=document.getElementById('checkinCode').value.trim();
-  if(!code){alert('⚠ Enter a ticket code.');return;}
-  const el=document.getElementById('checkinResult');
-  el.className='checkin-result show';
-  const c=client();
-  if(c){
-    const {data}=await c.from('tickets').select('*').eq('ticket_code',code).single();
-    if(!data){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">❌ INVALID TICKET</div><div class="checkin-detail">No ticket found: '+code+'</div>';return;}
-    if(data.payment_status!=='paid'){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">⚠ PAYMENT PENDING</div><div class="checkin-detail">Ticket not paid yet.</div>';return;}
-    if(data.checked_in){el.classList.add('checkin-invalid');el.innerHTML='<div class="ci-title">⚠ ALREADY CHECKED IN</div><div class="checkin-detail">'+data.buyer_name+' already checked in at '+new Date(data.checked_in_at).toLocaleTimeString('en-ZA')+'</div>';return;}
-    await c.from('tickets').update({checked_in:true,checked_in_at:new Date().toISOString()}).eq('id',data.id);
-    el.classList.add('checkin-valid');
-    el.innerHTML='<div class="cv-title">✅ ACCESS GRANTED</div><div class="checkin-detail">NAME: '+data.buyer_name+'<br>EMAIL: '+data.buyer_email+'<br>QTY: '+data.quantity+' TICKET(S)<br>CODE: '+data.ticket_code+'</div>';
-    await log('✅ CHECK-IN: '+data.buyer_name+' ('+code+')','ticket');
-  } else {
-    el.classList.add('checkin-valid');
-    el.innerHTML='<div class="cv-title">✅ DEMO: ACCESS GRANTED</div><div class="checkin-detail">Connect Supabase for real check-in.</div>';
+function syncMaintenanceUI(state) {
+  isMaintenance = state;
+  const btn = document.getElementById('maintenanceBtn');
+  if(btn) {
+    btn.textContent = state ? '⚙️ DISABLE MAINTENANCE' : '⚙️ ENABLE MAINTENANCE';
+    btn.classList.toggle('on', state);
   }
 }
 
-// ── SETTINGS ──────────────────────────────────────────────
-async function saveSettings(){
-  const c=client();
-  const settings=[{key:'app_version',value:document.getElementById('setVersion').value},{key:'ticket_booking_fee_pct',value:document.getElementById('setBookingFee').value},{key:'poll_week',value:document.getElementById('setPollWeek').value}];
-  if(c) for(const s of settings) await c.from('system_settings').upsert(s);
-  await log('⚙️ SETTINGS UPDATED BY DIRECTOR','info'); alert('✅ SETTINGS SAVED.');
+// ── TICKETS ──────────────────────────────────────────────
+async function checkInTicket(){
+  const code = document.getElementById('checkinCode').value.trim();
+  if(!code) return;
+  const el = document.getElementById('checkinResult');
+  el.className = 'checkin-result show';
+  
+  const c = client();
+  if(c){
+    const { data, error } = await c.from('tickets').select('*').eq('ticket_code', code).single();
+    if(error || !data){
+      el.innerHTML = '<div class="ci-title">❌ INVALID TICKET</div>';
+      el.className = 'checkin-result show checkin-invalid';
+      return;
+    }
+    if(data.payment_status !== 'paid'){
+      el.innerHTML = '<div class="ci-title">⚠ UNPAID</div>';
+      el.className = 'checkin-result show checkin-invalid';
+      return;
+    }
+    if(data.checked_in){
+      el.innerHTML = '<div class="ci-title">⚠ ALREADY IN</div>';
+      el.className = 'checkin-result show checkin-invalid';
+      return;
+    }
+    
+    await c.from('tickets').update({checked_in: true, checked_in_at: new Date()}).eq('id', data.id);
+    el.innerHTML = `<div class="cv-title">✅ GRANTED</div><div class="checkin-detail">${data.buyer_name}</div>`;
+    el.className = 'checkin-result show checkin-valid';
+    await log('✅ CHECK-IN: ' + data.buyer_name, 'ticket');
+  }
 }
-async function clearLogs(){
-  const c=client(); if(c) await c.from('activity_log').delete().neq('id','00000000-0000-0000-0000-000000000000');
-  setEl('allLogs','<div class="empty-state">LOGS CLEARED</div>');
-}
-
-// ── CSV EXPORTS ───────────────────────────────────────────
-function downloadCSV(data,filename){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/csv'}));a.download=filename;a.click();}
-async function exportTicketsCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('tickets').select('ticket_code,buyer_name,buyer_email,quantity,total_paid,payment_status,checked_in,created_at');downloadCSV(['ticket_code,buyer_name,buyer_email,quantity,total_paid,payment_status,checked_in,created_at',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_tickets.csv');}
-async function exportMembersCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('memberships').select('*,profiles(username,email)');downloadCSV(['username,email,plan,billing,amount,status,started',...(data||[]).map(m=>`${m.profiles?.username},${m.profiles?.email},${m.plan},${m.billing_cycle},${m.amount_rands},${m.status},${m.starts_at}`)].join('\n'),'mog_memberships.csv');}
-async function exportUsersCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('profiles').select('username,email,rank,created_at');downloadCSV(['username,email,rank,created_at',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_operatives.csv');}
-async function exportResultsCSV(){const c=client();if(!c){alert('Connect Supabase.');return;}const{data}=await c.from('poll_songs').select('title,artist,label,votes_count,week_number').order('votes_count',{ascending:false});downloadCSV(['title,artist,label,votes_count,week_number',...(data||[]).map(r=>Object.values(r).join(','))].join('\n'),'mog_poll_results.csv');}
-
-// ── MODAL ─────────────────────────────────────────────────
-function openModal(id){document.getElementById(id).classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.addEventListener('click',e=>{if(e.target.classList.contains('modal'))closeModal(e.target.id);});
 
 // ── LOGOUT ────────────────────────────────────────────────
 async function logout(){
   if(!confirm('Exit Directorate Command?')) return;
-  const c=client(); if(c) await c.auth.signOut().catch(()=>{});
-  sessionStorage.clear(); window.location.href='login.html';
+  const c = client(); 
+  if(c) await c.auth.signOut();
+  sessionStorage.clear(); 
+  window.location.href = 'login.html';
 }
 
 // ── HELPERS ───────────────────────────────────────────────
-function setEl(id,html){const el=document.getElementById(id);if(el){if(typeof html==='number')el.textContent=html;else el.innerHTML=html;}}
+function setEl(id,html){const el=document.getElementById(id);if(el) el.innerHTML=html;}
 function setWidth(id,pct){const el=document.getElementById(id);if(el)el.style.width=pct+'%';}
-function fmtTime(ts){return new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});}
-function escHtml(str){return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-async function log(desc,type='info'){const c=client();if(c)await c.from('activity_log').insert({description:desc,action_type:type,user_id:currentUser?.id}).catch(()=>{});}
+function fmtTime(ts){return new Date(ts).toLocaleTimeString('en-ZA');}
+function escHtml(str){return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+async function log(desc,type='info'){const c=client();if(c)await c.from('activity_log').insert({description:desc,action_type:type,user_id:currentUser?.id});}
 
-function loadEmptyData(){ loadEmptyStats(); ['eventsTable','ticketsTable','membersTable','operativesTable'].forEach(id=>setEl(id,'<tr><td colspan="9" class="empty-state">CONNECT SUPABASE TO VIEW DATA</td></tr>')); setEl('allLogs','<div class="empty-state">CONNECT SUPABASE TO VIEW LOGS</div>'); setEl('overviewLogs','<div class="empty-state">NO LOGS</div>'); setEl('broadcastLogs','<div class="empty-state">NO LOGS</div>'); setEl('mediaList','<div class="empty-state">VAULT EMPTY</div>'); setEl('pollResults','<div class="empty-state">NO POLL SONGS YET</div>'); setEl('inlinePollResults','<div class="empty-state">NO POLL SONGS YET</div>'); }
-function loadEmptyStats(){ ['statRevenue','statOperatives','statTickets','statMembers','mMRR','mCountOp','mCountAgent','mCountDir'].forEach(id=>setEl(id,'0')); ['revBarTickets','revBarMembers','revBarFees'].forEach(id=>setWidth(id,0)); ['revTicketAmt','revMemberAmt','revFeeAmt'].forEach(id=>setEl(id,'R0')); setEl('memberSplit','<div class="empty-state" style="padding:20px">NO MEMBERS YET</div>'); }
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function loadEmptyData(){
+  ['eventsTable','ticketsTable','membersTable','operativesTable'].forEach(id=>setEl(id,'<tr><td colspan="9" class="empty-state">OFFLINE</td></tr>'));
+}
+
+function loadEmptyStats(){
+  ['statRevenue','statOperatives','statTickets','statMembers'].forEach(id=>setEl(id,'0'));
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  const fileIn = document.getElementById('fileIn');
+  if(e.dataTransfer.files.length) {
+    fileIn.files = e.dataTransfer.files;
+    filesChosen(fileIn);
+  }
+}
+
+function filesChosen(input){
+  const lbl = document.getElementById('uploadLabel');
+  if(input.files && input.files[0]) {
+    lbl.textContent = '✓ ' + input.files[0].name;
+    lbl.classList.add('ready');
+  }
+}
 
 // ── START ─────────────────────────────────────────────────
 init();
 </script>
 </body>
 </html>
+           
