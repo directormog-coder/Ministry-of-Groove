@@ -548,10 +548,25 @@ function dirPin() {
   alert('📌 Message pinned: "' + (msgs[msgs.length-1].text||'image').substring(0,40) + '"');
 }
 function dirClear() {
-  if(!confirm('CLEAR ALL MESSAGES IN ' + rooms[currentRoom].name + '?\nCannot be undone.')) return;
-  rooms[currentRoom].msgs = [];
-  renderMsgs(currentRoom);
-  if(typeof sb !== 'undefined') sb.from('messages').update({deleted:true}).eq('room',currentRoom);
+  // Use a non-blocking approach for mobile
+  const btn = document.createElement('div');
+  btn.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(5,10,14,0.92);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);';
+  btn.innerHTML = `<div style="background:rgba(13,31,45,0.98);border:1px solid rgba(255,59,59,0.3);border-radius:10px;padding:28px 22px;text-align:center;max-width:300px;width:90%;">
+    <div style="font-size:36px;margin-bottom:12px;">🗑️</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:11px;color:#ff5555;letter-spacing:2px;margin-bottom:8px;">CLEAR ROOM?</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:20px;">DELETE ALL MESSAGES IN<br>${rooms[currentRoom].name}?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button onclick="this.closest('div[style]').remove()" style="padding:11px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:#C9A84C;letter-spacing:2px;cursor:pointer;">CANCEL</button>
+      <button id="clearConfirmBtn" style="padding:11px;background:rgba(255,59,59,0.12);border:1px solid rgba(255,59,59,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:#ff5555;letter-spacing:2px;cursor:pointer;">CLEAR</button>
+    </div>
+  </div>`;
+  document.body.appendChild(btn);
+  btn.querySelector('#clearConfirmBtn').onclick = () => {
+    rooms[currentRoom].msgs = [];
+    renderMsgs(currentRoom);
+    if(typeof sb !== 'undefined') sb.from('messages').update({deleted:true}).eq('room',currentRoom);
+    btn.remove();
+  };
 }
 
 // ── HELPERS ───────────────────────────────────────────────
