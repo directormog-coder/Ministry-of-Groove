@@ -548,10 +548,8 @@ function saveProfile(){
 
 // ── LOGOUT ───────────────────────────────────────────────
 function logout(){
-  if(confirm('Terminate operative session?')){
-    sessionStorage.clear();
-    window.location.href = '../login.html';
-  }
+  sessionStorage.clear();
+  window.location.replace('../login.html');
 }
 
 // ── INIT ─────────────────────────────────────────────────
