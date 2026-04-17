@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050A0E">
 <title>M.O.G. — Operative Hub</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/js/supabase-client.js"></script>
-<script src="/js/app.js"></script>
 <link rel="stylesheet" href="css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
@@ -17,33 +14,35 @@ html{scroll-behavior:smooth;}
 body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:80px;}
 body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-/* STATUS BAR */
-.status-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:46px;gap:10px;backdrop-filter:blur(10px);}
-.status-live{background:#8B0000;color:#fff;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;padding:3px 10px;letter-spacing:2px;border-radius:2px;animation:livePulse 1.5s ease infinite;white-space:nowrap;}
-@keyframes livePulse{0%,100%{opacity:1}50%{opacity:0.6}}
-.status-items{display:flex;gap:12px;flex:1;justify-content:center;overflow:hidden;}
-.status-item{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
-.dot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;flex-shrink:0;}
+/* ── TOP BAR WITH BRANDING ── */
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;height:58px;gap:12px;backdrop-filter:blur(12px);}
+.top-logo{width:40px;height:40px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;box-shadow:0 0 12px rgba(201,168,76,0.4);flex-shrink:0;}
+.top-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.top-brand{flex:1;min-width:0;}
+.top-brand-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:var(--gold-light);letter-spacing:2px;white-space:nowrap;line-height:1.2;}
+.top-brand-slogan{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--teal-dim);letter-spacing:1.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
-.status-logout{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;cursor:pointer;border:1px solid var(--border);padding:5px 10px;border-radius:2px;transition:all 0.2s;white-space:nowrap;background:none;}
+.status-logout{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);cursor:pointer;border:1px solid var(--border);padding:5px 10px;border-radius:2px;transition:all 0.2s;background:none;white-space:nowrap;}
 .status-logout:hover{color:var(--gold);border-color:var(--gold);}
 
 /* HERO */
 .hero{padding:14px 16px 0;}
-.hero-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:18px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;}
+.hero-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;cursor:pointer;transition:border-color 0.2s;}
 .hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
-.hero-avatar{width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;box-shadow:0 0 18px rgba(201,168,76,0.35);flex-shrink:0;}
+.hero-card:hover{border-color:rgba(201,168,76,0.5);}
+.hero-avatar{width:58px;height:58px;border-radius:50%;border:2px solid var(--gold);overflow:hidden;box-shadow:0 0 18px rgba(201,168,76,0.35);flex-shrink:0;position:relative;}
 .hero-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
+.hero-avatar-edit{position:absolute;inset:0;background:rgba(0,0,0,0.5);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;}
+.hero-card:hover .hero-avatar-edit{display:flex;}
 .hero-info{flex:1;min-width:0;}
 .hero-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:2px;}
 .hero-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-.hero-slogan {font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal);letter-spacing:1px;margin-top:2px;text-transform:uppercase;opacity:0.9;}
-
 .hero-id{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;margin-top:2px;}
-.hero-dept{font-size:11px;color:var(--teal);font-weight:600;letter-spacing:2px;margin-top:5px;}
-.hero-exit{background:none;border:1px solid var(--border);color:var(--gold-dim);padding:8px 10px;border-radius:4px;cursor:pointer;font-size:16px;transition:all 0.2s;flex-shrink:0;}
-.hero-exit:hover{border-color:var(--gold);color:var(--gold);}
+.hero-rank{font-size:11px;color:var(--teal);font-weight:600;letter-spacing:2px;margin-top:4px;}
+.hero-edit-btn{background:rgba(201,168,76,0.08);border:1px solid var(--border);color:var(--gold-dim);padding:7px 10px;border-radius:4px;cursor:pointer;font-size:13px;transition:all 0.2s;flex-shrink:0;font-family:'Share Tech Mono',monospace;}
+.hero-edit-btn:hover{border-color:var(--gold);color:var(--gold);}
 
 /* STATS */
 .stats-grid{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -57,7 +56,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .stat-value{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--gold);}
 .stat-sub{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.3);margin-top:2px;letter-spacing:1px;}
 
-/* SECTION HDR */
+/* SECTIONS */
 .section-hdr{padding:4px 16px 12px;display:flex;align-items:center;gap:10px;}
 .section-hdr h2{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
 .line{flex:1;height:1px;background:var(--border);}
@@ -65,19 +64,18 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 /* QUICK ACTIONS */
 .quick-actions{padding:0 16px 16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .qa-btn{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px 6px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.25s;text-decoration:none;}
-.qa-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);box-shadow:0 0 16px rgba(201,168,76,0.15);transform:translateY(-2px);}
+.qa-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);transform:translateY(-2px);}
 .qa-icon{font-size:22px;line-height:1;}
 .qa-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;text-align:center;}
 
 /* EVENT BANNER */
 .event-wrap{padding:0 16px 16px;}
 .event-card{background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(0,229,204,0.04));border:1px solid var(--gold);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
-.event-card::after{content:'LIVE';position:absolute;right:-8px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:rgba(201,168,76,0.04);letter-spacing:4px;pointer-events:none;}
 .event-tag{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:3px;margin-bottom:6px;}
 .event-name{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--gold-light);letter-spacing:2px;margin-bottom:4px;}
 .event-date{font-size:13px;color:rgba(255,255,255,0.55);letter-spacing:1px;}
 .event-btn{display:inline-block;margin-top:14px;background:var(--gold);color:var(--black);font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;padding:8px 20px;border-radius:3px;letter-spacing:2px;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s;}
-.event-btn:hover{background:var(--gold-light);box-shadow:0 0 20px rgba(201,168,76,0.4);}
+.event-btn:hover{background:var(--gold-light);}
 
 /* TRANSMISSIONS */
 .tx-wrap{padding:0 16px 20px;}
@@ -89,49 +87,65 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .tx-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(201,168,76,0.07);}
 .tx-item:last-child{border-bottom:none;padding-bottom:0;}
 .tx-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);margin-top:5px;flex-shrink:0;box-shadow:0 0 6px rgba(201,168,76,0.5);}
-.tx-dot.teal{background:var(--teal);box-shadow:0 0 6px rgba(0,229,204,0.5);}
+.tx-dot.teal{background:var(--teal);}
 .tx-main{font-size:13px;font-weight:600;color:#ddd;letter-spacing:0.5px;}
 .tx-time{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.28);margin-top:2px;letter-spacing:1px;}
 
-/* WATERMARK */
 .watermark{text-align:center;padding:8px 16px;font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(201,168,76,0.14);letter-spacing:3px;}
-
-/* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
 .nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
 .nav-item.active{border-top-color:var(--gold);}
 .nav-icon{font-size:20px;line-height:1;}
 .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
 .nav-item.active .nav-label{color:var(--gold);}
+/* LOGOUT MODAL */
+.logout-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,10,14,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px;}
+.logout-modal.open{display:flex;}
+.lm-box{width:100%;max-width:320px;background:rgba(13,31,45,0.98);border:1px solid rgba(255,59,59,0.3);border-radius:10px;padding:32px 24px;text-align:center;position:relative;}
+.lm-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FF3B3B,transparent);}
+.lm-icon{font-size:44px;margin-bottom:14px;}
+.lm-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#ff5555;letter-spacing:3px;margin-bottom:8px;}
+.lm-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.7;margin-bottom:24px;}
+.lm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.lm-yes{padding:13px;background:rgba(255,59,59,0.12);border:1px solid rgba(255,59,59,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:#ff5555;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+.lm-yes:hover,.lm-yes:active{background:rgba(255,59,59,0.28);}
+.lm-no{padding:13px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
+.lm-no:hover,.lm-no:active{background:rgba(201,168,76,0.18);}
 </style>
 </head>
 <body>
 
-<div id="toast-root" class="toast-container"></div>
-
-<div class="status-bar">
-  <div class="status-live">LIVE</div>
-  <div class="status-items">
-    <div class="status-item"><div class="dot"></div>UPLINK STABLE</div>
-    <div class="status-item"><div class="dot"></div>ENCRYPTED</div>
+<!-- ── TOP BAR WITH LOGO + BRANDING ── -->
+<div class="top-bar">
+  <div class="top-logo">
+    <img src="logo.png" alt="M.O.G."
+      onerror="this.onerror=null;this.src='assets/images/logo.png'">
   </div>
-  <button class="status-logout" onclick="MOGApp.logout()">⇥ EXIT</button>
+  <div class="top-brand">
+    <div class="top-brand-name">MINISTRY OF GROOVE</div>
+    <div class="top-brand-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+  </div>
+  <div class="top-right">
+    <div class="status-dot"></div>
+    <button class="status-logout" onclick="logout()">⇥ EXIT</button>
+  </div>
 </div>
 
+<!-- ── OPERATIVE CARD ── -->
 <div class="hero">
-  <div class="hero-card">
+  <div class="hero-card" onclick="goToProfile()">
     <div class="hero-avatar">
-      <img src="logo.png" id="heroAvatarImg" alt="M.O.G." 
-           onerror="this.onerror=null;this.src='assets/images/logo.png'">
+      <img src="logo.png" alt="Operative" id="heroAvatar"
+        onerror="this.onerror=null;this.src='assets/images/logo.png'">
+      <div class="hero-avatar-edit">✎</div>
     </div>
     <div class="hero-info">
       <div class="hero-label">OPERATIVE HUB</div>
-      <div class="hero-name">MINISTRY OF GROOVE</div>
-      <div class="hero-slogan shimmer-text">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+      <div class="hero-name" id="userName">OPERATIVE</div>
       <div class="hero-id" id="userId">OP-XXXXXXXX</div>
-      <div class="hero-dept" id="pDept">● GROOVE DIVISION</div>
+      <div class="hero-rank" id="userRank">● GROOVE DIVISION · RECRUIT</div>
     </div>
-    <button class="hero-exit" onclick="MOGApp.logout()" title="Logout">⇥</button>
+    <button class="hero-edit-btn" onclick="event.stopPropagation();goToProfile()" title="Edit Profile">✎</button>
   </div>
 </div>
 
@@ -142,11 +156,11 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
     <div class="stat-value">100%</div>
     <div class="stat-sub">FULLY COMMITTED</div>
   </div>
-  <div class="stat-card" onclick="MOGApp.toggleCart()" style="cursor:pointer">
-    <div class="stat-label">TICKET CART</div>
+  <div class="stat-card">
+    <div class="stat-label">GROOVE SYNC</div>
     <div class="stat-bar-wrap"><div class="stat-bar teal" id="syncBar"></div></div>
-    <div class="stat-value" id="cart-count-display">0 ITEMS</div>
-    <div class="stat-sub">READY FOR CHECKOUT</div>
+    <div class="stat-value" id="syncVal">—</div>
+    <div class="stat-sub">SESSIONS ATTENDED</div>
   </div>
 </div>
 
@@ -154,111 +168,105 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 <div class="quick-actions">
   <a href="pages/gallery.html" class="qa-btn"><div class="qa-icon">🎬</div><div class="qa-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="qa-btn"><div class="qa-icon">📡</div><div class="qa-label">LIVE</div></a>
-  <a href="dispatch.html" class="qa-btn"><div class="qa-icon" style="position:relative;">💬<span id="unread-badge-hub" class="badge"></span></div><div class="qa-label">DISPATCH</div></a>
+  <a href="pages/dispatch.html" class="qa-btn"><div class="qa-icon">💬</div><div class="qa-label">DISPATCH</div></a>
   <a href="pages/dossier.html" class="qa-btn"><div class="qa-icon">🗳️</div><div class="qa-label">VOTE</div></a>
-  <a href="javascript:void(0)" onclick="MOGApp.toggleCart()" class="qa-btn" style="border-color:rgba(201,168,76,0.4)"><div class="qa-icon">🎟️</div><div class="qa-label">CART</div></a>
-  <a href="pages/membership.html" class="qa-btn" style="border-color:rgba(0,229,204,0.3)"><div class="qa-icon">👑</div><div class="qa-label">UPGRADE</div></a>
+  <a href="pages/tickets.html" class="qa-btn"><div class="qa-icon">🎟️</div><div class="qa-label">TICKETS</div></a>
+  <a href="pages/membership.html" class="qa-btn"><div class="qa-icon">👑</div><div class="qa-label">UPGRADE</div></a>
 </div>
 
+<div class="section-hdr"><div class="line"></div><h2>UPCOMING SESSION</h2><div class="line"></div></div>
 <div class="event-wrap">
-  <div class="event-card">
-    <div class="event-tag">// NEXT TRANSMISSION //</div>
-    <div class="event-name">AMAPIANO SESSIONS VOL.3</div>
-    <div class="event-date">TBD — LOCATION CLASSIFIED</div>
-    <a href="pages/frequency.html" class="event-btn">VIEW INTEL</a>
+  <div class="event-card" id="eventCard">
+    <div class="event-tag">📡 NEXT OPERATION</div>
+    <div class="event-name" id="eventName">AMAPIANO SESSIONS VOL.3</div>
+    <div class="event-date" id="eventDate">📅 DATE PENDING — INTEL INCOMING</div>
+    <a href="pages/tickets.html" class="event-btn">🎟️ GET ACCESS</a>
   </div>
 </div>
 
-<div class="section-hdr"><div class="line"></div><h2>RECENT TRANSMISSIONS</h2><div class="line"></div></div>
+<div class="section-hdr"><div class="line"></div><h2>TRANSMISSIONS</h2><div class="line"></div></div>
 <div class="tx-wrap">
   <div class="tx-card">
     <div class="tx-header">
-      <div class="tx-title">INTEL FEED</div>
-      <div class="tx-live-ind"><div class="dot"></div>LIVE</div>
+      <div class="tx-title">// INTEL FEED</div>
+      <div class="tx-live-ind"><div class="status-dot"></div>LIVE</div>
     </div>
-    <div class="tx-item"><div class="tx-dot teal"></div><div><div class="tx-main">📸 NEW GALLERY UPLOAD — SESSION 02</div><div class="tx-time">2 HRS AGO</div></div></div>
-    <div class="tx-item"><div class="tx-dot"></div><div><div class="tx-main">🗳️ TOP 10 VOTE — WEEK 14 NOW OPEN</div><div class="tx-time">5 HRS AGO</div></div></div>
-    <div class="tx-item"><div class="tx-dot teal"></div><div><div class="tx-main">💬 DISPATCH ROOM: SESSION 02 ACTIVE</div><div class="tx-time">8 HRS AGO</div></div></div>
-    <div class="tx-item"><div class="tx-dot"></div><div><div class="tx-main">🎬 VIDEO UPLOAD — AMAPIANO SESSION 01</div><div class="tx-time">14D AGO</div></div></div>
-  </div>
-</div>
-
-<div class="watermark">M.O.G. NETWORK // DECRYPTING THE CULTURE // EST. 2026</div>
-
-<div id="cart-modal" class="modal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="MOGApp.toggleCart()">✕</button>
-    <div class="modal-title">// TICKET VAULT //</div>
-    <div id="cart-items-list" class="log-wrap" style="height:auto; max-height:250px;">
+    <div id="txFeed">
+      <div class="tx-item">
+        <div class="tx-dot"></div>
+        <div>
+          <div class="tx-main">Welcome to the Ministry of Groove</div>
+          <div class="tx-time">OPERATIVE NETWORK ACTIVE</div>
         </div>
-    <div class="field" style="margin-top:20px; border-top:1px solid var(--border); padding-top:15px;">
-        <div style="display:flex; justify-content:space-between; font-family:'Share Tech Mono';">
-            <span>TOTAL DUE:</span>
-            <span id="cart-total-price" style="color:var(--gold-light); font-weight:bold;">R0</span>
+      </div>
+      <div class="tx-item">
+        <div class="tx-dot teal"></div>
+        <div>
+          <div class="tx-main">Cast your vote — Top 10 Amapiano poll is live</div>
+          <div class="tx-time">WEEK 14 · OPEN UNTIL SUNDAY 23:59</div>
         </div>
-        <button class="btn btn-gold" style="width:100%; margin-top:15px;" onclick="MOGApp.checkout()">PROCEED TO CHECKOUT</button>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="bottom-nav">
+<div class="watermark">M.O.G. // DECRYPTING THE CULTURE // SYNCHRONIZING THE GRID</div>
+
+<nav class="bottom-nav">
   <a href="index.html" class="nav-item active"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
   <a href="pages/gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
   <a href="pages/frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
-  <a href="dispatch.html" class="nav-item">
-    <div class="nav-icon" style="position:relative;">
-        💬
-        <span id="unread-badge-nav" class="badge"></span>
-    </div>
-    <div class="nav-label">CHAT</div>
-  </a>
-  <a href="profile.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
-</div>
+  <a href="pages/dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="pages/dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+</nav>
 
 <script>
-/**
- * NCC MASTER v7.0.0 - Hub Logic
- * Unified Hub Logic + Realtime + Cart System
- */
+const name   = sessionStorage.getItem('mogUser')  || 'OPERATIVE';
+const rank   = sessionStorage.getItem('mogRank')  || 'RECRUIT';
+const avatar = sessionStorage.getItem('mogAvatar');
 
-async function initHub() {
-  if (window.sb) {
-    const { data: { session } } = await window.sb.auth.getSession();
-    
-    if (session) {
-      const user = session.user;
-      const metadata = user.user_metadata;
+document.getElementById('userName').textContent = name;
+document.getElementById('userId').textContent   = 'OP-' + Math.random().toString(36).substr(2,8).toUpperCase();
+document.getElementById('userRank').textContent  = '● GROOVE DIVISION · ' + rank;
 
-      // 1. Sync Profile Data
-      document.getElementById('userId').textContent = 'ID: ' + user.id.slice(0, 8).toUpperCase();
-      
-      // 2. Fetch Sync Stats from Supabase
-      const { data: profile } = await window.sb
-        .from('profiles')
-        .select('rank')
-        .eq('id', user.id)
-        .single();
-      
-      if (profile && profile.rank) {
-        const deptEl = document.getElementById('pDept');
-        if (deptEl) deptEl.textContent = '● ' + profile.rank.toUpperCase() + ' DIVISION';
-      }
-
-      // 3. Heartbeat & App Logic initialized in app.js
-    } else {
-      window.location.href = 'login.html';
-    }
-  }
+// Show saved avatar if exists
+if(avatar){
+  const img = document.getElementById('heroAvatar');
+  if(img) img.src = avatar;
 }
 
-// Animate bars on load
-setTimeout(() => {
-  const loyalty = document.getElementById('loyaltyBar');
-  if(loyalty) loyalty.style.width = '100%';
-  // cart/sync bar width is controlled by MOGApp.renderCart in app.js
-}, 350);
+// Animate stat bars
+setTimeout(()=>{
+  document.getElementById('loyaltyBar').style.width = '100%';
+  document.getElementById('syncBar').style.width    = '40%';
+  document.getElementById('syncVal').textContent    = '2';
+}, 300);
 
-document.addEventListener('DOMContentLoaded', initHub);
+function goToProfile(){ window.location.href = 'pages/dossier.html?tab=profile'; }
+
+function logout(){
+  document.getElementById('logoutModal').classList.add('open');
+}
+function confirmLogout(){
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+function cancelLogout(){
+  document.getElementById('logoutModal').classList.remove('open');
+}
 </script>
+<!-- LOGOUT CONFIRMATION MODAL -->
+<div class="logout-modal" id="logoutModal">
+  <div class="lm-box">
+    <div class="lm-icon">🔐</div>
+    <div class="lm-title">TERMINATE SESSION?</div>
+    <div class="lm-sub">YOU WILL BE LOGGED OUT OF<br>THE OPERATIVE NETWORK.</div>
+    <div class="lm-btns">
+      <button class="lm-no"  onclick="cancelLogout()">⇠ STAY</button>
+      <button class="lm-yes" onclick="confirmLogout()">⇥ EXIT</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
