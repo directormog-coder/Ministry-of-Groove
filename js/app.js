@@ -1,293 +1,243 @@
 /**
- * Ministry of Groove - NCC Master v7.0.0
- * Unified Command Engine: Hub, Dispatch, Directorate & Cart
- * Decrypting the Culture. Synchronizing the Grid.
+ * M.O.G. — UNIFIED DATA PERSISTENCE LAYER
+ * js/app.js
+ *
+ * WHY THIS EXISTS:
+ * sessionStorage clears every time the tab is refreshed or closed.
+ * This module uses localStorage (persists until explicitly cleared)
+ * AND syncs to Supabase when connected.
+ *
+ * HOW TO USE IN ANY PAGE:
+ *   <script src="/js/supabase-client.js"></script>
+ *   <script src="/js/app.js"></script>
+ *   Then call: MOG.get('mogUser'), MOG.set('mogUser','NOVA'), MOG.load()
  */
 
-const MOGApp = {
-    cart: [],
-    currentUser: null,
-    version: '7.0.0',
+window.MOG = (() => {
 
-    /**
-     * CORE INITIALIZATION
-     * Synchronizes Auth, UI Icons, and Tactical Systems
-     */
-    async init() {
-        // 1. Render Lucide Icons for UI
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-        
-        console.log('%c🔒 MOG NCC Master v7.0.0 Active', 'color: #C9A84C; font-weight: bold;');
+  // ── KEYS ────────────────────────────────────────────────────
+  const KEYS = [
+    'mogUser','mogEmail','mogRank','mogAvatar',
+    'mogPhone','mogBio','mogFavArtist','mogLocation',
+    'mogUserId','mogSessions','mogLikes','mogLoggedIn'
+  ];
 
-        if (!window.sb) {
-            console.warn('[M.O.G.] Supabase not detected. Entering Offline Mode.');
-            return;
-        }
+  // ── READ / WRITE ─────────────────────────────────────────────
+  // localStorage survives refresh. sessionStorage doesn't.
+  function get(key)       { return localStorage.getItem(key); }
+  function set(key, val)  { if(val != null) localStorage.setItem(key, val); }
+  function remove(key)    { localStorage.removeItem(key); }
 
-        // 2. Auth Check & Session Sync
-        const { data: { session } } = await window.sb.auth.getSession();
-        if (session) {
-            this.currentUser = session.user;
-            
-            // Start Tactical Protocols
-            this.startHeartbeat();
-            this.setupRealtime(session.user.id);
-            this.updateBadges();
-            this.loadCart();
-            this.registerPush(session.user.id);
-        } else {
-            // Redirect unauthorized access to login
-            const path = window.location.pathname;
-            if (!path.includes('login.html')) {
-                window.location.href = 'login.html';
-            }
-        }
+  function clear(){
+    KEYS.forEach(k => localStorage.removeItem(k));
+    // Also clear sessionStorage for compat
+    try { sessionStorage.clear(); } catch(e){}
+  }
 
-        // 3. Frequency Page Specific Init
-        if (window.location.pathname.includes('frequency.html')) {
-            this.initFrequency();
-        }
-    },
+  // ── PROFILE OBJECT ───────────────────────────────────────────
+  function getProfile(){
+    return {
+      id:        get('mogUserId')    || '',
+      username:  get('mogUser')      || 'OPERATIVE',
+      email:     get('mogEmail')     || '',
+      rank:      get('mogRank')      || 'RECRUIT',
+      avatar:    get('mogAvatar')    || null,
+      phone:     get('mogPhone')     || '',
+      bio:       get('mogBio')       || '',
+      favArtist: get('mogFavArtist') || '',
+      location:  get('mogLocation')  || '',
+      sessions:  parseInt(get('mogSessions') || '0'),
+      likes:     parseInt(get('mogLikes')    || '0'),
+    };
+  }
 
-    // ══════════════════════════════════════════════════════════
-    // REAL-TIME & NOTIFICATIONS (Tactical Dispatch)
-    // ══════════════════════════════════════════════════════════
+  function setProfile(p){
+    if(p.id)        set('mogUserId',    p.id);
+    if(p.username)  set('mogUser',      p.username);
+    if(p.email)     set('mogEmail',     p.email);
+    if(p.rank)      set('mogRank',      p.rank);
+    if(p.avatar_url)set('mogAvatar',    p.avatar_url);
+    if(p.phone)     set('mogPhone',     p.phone);
+    if(p.bio)       set('mogBio',       p.bio);
+    if(p.fav_artist)set('mogFavArtist', p.fav_artist);
+    if(p.location)  set('mogLocation',  p.location);
+    if(p.sessions_attended != null) set('mogSessions', p.sessions_attended);
+    if(p.likes_given != null)       set('mogLikes',    p.likes_given);
+    set('mogLoggedIn','true');
+  }
 
-    /**
-     * SETUP REALTIME
-     * Listens for incoming messages directed at the current operative
-     */
-    setupRealtime(userId) {
-        window.sb.channel('realtime-dispatch')
-            .on('postgres_changes', { 
-                event: 'INSERT', 
-                schema: 'public', 
-                table: 'messages', 
-                filter: `receiver_id=eq.${userId}` 
-            }, payload => {
-                this.launchToast(payload.new);
-                this.updateBadges();
-            }).subscribe();
-    },
+  // ── AUTH STATE ───────────────────────────────────────────────
+  function isLoggedIn(){
+    return get('mogLoggedIn') === 'true' && !!get('mogEmail');
+  }
 
-    /**
-     * UPDATE BADGES
-     * Updates unread counts on both the Hub and the Bottom Navigation
-     */
-    async updateBadges() {
-        if (!this.currentUser) return;
-        
-        const { count } = await window.sb.from('messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('receiver_id', this.currentUser.id)
-            .eq('read', false);
-        
-        const badgeHub = document.getElementById('unread-badge-hub');
-        const badgeNav = document.getElementById('unread-badge-nav');
-        
-        const badgeElements = [badgeHub, badgeNav];
-        badgeElements.forEach(el => {
-            if (el) {
-                el.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
-                el.style.display = count > 0 ? 'flex' : 'none';
-            }
-        });
-    },
+  function isAdmin(){
+    const rank  = get('mogRank')  || '';
+    const email = get('mogEmail') || '';
+    return rank === 'ADMIN' || email.toLowerCase() === 'director.mog@gmail.com';
+  }
 
-    /**
-     * LAUNCH TOAST
-     * Visual UI Alert for incoming transmissions
-     */
-    launchToast(msg) {
-        const root = document.getElementById('toast-root');
-        if (!root) return;
+  // ── LOAD FROM SUPABASE ───────────────────────────────────────
+  async function load(){
+    if(typeof sb === 'undefined') return getProfile();
+    try{
+      const { data:{ session } } = await sb.auth.getSession();
+      if(!session) return getProfile();
 
-        const toast = document.createElement('div');
-        toast.className = 'mog-toast';
-        toast.innerHTML = `
-            <p style="color:var(--gold); font-family:'Orbitron'; font-size:10px; font-weight:700; letter-spacing:1px;">INCOMING DISPATCH</p>
-            <p style="font-size:13px; margin:5px 0; font-family:'Rajdhani';">${msg.content.substring(0, 50)}${msg.content.length > 50 ? '...' : ''}</p>
-            <a href="dispatch.html" style="color:var(--teal); font-size:10px; text-decoration:none; font-family:'Share Tech Mono';">DECRYPT MESSAGE →</a>
-        `;
-        root.appendChild(toast);
-        
-        // Auto-purge toast after 5 seconds
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(20px)';
-            setTimeout(() => toast.remove(), 300);
-        }, 5000);
-    },
+      set('mogUserId', session.user.id);
+      set('mogEmail',  session.user.email);
+      set('mogLoggedIn','true');
 
-    // ══════════════════════════════════════════════════════════
-    // TICKET CART SYSTEM (Vault Bag)
-    // ══════════════════════════════════════════════════════════
+      const { data:p } = await sb
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
 
-    toggleCart() {
-        const modal = document.getElementById('cart-modal');
-        if (modal) {
-            modal.classList.toggle('active');
-            this.renderCart();
-        }
-    },
-
-    addToCart(ticket) {
-        // Ticket object: { name: string, price: number, event: string }
-        this.cart.push({
-            id: Date.now(),
-            name: ticket.name,
-            price: ticket.price,
-            event: ticket.event || 'GENERAL SESSION'
-        });
-        this.saveCart();
-        this.renderCart();
-        this.launchToast({ content: `VAULT SECURED: ${ticket.name} added to bag.` });
-    },
-
-    saveCart() { 
-        localStorage.setItem('mog_cart_v1', JSON.stringify(this.cart)); 
-    },
-
-    loadCart() { 
-        const saved = localStorage.getItem('mog_cart_v1');
-        if(saved) this.cart = JSON.parse(saved);
-        this.renderCart();
-    },
-
-    renderCart() {
-        const container = document.getElementById('cart-items-list');
-        const countDisplay = document.getElementById('cart-count-display');
-        const totalDisplay = document.getElementById('cart-total-price');
-        
-        if (!container) return;
-
-        let total = 0;
-        container.innerHTML = this.cart.map((item, index) => {
-            total += item.price;
-            return `
-                <div class="tx-item" style="padding:10px 0; border-bottom:1px solid rgba(201,168,76,0.1)">
-                    <div style="display:flex; justify-content:space-between; width:100%">
-                        <div>
-                            <div class="tx-main" style="font-size:12px;">${item.name}</div>
-                            <div class="tx-time" style="font-size:8px; color:var(--gold-dim)">${item.event}</div>
-                        </div>
-                        <div style="text-align:right">
-                            <div style="font-family:'Orbitron'; font-size:11px; color:var(--gold)">R${item.price}</div>
-                            <button onclick="MOGApp.removeFromCart(${index})" style="background:none; border:none; color:var(--red); font-size:9px; cursor:pointer; font-family:'Share Tech Mono';">REMOVE</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        if (this.cart.length === 0) {
-            container.innerHTML = '<div class="empty-state">VAULT EMPTY</div>';
-        }
-
-        if(countDisplay) countDisplay.textContent = `${this.cart.length} ITEMS`;
-        if(totalDisplay) totalDisplay.textContent = `R${total}`;
-        
-        // Sync Hub Bar (SyncBar)
-        const bar = document.getElementById('syncBar');
-        if(bar) bar.style.width = this.cart.length > 0 ? '100%' : '0%';
-    },
-
-    removeFromCart(index) {
-        this.cart.splice(index, 1);
-        this.saveCart();
-        this.renderCart();
-    },
-
-    checkout() {
-        if(this.cart.length === 0) {
-            alert("Your cart is empty.");
-            return;
-        }
-        alert("REDIRECTING TO SECURE PAYMENT GATEWAY...");
-        // Integration Point: Redirect to Paystack/Yoco/Stripe
-    },
-
-    // ══════════════════════════════════════════════════════════
-    // UPLINK & HEARTBEAT (Original Foundation)
-    // ══════════════════════════════════════════════════════════
-
-    startHeartbeat() {
-        const updateStatus = async () => {
-            if (!this.currentUser) return;
-            // Update last_seen in profiles
-            await window.sb.from('profiles')
-                .update({ last_seen: new Date().toISOString() })
-                .eq('id', this.currentUser.id);
-            
-            // Trigger RPC status update
-            await window.sb.rpc('update_user_status');
-        };
-
-        updateStatus();
-        setInterval(updateStatus, 60000); // 60s Pulse
-        console.log('%c[M.O.G.] Heartbeat Protocol Active', 'color: #00E5CC;');
-    },
-
-    async establishUplink(targetUserId) {
-        try {
-            const { data: { session } } = await window.sb.auth.getSession();
-            if (!session) return;
-            const currentUserId = session.user.id;
-
-            // Check existing conversation
-            const { data: existingId } = await window.sb.rpc('get_existing_conversation', {
-                user_a: currentUserId,
-                user_b: targetUserId
-            });
-
-            if (existingId) {
-                window.location.href = `dispatch.html?id=${existingId}`;
-                return;
-            }
-
-            // Create new conversation
-            const { data: conv } = await window.sb.from('conversations').insert({ type: 'dm' }).select().single();
-            await window.sb.from('participants').insert([
-                { conversation_id: conv.id, user_id: currentUserId },
-                { conversation_id: conv.id, user_id: targetUserId }
-            ]);
-
-            window.location.href = `dispatch.html?id=${conv.id}`;
-        } catch (err) {
-            console.error('Uplink Error:', err);
-        }
-    },
-
-    // ══════════════════════════════════════════════════════════
-    // PUSH NOTIFICATIONS (Service Worker)
-    // ══════════════════════════════════════════════════════════
-
-    async registerPush(userId) {
-        if (!('serviceWorker' in navigator)) return;
-        try {
-            const reg = await navigator.serviceWorker.register('/sw.js');
-            console.log('[M.O.G.] Service Worker Synchronized');
-        } catch (e) {
-            console.warn('[M.O.G.] Push Protocol Offline');
-        }
-    },
-
-    // ══════════════════════════════════════════════════════════
-    // SYSTEM EXIT
-    // ══════════════════════════════════════════════════════════
-
-    logout() {
-        if (confirm('Terminate operative session?')) {
-            window.sb.auth.signOut().then(() => {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            });
-        }
+      if(p) setProfile(p);
+      return getProfile();
+    } catch(e){
+      console.warn('[MOG] Could not load profile from Supabase:', e.message);
+      return getProfile();
     }
-};
+  }
 
-// INITIALIZE SYSTEM
-document.addEventListener('DOMContentLoaded', () => MOGApp.init());
+  // ── SAVE PROFILE TO SUPABASE ─────────────────────────────────
+  async function saveToSupabase(updates){
+    if(typeof sb === 'undefined') return false;
+    try{
+      const userId = get('mogUserId');
+      if(!userId) return false;
+      const { error } = await sb
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+      if(error){ console.error('[MOG] Save error:', error.message); return false; }
+      // Also update localStorage immediately
+      if(updates.username)   set('mogUser',      updates.username);
+      if(updates.email)      set('mogEmail',      updates.email);
+      if(updates.phone)      set('mogPhone',      updates.phone);
+      if(updates.bio)        set('mogBio',        updates.bio);
+      if(updates.fav_artist) set('mogFavArtist',  updates.fav_artist);
+      if(updates.location)   set('mogLocation',   updates.location);
+      if(updates.avatar_url) set('mogAvatar',     updates.avatar_url);
+      return true;
+    } catch(e){
+      console.error('[MOG] saveToSupabase error:', e);
+      return false;
+    }
+  }
+
+  // ── AVATAR UPLOAD ────────────────────────────────────────────
+  async function uploadAvatar(file){
+    if(typeof sb === 'undefined') return null;
+    const userId = get('mogUserId');
+    if(!userId) return null;
+    const ext  = file.name.split('.').pop();
+    const path = `${userId}/avatar-${Date.now()}.${ext}`;
+    const { error } = await sb.storage
+      .from('avatars')
+      .upload(path, file, { upsert:true, cacheControl:'3600' });
+    if(error){ console.error('[MOG] Avatar upload error:', error.message); return null; }
+    const { data:{ publicUrl } } = sb.storage.from('avatars').getPublicUrl(path);
+    set('mogAvatar', publicUrl);
+    // Update profile table
+    await sb.from('profiles').update({ avatar_url:publicUrl }).eq('id', userId);
+    return publicUrl;
+  }
+
+  // ── SIGN OUT ─────────────────────────────────────────────────
+  async function signOut(){
+    clear();
+    if(typeof sb !== 'undefined'){
+      await sb.auth.signOut().catch(()=>{});
+    }
+    // Determine path to login.html (works from root or /pages/)
+    const isInPages = window.location.pathname.includes('/pages/');
+    window.location.replace(isInPages ? '../login.html' : 'login.html');
+  }
+
+  // ── AUTH GUARD ───────────────────────────────────────────────
+  // Call this at top of any protected page
+  async function requireAuth(redirectIfNoAuth = true){
+    if(typeof sb !== 'undefined'){
+      try{
+        const { data:{ session } } = await sb.auth.getSession();
+        if(session){
+          // Refresh localStorage from Supabase
+          await load();
+          return true;
+        }
+      } catch(e){}
+    }
+    // Fallback: check localStorage
+    if(isLoggedIn()) return true;
+    if(redirectIfNoAuth){
+      const isInPages = window.location.pathname.includes('/pages/');
+      window.location.replace(isInPages ? '../login.html' : 'login.html');
+    }
+    return false;
+  }
+
+  // ── DIRECTOR GUARD ───────────────────────────────────────────
+  async function requireDirector(){
+    const authed = await requireAuth(false);
+    if(!authed || !isAdmin()){
+      const isInPages = window.location.pathname.includes('/pages/');
+      window.location.replace(isInPages ? '../login.html' : 'login.html');
+      return false;
+    }
+    return true;
+  }
+
+  // ── TOAST HELPER (works on all pages) ────────────────────────
+  function toast(msg, duration=3000){
+    let el = document.getElementById('mog-toast');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'mog-toast';
+      el.style.cssText = [
+        'position:fixed','bottom:88px','left:50%','transform:translateX(-50%)',
+        'background:rgba(10,25,41,0.97)','border:1px solid rgba(0,229,204,0.4)',
+        'border-radius:8px','padding:12px 24px',
+        "font-family:'Orbitron',sans-serif",'font-size:10px','color:#00E5CC',
+        'letter-spacing:2px','z-index:9999','white-space:nowrap',
+        'backdrop-filter:blur(12px)','box-shadow:0 0 20px rgba(0,229,204,0.2)',
+        'display:none'
+      ].join(';');
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+    clearTimeout(el._timer);
+    el._timer = setTimeout(()=>{ el.style.display='none'; }, duration);
+  }
+
+  // ── INIT — migrate old sessionStorage data to localStorage ───
+  (function migrate(){
+    try{
+      const keys = ['mogUser','mogEmail','mogRank','mogAvatar','mogPhone',
+                    'mogBio','mogFavArtist','mogLocation','mogUserId'];
+      keys.forEach(k=>{
+        const val = sessionStorage.getItem(k);
+        if(val && !localStorage.getItem(k)){
+          localStorage.setItem(k, val);
+        }
+      });
+    } catch(e){}
+  })();
+
+  // ── PUBLIC API ───────────────────────────────────────────────
+  return {
+    get, set, remove, clear,
+    getProfile, setProfile,
+    isLoggedIn, isAdmin,
+    load, saveToSupabase, uploadAvatar,
+    signOut, requireAuth, requireDirector,
+    toast
+  };
+
+})();
