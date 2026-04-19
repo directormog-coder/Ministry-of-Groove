@@ -98,19 +98,6 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 .nav-icon{font-size:20px;line-height:1;}
 .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
 .nav-item.active .nav-label{color:var(--gold);}
-/* LOGOUT MODAL */
-.logout-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,10,14,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px;}
-.logout-modal.open{display:flex;}
-.lm-box{width:100%;max-width:320px;background:rgba(13,31,45,0.98);border:1px solid rgba(255,59,59,0.3);border-radius:10px;padding:32px 24px;text-align:center;position:relative;}
-.lm-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#FF3B3B,transparent);}
-.lm-icon{font-size:44px;margin-bottom:14px;}
-.lm-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#ff5555;letter-spacing:3px;margin-bottom:8px;}
-.lm-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.7;margin-bottom:24px;}
-.lm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.lm-yes{padding:13px;background:rgba(255,59,59,0.12);border:1px solid rgba(255,59,59,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:#ff5555;letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
-.lm-yes:hover,.lm-yes:active{background:rgba(255,59,59,0.28);}
-.lm-no{padding:13px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;color:var(--gold);letter-spacing:2px;cursor:pointer;transition:all 0.2s;}
-.lm-no:hover,.lm-no:active{background:rgba(201,168,76,0.18);}
 </style>
 </head>
 <body>
@@ -243,30 +230,13 @@ setTimeout(()=>{
 }, 300);
 
 function goToProfile(){ window.location.href = 'pages/dossier.html?tab=profile'; }
-
 function logout(){
-  document.getElementById('logoutModal').classList.add('open');
-}
-function confirmLogout(){
-  sessionStorage.clear();
-  window.location.href = 'login.html';
-}
-function cancelLogout(){
-  document.getElementById('logoutModal').classList.remove('open');
+  if(confirm('Terminate operative session?')){
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  }
 }
 </script>
-<!-- LOGOUT CONFIRMATION MODAL -->
-<div class="logout-modal" id="logoutModal">
-  <div class="lm-box">
-    <div class="lm-icon">🔐</div>
-    <div class="lm-title">TERMINATE SESSION?</div>
-    <div class="lm-sub">YOU WILL BE LOGGED OUT OF<br>THE OPERATIVE NETWORK.</div>
-    <div class="lm-btns">
-      <button class="lm-no"  onclick="cancelLogout()">⇠ STAY</button>
-      <button class="lm-yes" onclick="confirmLogout()">⇥ EXIT</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
+
