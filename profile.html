@@ -482,7 +482,7 @@ function renderProfile(d){
   document.getElementById('statSessions').textContent = d.sessions_attended || 0;
   document.getElementById('statLikes').textContent    = d.likes_given || 0;
 
-  // Avatar
+    // Avatar
   if(d.avatar_url){
     document.getElementById('profileImg').src = d.avatar_url;
   }
