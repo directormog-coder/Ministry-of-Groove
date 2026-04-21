@@ -683,9 +683,9 @@ async function syncFromSupabase(room){
   } catch(e){
     console.warn('[MOG Dispatch] Sync error:', e.message);
   }
-  }
+}
 
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SUPABASE REALTIME — live new messages from other users
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function connectRealtime(room){
@@ -760,8 +760,9 @@ function markTabUnread(room){
       t.appendChild(dot);
     }
   });
-}
+  }
 
+  
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // SWITCH ROOM
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1047,9 +1048,9 @@ function showToast(msg, dur=2800){
   el.style.display = 'block';
   clearTimeout(el._t);
   el._t = setTimeout(()=>{ el.style.display='none'; }, dur);
-}
+  }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // UTILITIES
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function esc(s){
