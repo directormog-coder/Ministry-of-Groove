@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#020608">
 <title>M.O.G. — Dispatch</title>
 <link rel="stylesheet" href="../css/style.css">
@@ -17,370 +17,375 @@
   --red:#FF3B3B;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{height:100%;}
 
-/* KEY FIX: body must NOT use overflow:hidden — that hides the input on mobile */
-body{
-  background:var(--black);
-  font-family:'Rajdhani',sans-serif;
-  color:#fff;
-  height:100%;
-  /* Use dvh so the layout respects the keyboard */
-  min-height:100dvh;
-  display:flex;
-  flex-direction:column;
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   THE LAYOUT — 100dvh grid, nothing scrolls except messages
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+html, body {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: var(--black);
+  font-family: 'Rajdhani', sans-serif;
+  color: #fff;
 }
 
-/* Scanlines */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);
+.layout {
+  height: 100dvh;
+  max-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto auto auto;
+  /* rows:  topbar toolbar tabs  msgs  typing input  nav  */
+  overflow: hidden;
+}
+
+/* Scanlines overlay */
+.layout::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
+  );
 }
 
 /* ── TOP BAR ── */
-.top-bar{
-  background:rgba(2,6,8,0.97);border-bottom:1px solid var(--border);
-  padding:0 14px;display:flex;align-items:center;height:56px;gap:10px;
-  backdrop-filter:blur(16px);flex-shrink:0;z-index:50;
-  box-shadow:0 2px 12px rgba(0,0,0,0.4);
+.top-bar {
+  grid-row: 1;
+  background: rgba(2,6,8,0.99);
+  border-bottom: 1px solid var(--border);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 10px;
+  backdrop-filter: blur(16px);
+  z-index: 50;
+  box-shadow: 0 1px 0 var(--border), 0 4px 20px rgba(0,0,0,0.5);
+  position: relative;
 }
-.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;flex-shrink:0;}
-.top-logo{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);overflow:hidden;flex-shrink:0;}
-.top-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.top-brand{flex:1;min-width:0;}
-.top-brand-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:var(--gold-light);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.top-brand-slogan{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--teal-dim);letter-spacing:1px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.online-badge{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;white-space:nowrap;flex-shrink:0;}
-.pulse{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:pulseAnim 2s infinite;flex-shrink:0;}
-@keyframes pulseAnim{0%,100%{opacity:1}50%{opacity:0.2}}
+.back-btn { color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;flex-shrink:0; }
+.top-logo { width:32px;height:32px;border-radius:50%;border:1.5px solid var(--gold);overflow:hidden;flex-shrink:0; }
+.top-logo img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.top-brand { flex:1;min-width:0; }
+.top-brand-name { font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:var(--gold-light);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.top-brand-slogan { font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--teal-dim);letter-spacing:1px;margin-top:1px; }
+.online-badge { display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;flex-shrink:0; }
+.pulse { width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2s infinite;flex-shrink:0; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:0.2} }
 
 /* ── DIRECTOR TOOLBAR ── */
-.director-toolbar{
-  display:none;background:rgba(0,229,204,0.04);
-  border-bottom:1px solid var(--border-teal);
-  padding:8px 14px;gap:6px;flex-shrink:0;flex-wrap:wrap;z-index:49;
+.director-toolbar {
+  grid-row: 2;
+  display: none;
+  background: rgba(0,229,204,0.04);
+  border-bottom: 1px solid var(--border-teal);
+  padding: 8px 14px;
+  gap: 6px;
+  flex-wrap: wrap;
+  z-index: 49;
 }
-.director-toolbar.show{display:flex;}
-.dir-btn{
-  font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;
-  padding:6px 12px;border-radius:4px;cursor:pointer;
-  border:1px solid var(--border-teal);color:var(--teal);
-  background:rgba(0,229,204,0.05);transition:all 0.2s;white-space:nowrap;
-}
-.dir-btn:hover{background:rgba(0,229,204,0.15);border-color:var(--teal);}
-.dir-btn.danger{color:var(--red);border-color:rgba(255,59,59,0.3);background:rgba(255,59,59,0.04);}
-.dir-btn.danger:hover{background:rgba(255,59,59,0.15);}
+.director-toolbar.show { display: flex; }
+.dir-btn { font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:1px;padding:7px 13px;border-radius:4px;cursor:pointer;border:1px solid var(--border-teal);color:var(--teal);background:rgba(0,229,204,0.05);transition:all 0.2s;white-space:nowrap; }
+.dir-btn:hover,.dir-btn:active { background:rgba(0,229,204,0.15);border-color:var(--teal); }
+.dir-btn.danger { color:var(--red);border-color:rgba(255,59,59,0.3);background:rgba(255,59,59,0.04); }
+.dir-btn.danger:hover { background:rgba(255,59,59,0.15); }
 
 /* ── ROOM TABS ── */
-.rooms-bar{
-  background:rgba(10,25,41,0.85);border-bottom:1px solid var(--border-teal);
-  display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;z-index:48;
+.rooms-bar {
+  grid-row: 3;
+  background: rgba(10,25,41,0.88);
+  border-bottom: 1px solid var(--border-teal);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  z-index: 48;
 }
-.rooms-bar::-webkit-scrollbar{display:none;}
-.room-tab{
-  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
-  padding:11px 14px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;
-  border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;
-  background:none;border-top:none;border-left:none;border-right:none;
-  display:flex;align-items:center;gap:5px;
-}
-.room-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.room-tab:hover:not(.active){color:var(--gold-light);}
-.unread-dot{
-  width:7px;height:7px;background:var(--teal);border-radius:50%;
-  flex-shrink:0;box-shadow:0 0 5px rgba(0,229,204,0.6);animation:pulseAnim 1.5s infinite;
-}
-.room-tab.vip-tab{display:none;}
-.room-tab.vip-tab.visible{display:flex;}
+.rooms-bar::-webkit-scrollbar { display:none; }
+.room-tab { font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;padding:11px 14px;color:var(--gold-dim);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;flex-shrink:0;background:none;border-top:none;border-left:none;border-right:none;display:flex;align-items:center;gap:5px; }
+.room-tab.active { color:var(--gold);border-bottom-color:var(--gold); }
+.room-tab:hover:not(.active) { color:var(--gold-light); }
+.unread-dot { width:7px;height:7px;background:var(--teal);border-radius:50%;flex-shrink:0;box-shadow:0 0 5px rgba(0,229,204,0.6);animation:blink 1.5s infinite; }
+.room-tab.vip-tab { display:none; }
+.room-tab.vip-tab.visible { display:flex; }
 
-/* ── CHAT BODY — KEY FIX ──
-   flex:1 with min-height:0 makes it fill remaining space
-   overflow-y:auto allows scrolling within this area only    */
-.chat-body{
-  flex:1;
-  min-height:0;         /* critical — without this flex:1 doesn't shrink */
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  position:relative;
-  z-index:1;
+/* ── MESSAGES — fills all remaining space, ONLY scrollable area ── */
+.messages-wrap {
+  grid-row: 4;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201,168,76,0.2) transparent;
 }
+.messages-wrap::-webkit-scrollbar { width:4px; }
+.messages-wrap::-webkit-scrollbar-track { background:transparent; }
+.messages-wrap::-webkit-scrollbar-thumb { background:rgba(201,168,76,0.25);border-radius:4px; }
+.messages-wrap::-webkit-scrollbar-thumb:hover { background:var(--gold); }
 
-.messages-wrap{
-  flex:1;
-  min-height:0;         /* critical */
-  overflow-y:auto;
-  padding:12px 14px 4px;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  -webkit-overflow-scrolling:touch;
-  scroll-behavior:smooth;
+/* ── SCROLL TO BOTTOM FAB ── */
+.scroll-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(56px + 62px + 10px); /* nav height + input height + gap */
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(10,25,41,0.97);
+  border: 1.5px solid var(--teal);
+  color: var(--teal);
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.5), 0 0 10px rgba(0,229,204,0.2);
+  transition: all 0.2s;
 }
-.messages-wrap::-webkit-scrollbar{width:3px;}
-.messages-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.scroll-fab.show { display: flex; }
+.scroll-fab:hover { background: rgba(0,229,204,0.15); }
 
-/* Room header */
-.room-header-label{
-  text-align:center;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold-dim);
-  letter-spacing:3px;border:1px solid var(--border);padding:5px 14px;border-radius:3px;
-  display:inline-block;align-self:center;margin-bottom:4px;
-}
-.sys-msg{
-  text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;
-  color:var(--teal-dim);letter-spacing:2px;padding:4px;
-}
-.date-divider{
-  text-align:center;font-family:'Share Tech Mono',monospace;font-size:8px;
-  color:rgba(255,255,255,0.2);letter-spacing:2px;margin:6px 0;
-  display:flex;align-items:center;gap:10px;
-}
-.date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
+/* Room label + system messages */
+.room-header-label { text-align:center;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold-dim);letter-spacing:3px;border:1px solid var(--border);padding:5px 14px;border-radius:3px;display:inline-block;align-self:center;margin-bottom:6px; }
+.sys-msg { text-align:center;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;padding:4px; }
+.date-divider { font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);letter-spacing:2px;margin:6px 0;display:flex;align-items:center;gap:10px; }
+.date-divider::before,.date-divider::after { content:'';flex:1;height:1px;background:rgba(255,255,255,0.06); }
 
-/* ── MESSAGE BUBBLES ── */
-.msg{display:flex;gap:9px;max-width:88%;animation:msgIn 0.22s ease;}
-@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.msg.mine{flex-direction:row-reverse;align-self:flex-end;}
-.msg.director-msg{max-width:96%;}
+/* ── BUBBLES ── */
+.msg { display:flex;gap:9px;max-width:88%;animation:msgIn 0.22s ease; }
+@keyframes msgIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+.msg.mine { flex-direction:row-reverse;align-self:flex-end; }
+.msg.dir-msg { max-width:96%; }
+.avatar { width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;align-self:flex-end;overflow:hidden;background:var(--navy); }
+.avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+.avatar.dir { border-color:var(--teal);border-width:2px;box-shadow:0 0 8px rgba(0,229,204,0.3); }
+.avatar.me  { border-color:var(--gold); }
+.msg-body { display:flex;flex-direction:column;gap:2px;min-width:0; }
+.msg-sender { font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px; }
+.msg.mine .msg-sender { text-align:right;color:var(--gold-dim); }
+.bubble { background:var(--panel);border:1px solid var(--border);border-radius:12px;border-bottom-left-radius:3px;padding:10px 14px;font-size:14px;font-weight:500;color:#ddd;line-height:1.45;word-break:break-word;position:relative; }
+.msg.mine .bubble { background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);border-bottom-right-radius:3px;border-bottom-left-radius:12px; }
+.bubble.dir-bubble { background:linear-gradient(135deg,rgba(0,229,204,0.06),rgba(10,25,41,0.95));border-color:rgba(0,229,204,0.35); }
+.bubble.dir-bubble::before { content:'👑 DIRECTORATE';position:absolute;top:-9px;left:10px;font-family:'Orbitron',sans-serif;font-size:7px;color:var(--teal);letter-spacing:2px;background:var(--black);padding:0 5px;border-radius:2px; }
+.bubble-img { padding:4px;background:var(--navy);border:1px solid var(--border);border-radius:10px;cursor:pointer; }
+.bubble-img img { max-width:200px;max-height:200px;border-radius:6px;display:block;object-fit:cover; }
+.msg-foot { display:flex;align-items:center;gap:8px;margin-top:2px; }
+.msg.mine .msg-foot { flex-direction:row-reverse; }
+.msg-time { font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.22);letter-spacing:1px; }
+.tick { font-size:9px;color:rgba(255,255,255,0.2); }
+.tick.sent { color:var(--teal); }
+/* Broadcast banner */
+.broadcast { background:linear-gradient(135deg,rgba(0,229,204,0.07),rgba(10,25,41,0.97));border:1px solid rgba(0,229,204,0.3);border-radius:8px;padding:12px 14px;margin:4px 0;position:relative;overflow:hidden;animation:msgIn 0.3s ease; }
+.broadcast::before { content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent); }
+.bc-label { font-family:'Orbitron',sans-serif;font-size:8px;color:var(--teal);letter-spacing:3px;margin-bottom:4px; }
+.bc-text { font-size:14px;font-weight:600;color:#e0e0e0;line-height:1.4; }
+.bc-time { font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);margin-top:4px; }
+/* Reactions */
+.reacts { display:flex;gap:4px;flex-wrap:wrap;margin-top:4px; }
+.react-pill { background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:10px;padding:2px 8px;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:3px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim); }
+.react-pill.on,.react-pill:hover { background:rgba(201,168,76,0.18);border-color:var(--gold);color:var(--gold); }
+.react-picker { display:none;position:absolute;bottom:calc(100% + 6px);left:0;background:rgba(10,25,41,0.98);border:1px solid var(--border);border-radius:20px;padding:6px 10px;gap:6px;z-index:70;backdrop-filter:blur(12px); }
+.react-picker.show { display:flex; }
+.msg.mine .react-picker { left:auto;right:0; }
+.react-e { font-size:18px;cursor:pointer;transition:transform 0.15s;padding:2px; }
+.react-e:hover { transform:scale(1.4); }
 
-.msg-avatar{
-  width:32px;height:32px;border-radius:50%;
-  border:1.5px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);
-  flex-shrink:0;align-self:flex-end;overflow:hidden;background:var(--navy);
-}
-.msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.msg-avatar.is-director{border-color:var(--teal);border-width:2px;box-shadow:0 0 8px rgba(0,229,204,0.35);}
-.msg-avatar.is-mine{border-color:var(--gold);}
-
-.msg-body{display:flex;flex-direction:column;gap:2px;min-width:0;}
-.msg-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;}
-.msg.mine .msg-name{text-align:right;color:var(--gold-dim);}
-
-.bubble{
-  background:var(--panel);border:1px solid var(--border);
-  border-radius:12px;border-bottom-left-radius:3px;
-  padding:10px 14px;font-size:14px;font-weight:500;color:#ddd;
-  line-height:1.45;word-break:break-word;position:relative;
-}
-.msg.mine .bubble{
-  background:rgba(201,168,76,0.1);border-color:rgba(201,168,76,0.35);
-  border-bottom-right-radius:3px;border-bottom-left-radius:12px;
-}
-.bubble.director-bubble{
-  background:linear-gradient(135deg,rgba(0,229,204,0.06),rgba(10,25,41,0.95));
-  border-color:rgba(0,229,204,0.35);
-}
-.bubble.director-bubble::before{
-  content:'👑 DIRECTORATE';
-  position:absolute;top:-9px;left:10px;
-  font-family:'Orbitron',sans-serif;font-size:7px;color:var(--teal);letter-spacing:2px;
-  background:var(--black);padding:0 5px;border-radius:2px;
-}
-.bubble-img{padding:5px;background:var(--navy);border:1px solid var(--border);border-radius:10px;cursor:pointer;}
-.bubble-img img{max-width:200px;max-height:200px;border-radius:6px;display:block;object-fit:cover;}
-
-.msg-footer{display:flex;align-items:center;gap:8px;margin-top:2px;}
-.msg.mine .msg-footer{flex-direction:row-reverse;}
-.msg-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.22);letter-spacing:1px;}
-.msg-tick{font-size:9px;color:rgba(255,255,255,0.2);}
-.msg-tick.read{color:var(--teal);}
-
-/* Director broadcast banner */
-.director-announce{
-  display:block;background:linear-gradient(135deg,rgba(0,229,204,0.07),rgba(10,25,41,0.97));
-  border:1px solid rgba(0,229,204,0.3);border-radius:8px;padding:12px 14px;
-  margin:4px 0;position:relative;overflow:hidden;animation:msgIn 0.3s ease;
-}
-.director-announce::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
-.da-label{font-family:'Orbitron',sans-serif;font-size:8px;color:var(--teal);letter-spacing:3px;margin-bottom:4px;}
-.da-text{font-size:14px;font-weight:600;color:#e0e0e0;line-height:1.4;}
-.da-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:rgba(255,255,255,0.2);margin-top:4px;}
-
-/* ── REACTIONS ── */
-.reactions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.reaction-pill{
-  background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:10px;
-  padding:2px 8px;cursor:pointer;transition:all 0.2s;
-  display:inline-flex;align-items:center;gap:3px;
-  font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);
-}
-.reaction-pill.reacted,.reaction-pill:hover{background:rgba(201,168,76,0.18);border-color:var(--gold);color:var(--gold);}
-.reaction-bar{
-  display:none;position:absolute;bottom:calc(100% + 6px);left:0;
-  background:rgba(10,25,41,0.98);border:1px solid var(--border);
-  border-radius:20px;padding:6px 10px;gap:6px;z-index:60;backdrop-filter:blur(12px);
-}
-.reaction-bar.show{display:flex;}
-.msg.mine .reaction-bar{left:auto;right:0;}
-.react-emoji{font-size:18px;cursor:pointer;transition:transform 0.15s;padding:2px;}
-.react-emoji:hover{transform:scale(1.4);}
-
-/* ── TYPING INDICATOR ── */
-.typing-indicator{
-  display:none;padding:4px 14px 0;
+/* ── TYPING ── */
+.typing-bar {
+  grid-row: 5;
+  display: none;
+  padding: 4px 14px;
   font-family:'Share Tech Mono',monospace;font-size:9px;
   color:rgba(255,255,255,0.3);letter-spacing:1px;
-  flex-shrink:0;
+  background:rgba(2,6,8,0.85);
 }
-.typing-indicator.show{display:block;}
-.typing-dots{display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle;}
-.typing-dots span{
-  width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.3);
-  animation:tdot 1.4s infinite;display:inline-block;
-}
-.typing-dots span:nth-child(2){animation-delay:0.2s;}
-.typing-dots span:nth-child(3){animation-delay:0.4s;}
-@keyframes tdot{0%,80%,100%{opacity:0.3}40%{opacity:1}}
+.typing-bar.show { display:block; }
+.t-dots { display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle; }
+.t-dots span { width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.3);animation:td 1.4s infinite;display:inline-block; }
+.t-dots span:nth-child(2){animation-delay:0.2s}
+.t-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes td{0%,80%,100%{opacity:0.3}40%{opacity:1}}
 
-/* ── INPUT AREA — KEY FIX ──
-   flex-shrink:0 ensures it's always visible
-   No fixed/absolute positioning — stays in flex flow      */
-.input-wrap{
-  background:rgba(2,6,8,0.97);
-  border-top:1px solid var(--border);
-  padding:10px 14px;
-  /* safe area for iPhone bottom bar */
-  padding-bottom:max(10px, env(safe-area-inset-bottom));
-  flex-shrink:0;
-  z-index:50;
-  position:relative;
-  box-shadow:0 -2px 12px rgba(0,0,0,0.3);
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   INPUT WRAP — grid-row:6, always rendered, never hidden
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.input-wrap {
+  grid-row: 6;
+  background: rgba(2,6,8,0.99);
+  border-top: 1.5px solid var(--border);
+  padding: 10px 12px 12px;
+  z-index: 50;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
 }
-.preview-strip{display:none;padding:0 0 8px;gap:8px;overflow-x:auto;scrollbar-width:none;}
-.preview-strip.show{display:flex;}
-.preview-strip::-webkit-scrollbar{display:none;}
-.preview-thumb{position:relative;flex-shrink:0;}
-.preview-thumb img{width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block;}
-.preview-remove{
-  position:absolute;top:-5px;right:-5px;background:var(--black);
-  border:1px solid var(--border);border-radius:50%;width:16px;height:16px;
-  display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:var(--gold-dim);
+.preview-strip { display:none;padding-bottom:8px;gap:8px;overflow-x:auto;scrollbar-width:none; }
+.preview-strip.show { display:flex; }
+.preview-strip::-webkit-scrollbar { display:none; }
+.preview-thumb { position:relative;flex-shrink:0; }
+.preview-thumb img { width:52px;height:52px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block; }
+.p-remove { position:absolute;top:-5px;right:-5px;background:var(--black);border:1px solid var(--border);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:var(--gold-dim); }
+
+.input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
 
-.input-row{display:flex;gap:8px;align-items:flex-end;}
-.attach-btn{
-  background:rgba(201,168,76,0.06);border:1px solid var(--border);border-radius:10px;
-  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:17px;color:var(--gold-dim);transition:all 0.2s;flex-shrink:0;
+.attach-btn {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  flex-shrink: 0;
+  background: rgba(201,168,76,0.06);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--gold-dim);
+  transition: all 0.2s;
 }
-.attach-btn:hover,.attach-btn:active{border-color:var(--gold);color:var(--gold);}
+.attach-btn:hover,.attach-btn:active { border-color:var(--gold);color:var(--gold); }
 
-.msg-input{
-  flex:1;
-  background:rgba(10,25,41,0.9);
-  border:1.5px solid var(--border-teal);
-  border-radius:12px;
-  padding:11px 14px;
-  font-family:'Rajdhani',sans-serif;
-  font-size:16px;
-  color:#fff;
-  outline:none;
-  resize:none;
-  max-height:130px;
-  min-height:44px;
-  transition:border-color 0.2s, box-shadow 0.2s;
-  line-height:1.4;
-  -webkit-appearance:none;  /* removes iOS default styling */
+/* The textarea */
+.msg-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(10,25,41,0.92);
+  border: 1.5px solid var(--border-teal);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  color: #fff;
+  outline: none;
+  resize: none;
+  min-height: 46px;
+  max-height: 120px;
+  line-height: 1.4;
+  display: block;
+  -webkit-appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.msg-input:focus{
-  border-color:var(--teal);
-  box-shadow:0 0 0 3px rgba(0,229,204,0.1);
-}
-.msg-input::placeholder{color:rgba(255,255,255,0.2);}
+.msg-input:focus { border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,204,0.1); }
+.msg-input::placeholder { color:rgba(255,255,255,0.25); }
 
-.send-btn{
-  background:linear-gradient(135deg,var(--gold-dim),var(--gold));
-  border:none;border-radius:12px;
-  width:44px;height:44px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:18px;color:var(--black);
-  flex-shrink:0;transition:all 0.2s;
-  box-shadow:0 2px 10px rgba(201,168,76,0.25);
+/* The send button */
+.send-btn {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--black);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(201,168,76,0.3);
 }
-.send-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 18px rgba(201,168,76,0.45);}
-.send-btn:active{transform:scale(0.93);}
-.send-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.send-btn:hover { background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 20px rgba(201,168,76,0.5); }
+.send-btn:active { transform:scale(0.92); }
+.send-btn:disabled { opacity:0.4;cursor:not-allowed;transform:none; }
 
-/* ── BOTTOM NAV — with safe area ── */
-.bottom-nav{
-  background:rgba(2,6,8,0.98);border-top:1px solid var(--border);
-  display:grid;grid-template-columns:repeat(5,1fr);flex-shrink:0;z-index:50;
-  padding-bottom:env(safe-area-inset-bottom);
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  grid-row: 7;
+  background: rgba(2,6,8,0.99);
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  z-index: 50;
 }
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 11px;gap:4px;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
-.nav-item.active{border-top-color:var(--gold);}
-.nav-icon{font-size:20px;line-height:1;}
-.nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
-.nav-item.active .nav-label{color:var(--gold);}
+.nav-item { display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent; }
+.nav-item.active { border-top-color:var(--gold); }
+.nav-icon { font-size:20px;line-height:1; }
+.nav-label { font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px; }
+.nav-item.active .nav-label { color:var(--gold); }
 
 /* ── LIGHTBOX ── */
-.lightbox{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
-.lightbox.open{display:flex;}
-.lightbox img{max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain;}
-.lightbox-close{position:absolute;top:16px;right:16px;background:rgba(10,25,41,0.8);border:1px solid var(--border);color:var(--gold);font-size:18px;padding:6px 12px;border-radius:4px;cursor:pointer;}
+.lightbox { display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.95);backdrop-filter:blur(8px);align-items:center;justify-content:center; }
+.lightbox.open { display:flex; }
+.lightbox img { max-width:90vw;max-height:85vh;border-radius:8px;object-fit:contain; }
+.lb-close { position:absolute;top:16px;right:16px;background:rgba(10,25,41,0.8);border:1px solid var(--border);color:var(--gold);font-size:18px;padding:6px 12px;border-radius:4px;cursor:pointer; }
 
-/* ── IN-APP CONFIRM (no browser confirm()) ── */
-.confirm-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,6,8,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px;}
-.confirm-overlay.show{display:flex;}
-.confirm-box{width:100%;max-width:300px;background:rgba(10,25,41,0.98);border:1px solid rgba(255,59,59,0.3);border-radius:12px;padding:28px 22px;text-align:center;}
-.confirm-box::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);margin:-28px -22px 20px;}
-.confirm-icon{font-size:36px;margin-bottom:12px;}
-.confirm-title{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--red);letter-spacing:2px;margin-bottom:8px;}
-.confirm-msg{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.8;margin-bottom:20px;}
-.confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.confirm-no{padding:11px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold);letter-spacing:2px;cursor:pointer;}
-.confirm-yes{padding:11px;background:rgba(255,59,59,0.12);border:1px solid rgba(255,59,59,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--red);letter-spacing:2px;cursor:pointer;}
+/* ── CONFIRM DIALOG ── */
+.confirm-ov { display:none;position:fixed;inset:0;z-index:300;background:rgba(2,6,8,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:24px; }
+.confirm-ov.show { display:flex; }
+.confirm-box { width:100%;max-width:300px;background:rgba(10,25,41,0.98);border:1px solid rgba(255,59,59,0.3);border-radius:12px;padding:28px 22px;text-align:center; }
+.confirm-box::before { content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);margin:-28px -22px 20px; }
+.ci { font-size:36px;margin-bottom:12px; }
+.ct { font-family:'Orbitron',sans-serif;font-size:11px;color:var(--red);letter-spacing:2px;margin-bottom:8px; }
+.cm { font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:1px;line-height:1.8;margin-bottom:20px; }
+.cb { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+.cn { padding:11px;background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--gold);letter-spacing:2px;cursor:pointer; }
+.cy { padding:11px;background:rgba(255,59,59,0.12);border:1px solid rgba(255,59,59,0.4);border-radius:4px;font-family:'Orbitron',sans-serif;font-size:9px;color:var(--red);letter-spacing:2px;cursor:pointer; }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <a href="../index.html" class="back-btn">←</a>
-  <div class="top-logo">
-    <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+<div class="layout">
+
+  <!-- ROW 1: TOP BAR -->
+  <div class="top-bar">
+    <a href="../index.html" class="back-btn">←</a>
+    <div class="top-logo">
+      <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+    </div>
+    <div class="top-brand">
+      <div class="top-brand-name">MINISTRY OF GROOVE</div>
+      <div class="top-brand-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+    </div>
+    <div class="online-badge"><div class="pulse"></div><span id="onlineCount">— ONLINE</span></div>
   </div>
-  <div class="top-brand">
-    <div class="top-brand-name">MINISTRY OF GROOVE</div>
-    <div class="top-brand-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+
+  <!-- ROW 2: DIRECTOR TOOLBAR -->
+  <div class="director-toolbar" id="directorToolbar">
+    <button class="dir-btn" onclick="dirAnnounce()">📣 BROADCAST</button>
+    <button class="dir-btn" onclick="dirPin()">📌 PIN LAST</button>
+    <button class="dir-btn danger" onclick="askClear()">🗑️ CLEAR ROOM</button>
   </div>
-  <div class="online-badge"><div class="pulse"></div><span id="onlineCount">— ONLINE</span></div>
-</div>
 
-<!-- DIRECTOR TOOLBAR -->
-<div class="director-toolbar" id="directorToolbar">
-  <button class="dir-btn" onclick="dirAnnounce()">📣 BROADCAST</button>
-  <button class="dir-btn" onclick="dirPin()">📌 PIN LAST</button>
-  <button class="dir-btn danger" onclick="showClearConfirm()">🗑️ CLEAR ROOM</button>
-</div>
+  <!-- ROW 3: ROOM TABS -->
+  <div class="rooms-bar">
+    <button class="room-tab active" onclick="switchRoom('general',this)">💬 GENERAL HQ</button>
+    <button class="room-tab" onclick="switchRoom('session01',this)">🎬 SESSION 01</button>
+    <button class="room-tab" onclick="switchRoom('session02',this)">🎬 SESSION 02</button>
+    <button class="room-tab" onclick="switchRoom('amapiano',this)">🎵 AMAPIANO</button>
+    <button class="room-tab vip-tab" id="vipTab" onclick="switchRoom('vip',this)">👑 VIP</button>
+  </div>
 
-<!-- ROOM TABS -->
-<div class="rooms-bar">
-  <button class="room-tab active" onclick="switchRoom('general',this)">💬 GENERAL HQ</button>
-  <button class="room-tab" onclick="switchRoom('session01',this)">🎬 SESSION 01</button>
-  <button class="room-tab" onclick="switchRoom('session02',this)">🎬 SESSION 02</button>
-  <button class="room-tab" onclick="switchRoom('amapiano',this)">🎵 AMAPIANO</button>
-  <button class="room-tab vip-tab" id="vipTab" onclick="switchRoom('vip',this)">👑 VIP</button>
-</div>
-
-<!-- CHAT BODY: messages + typing + input all in one flex container -->
-<div class="chat-body">
-
+  <!-- ROW 4: MESSAGES (only scrollable area) -->
   <div class="messages-wrap" id="msgWrap"></div>
 
-  <div class="typing-indicator" id="typingIndicator">
+  <!-- ROW 5: TYPING INDICATOR -->
+  <div class="typing-bar" id="typingBar">
     <span id="typingText">Someone is typing</span>
-    <span class="typing-dots"><span></span><span></span><span></span></span>
+    <span class="t-dots"><span></span><span></span><span></span></span>
   </div>
 
-  <!-- INPUT — lives inside chat-body, never hidden -->
-  <div class="input-wrap" id="inputWrap">
+  <!-- ROW 6: INPUT — always in the grid, never hidden -->
+  <div class="input-wrap">
     <div class="preview-strip" id="previewStrip"></div>
     <div class="input-row">
-      <button class="attach-btn" onclick="document.getElementById('imgUpload').click()" title="Attach image">📎</button>
-      <input type="file" id="imgUpload" accept="image/*" style="display:none" onchange="handleImageAttach(this)">
+      <button class="attach-btn" onclick="document.getElementById('imgIn').click()" title="Attach photo">📎</button>
+      <input type="file" id="imgIn" accept="image/*" style="display:none" onchange="handleImg(this)">
       <textarea
         class="msg-input"
         id="msgInput"
@@ -388,697 +393,435 @@ body::before{
         rows="1"
         autocomplete="off"
         autocorrect="off"
-        autocapitalize="sentences"
         spellcheck="false"
-        oninput="autoResize(this);handleTyping()"
-        onkeydown="handleKeydown(event)"></textarea>
+        oninput="grow(this);onType()"
+        onkeydown="onKey(event)"></textarea>
       <button class="send-btn" id="sendBtn" onclick="send()">➤</button>
     </div>
   </div>
 
-</div><!-- /chat-body -->
+  <!-- ROW 7: BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
+    <a href="gallery.html"  class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+    <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
+    <a href="dispatch.html" class="nav-item active"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+    <a href="dossier.html"  class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+  </nav>
 
-<!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
-  <a href="gallery.html"  class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
-  <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
-  <a href="dispatch.html" class="nav-item active"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
-  <a href="dossier.html"  class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
-</nav>
+</div><!-- /layout -->
+
+<!-- SCROLL FAB — fixed, outside grid -->
+<button class="scroll-fab" id="scrollFab" onclick="toBottom()">↓</button>
 
 <!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightboxImg" src="" alt="">
+<div class="lightbox" id="lightbox" onclick="closeLB()">
+  <button class="lb-close" onclick="closeLB()">✕</button>
+  <img id="lbImg" src="" alt="">
 </div>
 
-<!-- IN-APP CONFIRM -->
-<div class="confirm-overlay" id="confirmOverlay">
+<!-- CONFIRM DIALOG -->
+<div class="confirm-ov" id="confirmOv">
   <div class="confirm-box">
-    <div class="confirm-icon">🗑️</div>
-    <div class="confirm-title">CLEAR ROOM?</div>
-    <div class="confirm-msg" id="confirmMsg">DELETE ALL MESSAGES?</div>
-    <div class="confirm-btns">
-      <button class="confirm-no"  onclick="hideConfirm()">CANCEL</button>
-      <button class="confirm-yes" onclick="execClear()">CLEAR</button>
+    <div class="ci">🗑️</div>
+    <div class="ct">CLEAR ROOM?</div>
+    <div class="cm" id="confirmMsg">DELETE ALL MESSAGES?</div>
+    <div class="cb">
+      <button class="cn" onclick="closeConfirm()">CANCEL</button>
+      <button class="cy" onclick="doClear()">CLEAR</button>
     </div>
   </div>
 </div>
 
 <script>
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // IDENTITY
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const DIRECTOR_EMAIL = 'director.mog@gmail.com';
-const myName     = (localStorage.getItem('mogUser')   || 'OPERATIVE').toUpperCase();
-const myEmail    = localStorage.getItem('mogEmail')   || '';
-const myRank     = localStorage.getItem('mogRank')    || 'RECRUIT';
-const myAvatar   = localStorage.getItem('mogAvatar')  || null;
-const myId       = localStorage.getItem('mogUserId')  || ('local-' + Math.random().toString(36).substr(2,8));
-const myInitials = myName.substring(0, 2);
-const isDirector = myEmail.toLowerCase() === DIRECTOR_EMAIL.toLowerCase() || myRank === 'ADMIN';
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const DIRECTOR = 'director.mog@gmail.com';
+const ME_NAME   = (localStorage.getItem('mogUser')  || 'OPERATIVE').toUpperCase();
+const ME_EMAIL  = (localStorage.getItem('mogEmail') || '').toLowerCase();
+const ME_RANK   =  localStorage.getItem('mogRank')  || 'RECRUIT';
+const ME_AVATAR =  localStorage.getItem('mogAvatar')|| null;
+const ME_ID     =  localStorage.getItem('mogUserId')|| 'local-' + Math.random().toString(36).substr(2,8);
+const ME_INIT   = ME_NAME.substring(0,2);
+const IS_DIR    = ME_EMAIL === DIRECTOR || ME_RANK === 'ADMIN';
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ROOM DEFINITIONS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const ROOM_DEFS = {
-  general:  { name:'GENERAL HQ',          icon:'💬', restricted:false },
-  session01:{ name:'SESSION 01 DEBRIEF',   icon:'🎬', restricted:false },
-  session02:{ name:'SESSION 02 DEBRIEF',   icon:'🎬', restricted:false },
-  amapiano: { name:'AMAPIANO INTEL',       icon:'🎵', restricted:false },
-  vip:      { name:'VIP — DIRECTORS ONLY', icon:'👑', restricted:true  },
+const ROOMS = {
+  general:  { name:'GENERAL HQ',          icon:'💬', vip:false },
+  session01:{ name:'SESSION 01 DEBRIEF',   icon:'🎬', vip:false },
+  session02:{ name:'SESSION 02 DEBRIEF',   icon:'🎬', vip:false },
+  amapiano: { name:'AMAPIANO INTEL',       icon:'🎵', vip:false },
+  vip:      { name:'VIP — DIRECTORS ONLY', icon:'👑', vip:true  },
 };
 
-let currentRoom   = 'general';
-let pendingImage  = null;
-let typingTimer   = null;
-let realtimeChannel = null;
-let msgIdCounter  = 0;
+let room    = 'general';
+let imgPend = null;
+let typeTm  = null;
+let rtChan  = null;
+let msgN    = 0;
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// PERSISTENCE — localStorage per room
-// Messages persist until user explicitly deletes them.
-// Format key: mog_chat_{room}
-// Value: JSON array of message objects
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function storageKey(room){ return 'mog_chat_' + room; }
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STORAGE — messages persist in localStorage
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const key = r => 'mog_chat_' + r;
 
-function loadStoredMessages(room){
-  try{
-    const raw = localStorage.getItem(storageKey(room));
-    return raw ? JSON.parse(raw) : [];
-  } catch(e){ return []; }
+function load(r){ try{ return JSON.parse(localStorage.getItem(key(r)) || '[]'); }catch(e){ return []; } }
+
+function save(r, msgs){
+  try{ localStorage.setItem(key(r), JSON.stringify(msgs.slice(-200))); }
+  catch(e){ try{ localStorage.setItem(key(r), JSON.stringify(msgs.slice(-50))); }catch(e2){} }
 }
 
-function saveMessages(room, msgs){
-  try{
-    // Keep last 200 messages per room to avoid storage limits
-    const toSave = msgs.slice(-200);
-    localStorage.setItem(storageKey(room), JSON.stringify(toSave));
-  } catch(e){
-    // Storage full — trim and retry
-    try{
-      const toSave = msgs.slice(-50);
-      localStorage.setItem(storageKey(room), JSON.stringify(toSave));
-    } catch(e2){}
-  }
-}
-
-function appendMessage(room, msg){
-  const msgs = loadStoredMessages(room);
-  // Avoid duplicates by dbId
-  if(msg.dbId && msgs.some(m => m.dbId === msg.dbId)) return;
+function push(r, msg){
+  const msgs = load(r);
+  if(msg.dbId && msgs.some(m => m.dbId === msg.dbId)) return false;
   msgs.push(msg);
-  saveMessages(room, msgs);
+  save(r, msgs);
+  return true;
 }
 
-function clearStoredMessages(room){
-  localStorage.removeItem(storageKey(room));
-}
+function clearRoom(r){ localStorage.removeItem(key(r)); }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // INIT
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function init(){
-  // Show director toolbar & VIP tab
-  if(isDirector){
+  if(IS_DIR){
     document.getElementById('directorToolbar').classList.add('show');
     document.getElementById('vipTab').classList.add('visible');
   }
+  document.getElementById('onlineCount').textContent = (Math.floor(Math.random()*18)+3) + ' ONLINE';
 
-  // Online count
-  document.getElementById('onlineCount').textContent =
-    Math.floor(Math.random()*18+3) + ' ONLINE';
+  // Scroll watcher
+  const wrap = document.getElementById('msgWrap');
+  wrap.addEventListener('scroll', () => {
+    const far = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
+    document.getElementById('scrollFab').classList.toggle('show', far > 100);
+  }, { passive:true });
 
-  // Render stored messages then sync from Supabase
-  renderRoom(currentRoom);
-  syncFromSupabase(currentRoom);
-  connectRealtime(currentRoom);
-
-  // Focus input on load (after a tick to avoid mobile keyboard popup)
-  setTimeout(()=>{
-    const inp = document.getElementById('msgInput');
-    if(inp) inp.focus({ preventScroll:true });
-  }, 400);
+  render(room);
+  syncDB(room);
+  liveConnect(room);
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// RENDER ROOM FROM localStorage
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderRoom(room){
-  const def  = ROOM_DEFS[room];
-  const msgs = loadStoredMessages(room);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function render(r){
+  const def  = ROOMS[r];
+  const msgs = load(r);
   const wrap = document.getElementById('msgWrap');
 
   let html = `
     <div style="display:flex;justify-content:center;margin-bottom:8px;">
       <div class="room-header-label">${def.icon} ${def.name}</div>
     </div>
-    <div class="sys-msg">🔐 OPERATIVE EYES ONLY · END-TO-END ENCRYPTED</div>`;
+    <div class="sys-msg">🔐 OPERATIVE EYES ONLY · ENCRYPTED</div>`;
 
-  if(msgs.length === 0){
+  if(!msgs.length){
     html += `<div class="sys-msg" style="margin-top:40px;opacity:0.3;">
-      NO TRANSMISSIONS YET<br>
-      <span style="font-size:8px;opacity:0.6">START THE CONVERSATION, OPERATIVE</span>
+      NO TRANSMISSIONS YET<br><span style="font-size:8px;opacity:0.6;">START THE CONVERSATION</span>
     </div>`;
   } else {
     let lastDate = '';
     msgs.forEach(m => {
-      const msgDate = m.date || '';
-      if(msgDate && msgDate !== lastDate){
-        lastDate = msgDate;
-        html += `<div class="date-divider">${msgDate}</div>`;
-      }
-      html += renderMsgHTML(m);
+      if(m.date && m.date !== lastDate){ lastDate = m.date; html += `<div class="date-divider">${m.date}</div>`; }
+      html += msgHTML(m);
     });
   }
-
   wrap.innerHTML = html;
-  scrollToBottom();
+  toBottom(false);
 }
 
-function scrollToBottom(){
+function toBottom(animate=true){
   const wrap = document.getElementById('msgWrap');
-  if(wrap) setTimeout(()=>{ wrap.scrollTop = wrap.scrollHeight; }, 50);
+  if(wrap){ wrap.scrollTop = wrap.scrollHeight; }
+  document.getElementById('scrollFab').classList.remove('show');
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// RENDER SINGLE MESSAGE HTML
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function renderMsgHTML(m){
-  if(m.type === 'announce'){
-    return `<div class="director-announce">
-      <div class="da-label">📣 DIRECTORATE BROADCAST</div>
-      <div class="da-text">${esc(m.text)}</div>
-      <div class="da-time">${m.t || ''}</div>
-    </div>`;
-  }
+function appendOne(m){
+  const wrap = document.getElementById('msgWrap');
+  // Remove empty state
+  const empty = wrap.querySelector('.sys-msg[style*="margin-top"]');
+  if(empty) empty.remove();
+  const d = document.createElement('div');
+  d.innerHTML = msgHTML(m).trim();
+  const node = d.firstElementChild;
+  if(node) wrap.appendChild(node);
+  // Only auto-scroll if user is near bottom
+  const far = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight;
+  if(far < 120) toBottom();
+}
 
-  const avatarContent = m.avatar
-    ? `<img src="${m.avatar}" alt="${esc(m.u)}" onerror="this.outerHTML='${esc(m.initials||'OP')}';">`
-    : (m.initials || 'OP');
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MESSAGE HTML
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function msgHTML(m){
+  if(m.type === 'bc') return `<div class="broadcast">
+    <div class="bc-label">📣 DIRECTORATE BROADCAST</div>
+    <div class="bc-text">${x(m.text)}</div>
+    <div class="bc-time">${m.t||''}</div>
+  </div>`;
 
-  const reactHtml = (m.reactions && Object.keys(m.reactions).length)
-    ? `<div class="reactions">${Object.entries(m.reactions).map(([e,c])=>
-        `<span class="reaction-pill ${(m.myReacts||[]).includes(e)?'reacted':''}"
-          onclick="toggleReaction('${m.id}','${e}')">${e} ${c}</span>`
+  const mine  = m.mine || m.uid === ME_ID;
+  const isDir = m.dir  || false;
+  const av    = m.av
+    ? `<img src="${m.av}" alt="${x(m.u)}" onerror="this.outerHTML='${x(m.ini||'OP')}';">`
+    : (m.ini || 'OP');
+  const bCls  = isDir && !mine ? 'dir-bubble' : '';
+  const reacts = m.r && Object.keys(m.r).length
+    ? `<div class="reacts">${Object.entries(m.r).map(([e,c])=>
+        `<span class="react-pill ${(m.mr||[]).includes(e)?'on':''}" onclick="toggleR('${m.id}','${e}')">${e} ${c}</span>`
       ).join('')}</div>` : '';
 
-  const isMine = m.mine || m.userId === myId;
-  const isDir  = m.isDirector || false;
-  const bubbleCls = isDir && !isMine ? 'director-bubble' : '';
-
-  const content = m.type === 'image'
-    ? `<div class="bubble-img" onclick="openLightbox('${m.imageUrl}')"><img src="${m.imageUrl}" alt="img" loading="lazy"></div>`
-    : `<div class="bubble ${bubbleCls}" style="position:relative;">
-        ${esc(m.text)}
-        <div class="reaction-bar" id="rbar-${m.id}">
+  const content = m.type === 'img'
+    ? `<div class="bubble-img" onclick="openLB('${m.src}')"><img src="${m.src}" alt="img" loading="lazy"></div>`
+    : `<div class="bubble ${bCls}" style="position:relative">
+        ${x(m.text)}
+        <div class="react-picker" id="rp-${m.id}">
           ${['❤️','🔥','🎵','💃','😂','👑','🙌','💯'].map(e=>
-            `<span class="react-emoji" onclick="addReaction('${m.id}','${e}')">${e}</span>`
+            `<span class="react-e" onclick="addR('${m.id}','${e}')">${e}</span>`
           ).join('')}
         </div>
        </div>`;
 
-  return `
-  <div class="msg ${isMine?'mine':''} ${isDir?'director-msg':''}"
-    data-id="${m.id}"
-    ontouchstart="startLongPress('${m.id}')"
-    ontouchend="cancelLongPress()"
-    oncontextmenu="showReactions('${m.id}');return false;">
-    <div class="msg-avatar ${isDir&&!isMine?'is-director':''} ${isMine?'is-mine':''}">${avatarContent}</div>
+  return `<div class="msg ${mine?'mine':''} ${isDir?'dir-msg':''}" data-id="${m.id}"
+    ontouchstart="lp('${m.id}')" ontouchend="clp()"
+    oncontextmenu="showPicker('${m.id}');return false;">
+    <div class="avatar ${isDir&&!mine?'dir':''} ${mine?'me':''}">${av}</div>
     <div class="msg-body">
-      <span class="msg-name">${esc(m.u)}${isDir&&!isMine?' 👑':''}</span>
+      <span class="msg-sender">${x(m.u)}${isDir&&!mine?' 👑':''}</span>
       ${content}
-      <div class="msg-footer">
+      <div class="msg-foot">
         <span class="msg-time">${m.t||''}</span>
-        ${isMine ? `<span class="msg-tick ${m.read?'read':''}">✓${m.read?'✓':''}</span>` : ''}
+        ${mine?`<span class="tick ${m.ok?'sent':''}">✓${m.ok?'✓':''}</span>`:''}
       </div>
-      ${reactHtml}
+      ${reacts}
     </div>
   </div>`;
 }
 
-// Append one new message DOM node (faster than full re-render)
-function appendMsgToDOM(m){
-  const wrap = document.getElementById('msgWrap');
-  // Remove empty state if present
-  const sys = wrap.querySelector('.sys-msg[style*="margin-top"]');
-  if(sys) sys.remove();
-  const div = document.createElement('div');
-  div.innerHTML = renderMsgHTML(m).trim();
-  const node = div.firstElementChild;
-  if(node) wrap.appendChild(node);
-  scrollToBottom();
-}
+function x(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SUPABASE SYNC — load existing messages from DB
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function syncFromSupabase(room){
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SUPABASE SYNC
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function syncDB(r){
   if(typeof sb === 'undefined') return;
   try{
     const { data } = await sb
       .from('messages')
       .select('*, profiles(username, avatar_url, rank, email)')
-      .eq('room', room)
-      .eq('deleted', false)
-      .order('created_at', { ascending:true })
-      .limit(100);
-
-    if(!data || data.length === 0) return;
-
-    const stored = loadStoredMessages(room);
-    const storedDbIds = new Set(stored.map(m => m.dbId).filter(Boolean));
-    let added = false;
-
+      .eq('room', r).eq('deleted', false)
+      .order('created_at', { ascending:true }).limit(100);
+    if(!data?.length) return;
+    const stored = new Set(load(r).map(m=>m.dbId).filter(Boolean));
+    let changed = false;
     data.forEach(row => {
-      if(storedDbIds.has(row.id)) return; // already have it
-      const p    = row.profiles || {};
-      const isMe = row.user_id === myId || row.user_id === localStorage.getItem('mogUserId');
-      const isDir= p.rank === 'ADMIN' || (p.email||'').toLowerCase() === DIRECTOR_EMAIL.toLowerCase();
-      const now  = new Date(row.created_at);
-      const msg = {
-        id:          'db-' + row.id,
-        dbId:        row.id,
-        u:           p.username || 'OPERATIVE',
-        initials:    (p.username||'OP').substring(0,2).toUpperCase(),
-        avatar:      p.avatar_url || null,
-        type:        'text',
-        text:        row.content,
-        t:           now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
-        date:        now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),
-        mine:        isMe,
-        userId:      row.user_id,
-        isDirector:  isDir,
-        reactions:   {},
-        myReacts:    [],
-        read:        true
+      if(stored.has(row.id)) return;
+      const p = row.profiles || {};
+      const isDir = p.rank==='ADMIN'||(p.email||'').toLowerCase()===DIRECTOR;
+      const now = new Date(row.created_at);
+      const m = {
+        id: 'db-'+row.id, dbId: row.id,
+        u: p.username||'OPERATIVE', ini:(p.username||'OP').substring(0,2).toUpperCase(),
+        av: p.avatar_url||null, type:'text', text:row.content,
+        t: now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
+        date: now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),
+        mine:false, uid:row.user_id, dir:isDir, r:{}, mr:[], ok:true
       };
-      appendMessage(room, msg);
-      added = true;
+      if(push(r,m)) changed=true;
     });
-
-    if(added) renderRoom(room);
-  } catch(e){
-    console.warn('[MOG Dispatch] Sync error:', e.message);
-  }
+    if(changed) render(r);
+  } catch(e){}
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SUPABASE REALTIME — live new messages from other users
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function connectRealtime(room){
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// REALTIME
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function liveConnect(r){
   if(typeof sb === 'undefined') return;
-  if(realtimeChannel) sb.removeChannel(realtimeChannel);
-
-  realtimeChannel = sb.channel('dispatch-' + room)
-    .on('postgres_changes',{
-      event:'INSERT', schema:'public', table:'messages',
-      filter:'room=eq.' + room
-    }, async payload => {
-      const row = payload.new;
-      // Don't re-add our own messages (already added optimistically)
-      if(row.user_id === localStorage.getItem('mogUserId')) return;
-      // Fetch sender profile
-      let p = {};
-      try{
-        const {data} = await sb.from('profiles').select('username,avatar_url,rank,email').eq('id',row.user_id).single();
-        if(data) p = data;
-      } catch(e){}
-      const isDir = p.rank==='ADMIN'||(p.email||'').toLowerCase()===DIRECTOR_EMAIL.toLowerCase();
-      const now = new Date(row.created_at||Date.now());
-      const msg = {
-        id:         'db-' + row.id,
-        dbId:       row.id,
-        u:          p.username || 'OPERATIVE',
-        initials:   (p.username||'OP').substring(0,2).toUpperCase(),
-        avatar:     p.avatar_url || null,
-        type:       'text',
-        text:       row.content,
-        t:          now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
-        date:       now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),
-        mine:       false,
-        userId:     row.user_id,
-        isDirector: isDir,
-        reactions:  {},
-        myReacts:   [],
-        read:       false
-      };
-      appendMessage(room, msg);
-      appendMsgToDOM(msg);
-      // Mark unread on other room tabs
-      if(room !== currentRoom) markTabUnread(room);
-    })
-    // Typing presence
-    .on('presence',{ event:'sync' }, () => {
-      try{
-        const state = realtimeChannel.presenceState();
-        const typing = Object.values(state).flat()
-          .filter(p => p.typing && p.user !== myName)
-          .map(p => p.user);
-        const el = document.getElementById('typingIndicator');
-        if(typing.length > 0){
-          document.getElementById('typingText').textContent =
-            typing.slice(0,2).join(', ') + (typing.length>1?' are':' is') + ' typing';
-          el.classList.add('show');
-        } else {
-          el.classList.remove('show');
+  if(rtChan) sb.removeChannel(rtChan);
+  rtChan = sb.channel('dispatch-'+r)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'room=eq.'+r},
+      async payload => {
+        const row = payload.new;
+        if(row.user_id === ME_ID || row.user_id === localStorage.getItem('mogUserId')) return;
+        let p = {};
+        try{ const{data}=await sb.from('profiles').select('username,avatar_url,rank,email').eq('id',row.user_id).single(); if(data)p=data; }catch(e){}
+        const isDir = p.rank==='ADMIN'||(p.email||'').toLowerCase()===DIRECTOR;
+        const now = new Date(row.created_at||Date.now());
+        const m = {
+          id:'db-'+row.id, dbId:row.id,
+          u:p.username||'OPERATIVE', ini:(p.username||'OP').substring(0,2).toUpperCase(),
+          av:p.avatar_url||null, type:'text', text:row.content,
+          t:now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
+          date:now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),
+          mine:false, uid:row.user_id, dir:isDir, r:{}, mr:[], ok:true
+        };
+        if(push(r,m)) appendOne(m);
+        if(r !== room){ // mark tab unread
+          document.querySelectorAll('.room-tab').forEach(t=>{
+            if(t.getAttribute('onclick')?.includes(`'${r}'`) && !t.querySelector('.unread-dot')){
+              const d=document.createElement('span'); d.className='unread-dot'; t.appendChild(d);
+            }
+          });
         }
-      } catch(e){}
+      })
+    .on('presence',{event:'sync'},()=>{
+      try{
+        const typing=Object.values(rtChan.presenceState()).flat()
+          .filter(p=>p.typing&&p.user!==ME_NAME).map(p=>p.user);
+        const bar=document.getElementById('typingBar');
+        if(typing.length){ document.getElementById('typingText').textContent=typing.slice(0,2).join(', ')+(typing.length>1?' are':' is')+' typing'; bar.classList.add('show'); }
+        else bar.classList.remove('show');
+      }catch(e){}
     })
     .subscribe();
 }
 
-function markTabUnread(room){
-  const tabs = document.querySelectorAll('.room-tab');
-  tabs.forEach(t => {
-    if(t.textContent.toLowerCase().includes(room.replace(/\d+/,'').trim()) &&
-       !t.querySelector('.unread-dot')){
-      const dot = document.createElement('span');
-      dot.className = 'unread-dot';
-      t.appendChild(dot);
-    }
-  });
-  }
-
-  
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SWITCH ROOM
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function switchRoom(room, btn){
-  if(ROOM_DEFS[room]?.restricted && !isDirector){
-    showToast('⚠ VIP ROOM — DIRECTOR ACCESS ONLY');
-    return;
-  }
-  currentRoom = room;
-  document.querySelectorAll('.room-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  // Remove unread dot
-  const dot = btn.querySelector('.unread-dot');
-  if(dot) dot.remove();
-  renderRoom(room);
-  syncFromSupabase(room);
-  connectRealtime(room);
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// SEND MESSAGE
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SEND
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function send(){
-  const input = document.getElementById('msgInput');
-  const text  = input.value.trim();
-  if(!text && !pendingImage) return;
+  const inp  = document.getElementById('msgInput');
+  const text = inp.value.trim();
+  if(!text && !imgPend) return;
 
-  const now  = new Date();
-  const t    = now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
-  const date = now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
-  const id   = 'local-' + (++msgIdCounter) + '-' + Date.now();
+  const now   = new Date();
+  const t     = now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+  const date  = now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'});
+  const id    = 'L'+(++msgN)+'-'+Date.now();
 
-  // Handle image message
-  if(pendingImage){
-    const imgMsg = {
-      id, u:myName, initials:myInitials, avatar:myAvatar,
-      type:'image', imageUrl:pendingImage, t, date,
-      mine:true, userId:myId, isDirector, reactions:{}, myReacts:[], read:false
-    };
-    appendMessage(currentRoom, imgMsg);
-    appendMsgToDOM(imgMsg);
-    clearImagePreview();
+  if(imgPend){
+    const m = { id, u:ME_NAME, ini:ME_INIT, av:ME_AVATAR, type:'img', src:imgPend, t, date, mine:true, uid:ME_ID, dir:IS_DIR, r:{}, mr:{}, ok:false };
+    push(room, m); appendOne(m); clearImg();
   }
-
-  // Handle text message
   if(text){
-    input.value = '';
-    input.style.height = '44px';
+    inp.value=''; inp.style.height='46px';
+    const m = { id, u:ME_NAME, ini:ME_INIT, av:ME_AVATAR, type:'text', text, t, date, mine:true, uid:ME_ID, dir:IS_DIR, r:{}, mr:[], ok:false };
+    push(room, m); appendOne(m);
+    document.getElementById('sendBtn').disabled=true;
+    setTimeout(()=>document.getElementById('sendBtn').disabled=false, 400);
 
-    const msg = {
-      id, u:myName, initials:myInitials, avatar:myAvatar,
-      type:'text', text, t, date,
-      mine:true, userId:myId, isDirector, reactions:{}, myReacts:[], read:false
-    };
-
-    // Save locally immediately (persists regardless of network/login)
-    appendMessage(currentRoom, msg);
-    appendMsgToDOM(msg);
-
-    // Disable send briefly to prevent double-send
-    const sendBtn = document.getElementById('sendBtn');
-    sendBtn.disabled = true;
-    setTimeout(()=>{ sendBtn.disabled = false; }, 500);
-
-    // Send to Supabase
     if(typeof sb !== 'undefined'){
       try{
         const {data:{session}} = await sb.auth.getSession();
         if(session){
-          const {data:inserted, error} = await sb.from('messages').insert({
-            room:    currentRoom,
-            content: text,
-            user_id: session.user.id
-          }).select().single();
-
-          if(!error && inserted){
-            // Update local record with real DB id
-            const msgs = loadStoredMessages(currentRoom);
-            const idx  = msgs.findIndex(m => m.id === id);
-            if(idx !== -1){
-              msgs[idx].dbId = inserted.id;
-              msgs[idx].read = true;
-              saveMessages(currentRoom, msgs);
-            }
-            // Update tick mark in DOM
-            const tickEl = document.querySelector(`[data-id="${id}"] .msg-tick`);
-            if(tickEl){ tickEl.classList.add('read'); tickEl.textContent = '✓✓'; }
+          const {data:row,error} = await sb.from('messages').insert({room, content:text, user_id:session.user.id}).select().single();
+          if(!error && row){
+            const msgs = load(room);
+            const i = msgs.findIndex(m=>m.id===id);
+            if(i!==-1){ msgs[i].dbId=row.id; msgs[i].ok=true; save(room,msgs); }
+            const el=document.querySelector(`[data-id="${id}"] .tick`);
+            if(el){el.classList.add('sent');el.textContent='✓✓';}
           }
         }
-      } catch(e){ console.warn('[MOG] Send to Supabase failed:', e.message); }
-      // Stop typing indicator
-      try{
-        if(realtimeChannel) realtimeChannel.track({ user:myName, typing:false });
-      } catch(e){}
+      }catch(e){}
     }
   }
-
-  input.focus();
+  inp.focus();
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// KEYBOARD HANDLER
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function handleKeydown(e){
-  // Desktop: Enter sends, Shift+Enter = newline
-  // Mobile: never intercept Enter (let keyboard handle it naturally)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INPUT HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function grow(el){
+  el.style.height = '46px';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+function onKey(e){
   const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-  if(!isMobile && e.key === 'Enter' && !e.shiftKey){
-    e.preventDefault();
-    send();
-  }
+  if(!isMobile && e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+}
+function onType(){
+  if(typeof sb==='undefined'||!rtChan) return;
+  try{ rtChan.track({user:ME_NAME,typing:true}); clearTimeout(typeTm); typeTm=setTimeout(()=>rtChan.track({user:ME_NAME,typing:false}),2500); }catch(e){}
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// SWITCH ROOM
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function switchRoom(r, btn){
+  if(ROOMS[r].vip && !IS_DIR){ toast('⚠ VIP ROOM — DIRECTOR ONLY'); return; }
+  room = r;
+  document.querySelectorAll('.room-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const dot=btn.querySelector('.unread-dot'); if(dot)dot.remove();
+  render(r); syncDB(r); liveConnect(r);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // IMAGE ATTACH
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function handleImageAttach(input){
-  if(!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  if(file.size > 5*1024*1024){ showToast('⚠ IMAGE MUST BE UNDER 5MB'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    pendingImage = e.target.result;
-    const strip = document.getElementById('previewStrip');
-    strip.innerHTML = `<div class="preview-thumb">
-      <img src="${pendingImage}" alt="preview">
-      <span class="preview-remove" onclick="clearImagePreview()">✕</span>
-    </div>`;
-    strip.classList.add('show');
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function handleImg(input){
+  if(!input.files?.[0]) return;
+  if(input.files[0].size > 5*1024*1024){ toast('⚠ IMAGE UNDER 5MB ONLY'); return; }
+  const fr = new FileReader();
+  fr.onload = e => {
+    imgPend = e.target.result;
+    const s = document.getElementById('previewStrip');
+    s.innerHTML=`<div class="preview-thumb"><img src="${imgPend}" alt="preview"><span class="p-remove" onclick="clearImg()">✕</span></div>`;
+    s.classList.add('show');
   };
-  reader.readAsDataURL(file);
+  fr.readAsDataURL(input.files[0]);
 }
-function clearImagePreview(){
-  pendingImage = null;
-  const s = document.getElementById('previewStrip');
-  s.innerHTML = ''; s.classList.remove('show');
-  document.getElementById('imgUpload').value = '';
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// AUTO RESIZE TEXTAREA
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function autoResize(el){
-  el.style.height = '44px';
-  el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+function clearImg(){
+  imgPend=null;
+  const s=document.getElementById('previewStrip'); s.innerHTML=''; s.classList.remove('show');
+  document.getElementById('imgIn').value='';
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// TYPING INDICATOR
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function handleTyping(){
-  if(typeof sb === 'undefined' || !realtimeChannel) return;
-  try{
-    realtimeChannel.track({ user:myName, typing:true });
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(()=>{
-      realtimeChannel.track({ user:myName, typing:false });
-    }, 2500);
-  } catch(e){}
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // REACTIONS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function showReactions(id){
-  document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
-  const bar = document.getElementById('rbar-' + id);
-  if(bar) bar.classList.add('show');
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function showPicker(id){ document.querySelectorAll('.react-picker').forEach(p=>p.classList.remove('show')); const el=document.getElementById('rp-'+id); if(el)el.classList.add('show'); }
+function addR(id,e){ document.querySelectorAll('.react-picker').forEach(p=>p.classList.remove('show')); toggleR(id,e); }
+function toggleR(id,e){
+  const msgs=load(room); const m=msgs.find(m=>m.id===id); if(!m)return;
+  if(!m.r)m.r={}; if(!m.mr)m.mr=[];
+  if(m.mr.includes(e)){ m.mr=m.mr.filter(x=>x!==e); m.r[e]=Math.max((m.r[e]||1)-1,0); if(!m.r[e])delete m.r[e]; }
+  else { m.mr.push(e); m.r[e]=(m.r[e]||0)+1; }
+  save(room,msgs); render(room);
 }
-function addReaction(msgId, emoji){
-  document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
-  toggleReaction(msgId, emoji);
-}
-function toggleReaction(msgId, emoji){
-  const msgs = loadStoredMessages(currentRoom);
-  const msg  = msgs.find(m => m.id === msgId);
-  if(!msg) return;
-  if(!msg.reactions) msg.reactions = {};
-  if(!msg.myReacts)  msg.myReacts  = [];
-  if(msg.myReacts.includes(emoji)){
-    msg.myReacts = msg.myReacts.filter(e => e !== emoji);
-    msg.reactions[emoji] = Math.max((msg.reactions[emoji]||1)-1, 0);
-    if(msg.reactions[emoji] === 0) delete msg.reactions[emoji];
-  } else {
-    msg.myReacts.push(emoji);
-    msg.reactions[emoji] = (msg.reactions[emoji]||0) + 1;
-  }
-  saveMessages(currentRoom, msgs);
-  renderRoom(currentRoom); // re-render to show updated reactions
-}
-let longPressTimer;
-function startLongPress(id){ longPressTimer = setTimeout(()=>showReactions(id), 500); }
-function cancelLongPress(){ clearTimeout(longPressTimer); }
+let lpTm; function lp(id){lpTm=setTimeout(()=>showPicker(id),500);} function clp(){clearTimeout(lpTm);}
+document.addEventListener('click',e=>{ if(!e.target.closest('.react-picker')&&!e.target.closest('.msg')) document.querySelectorAll('.react-picker').forEach(p=>p.classList.remove('show')); });
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // DIRECTOR CONTROLS
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function dirAnnounce(){
-  const text = prompt('📣 BROADCAST TO THIS ROOM:');
-  if(!text || !text.trim()) return;
-  const now = new Date();
-  const msg = {
-    id:       'ann-'+Date.now(),
-    type:     'announce',
-    text:     text.trim(),
-    u:        'DIRECTORATE',
-    initials: 'D',
-    t:        now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),
-    date:     now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),
-    mine:     false,
-    isDirector:true
-  };
-  appendMessage(currentRoom, msg);
-  appendMsgToDOM(msg);
-  // Also save to Supabase as a regular message
-  if(typeof sb !== 'undefined'){
-    const {data:{session}} = await sb.auth.getSession().catch(()=>({data:{session:null}}));
-    if(session) await sb.from('messages').insert({
-      room:     currentRoom,
-      content:  '[BROADCAST] ' + text.trim(),
-      user_id:  session.user.id,
-      is_pinned:true
-    }).catch(()=>{});
-  }
+  const text=prompt('📣 BROADCAST MESSAGE:'); if(!text?.trim()) return;
+  const now=new Date();
+  const m={id:'bc-'+Date.now(),type:'bc',text:text.trim(),u:'DIRECTORATE',ini:'D',t:now.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}),date:now.toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}),mine:false,dir:true};
+  push(room,m); appendOne(m);
+  if(typeof sb!=='undefined'){const{data:{session}}=await sb.auth.getSession().catch(()=>({data:{session:null}})); if(session)await sb.from('messages').insert({room,content:'[BC] '+text.trim(),user_id:session.user.id,is_pinned:true}).catch(()=>{});}
 }
+function dirPin(){const msgs=load(room);if(!msgs.length){toast('NO MESSAGES');return;}toast('📌 PINNED: '+(msgs[msgs.length-1].text||'IMAGE').substring(0,30));}
+function askClear(){ document.getElementById('confirmMsg').textContent='DELETE ALL MESSAGES IN '+ROOMS[room].name+'?'; document.getElementById('confirmOv').classList.add('show'); }
+function closeConfirm(){ document.getElementById('confirmOv').classList.remove('show'); }
+function doClear(){ closeConfirm(); clearRoom(room); if(typeof sb!=='undefined')sb.from('messages').update({deleted:true}).eq('room',room).catch(()=>{}); render(room); toast('✓ ROOM CLEARED'); }
 
-function dirPin(){
-  const msgs = loadStoredMessages(currentRoom);
-  if(!msgs.length){ showToast('NO MESSAGES TO PIN'); return; }
-  const last = msgs[msgs.length-1];
-  showToast('📌 PINNED: ' + (last.text||'IMAGE').substring(0,30));
-}
-
-let clearConfirmCallback = null;
-function showClearConfirm(){
-  document.getElementById('confirmMsg').textContent =
-    'DELETE ALL MESSAGES IN ' + ROOM_DEFS[currentRoom].name + '?';
-  document.getElementById('confirmOverlay').classList.add('show');
-}
-function hideConfirm(){
-  document.getElementById('confirmOverlay').classList.remove('show');
-}
-function execClear(){
-  hideConfirm();
-  clearStoredMessages(currentRoom);
-  if(typeof sb !== 'undefined'){
-    sb.from('messages').update({deleted:true}).eq('room',currentRoom).catch(()=>{});
-  }
-  renderRoom(currentRoom);
-  showToast('✓ ROOM CLEARED');
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // LIGHTBOX
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function openLightbox(src){
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
-}
-function closeLightbox(){
-  document.getElementById('lightbox').classList.remove('open');
-}
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openLB(src){ document.getElementById('lbImg').src=src; document.getElementById('lightbox').classList.add('open'); }
+function closeLB(){ document.getElementById('lightbox').classList.remove('open'); }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TOAST
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function showToast(msg, dur=2800){
-  let el = document.getElementById('mog-dispatch-toast');
-  if(!el){
-    el = document.createElement('div');
-    el.id = 'mog-dispatch-toast';
-    el.style.cssText = [
-      'position:fixed','bottom:100px','left:50%','transform:translateX(-50%)',
-      'background:rgba(10,25,41,0.97)','border:1px solid rgba(0,229,204,0.35)',
-      'border-radius:8px','padding:10px 20px','font-family:Orbitron,sans-serif',
-      'font-size:9px','color:#00E5CC','letter-spacing:2px','z-index:999',
-      'white-space:nowrap','backdrop-filter:blur(12px)','display:none',
-      'box-shadow:0 0 16px rgba(0,229,204,0.15)'
-    ].join(';');
-    document.body.appendChild(el);
-  }
-  el.textContent = msg;
-  el.style.display = 'block';
-  clearTimeout(el._t);
-  el._t = setTimeout(()=>{ el.style.display='none'; }, dur);
-  }
-
-  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// UTILITIES
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function esc(s){
-  return String(s||'')
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function toast(msg){
+  let el=document.getElementById('_toast');
+  if(!el){ el=document.createElement('div');el.id='_toast';el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(10,25,41,0.97);border:1px solid rgba(0,229,204,0.35);border-radius:8px;padding:10px 20px;font-family:Orbitron,sans-serif;font-size:9px;color:#00E5CC;letter-spacing:2px;z-index:999;white-space:nowrap;backdrop-filter:blur(12px);display:none;box-shadow:0 0 16px rgba(0,229,204,0.15)';document.body.appendChild(el); }
+  el.textContent=msg; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',2800);
 }
 
-// Close reaction bars on outside tap
-document.addEventListener('click', e => {
-  if(!e.target.closest('.reaction-bar') && !e.target.closest('.msg'))
-    document.querySelectorAll('.reaction-bar').forEach(b => b.classList.remove('show'));
-});
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// KEYBOARD PUSH — scroll to bottom when keyboard opens
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-if(window.visualViewport){
-  window.visualViewport.addEventListener('resize', ()=>{
-    // When keyboard opens the viewport shrinks — scroll to bottom
-    scrollToBottom();
-  });
-}
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // START
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 init();
 </script>
 </body>
 </html>
+  
