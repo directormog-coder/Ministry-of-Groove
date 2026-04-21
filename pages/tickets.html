@@ -3,133 +3,185 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#050A0E">
+<meta name="theme-color" content="#020608">
 <title>M.O.G. — Event Tickets</title>
 <link rel="stylesheet" href="../css/style.css">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-:root{--gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;--teal:#00E5CC;--teal-dim:#009E8E;--black:#050A0E;--navy:#0D1F2D;--panel:rgba(13,31,45,0.9);--border:rgba(201,168,76,0.25);--border-teal:rgba(0,229,204,0.2);}
+:root{
+  --gold:#C9A84C;--gold-light:#F0C85A;--gold-dim:#8A6E2F;
+  --teal:#00E5CC;--teal-dim:#009E8E;
+  --black:#020608;--navy:#0A1929;
+  --panel:rgba(10,25,41,0.94);
+  --border:rgba(201,168,76,0.22);--border-teal:rgba(0,229,204,0.18);
+  --red:#FF3B3B;--green:#00C853;
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100vh;padding-bottom:90px;}
+body{background:var(--black);font-family:'Rajdhani',sans-serif;color:#fff;min-height:100dvh;padding-bottom:90px;}
 body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);}
 
-.top-bar{position:sticky;top:0;z-index:100;background:rgba(5,10,14,0.97);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;height:52px;gap:12px;backdrop-filter:blur(10px);}
-.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;}
-.top-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;flex:1;text-align:center;}
+/* ── TOP BAR ── */
+.top-bar{position:sticky;top:0;z-index:100;background:rgba(2,6,8,0.98);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;height:56px;gap:12px;backdrop-filter:blur(16px);box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.back-btn{color:var(--gold);font-size:22px;text-decoration:none;padding:4px;line-height:1;flex-shrink:0;}
+.top-logo{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--gold);overflow:hidden;flex-shrink:0;box-shadow:0 0 10px rgba(201,168,76,0.25);}
+.top-logo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.top-brand{flex:1;min-width:0;}
+.top-brand-name{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:var(--gold-light);letter-spacing:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.top-brand-slogan{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--teal-dim);letter-spacing:1px;margin-top:1px;}
 
-/* EVENT HERO */
-.event-hero{margin:16px;position:relative;z-index:1;}
-.event-hero-card{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(0,229,204,0.05),rgba(13,31,45,0.9));border:1px solid var(--gold);border-radius:10px;padding:24px;position:relative;overflow:hidden;}
-.event-hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
-.event-hero-card::after{content:'SESSION';position:absolute;right:-20px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Orbitron',sans-serif;font-size:52px;font-weight:900;color:rgba(201,168,76,0.04);letter-spacing:4px;pointer-events:none;}
-.event-tag{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:3px;margin-bottom:8px;}
-.event-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--gold-light);letter-spacing:2px;margin-bottom:6px;}
-.event-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:16px;}
-.meta-row{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:1px;display:flex;align-items:center;gap:8px;}
-.meta-row span{color:var(--gold-dim);}
-.tickets-sold-bar{margin-top:12px;}
-.sold-label{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:6px;}
-.sold-track{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
-.sold-fill{height:100%;background:linear-gradient(90deg,var(--teal-dim),var(--teal));border-radius:2px;transition:width 1s ease;}
+/* ── CONTENT WRAPPER ── */
+.content{position:relative;z-index:1;}
 
-/* TICKET TIERS */
-.section{padding:0 16px 16px;position:relative;z-index:1;}
+/* ── EVENT HERO ── */
+.hero{padding:16px;}
+.hero-card{
+  background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(0,229,204,0.04),rgba(10,25,41,0.96));
+  border:1px solid var(--gold);border-radius:12px;padding:22px;position:relative;overflow:hidden;
+  box-shadow:0 0 40px rgba(201,168,76,0.08),inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
+.hero-card::after{content:'LIVE';position:absolute;right:-14px;top:50%;transform:translateY(-50%) rotate(90deg);font-family:'Orbitron',sans-serif;font-size:58px;font-weight:900;color:rgba(201,168,76,0.04);pointer-events:none;}
+.hero-tag{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:3px;margin-bottom:8px;}
+.hero-title{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--gold-light);letter-spacing:2px;margin-bottom:10px;line-height:1.2;}
+.hero-meta{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.hero-meta-row{font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:1px;display:flex;align-items:center;gap:8px;}
+.hero-meta-row b{color:var(--gold-dim);}
+.sold-bar-wrap{margin-top:12px;}
+.sold-bar-top{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;margin-bottom:5px;}
+.sold-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.sold-fill{height:100%;background:linear-gradient(90deg,var(--teal-dim),var(--teal));border-radius:3px;transition:width 1.2s ease;width:0%;}
+
+/* ── SECTION HEADERS ── */
+.sec{padding:0 16px 16px;}
 .sec-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .sec-hdr h2{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
-.line{flex:1;height:1px;background:var(--border);}
+.ln{flex:1;height:1px;background:var(--border);}
 
-.tier-card{background:var(--panel);border:1px solid var(--border-teal);border-radius:10px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;transition:all 0.25s;}
-.tier-card.selected{border-color:var(--gold);box-shadow:0 0 20px rgba(201,168,76,0.15);}
-.tier-card.sold-out{opacity:0.5;pointer-events:none;}
-.tier-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--border-teal);}
+/* ── MEMBERSHIP DISCOUNT BANNER ── */
+.disc-banner{background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.disc-icon{font-size:20px;flex-shrink:0;}
+.disc-text{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal);letter-spacing:1px;line-height:1.7;}
+.disc-pct{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--teal);margin-left:auto;flex-shrink:0;}
+
+/* ── TICKET TIERS ── */
+.tier-card{
+  background:var(--panel);border:1px solid var(--border-teal);border-radius:12px;
+  padding:18px;margin-bottom:12px;position:relative;overflow:hidden;
+  transition:border-color 0.25s, box-shadow 0.25s;cursor:pointer;
+  box-shadow:0 2px 10px rgba(0,0,0,0.3);
+}
+.tier-card:hover{border-color:rgba(201,168,76,0.4);}
+.tier-card.selected{border-color:var(--gold);box-shadow:0 0 24px rgba(201,168,76,0.15);}
+.tier-card.soldout{opacity:0.45;pointer-events:none;}
+.tier-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--border-teal);border-radius:2px 0 0 2px;}
 .tier-card.selected::before{background:linear-gradient(180deg,var(--gold),var(--teal));}
 .tier-badge{position:absolute;top:12px;right:12px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;padding:4px 10px;border-radius:2px;}
 .badge-vip{background:rgba(201,168,76,0.2);color:var(--gold);border:1px solid var(--gold);}
 .badge-general{background:rgba(0,229,204,0.1);color:var(--teal);border:1px solid var(--teal);}
 .badge-sold{background:rgba(255,59,59,0.15);color:#ff5555;border:1px solid rgba(255,59,59,0.3);}
-.tier-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:4px;}
-.tier-perks{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:1px;margin-bottom:12px;line-height:1.6;}
-.tier-footer{display:flex;align-items:center;justify-content:space-between;}
-.tier-price{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--gold);}
-.tier-price span{font-size:11px;color:var(--gold-dim);font-weight:400;}
-.tier-avail{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;}
-.qty-control{display:flex;align-items:center;gap:10px;}
-.qty-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:none;color:var(--gold);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;}
-.qty-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.1);}
-.qty-num{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:#fff;min-width:24px;text-align:center;}
+.tier-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#fff;letter-spacing:2px;margin-bottom:5px;padding-right:70px;}
+.tier-perks{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.42);letter-spacing:1px;margin-bottom:14px;line-height:1.7;}
+.tier-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.tier-price-wrap{}
+.tier-price{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--gold);line-height:1;}
+.tier-price-orig{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.2);text-decoration:line-through;margin-top:2px;}
+.tier-avail{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:1px;margin-top:3px;}
+.qty-ctrl{display:flex;align-items:center;gap:10px;}
+.qty-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:none;color:var(--gold);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;line-height:1;font-weight:300;}
+.qty-btn:hover,.qty-btn:active{border-color:var(--gold);background:rgba(201,168,76,0.12);}
+.qty-n{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:#fff;min-width:24px;text-align:center;}
 
-/* ORDER SUMMARY */
-.order-summary{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:18px;margin:0 16px 16px;position:relative;z-index:1;}
-.order-summary::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+/* ── ORDER SUMMARY ── */
+.order-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin:0 16px 16px;position:relative;box-shadow:0 2px 10px rgba(0,0,0,0.3);}
+.order-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .order-title{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:14px;}
-.order-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,168,76,0.07);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.6);letter-spacing:1px;}
+.order-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,168,76,0.06);font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:1px;}
 .order-row:last-of-type{border-bottom:none;}
+.order-row.discount .val{color:var(--green);}
 .order-row.total{color:var(--gold-light);font-size:12px;padding-top:12px;border-top:1px solid var(--border);}
-.order-row.total .val{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;}
-.empty-order{text-align:center;padding:20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.2);letter-spacing:2px;}
+.order-row.total .val{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;}
+.order-empty{text-align:center;padding:20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.18);letter-spacing:2px;}
 
-/* CHECKOUT BTN */
-.checkout-wrap{padding:0 16px 16px;position:relative;z-index:1;}
-.checkout-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;}
-.checkout-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 30px rgba(201,168,76,0.4);}
-.checkout-btn:disabled{opacity:0.4;cursor:not-allowed;}
+/* ── CHECKOUT BTN ── */
+.checkout-wrap{padding:0 16px 16px;}
+.checkout-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 18px rgba(201,168,76,0.25);}
+.checkout-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 4px 30px rgba(201,168,76,0.45);}
+.checkout-btn:disabled{opacity:0.4;cursor:not-allowed;box-shadow:none;}
 
-/* UPCOMING EVENTS LIST */
-.mini-event{background:var(--panel);border:1px solid var(--border-teal);border-radius:8px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer;transition:all 0.2s;}
-.mini-event:hover{border-color:var(--gold);}
-.mini-date{background:var(--navy);border:1px solid var(--border);border-radius:4px;padding:8px 10px;text-align:center;flex-shrink:0;min-width:48px;}
-.mini-month{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal-dim);letter-spacing:1px;}
-.mini-day{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:var(--gold);line-height:1;}
-.mini-info{flex:1;}
-.mini-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#e0e0e0;letter-spacing:1px;margin-bottom:3px;}
-.mini-loc{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.35);letter-spacing:1px;}
-.mini-price{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;}
+/* ── UPCOMING EVENTS ── */
+.event-mini{background:var(--panel);border:1px solid var(--border-teal);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:center;cursor:pointer;transition:all 0.22s;box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+.event-mini:hover{border-color:var(--gold);transform:translateY(-1px);}
+.ev-date{background:var(--navy);border:1px solid var(--border);border-radius:6px;padding:8px 10px;text-align:center;flex-shrink:0;min-width:48px;}
+.ev-month{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--teal-dim);letter-spacing:1px;}
+.ev-day{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:var(--gold);line-height:1;}
+.ev-info{flex:1;min-width:0;}
+.ev-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#e0e0e0;letter-spacing:1px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ev-loc{font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px;}
+.ev-price{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap;flex-shrink:0;}
 
-/* PAYMENT MODAL */
-.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(5,10,14,0.95);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
+/* ── MY TICKETS ── */
+.my-ticket{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative;overflow:hidden;}
+.my-ticket::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal));}
+.mt-code{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:var(--teal);letter-spacing:4px;margin-bottom:8px;}
+.mt-row{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:1px;margin-bottom:4px;}
+.mt-status{display:inline-block;padding:2px 10px;border-radius:2px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:700;letter-spacing:2px;}
+.mt-paid{background:rgba(0,200,83,0.15);color:var(--green);border:1px solid rgba(0,200,83,0.3);}
+.mt-pending{background:rgba(255,179,0,0.12);color:#FFB300;border:1px solid rgba(255,179,0,0.3);}
+
+/* ── MODAL SHARED ── */
+.modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(2,6,8,0.95);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:16px;}
 .modal.open{display:flex;}
-.modal-box{width:100%;max-width:420px;background:var(--navy);border:1px solid var(--border);border-radius:10px;padding:28px 24px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-box{width:100%;max-width:420px;background:var(--navy);border:1px solid var(--border);border-radius:14px;padding:26px 22px;position:relative;max-height:92dvh;overflow-y:auto;}
 .modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--teal),transparent);}
-.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all 0.2s;}
-.modal-close:hover{border-color:var(--gold);}
+.modal-close{position:absolute;top:14px;right:14px;background:none;border:1px solid var(--border);color:var(--gold-dim);font-size:14px;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all 0.2s;font-family:'Share Tech Mono',monospace;}
+.modal-close:hover{border-color:var(--gold);color:var(--gold);}
 .modal-title{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--gold);letter-spacing:3px;margin-bottom:20px;text-align:center;}
 .field{margin-bottom:14px;}
 .field label{display:block;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:6px;}
-.field input,.field select{width:100%;padding:12px 14px;background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:4px;outline:none;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;transition:border 0.2s;}
-.field input:focus,.field select:focus{border-color:var(--teal);}
+.field input,.field select{width:100%;padding:12px 14px;background:rgba(0,229,204,0.04);border:1px solid var(--border-teal);border-radius:6px;outline:none;font-family:'Rajdhani',sans-serif;font-size:15px;color:#fff;transition:all 0.2s;-webkit-appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,204,0.1);}
 .field input::placeholder{color:rgba(255,255,255,0.2);}
-.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
-.pay-method{background:rgba(201,168,76,0.05);border:1px solid var(--border);border-radius:6px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s;}
-.pay-method.active{border-color:var(--gold);background:rgba(201,168,76,0.1);}
-.pay-method-icon{font-size:22px;display:block;margin-bottom:4px;}
-.pay-method-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--gold-dim);letter-spacing:1px;}
-.pay-method.active .pay-method-name{color:var(--gold);}
-.pay-total{background:rgba(201,168,76,0.08);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center;margin-bottom:16px;}
-.pay-total-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:4px;}
-.pay-total-amount{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:900;color:var(--gold-light);}
-.pay-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;}
-.pay-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 24px rgba(201,168,76,0.4);}
+.field select option{background:var(--navy);}
 
-/* SUCCESS MODAL */
-.success-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,10,14,0.97);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px;flex-direction:column;text-align:center;}
+/* Payment methods */
+.pay-methods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.pay-m{background:rgba(201,168,76,0.04);border:1.5px solid var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s;}
+.pay-m.on{border-color:var(--gold);background:rgba(201,168,76,0.1);}
+.pay-m-icon{font-size:22px;display:block;margin-bottom:4px;}
+.pay-m-name{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
+.pay-m.on .pay-m-name{color:var(--gold);}
+.pay-total-box{background:rgba(201,168,76,0.07);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;margin-bottom:16px;}
+.ptb-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:4px;}
+.ptb-amount{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:var(--gold-light);}
+.pay-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold-dim),var(--gold));border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--black);letter-spacing:3px;cursor:pointer;transition:all 0.3s;min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(201,168,76,0.25);}
+.pay-btn:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 4px 28px rgba(201,168,76,0.45);}
+.pay-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.spinner{width:18px;height:18px;border:2px solid rgba(5,10,14,0.4);border-top-color:var(--black);border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SUCCESS MODAL ── */
+.success-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,6,8,0.98);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:20px;flex-direction:column;text-align:center;}
 .success-modal.open{display:flex;}
-.success-icon{font-size:64px;margin-bottom:16px;animation:bounceIn 0.5s ease;}
-@keyframes bounceIn{0%{transform:scale(0)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.success-icon{font-size:64px;margin-bottom:16px;animation:pop 0.5s ease;}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 .success-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--gold-light);letter-spacing:3px;margin-bottom:8px;}
-.success-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:24px;line-height:1.8;}
-.ticket-stub{background:var(--panel);border:1px solid var(--gold);border-radius:10px;padding:20px;width:100%;max-width:360px;margin-bottom:24px;position:relative;}
+.success-sub{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--teal-dim);letter-spacing:2px;margin-bottom:22px;line-height:1.9;}
+.ticket-stub{background:var(--panel);border:1px solid var(--gold);border-radius:12px;padding:20px;width:100%;max-width:340px;margin-bottom:24px;position:relative;box-shadow:0 0 40px rgba(201,168,76,0.12);}
 .ticket-stub::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold));}
-.stub-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:12px;}
+/* Ticket dashes */
+.ticket-stub::after{content:'';position:absolute;left:0;right:0;top:50%;height:1px;background:repeating-linear-gradient(90deg,transparent,transparent 5px,rgba(201,168,76,0.2) 5px,rgba(201,168,76,0.2) 10px);}
+.stub-top,.stub-bot{padding:14px 0;}
+.stub-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:12px;}
 .stub-row{display:flex;justify-content:space-between;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:10px;}
-.stub-key{color:rgba(255,255,255,0.4);letter-spacing:1px;}
-.stub-val{color:#fff;font-weight:600;}
-.stub-code{margin-top:14px;background:rgba(0,229,204,0.08);border:1px solid var(--border-teal);border-radius:4px;padding:10px;font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--teal);letter-spacing:6px;text-align:center;}
-.done-btn{background:var(--gold);color:var(--black);border:none;border-radius:6px;padding:14px 40px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;}
+.sk{color:rgba(255,255,255,0.35);letter-spacing:1px;}
+.sv{color:#fff;font-weight:600;}
+.stub-code{margin-top:14px;background:rgba(0,229,204,0.08);border:1px solid var(--border-teal);border-radius:6px;padding:12px;font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;color:var(--teal);letter-spacing:6px;text-align:center;box-shadow:0 0 16px rgba(0,229,204,0.1);}
+.done-btn{background:var(--gold);color:var(--black);border:none;border-radius:8px;padding:14px 44px;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 16px rgba(201,168,76,0.3);}
 .done-btn:hover{background:var(--gold-light);}
 
-/* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(5,10,14,0.98);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(12px);}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;cursor:pointer;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(2,6,8,0.99);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);backdrop-filter:blur(16px);}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 12px;gap:4px;text-decoration:none;transition:all 0.2s;border-top:2px solid transparent;}
 .nav-item.active{border-top-color:var(--gold);}
 .nav-icon{font-size:20px;line-height:1;}
 .nav-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--gold-dim);letter-spacing:1px;}
@@ -138,109 +190,119 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div class="top-bar">
   <a href="../index.html" class="back-btn">←</a>
-  <div class="top-title">EVENT TICKETS</div>
+  <div class="top-logo">
+    <img src="../logo.png" alt="M.O.G." onerror="this.onerror=null;this.src='../assets/images/logo.png'">
+  </div>
+  <div class="top-brand">
+    <div class="top-brand-name">MINISTRY OF GROOVE</div>
+    <div class="top-brand-slogan">DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID</div>
+  </div>
 </div>
 
-<!-- EVENT HERO -->
-<div class="event-hero">
-  <div class="event-hero-card">
-    <div class="event-tag">// NEXT TRANSMISSION //</div>
-    <div class="event-title" id="heroTitle">AMAPIANO SESSIONS VOL.3</div>
-    <div class="event-meta">
-      <div class="meta-row">📅 <span>DATE:</span> SATURDAY 19 APRIL 2026</div>
-      <div class="meta-row">📍 <span>LOCATION:</span> CLASSIFIED — REVEALED ON TICKET</div>
-      <div class="meta-row">⏰ <span>DOORS:</span> 18:00 — LATE NIGHT</div>
+<div class="content">
+
+  <!-- EVENT HERO -->
+  <div class="hero">
+    <div class="hero-card">
+      <div class="hero-tag">// NEXT TRANSMISSION //</div>
+      <div class="hero-title" id="heroTitle">LOADING EVENTS...</div>
+      <div class="hero-meta">
+        <div class="hero-meta-row">📅 <b>DATE:</b> <span id="heroDate">TBA</span></div>
+        <div class="hero-meta-row">📍 <b>LOCATION:</b> CLASSIFIED — REVEALED ON TICKET</div>
+        <div class="hero-meta-row">⏰ <b>DOORS:</b> <span id="heroDoors">18:00</span></div>
+      </div>
+      <div class="sold-bar-wrap">
+        <div class="sold-bar-top"><span>TICKETS SOLD</span><span id="soldText">—</span></div>
+        <div class="sold-track"><div class="sold-fill" id="soldFill"></div></div>
+      </div>
     </div>
-    <div class="tickets-sold-bar">
-      <div class="sold-label"><span>TICKETS SOLD</span><span id="soldCount">143 / 200</span></div>
-      <div class="sold-track"><div class="sold-fill" id="soldFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- TIER SECTION -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="ln"></div><h2>SELECT TICKET TIER</h2><div class="ln"></div></div>
+
+    <!-- Membership discount banner (shown for paid ranks) -->
+    <div class="disc-banner" id="discBanner" style="display:none;">
+      <div class="disc-icon">⭐</div>
+      <div class="disc-text">YOUR RANK DISCOUNT<br><span id="discDesc" style="opacity:0.6;font-size:8px;">—</span></div>
+      <div class="disc-pct" id="discPct">—%</div>
+    </div>
+
+    <div id="tierList"></div>
+  </div>
+
+  <!-- ORDER SUMMARY -->
+  <div class="order-card">
+    <div class="order-title">// ORDER SUMMARY</div>
+    <div id="orderRows"><div class="order-empty">NO TICKETS SELECTED</div></div>
+  </div>
+
+  <!-- CHECKOUT -->
+  <div class="checkout-wrap">
+    <button class="checkout-btn" id="checkoutBtn" onclick="openPay()" disabled>
+      🎟️ PROCEED TO CHECKOUT
+    </button>
+  </div>
+
+  <!-- MY TICKETS (from localStorage) -->
+  <div class="sec" id="myTicketsSec" style="display:none;">
+    <div class="sec-hdr"><div class="ln"></div><h2>MY TICKETS</h2><div class="ln"></div></div>
+    <div id="myTicketsList"></div>
+  </div>
+
+  <!-- UPCOMING EVENTS -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="ln"></div><h2>UPCOMING OPERATIONS</h2><div class="ln"></div></div>
+    <div id="upcomingList">
+      <div style="text-align:center;padding:30px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(255,255,255,0.15);letter-spacing:2px;">
+        LOADING UPCOMING EVENTS...
+      </div>
     </div>
   </div>
-</div>
 
-<!-- TICKET TIERS -->
-<div class="section">
-  <div class="sec-hdr"><div class="line"></div><h2>SELECT TICKET TIER</h2><div class="line"></div></div>
-  <div id="tierList"></div>
-</div>
-
-<!-- ORDER SUMMARY -->
-<div class="order-summary">
-  <div class="order-title">// ORDER SUMMARY</div>
-  <div id="orderRows"><div class="empty-order">NO TICKETS SELECTED</div></div>
-</div>
-
-<!-- CHECKOUT -->
-<div class="checkout-wrap">
-  <button class="checkout-btn" id="checkoutBtn" onclick="openPayment()" disabled>
-    🎟️ PROCEED TO CHECKOUT
-  </button>
-</div>
-
-<!-- UPCOMING EVENTS -->
-<div class="section">
-  <div class="sec-hdr"><div class="line"></div><h2>UPCOMING OPERATIONS</h2><div class="line"></div></div>
-  <div class="mini-event">
-    <div class="mini-date"><div class="mini-month">APR</div><div class="mini-day">19</div></div>
-    <div class="mini-info"><div class="mini-name">AMAPIANO SESSIONS VOL.3</div><div class="mini-loc">📍 LOCATION ON TICKET</div></div>
-    <div class="mini-price">FROM R150</div>
-  </div>
-  <div class="mini-event" style="opacity:0.5;pointer-events:none;">
-    <div class="mini-date"><div class="mini-month">MAY</div><div class="mini-day">??</div></div>
-    <div class="mini-info"><div class="mini-name">M.O.G. GROOVE SUMMIT</div><div class="mini-loc">📍 TBA — INTEL PENDING</div></div>
-    <div class="mini-price">TBA</div>
-  </div>
-</div>
+</div><!-- /content -->
 
 <!-- PAYMENT MODAL -->
 <div class="modal" id="payModal">
   <div class="modal-box">
-    <button class="modal-close" onclick="closePayment()">✕</button>
+    <button class="modal-close" onclick="closePay()">✕</button>
     <div class="modal-title">// SECURE CHECKOUT</div>
 
-    <div class="pay-total">
-      <div class="pay-total-label">TOTAL AMOUNT</div>
-      <div class="pay-total-amount" id="payTotalDisplay">R0</div>
+    <div class="pay-total-box">
+      <div class="ptb-label">TOTAL AMOUNT</div>
+      <div class="ptb-amount" id="payTotal">R0</div>
     </div>
 
     <div class="field">
-      <label>FULL NAME</label>
-      <input type="text" id="payName" placeholder="Your Name" autocomplete="name">
+      <label>FULL NAME *</label>
+      <input type="text" id="payName" placeholder="Your full name" autocomplete="name">
     </div>
     <div class="field">
-      <label>EMAIL (TICKET SENT HERE)</label>
-      <input type="email" id="payEmail" placeholder="your@gmail.com" autocomplete="email">
+      <label>EMAIL — TICKET SENT HERE *</label>
+      <input type="email" id="payEmail" placeholder="your@email.com" autocomplete="email" inputmode="email">
     </div>
     <div class="field">
-      <label>PHONE NUMBER</label>
-      <input type="tel" id="payPhone" placeholder="+27 XX XXX XXXX" autocomplete="tel">
+      <label>PHONE NUMBER *</label>
+      <input type="tel" id="payPhone" placeholder="+27 81 000 0000" autocomplete="tel" inputmode="tel">
     </div>
-
     <div class="field">
       <label>PAYMENT METHOD</label>
     </div>
     <div class="pay-methods">
-      <div class="pay-method active" onclick="selectPay(this,'card')">
-        <span class="pay-method-icon">💳</span>
-        <div class="pay-method-name">CARD</div>
-      </div>
-      <div class="pay-method" onclick="selectPay(this,'eft')">
-        <span class="pay-method-icon">🏦</span>
-        <div class="pay-method-name">EFT / SNAPSCAN</div>
-      </div>
-      <div class="pay-method" onclick="selectPay(this,'yoco')">
-        <span class="pay-method-icon">📱</span>
-        <div class="pay-method-name">YOCO</div>
-      </div>
-      <div class="pay-method" onclick="selectPay(this,'payflex')">
-        <span class="pay-method-icon">🔄</span>
-        <div class="pay-method-name">PAYFLEX</div>
-      </div>
+      <div class="pay-m on" onclick="setPayM(this,'card')"><span class="pay-m-icon">💳</span><div class="pay-m-name">CARD</div></div>
+      <div class="pay-m" onclick="setPayM(this,'eft')"><span class="pay-m-icon">🏦</span><div class="pay-m-name">EFT / SNAPSCAN</div></div>
+      <div class="pay-m" onclick="setPayM(this,'yoco')"><span class="pay-m-icon">📱</span><div class="pay-m-name">YOCO</div></div>
+      <div class="pay-m" onclick="setPayM(this,'payflex')"><span class="pay-m-icon">🔄</span><div class="pay-m-name">PAYFLEX</div></div>
     </div>
 
-    <button class="pay-btn" onclick="processPayment()">🔐 CONFIRM & PAY</button>
+    <button class="pay-btn" id="payBtn" onclick="pay()">
+      <span id="payBtnTxt">🔐 CONFIRM &amp; PAY</span>
+      <div class="spinner" id="paySpinner"></div>
+    </button>
   </div>
 </div>
 
@@ -250,57 +312,177 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;back
   <div class="success-title">ACCESS GRANTED</div>
   <div class="success-sub">YOUR TICKET HAS BEEN ISSUED<br>CHECK YOUR EMAIL FOR CONFIRMATION</div>
   <div class="ticket-stub">
-    <div class="stub-title">M.O.G. OFFICIAL TICKET</div>
-    <div class="stub-row"><span class="stub-key">EVENT</span><span class="stub-val" id="stubEvent">SESSION VOL.3</span></div>
-    <div class="stub-row"><span class="stub-key">DATE</span><span class="stub-val">19 APR 2026</span></div>
-    <div class="stub-row"><span class="stub-key">TIER</span><span class="stub-val" id="stubTier">GENERAL</span></div>
-    <div class="stub-row"><span class="stub-key">QTY</span><span class="stub-val" id="stubQty">1</span></div>
-    <div class="stub-row"><span class="stub-key">NAME</span><span class="stub-val" id="stubName">OPERATIVE</span></div>
-    <div class="stub-code" id="stubCode">MOG-XXXX</div>
+    <div class="stub-top">
+      <div class="stub-title">M.O.G. OFFICIAL TICKET</div>
+      <div class="stub-row"><span class="sk">EVENT</span><span class="sv" id="sEvent">—</span></div>
+      <div class="stub-row"><span class="sk">DATE</span><span class="sv" id="sDate">—</span></div>
+      <div class="stub-row"><span class="sk">TIER</span><span class="sv" id="sTier">—</span></div>
+      <div class="stub-row"><span class="sk">QTY</span><span class="sv" id="sQty">1</span></div>
+    </div>
+    <div class="stub-bot">
+      <div class="stub-row"><span class="sk">NAME</span><span class="sv" id="sName">—</span></div>
+      <div class="stub-row"><span class="sk">TOTAL PAID</span><span class="sv" id="sPaid">—</span></div>
+      <div class="stub-code" id="sCode">MOG-XXXX-XXXX</div>
+    </div>
   </div>
   <button class="done-btn" onclick="closeSuccess()">✓ DONE</button>
 </div>
 
-<div class="bottom-nav">
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
   <a href="../index.html" class="nav-item"><div class="nav-icon">⬡</div><div class="nav-label">HUB</div></a>
-  <a href="gallery.html" class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
+  <a href="gallery.html"  class="nav-item"><div class="nav-icon">🎬</div><div class="nav-label">GALLERY</div></a>
   <a href="frequency.html" class="nav-item"><div class="nav-icon">📡</div><div class="nav-label">LIVE</div></a>
-  <a href="dispatch.html" class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
-  <a href="dossier.html" class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
-</div>
+  <a href="dispatch.html"  class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">CHAT</div></a>
+  <a href="dossier.html"   class="nav-item active"><div class="nav-icon">👤</div><div class="nav-label">PROFILE</div></a>
+</nav>
 
 <script>
-// Ticket tiers load from Supabase in production
-// Wire up: sb.from('ticket_tiers').select('*').eq('event_id', activeEventId)
-const tiers=[];
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// STATE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const BOOKING_FEE_PCT = 5;
+const RANK_DISCOUNTS = { OPERATIVE:10, AGENT:20, DIRECTOR:30, ADMIN:30 };
 
-let payMethod='card';
+const userRank   = (localStorage.getItem('mogRank')  || 'RECRUIT').toUpperCase();
+const userEmail  =  localStorage.getItem('mogEmail') || '';
+const userName   =  localStorage.getItem('mogUser')  || '';
+const userPhone  =  localStorage.getItem('mogPhone') || '';
+const discountPct = RANK_DISCOUNTS[userRank] || 0;
 
-function renderTiers(){
-  if(tiers.length===0){
-    document.getElementById('tierList').innerHTML=`
-      <div style="text-align:center;padding:40px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(201,168,76,0.3);letter-spacing:3px;border:1px solid rgba(201,168,76,0.1);border-radius:8px;">
-        NO EVENTS CURRENTLY TICKETED<br>
-        <span style="opacity:0.5;font-size:9px;margin-top:8px;display:block">CHECK THE FREQUENCY PAGE FOR UPCOMING SESSIONS</span>
-      </div>`;
-    document.getElementById('checkoutBtn').disabled=true;
+let tiers       = [];   // loaded from Supabase
+let activeEvent = null; // the event object
+let payMethod   = 'card';
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function init(){
+  showDiscountBanner();
+  prefillForm();
+  renderMyTickets();
+  await loadEvents();
+}
+
+function showDiscountBanner(){
+  if(discountPct <= 0) return;
+  document.getElementById('discBanner').style.display = 'flex';
+  document.getElementById('discPct').textContent = discountPct + '%';
+  document.getElementById('discDesc').textContent =
+    userRank + ' RANK BENEFIT — ' + discountPct + '% OFF ALL TICKETS';
+}
+
+function prefillForm(){
+  if(userEmail) document.getElementById('payEmail').value = userEmail;
+  if(userName)  document.getElementById('payName').value  = userName;
+  if(userPhone) document.getElementById('payPhone').value = userPhone;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// LOAD EVENTS FROM SUPABASE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadEvents(){
+  if(typeof sb === 'undefined'){
+    showNoEvents();
     return;
   }
-  document.getElementById('tierList').innerHTML=tiers.map(t=>{
-    const soldOut=t.available===0;
-    return `<div class="tier-card ${t.qty>0?'selected':''} ${soldOut?'sold-out':''}" onclick="selectTier('${t.id}')">
+  try{
+    const { data:events } = await sb
+      .from('events')
+      .select('*')
+      .in('status', ['upcoming','live'])
+      .order('event_date', { ascending:true })
+      .limit(10);
+
+    if(!events?.length){ showNoEvents(); renderUpcoming([]); return; }
+
+    // Show the nearest event as hero
+    activeEvent = events[0];
+    updateHero(activeEvent);
+
+    // Load ticket tiers for this event
+    const { data:tierRows } = await sb
+      .from('ticket_tiers')
+      .select('*')
+      .eq('event_id', activeEvent.id)
+      .order('price_rands', { ascending:false });
+
+    tiers = (tierRows||[]).map(t => ({
+      id:        t.id,
+      name:      t.name,
+      price:     applyDiscount(t.price_rands),
+      origPrice: t.price_rands,
+      available: t.total_qty - (t.sold_qty||0),
+      total:     t.total_qty,
+      sold:      t.sold_qty||0,
+      perks:     t.perks || '',
+      badge:     t.tier_type || 'general',
+      qty:       0
+    }));
+
+    renderTiers();
+    renderUpcoming(events.slice(1, 4));
+
+    // Animate sold bar
+    const topTier  = tiers[0];
+    if(topTier){
+      const pct = Math.round(topTier.sold/topTier.total*100);
+      document.getElementById('soldText').textContent = topTier.sold + ' / ' + topTier.total;
+      setTimeout(()=>{ document.getElementById('soldFill').style.width = pct + '%'; }, 300);
+    }
+  } catch(e){
+    console.warn('[MOG Tickets] Load error:', e.message);
+    showNoEvents();
+  }
+}
+
+function applyDiscount(price){
+  if(!discountPct) return price;
+  return Math.round(price * (1 - discountPct/100));
+}
+
+function updateHero(ev){
+  document.getElementById('heroTitle').textContent = ev.title || 'EVENT TBA';
+  if(ev.event_date){
+    const d = new Date(ev.event_date);
+    document.getElementById('heroDate').textContent = d.toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+  }
+  if(ev.doors_open) document.getElementById('heroDoors').textContent = ev.doors_open;
+}
+
+function showNoEvents(){
+  document.getElementById('heroTitle').textContent = 'NO EVENTS TICKETED YET';
+  document.getElementById('heroDate').textContent  = 'CHECK BACK SOON';
+  document.getElementById('tierList').innerHTML = `
+    <div style="text-align:center;padding:40px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;color:rgba(201,168,76,0.28);letter-spacing:3px;border:1px solid rgba(201,168,76,0.1);border-radius:10px;line-height:2;">
+      NO EVENTS CURRENTLY TICKETED<br>
+      <span style="font-size:9px;opacity:0.5;">CHECK THE FREQUENCY PAGE FOR UPCOMING SESSIONS</span>
+    </div>`;
+  document.getElementById('checkoutBtn').disabled = true;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// RENDER TIERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderTiers(){
+  if(!tiers.length){ showNoEvents(); return; }
+  document.getElementById('tierList').innerHTML = tiers.map(t => {
+    const soldOut = t.available <= 0;
+    const hasDisc = discountPct > 0 && t.price !== t.origPrice;
+    return `<div class="tier-card ${t.qty>0?'selected':''} ${soldOut?'soldout':''}" onclick="selTier('${t.id}')">
       <div class="tier-badge badge-${soldOut?'sold':t.badge}">${soldOut?'SOLD OUT':t.badge.toUpperCase()}</div>
-      <div class="tier-name">${t.name}</div>
-      <div class="tier-perks">${t.perks.replace(/\n/g,'<br>')}</div>
-      <div class="tier-footer">
-        <div>
-          <div class="tier-price">R${t.price}<span>/ticket</span></div>
+      <div class="tier-name">${esc(t.name)}</div>
+      <div class="tier-perks">${esc(t.perks).replace(/\n/g,'<br>')}</div>
+      <div class="tier-foot">
+        <div class="tier-price-wrap">
+          <div class="tier-price">R${t.price}<span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold-dim);font-weight:400;">/ticket</span></div>
+          ${hasDisc?`<div class="tier-price-orig">R${t.origPrice} was</div>`:''}
           <div class="tier-avail">${t.available} remaining</div>
         </div>
-        <div class="qty-control" onclick="event.stopPropagation()">
-          <button class="qty-btn" onclick="changeQty('${t.id}',-1)">−</button>
-          <div class="qty-num" id="qty-${t.id}">${t.qty}</div>
-          <button class="qty-btn" onclick="changeQty('${t.id}',1)">+</button>
+        <div class="qty-ctrl" onclick="event.stopPropagation()">
+          <button class="qty-btn" onclick="chQty('${t.id}',-1)">−</button>
+          <div class="qty-n" id="qty-${t.id}">${t.qty}</div>
+          <button class="qty-btn" onclick="chQty('${t.id}',1)">+</button>
         </div>
       </div>
     </div>`;
@@ -308,92 +490,215 @@ function renderTiers(){
   renderOrder();
 }
 
-function selectTier(id){
-  const t=tiers.find(x=>x.id===id);
-  if(t.qty===0) changeQty(id,1);
+function selTier(id){
+  const t = tiers.find(t=>t.id===id);
+  if(t && t.qty === 0) chQty(id, 1);
 }
 
-function changeQty(id,delta){
-  const t=tiers.find(x=>x.id===id);
-  const newQty=Math.max(0,Math.min(t.available,t.qty+delta));
-  t.qty=newQty;
+function chQty(id, d){
+  const t = tiers.find(t=>t.id===id);
+  if(!t) return;
+  t.qty = Math.max(0, Math.min(t.available, t.qty + d));
   renderTiers();
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ORDER SUMMARY
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderOrder(){
-  const rows=tiers.filter(t=>t.qty>0);
-  const rowsEl=document.getElementById('orderRows');
-  if(rows.length===0){
-    rowsEl.innerHTML='<div class="empty-order">NO TICKETS SELECTED</div>';
-    document.getElementById('checkoutBtn').disabled=true;
+  const sel = tiers.filter(t=>t.qty>0);
+  const el  = document.getElementById('orderRows');
+  if(!sel.length){
+    el.innerHTML = '<div class="order-empty">NO TICKETS SELECTED</div>';
+    document.getElementById('checkoutBtn').disabled = true;
     return;
   }
-  const total=rows.reduce((s,t)=>s+t.price*t.qty,0);
-  const fee=Math.round(total*0.05);
-  rowsEl.innerHTML=`
-    ${rows.map(t=>`<div class="order-row"><span>${t.name} × ${t.qty}</span><span class="val">R${t.price*t.qty}</span></div>`).join('')}
-    <div class="order-row"><span>BOOKING FEE (5%)</span><span class="val">R${fee}</span></div>
-    <div class="order-row total"><span>TOTAL DUE</span><span class="val">R${total+fee}</span></div>
-  `;
-  document.getElementById('checkoutBtn').disabled=false;
+  const subtotal = sel.reduce((s,t)=>s+t.origPrice*t.qty, 0);
+  const savings  = sel.reduce((s,t)=>s+(t.origPrice-t.price)*t.qty, 0);
+  const discounted = sel.reduce((s,t)=>s+t.price*t.qty, 0);
+  const fee      = Math.round(discounted * BOOKING_FEE_PCT/100);
+  const total    = discounted + fee;
+
+  let html = sel.map(t=>`
+    <div class="order-row">
+      <span>${esc(t.name)} × ${t.qty}</span>
+      <span class="val">R${t.price*t.qty}</span>
+    </div>`).join('');
+
+  if(savings > 0) html += `<div class="order-row discount"><span>YOUR RANK DISCOUNT (${discountPct}%)</span><span class="val">−R${savings}</span></div>`;
+  html += `<div class="order-row"><span>BOOKING FEE (${BOOKING_FEE_PCT}%)</span><span class="val">R${fee}</span></div>`;
+  html += `<div class="order-row total"><span>TOTAL DUE</span><span class="val">R${total}</span></div>`;
+  el.innerHTML = html;
+  document.getElementById('checkoutBtn').disabled = false;
 }
 
-function openPayment(){
-  const total=tiers.reduce((s,t)=>s+t.price*t.qty,0);
-  const fee=Math.round(total*0.05);
-  const email=sessionStorage.getItem('mogEmail')||'';
-  if(email) document.getElementById('payEmail').value=email;
-  document.getElementById('payTotalDisplay').textContent='R'+(total+fee);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// UPCOMING EVENTS LIST
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderUpcoming(events){
+  if(!events.length){
+    document.getElementById('upcomingList').innerHTML =
+      `<div style="text-align:center;padding:20px;font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,255,255,0.15);letter-spacing:2px;">NO MORE UPCOMING EVENTS</div>`;
+    return;
+  }
+  document.getElementById('upcomingList').innerHTML = events.map(ev=>{
+    const d = new Date(ev.event_date||Date.now());
+    const mon = d.toLocaleString('en-ZA',{month:'short'}).toUpperCase();
+    const day = d.getDate();
+    return `<div class="event-mini">
+      <div class="ev-date"><div class="ev-month">${mon}</div><div class="ev-day">${day}</div></div>
+      <div class="ev-info"><div class="ev-name">${esc(ev.title||'TBA')}</div><div class="ev-loc">📍 ${ev.location||'LOCATION CLASSIFIED'}</div></div>
+      <div class="ev-price">FROM R${ev.min_price||'?'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// MY TICKETS (persisted in localStorage)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function renderMyTickets(){
+  try{
+    const tickets = JSON.parse(localStorage.getItem('mog_tickets')||'[]');
+    if(!tickets.length) return;
+    document.getElementById('myTicketsSec').style.display = 'block';
+    document.getElementById('myTicketsList').innerHTML = tickets.map(t=>`
+      <div class="my-ticket">
+        <div class="mt-code">${t.code}</div>
+        <div class="mt-row"><span>${t.event}</span><span class="mt-status mt-paid">PAID</span></div>
+        <div class="mt-row"><span>${t.tier} × ${t.qty}</span><span>R${t.total}</span></div>
+        <div class="mt-row"><span>${t.date}</span></div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+function saveTicket(t){
+  try{
+    const tickets = JSON.parse(localStorage.getItem('mog_tickets')||'[]');
+    tickets.unshift(t);
+    localStorage.setItem('mog_tickets', JSON.stringify(tickets.slice(0,20)));
+  }catch(e){}
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PAYMENT FLOW
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function openPay(){
+  const sel = tiers.filter(t=>t.qty>0);
+  if(!sel.length) return;
+  const discounted = sel.reduce((s,t)=>s+t.price*t.qty,0);
+  const fee  = Math.round(discounted * BOOKING_FEE_PCT/100);
+  const total = discounted + fee;
+  document.getElementById('payTotal').textContent = 'R' + total;
   document.getElementById('payModal').classList.add('open');
 }
-function closePayment(){document.getElementById('payModal').classList.remove('open');}
-
-function selectPay(el,method){
-  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('active'));
-  el.classList.add('active');
-  payMethod=method;
+function closePay(){ document.getElementById('payModal').classList.remove('open'); }
+function setPayM(el, m){
+  document.querySelectorAll('.pay-m').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  payMethod = m;
 }
 
-function processPayment(){
-  const name=document.getElementById('payName').value.trim();
-  const email=document.getElementById('payEmail').value.trim();
-  const phone=document.getElementById('payPhone').value.trim();
-  if(!name){alert('⚠ Enter your full name.');return;}
-  if(!email||!email.includes('@')){alert('⚠ Enter a valid email address.');return;}
-  if(!phone){alert('⚠ Enter your phone number.');return;}
+async function pay(){
+  const name  = document.getElementById('payName').value.trim();
+  const email = document.getElementById('payEmail').value.trim();
+  const phone = document.getElementById('payPhone').value.trim();
 
-  // Wire to payment gateway here:
-  // Yoco: https://developer.yoco.com
-  // PayFast: https://developers.payfast.co.za
-  // SnapScan: https://developer.snapscan.io
+  if(!name)              { showAlert('⚠ FULL NAME REQUIRED'); return; }
+  if(!email||!email.includes('@')){ showAlert('⚠ VALID EMAIL REQUIRED'); return; }
+  if(!phone)             { showAlert('⚠ PHONE NUMBER REQUIRED'); return; }
 
-  closePayment();
+  // Loading state
+  document.getElementById('payBtnTxt').style.display = 'none';
+  document.getElementById('paySpinner').style.display = 'block';
+  document.getElementById('payBtn').disabled = true;
 
-  // Generate ticket code
-  const code='MOG-'+Math.random().toString(36).substr(2,4).toUpperCase()+'-'+Date.now().toString(36).toUpperCase().substr(-4);
-  const topTier=tiers.find(t=>t.qty>0);
-  const totalQty=tiers.reduce((s,t)=>s+t.qty,0);
+  // ── Supabase: save ticket record ──────────────────────
+  let code = 'MOG-' + Math.random().toString(36).substr(2,4).toUpperCase() + '-' + Date.now().toString(36).toUpperCase().substr(-4);
 
-  document.getElementById('stubName').textContent=name.toUpperCase();
-  document.getElementById('stubTier').textContent=topTier?topTier.name:'GENERAL';
-  document.getElementById('stubQty').textContent=totalQty+' TICKET'+(totalQty!==1?'S':'');
-  document.getElementById('stubCode').textContent=code;
+  if(typeof sb !== 'undefined' && activeEvent){
+    try{
+      const sel  = tiers.filter(t=>t.qty>0);
+      const topT = sel[0];
+      const disc = sel.reduce((s,t)=>s+t.price*t.qty,0);
+      const fee  = Math.round(disc*BOOKING_FEE_PCT/100);
+      const {data:{session}} = await sb.auth.getSession();
+      const {data:ticketRow} = await sb.from('tickets').insert({
+        user_id:     session?.user?.id || null,
+        event_id:    activeEvent.id,
+        tier_id:     topT.id,
+        buyer_name:  name,
+        buyer_email: email,
+        buyer_phone: phone,
+        quantity:    sel.reduce((s,t)=>s+t.qty,0),
+        unit_price:  topT.price,
+        booking_fee: fee,
+        total_paid:  disc + fee,
+        payment_method: payMethod,
+        payment_status: 'paid',   // update this after real payment gateway confirms
+        discount_pct: discountPct
+      }).select().single().catch(()=>({data:null}));
+      if(ticketRow?.ticket_code) code = ticketRow.ticket_code;
+    }catch(e){}
+  }
+
+  // Wire real payment here:
+  // Yoco: window.YocoSDK → popup with amount/currency
+  // PayFast: redirect to payfast.co.za with merchant data
+  // SnapScan: show QR code
+  // PayFlex: redirect
+
+  // Simulate processing delay
+  await new Promise(r=>setTimeout(r,1200));
+
+  // Reset button
+  document.getElementById('payBtnTxt').style.display = 'inline';
+  document.getElementById('paySpinner').style.display = 'none';
+  document.getElementById('payBtn').disabled = false;
+  closePay();
+
+  // Show ticket stub
+  const sel     = tiers.filter(t=>t.qty>0);
+  const topTier = sel[0];
+  const totalQty= sel.reduce((s,t)=>s+t.qty,0);
+  const disc    = sel.reduce((s,t)=>s+t.price*t.qty,0);
+  const fee     = Math.round(disc*BOOKING_FEE_PCT/100);
+  const total   = disc + fee;
+  const dateStr = activeEvent ? new Date(activeEvent.event_date).toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase() : '—';
+
+  document.getElementById('sEvent').textContent = activeEvent?.title || '—';
+  document.getElementById('sDate').textContent  = dateStr;
+  document.getElementById('sTier').textContent  = topTier?.name || '—';
+  document.getElementById('sQty').textContent   = totalQty + ' TICKET' + (totalQty!==1?'S':'');
+  document.getElementById('sName').textContent  = name.toUpperCase();
+  document.getElementById('sPaid').textContent  = 'R' + total;
+  document.getElementById('sCode').textContent  = code;
   document.getElementById('successModal').classList.add('open');
+
+  // Persist ticket locally
+  saveTicket({ code, event:activeEvent?.title||'—', tier:topTier?.name||'—', qty:totalQty, total, date:new Date().toLocaleDateString('en-ZA') });
 }
 
 function closeSuccess(){
   document.getElementById('successModal').classList.remove('open');
   tiers.forEach(t=>t.qty=0);
   renderTiers();
+  renderMyTickets();
 }
 
-// Animate sold bar — will be set dynamically from Supabase event data
-// setTimeout(()=>{document.getElementById('soldFill').style.width='71.5%';},400);
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// HELPERS
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-// Close modals on backdrop click
-document.getElementById('payModal').addEventListener('click',function(e){if(e.target===this)closePayment();});
+function showAlert(msg){
+  let el=document.getElementById('_alert');
+  if(!el){ el=document.createElement('div');el.id='_alert';el.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(255,59,59,0.15);border:1px solid rgba(255,59,59,0.4);border-radius:6px;padding:10px 20px;font-family:Share Tech Mono,monospace;font-size:10px;color:#ff6b6b;letter-spacing:1px;z-index:999;white-space:nowrap;backdrop-filter:blur(10px);display:none;';document.body.appendChild(el); }
+  el.textContent=msg; el.style.display='block'; clearTimeout(el._t); el._t=setTimeout(()=>el.style.display='none',3500);
+}
 
-renderTiers();
+document.getElementById('payModal').addEventListener('click',function(e){if(e.target===this)closePay();});
+
+init();
 </script>
 </body>
-</html>
+  </html>
