@@ -1,18 +1,50 @@
-/**
- * M.O.G. — Supabase Client
- * This file initialises the Supabase connection for all pages.
- * Replace SUPABASE_URL and SUPABASE_ANON_KEY with your real values.
- *
- * HOW TO GET YOUR KEYS:
- * 1. Go to supabase.com → Your Project
- * 2. Click Settings (gear icon) → API
- * 3. Copy "Project URL" → paste as SUPABASE_URL
- * 4. Copy "anon public" key → paste as SUPABASE_ANON_KEY
- */
+(function () {
+  const fallback = window.MOG_FALLBACK_CONFIG || {};
+  const env = window.MOG_ENV || {};
 
-const SUPABASE_URL      = 'https://fgkljjgxecjmiiaptiug.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZna2xqamd4ZWNqbWlpYXB0aXVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjUxNzIsImV4cCI6MjA4ODY0MTE3Mn0.y8rd5v4K5pwToCm2eooJLBksA51AnQXce06uEoE_gyE';
+  async function resolveConfig() {
+    if (env.isStaticHost || env.isFilesystem) {
+      return fallback;
+    }
 
-// Initialise client — available globally as `sb`
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    try {
+      const response = await fetch('/api/config', { cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.SUPABASE_URL && data.SUPABASE_ANON_KEY) {
+          return data;
+        }
+      }
+    } catch (error) {
+      console.warn('[M.O.G.] /api/config unavailable, falling back to embedded config.', error);
+    }
+
+    return fallback;
+  }
+
+  async function bootstrap() {
+    const config = await resolveConfig();
+    const url = config.SUPABASE_URL || fallback.SUPABASE_URL || '';
+    const key = config.SUPABASE_ANON_KEY || fallback.SUPABASE_ANON_KEY || '';
+
+    if (!url || !key) {
+      console.warn('[M.O.G.] Supabase credentials are not configured. Auth features will be disabled until env vars are set.');
+      window.sb = null;
+      window.supabaseClient = null;
+      return;
+    }
+
+    if (!window.supabase) {
+      console.warn('[M.O.G.] Supabase SDK was not loaded before this script.');
+      window.sb = null;
+      window.supabaseClient = null;
+      return;
+    }
+
+    window.supabaseClient = window.supabase.createClient(url, key);
+    window.sb = window.supabaseClient;
+    console.log('[M.O.G.] Supabase client initialized.');
+  }
+
+  bootstrap();
+})();
