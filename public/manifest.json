@@ -1,0 +1,16 @@
+{
+  "name": "Ministry of Groove",
+  "short_name": "M.O.G.",
+  "start_url": "/login",
+  "display": "standalone",
+  "background_color": "#050811",
+  "theme_color": "#d4af37",
+  "description": "Decrypting the Culture. Synchronizing the Grid.",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
