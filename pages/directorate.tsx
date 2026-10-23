@@ -50,7 +50,6 @@ export default function DirectorateCommand() {
   const triggerAction = async (actionName: string) => {
     await supabase.from('transmission_logs').insert([{ message: `COMMAND EXECUTED: ${actionName}` }]);
     
-    // Broadcast Webhook / Alert to Dispatch Channel
     await supabase.from('messages').insert([{
       sender: 'SYSTEM // BROADCAST',
       content: `⚠️ ALERT: ${actionName} INITIATED BY DIRECTORATE.`
@@ -66,7 +65,7 @@ export default function DirectorateCommand() {
   };
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingBottom: '90px' }}>
       <Head>
         <title>M.O.G. | DIRECTORATE COMMAND</title>
       </Head>
@@ -90,11 +89,11 @@ export default function DirectorateCommand() {
         <button className="card-btn red" onClick={() => triggerAction('GO LIVE')}>
           📡 GO LIVE
         </button>
-        <button className="card-btn gold" onClick={() => triggerAction('QUICK PUSH ALERT')}>
-          📣 QUICK PUSH ALERT
+        <button className="card-btn gold" onClick={() => router.push('/podcast')}>
+          🎙️ PODCAST HUB
         </button>
-        <button className="card-btn purple" onClick={() => triggerAction('PROTOCOL ZERO')}>
-          ⚡ PROTOCOL ZERO
+        <button className="card-btn purple" onClick={() => router.push('/scanner')}>
+          🔍 GATE SCANNER
         </button>
         <button className="card-btn cyan" onClick={generateVipPass}>
           🎫 ISSUE VIP PASS
