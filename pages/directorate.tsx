@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
+import AudioPlayer from '../components/AudioPlayer';
 
 interface EventItem {
   id: string;
@@ -22,7 +23,7 @@ export default function DirectorateCommand() {
   const [time, setTime] = useState<string>('');
   const [events, setEvents] = useState<EventItem[]>([]);
   const [logs, setLogs] = useState<LogItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [vipCode, setVipCode] = useState<string | null>(null);
 
   useEffect(() => {
     const updateClock = () => {
@@ -39,18 +40,29 @@ export default function DirectorateCommand() {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true);
     const { data: eventData } = await supabase.from('events').select('*');
     if (eventData) setEvents(eventData);
 
     const { data: logData } = await supabase.from('transmission_logs').select('*').order('created_at', { ascending: false }).limit(5);
     if (logData) setLogs(logData);
-    setLoading(false);
   };
 
   const triggerAction = async (actionName: string) => {
     await supabase.from('transmission_logs').insert([{ message: `COMMAND EXECUTED: ${actionName}` }]);
+    
+    // Broadcast Webhook / Alert to Dispatch Channel
+    await supabase.from('messages').insert([{
+      sender: 'SYSTEM // BROADCAST',
+      content: `⚠️ ALERT: ${actionName} INITIATED BY DIRECTORATE.`
+    }]);
+
     fetchData();
+  };
+
+  const generateVipPass = () => {
+    const passId = `MOG-VIP-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+    setVipCode(passId);
+    triggerAction(`GENERATED VIP PASS: ${passId}`);
   };
 
   return (
@@ -84,10 +96,18 @@ export default function DirectorateCommand() {
         <button className="card-btn purple" onClick={() => triggerAction('PROTOCOL ZERO')}>
           ⚡ PROTOCOL ZERO
         </button>
-        <button className="card-btn cyan" onClick={() => triggerAction('SCHEDULE SESSION')}>
-          📅 SCHEDULE SESSION
+        <button className="card-btn cyan" onClick={generateVipPass}>
+          🎫 ISSUE VIP PASS
         </button>
       </div>
+
+      {vipCode && (
+        <div className="panel vip-panel">
+          <h3>// GENERATED OPERATIVE CLEARANCE PASS</h3>
+          <div className="vip-code">{vipCode}</div>
+          <p className="vip-sub">PRESENT CIPHER TOKEN AT GATE CHECKPOINT</p>
+        </div>
+      )}
 
       <div className="panel">
         <div className="panel-hdr">
@@ -143,6 +163,8 @@ export default function DirectorateCommand() {
           )}
         </div>
       </div>
+
+      <AudioPlayer />
     </div>
   );
 }
