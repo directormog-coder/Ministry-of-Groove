@@ -9,32 +9,40 @@ interface Message {
   sender: string;
   content: string;
   media_url?: string;
+  status?: string;
   created_at: string;
 }
 
-export default function Dispatch() {
+export default function DispatchWhatsApp() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uplinkState, setUplinkState] = useState('ESTABLISHING UPLINK');
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uplinkState, setUplinkState] = useState('ONLINE');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchMessages();
 
+    // Subscribe to live broadcast & database changes
     const channel = supabase
-      .channel('public:messages')
+      .channel('public:dispatch_chat')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         setMessages((prev) => [...prev, payload.new as Message]);
         scrollToBottom();
       })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setUplinkState('ONLINE');
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload.sender !== 'Director') {
+          setIsTyping(true);
+          setTimeout(() => setIsTyping(false), 3000);
         }
-      });
+      })
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -45,114 +53,231 @@ export default function Dispatch() {
     const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
     if (data) {
       setMessages(data);
-      setUplinkState('ONLINE');
       scrollToBottom();
     }
   };
 
   const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+    
+    // Broadcast typing indicator to channel
+    supabase.channel('public:dispatch_chat').send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: { sender: 'Director' },
+    });
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    const fileName = `${Date.now()}_${file.name}`;
-    const { data, error } = await supabase.storage.from('dispatch-assets').upload(fileName, file);
-
-    if (error) {
-      alert('Upload failed: ' + error.message);
-      setUploading(false);
-      return;
+    if (file) {
+      setSelectedFile(file);
+      setPreviewImage(URL.createObjectURL(file));
     }
-
-    const { data: publicUrlData } = supabase.storage.from('dispatch-assets').getPublicUrl(fileName);
-
-    await supabase.from('messages').insert([{
-      sender: 'Director',
-      content: `[ATTACHMENT TRANSMITTED]: ${file.name}`,
-      media_url: publicUrlData.publicUrl
-    }]);
-
-    setUploading(false);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() && !selectedFile) return;
+
+    let mediaUrl = undefined;
+
+    if (selectedFile) {
+      setUploading(true);
+      const fileName = `${Date.now()}_${selectedFile.name}`;
+      const { data, error } = await supabase.storage.from('dispatch-assets').upload(fileName, selectedFile);
+      if (!error) {
+        const { data: publicUrlData } = supabase.storage.from('dispatch-assets').getPublicUrl(fileName);
+        mediaUrl = publicUrlData.publicUrl;
+      }
+      setUploading(false);
+      setSelectedFile(null);
+      setPreviewImage(null);
+    }
 
     const newMessage = {
       sender: 'Director',
       content: inputText,
+      media_url: mediaUrl,
+      status: 'read'
     };
 
     setInputText('');
     await supabase.from('messages').insert([newMessage]);
+    scrollToBottom();
   };
 
   return (
-    <div className="dispatch-container">
+    <div className="dispatch-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#050811' }}>
       <Head>
-        <title>M.O.G. — Dispatch</title>
+        <title>M.O.G. — Dispatch WhatsApp Studio</title>
       </Head>
 
-      <div className="dispatch-header">
-        <button className="back-btn" onClick={() => router.push('/directorate')}>←</button>
-        <h1 className="header-title">DISPATCH</h1>
-        <div className="status-indicator">
-          <span className={`status-dot ${uplinkState === 'ONLINE' ? 'online' : 'connecting'}`}></span>
-          <span className="status-text">{uplinkState}</span>
+      {/* WhatsApp Header */}
+      <div className="dispatch-header" style={{
+        padding: '12px 16px',
+        backgroundColor: '#0a101d',
+        borderBottom: '1px solid #1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button className="back-btn" onClick={() => router.push('/directorate')} style={{ background: 'none', border: 'none', color: '#00f2fe', fontSize: '18px', cursor: 'pointer' }}>←</button>
+          <div style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#00f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#050811' }}>
+            MOG
+          </div>
+          <div>
+            <h1 className="header-title" style={{ fontSize: '15px', color: '#fff', margin: 0 }}>DISPATCH COMMAND</h1>
+            <span style={{ fontSize: '11px', color: '#00f2fe', fontFamily: 'monospace' }}>
+              {isTyping ? '⚡ OPERATIVE IS TYPING...' : '● ONLINE // ENCRYPTED'}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="message-area">
-        {messages.length === 0 ? (
-          <div className="uplink-loading">
-            {uplinkState === 'ONLINE' ? 'NO TRANSMISSIONS YET' : 'ESTABLISHING UPLINK'}
-          </div>
-        ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className={`msg-bubble ${msg.sender === 'Director' ? 'mine' : 'theirs'}`}>
-              <div className="msg-sender">{msg.sender}</div>
-              <div className="msg-content">{msg.content}</div>
+      {/* WhatsApp Message Feed */}
+      <div className="message-area" style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        paddingBottom: '100px'
+      }}>
+        {messages.map((msg) => {
+          const isMine = msg.sender === 'Director';
+          return (
+            <div 
+              key={msg.id} 
+              style={{
+                alignSelf: isMine ? 'flex-end' : 'flex-start',
+                maxWidth: '80%',
+                backgroundColor: isMine ? '#0d2238' : '#0a101d',
+                border: isMine ? '1px solid #00f2fe' : '1px solid #1e293b',
+                borderRadius: isMine ? '12px 12px 0 12px' : '12px 12px 12px 0',
+                padding: '10px 14px',
+                color: '#fff',
+                position: 'relative'
+              }}
+            >
+              <div style={{ fontSize: '10px', color: isMine ? '#d4af37' : '#00f2fe', fontWeight: 'bold', marginBottom: '4px', fontFamily: 'monospace' }}>
+                {msg.sender}
+              </div>
+
               {msg.media_url && (
-                <div className="msg-media">
-                  <a href={msg.media_url} target="_blank" rel="noreferrer">
-                    📁 VIEW ATTACHMENT
-                  </a>
+                <div style={{ marginBottom: '8px' }}>
+                  <img 
+                    src={msg.media_url} 
+                    alt="Attachment" 
+                    style={{ width: '100%', borderRadius: '8px', maxHeight: '200px', objectFit: 'cover' }} 
+                  />
                 </div>
               )}
-              <div className="msg-time">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+
+              <div style={{ fontSize: '13px', lineHeight: '1.4', wordBreak: 'break-word' }}>
+                {msg.content}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '4px',
+                marginTop: '4px',
+                fontSize: '10px',
+                color: '#8e9bae'
+              }}>
+                <span>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                {isMine && <span style={{ color: '#00f2fe' }}>✓✓</span>}
+              </div>
             </div>
-          ))
-        )}
+          );
+        })}
         <div ref={chatEndRef} />
       </div>
 
-      <form className="dispatch-input-bar" onSubmit={handleSendMessage}>
+      {/* Image Preview Banner */}
+      {previewImage && (
+        <div style={{ padding: '8px 16px', backgroundColor: '#0a101d', borderTop: '1px solid #00f2fe', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <img src={previewImage} alt="Preview" style={{ height: '40px', borderRadius: '4px' }} />
+          <span style={{ color: '#00f2fe', fontSize: '11px', fontFamily: 'monospace' }}>ATTACHMENT READY</span>
+          <button onClick={() => { setPreviewImage(null); setSelectedFile(null); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>✕</button>
+        </div>
+      )}
+
+      {/* WhatsApp Input Bar */}
+      <form onSubmit={handleSendMessage} style={{
+        padding: '10px 16px',
+        backgroundColor: '#0a101d',
+        borderTop: '1px solid #1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        position: 'fixed',
+        bottom: '50px',
+        left: 0,
+        right: 0,
+        zIndex: 950
+      }}>
         <input 
           type="file" 
           ref={fileInputRef} 
+          accept="image/*,audio/*"
           style={{ display: 'none' }} 
-          onChange={handleFileUpload} 
+          onChange={handleFileSelect} 
         />
         <button 
           type="button" 
-          className="attach-btn" 
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          style={{ background: 'none', border: 'none', color: '#00f2fe', fontSize: '20px', cursor: 'pointer' }}
         >
-          {uploading ? '⏳' : '📎'}
+          📎
         </button>
+
         <input 
           type="text" 
-          placeholder="TRANSMIT MESSAGE..." 
+          placeholder="Message Dispatch..." 
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
+          style={{
+            flex: 1,
+            padding: '10px 14px',
+            backgroundColor: '#050811',
+            border: '1px solid #1e293b',
+            borderRadius: '20px',
+            color: '#fff',
+            fontSize: '13px',
+            outline: 'none'
+          }}
         />
-        <button type="submit" className="send-btn">➤</button>
+
+        <button 
+          type="submit" 
+          disabled={uploading}
+          style={{
+            backgroundColor: '#d4af37',
+            border: 'none',
+            color: '#050811',
+            width: '38px',
+            height: '38px',
+            borderRadius: '50%',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          {uploading ? '⏳' : '➤'}
+        </button>
       </form>
 
       <AudioPlayer />
