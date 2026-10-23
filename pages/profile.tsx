@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
@@ -6,24 +6,78 @@ import AudioPlayer from '../components/AudioPlayer';
 
 export default function EditProfile() {
   const router = useRouter();
-  const [name, setName] = useState('PGMOLOTO9098');
-  const [email, setEmail] = useState('pgmoloto9098@gmail.com');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [bio, setBio] = useState('Amapiano lover · Emalahleni · Est. 2026');
+  const [bio, setBio] = useState('');
   const [artist, setArtist] = useState('');
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      setEmail(user.email || '');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (data) {
+        setName(data.name || user.email?.split('@')[0] || '');
+        setPhone(data.phone || '');
+        setBio(data.bio || '');
+        setArtist(data.artist || '');
+      } else {
+        setName(user.email?.split('@')[0] || 'Operative');
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
     try {
-      // Log profile update action to Supabase transmission logs
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      const updates = {
+        id: user.id,
+        name,
+        email,
+        phone,
+        bio,
+        artist,
+        updated_at: new Date(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(updates);
+      if (error) throw error;
+
       await supabase.from('transmission_logs').insert([{
-        message: `OPERATIVE DOSSIER UPDATED: ${name} (${email})`
+        message: `OPERATIVE DOSSIER SAVED TO GRID: ${name} (${email})`
       }]);
 
-      alert('✓ DOSSIER SAVED SUCCESSFULLY.');
+      alert('✓ DOSSIER PERMANENTLY SAVED.');
       router.push('/directorate');
     } catch (err: any) {
       alert('Save failed: ' + err.message);
@@ -31,6 +85,14 @@ export default function EditProfile() {
       setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container" style={{ textAlign: 'center', padding: '50px', color: '#00f2fe', fontFamily: 'monospace' }}>
+        LOADING SECURE DOSSIER...
+      </div>
+    );
+  }
 
   return (
     <div className="container" style={{ paddingBottom: '90px' }}>
@@ -64,9 +126,8 @@ export default function EditProfile() {
           <input 
             type="email" 
             value={email} 
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: '100%', padding: '10px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff' }}
+            disabled
+            style={{ width: '100%', padding: '10px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#8e9bae' }}
           />
         </div>
 
