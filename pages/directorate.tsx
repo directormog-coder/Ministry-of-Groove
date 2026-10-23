@@ -4,138 +4,271 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-export default function Directorate() {
+export default function DirectorateCommand() {
   const router = useRouter();
-  const [profileName, setProfileName] = useState('OPERATIVE');
-  const [logs, setLogs] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'media' | 'event' | 'poll' | 'announcement'>('media');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchUserData();
-    fetchLogs();
+  // 1. Session Media Form State
+  const [mediaTitle, setMediaTitle] = useState('');
+  const [sessionTag, setSessionTag] = useState('SESSION 01');
+  const [mediaType, setMediaType] = useState('Photo');
+  const [accessLevel, setAccessLevel] = useState('All Operatives (Free)');
+  const [mediaConfirmed, setMediaConfirmed] = useState(false);
 
-    const channel = supabase
-      .channel('public:transmission_logs')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transmission_logs' }, (payload) => {
-        setLogs((prev) => [payload.new, ...prev]);
-      })
-      .subscribe();
+  // 2. Create Event Form State
+  const [eventTitle, setEventTitle] = useState('AMAPIANO SESSIONS VOL.1');
+  const [eventDesc, setEventDesc] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [doorsOpen, setDoorsOpen] = useState('18:00');
+  const [publicLocation, setPublicLocation] = useState('LOCATION CLASSIFIED');
+  const [fullLocation, setFullLocation] = useState('Emalahleni, Mpumalanga');
+  const [vipPrice, setVipPrice] = useState('350');
+  const [vipQty, setVipQty] = useState('50');
+  const [genPrice, setGenPrice] = useState('150');
+  const [genQty, setGenQty] = useState('150');
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  // 3. Poll Songs Form State
+  const [songTitle, setSongTitle] = useState('');
+  const [artistName, setArtistName] = useState('');
+  const [recordLabel, setRecordLabel] = useState('');
+  const [weekNum, setWeekNum] = useState(14);
+  const [yearNum, setYearNum] = useState(2026);
+  const [pollConfirmed, setPollConfirmed] = useState(false);
 
-  const fetchUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+  // 4. Announcement Form State
+  const [announcementMsg, setAnnouncementMsg] = useState('');
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('name')
-      .eq('id', user.id)
-      .single();
+  // Deploy Session Media
+  const handleDeployMedia = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mediaConfirmed) return alert('Please confirm media ownership checkbox.');
+    setLoading(true);
 
-    if (data && data.name) {
-      setProfileName(data.name);
-    } else if (user.email) {
-      setProfileName(user.email.split('@')[0]);
+    try {
+      const { error } = await supabase.from('vault_media').insert([{
+        title: mediaTitle,
+        session_tag: sessionTag,
+        media_type: mediaType,
+        access_level: accessLevel,
+      }]);
+      if (error) throw error;
+
+      await supabase.from('transmission_logs').insert([{ message: `NEW VAULT MEDIA DEPLOYED: ${mediaTitle}` }]);
+      alert('✓ MEDIA SUCCESSFULLY DEPLOYED TO VAULT!');
+      setMediaTitle('');
+    } catch (err: any) {
+      alert('Deployment failed: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchLogs = async () => {
-    const { data } = await supabase.from('transmission_logs').select('*').order('created_at', { ascending: false }).limit(5);
-    if (data) setLogs(data);
+  // Create Event
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from('events').insert([{
+        title: eventTitle,
+        description: eventDesc,
+        event_date: eventDate,
+        doors_open: doorsOpen,
+        public_location: publicLocation,
+        full_location: fullLocation,
+        vip_price: parseFloat(vipPrice),
+        vip_qty: parseInt(vipQty),
+        general_price: parseFloat(genPrice),
+        general_qty: parseInt(genQty),
+      }]);
+      if (error) throw error;
+
+      await supabase.from('transmission_logs').insert([{ message: `NEW EVENT PUBLISHED: ${eventTitle}` }]);
+      alert('✓ EVENT & TICKET TIERS PUBLISHED TO NETWORK!');
+    } catch (err: any) {
+      alert('Event creation failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
+  // Add Song to Poll
+  const handleAddPollSong = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pollConfirmed) return alert('Please confirm editorial commentary checkbox.');
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from('poll_songs').insert([{
+        song_title: songTitle,
+        artist_name: artistName,
+        record_label: recordLabel,
+        week_number: weekNum,
+        year: yearNum
+      }]);
+      if (error) throw error;
+
+      await supabase.from('transmission_logs').insert([{ message: `POLL SONG ADDED: ${songTitle} by ${artistName}` }]);
+      alert(`✓ "${songTitle}" ADDED TO TOP 10 VOTING POLL!`);
+      setSongTitle('');
+      setArtistName('');
+    } catch (err: any) {
+      alert('Poll add failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transmit Broadcast Announcement
+  const handleTransmitAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementMsg.trim()) return;
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.from('transmission_logs').insert([{
+        message: `📢 DIRECTORATE ANNOUNCEMENT: ${announcementMsg}`
+      }]);
+      if (error) throw error;
+
+      alert('✓ ANNOUNCEMENT TRANSMITTED TO ALL OPERATIVES!');
+      setAnnouncementMsg('');
+    } catch (err: any) {
+      alert('Transmission failed: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="container" style={{ paddingBottom: '90px' }}>
       <Head>
-        <title>M.O.G. | DIRECTORATE COMMAND</title>
+        <title>M.O.G. | DIRECTORATE UPLOAD CENTRE</title>
       </Head>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
-        <h1 style={{ fontSize: '15px', color: '#d4af37', fontFamily: 'monospace', margin: 0 }}>MINISTRY OF GROOVE</h1>
-        <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #ef4444', color: '#ef4444', padding: '4px 10px', fontSize: '10px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <div>
+          <h1 style={{ fontSize: '15px', color: '#d4af37', fontFamily: 'monospace', margin: 0 }}>DIRECTORATE COMMAND</h1>
+          <span style={{ fontSize: '10px', color: '#00f2fe', fontFamily: 'monospace' }}>UPLINK: SECURE // ADMIN ONLY</span>
+        </div>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: '1px solid #ef4444', color: '#ef4444', padding: '4px 10px', fontSize: '10px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
           → EXIT
         </button>
       </div>
 
-      {/* Operative Hub Card */}
-      <div className="panel" style={{ border: '1px solid #00f2fe' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <div style={{ fontSize: '10px', color: '#8e9bae', fontFamily: 'monospace' }}>OPERATIVE HUB</div>
-            <div style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold', fontFamily: 'monospace', margin: '4px 0' }}>
-              {profileName}
-            </div>
-            <div style={{ fontSize: '11px', color: '#00f2fe', fontFamily: 'monospace' }}>● NETWORK STATUS: GENESIS PHASE</div>
+      {/* Upload Centre Tabs */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '6px', marginBottom: '20px' }}>
+        <button 
+          onClick={() => setActiveTab('media')}
+          style={{ padding: '8px 4px', fontSize: '10px', fontFamily: 'monospace', backgroundColor: activeTab === 'media' ? '#0d2238' : '#0a101d', border: activeTab === 'media' ? '1px solid #00f2fe' : '1px solid #1e293b', color: activeTab === 'media' ? '#00f2fe' : '#8e9bae', cursor: 'pointer', borderRadius: '4px' }}
+        >
+          🎬 MEDIA
+        </button>
+        <button 
+          onClick={() => setActiveTab('event')}
+          style={{ padding: '8px 4px', fontSize: '10px', fontFamily: 'monospace', backgroundColor: activeTab === 'event' ? '#0d2238' : '#0a101d', border: activeTab === 'event' ? '1px solid #00f2fe' : '1px solid #1e293b', color: activeTab === 'event' ? '#00f2fe' : '#8e9bae', cursor: 'pointer', borderRadius: '4px' }}
+        >
+          📅 EVENT
+        </button>
+        <button 
+          onClick={() => setActiveTab('poll')}
+          style={{ padding: '8px 4px', fontSize: '10px', fontFamily: 'monospace', backgroundColor: activeTab === 'poll' ? '#0d2238' : '#0a101d', border: activeTab === 'poll' ? '1px solid #00f2fe' : '1px solid #1e293b', color: activeTab === 'poll' ? '#00f2fe' : '#8e9bae', cursor: 'pointer', borderRadius: '4px' }}
+        >
+          🗳️ POLL
+        </button>
+        <button 
+          onClick={() => setActiveTab('announcement')}
+          style={{ padding: '8px 4px', fontSize: '10px', fontFamily: 'monospace', backgroundColor: activeTab === 'announcement' ? '#0d2238' : '#0a101d', border: activeTab === 'announcement' ? '1px solid #00f2fe' : '1px solid #1e293b', color: activeTab === 'announcement' ? '#00f2fe' : '#8e9bae', cursor: 'pointer', borderRadius: '4px' }}
+        >
+          📢 NOTICE
+        </button>
+      </div>
+
+      {/* 1. SESSION MEDIA TAB */}
+      {activeTab === 'media' && (
+        <form onSubmit={handleDeployMedia} className="panel" style={{ border: '1px solid #00f2fe' }}>
+          <h2 style={{ color: '#00f2fe', fontSize: '12px', fontFamily: 'monospace', marginTop: 0 }}>// DEPLOY SESSION MEDIA TO VAULT</h2>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>TITLE *</label>
+            <input type="text" value={mediaTitle} onChange={(e) => setMediaTitle(e.target.value)} required placeholder="e.g. SESSION 01 HIGHLIGHTS" style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
           </div>
-          <button onClick={() => router.push('/profile')} style={{ background: 'none', border: '1px solid #1e293b', padding: '8px', cursor: 'pointer', borderRadius: '4px' }}>
-            ✏️
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>MEDIA TYPE</label>
+            <select value={mediaType} onChange={(e) => setMediaType(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }}>
+              <option value="Photo">📷 Photo</option>
+              <option value="Video">🎥 Video</option>
+            </select>
+          </div>
+          <div style={{ marginBottom: '15px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <input type="checkbox" checked={mediaConfirmed} onChange={(e) => setMediaConfirmed(e.target.checked)} id="mediaCheck" />
+            <label htmlFor="mediaCheck" style={{ color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace' }}>Confirm media permission and rights clearance.</label>
+          </div>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#00f2fe', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', cursor: 'pointer' }}>
+            {loading ? 'DEPLOYING...' : '↑ DEPLOY TO VAULT'}
           </button>
-        </div>
+        </form>
+      )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '15px' }}>
-          <div style={{ padding: '10px', backgroundColor: '#0a101d', borderRadius: '4px', border: '1px solid #1e293b' }}>
-            <div style={{ fontSize: '9px', color: '#8e9bae', fontFamily: 'monospace' }}>NETWORK SESSIONS</div>
-            <div style={{ fontSize: '16px', color: '#d4af37', fontWeight: 'bold', fontFamily: 'monospace', marginTop: '2px' }}>0</div>
+      {/* 2. CREATE EVENT TAB */}
+      {activeTab === 'event' && (
+        <form onSubmit={handleCreateEvent} className="panel" style={{ border: '1px solid #d4af37' }}>
+          <h2 style={{ color: '#d4af37', fontSize: '12px', fontFamily: 'monospace', marginTop: 0 }}>// CREATE NEW EVENT & TICKET TIERS</h2>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>EVENT TITLE *</label>
+            <input type="text" value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} required style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
           </div>
-          <div style={{ padding: '10px', backgroundColor: '#0a101d', borderRadius: '4px', border: '1px solid #1e293b' }}>
-            <div style={{ fontSize: '9px', color: '#8e9bae', fontFamily: 'monospace' }}>GROOVE SYNC</div>
-            <div style={{ fontSize: '16px', color: '#00f2fe', fontWeight: 'bold', fontFamily: 'monospace', marginTop: '2px' }}>INITIALIZING</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Command Centre Grid */}
-      <div className="panel" style={{ marginTop: '20px' }}>
-        <div className="panel-hdr">
-          <h2>// COMMAND CENTRE</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-          <button onClick={() => router.push('/stories')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>📸 STORIES</button>
-          <button onClick={() => router.push('/live')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>📡 LIVE</button>
-          <button onClick={() => router.push('/dispatch')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>💬 DISPATCH</button>
-          <button onClick={() => router.push('/music')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🎧 VAULT</button>
-          <button onClick={() => router.push('/tickets')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🎟️ TICKETS</button>
-          <button onClick={() => router.push('/channels')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🛡️ CHANNELS</button>
-        </div>
-      </div>
-
-      {/* Upcoming Session - Genesis Notice */}
-      <div className="panel" style={{ marginTop: '20px', border: '1px dashed #d4af37' }}>
-        <div style={{ fontSize: '10px', color: '#00f2fe', fontFamily: 'monospace', marginBottom: '6px' }}>
-          📡 MAIDEN OPERATION STATUS
-        </div>
-        <h3 style={{ color: '#fff', fontSize: '14px', fontFamily: 'monospace', margin: '4px 0' }}>
-          PLATFORM IN GENESIS DEPLOYMENT
-        </h3>
-        <p style={{ color: '#8e9bae', fontSize: '11px', lineHeight: '1.4', margin: '8px 0 0 0' }}>
-          No live sessions have been initiated yet. The grid is active and awaiting the Director's inaugural transmission and event drop. Stay tuned.
-        </p>
-      </div>
-
-      {/* Transmissions Intel Feed */}
-      <div className="panel" style={{ marginTop: '20px' }}>
-        <div className="panel-hdr">
-          <h2>// INTEL FEED</h2>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {logs.map((log) => (
-            <div key={log.id || Math.random()} style={{ fontSize: '11px', fontFamily: 'monospace', color: '#8e9bae', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
-              <span style={{ color: '#00f2fe' }}>[{new Date(log.created_at || Date.now()).toLocaleTimeString()}]:</span> {log.message}
+          <div style={{ marginBottom: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div>
+              <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>VIP PRICE (R)</label>
+              <input type="number" value={vipPrice} onChange={(e) => setVipPrice(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
             </div>
-          ))}
-        </div>
-      </div>
+            <div>
+              <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>GENERAL PRICE (R)</label>
+              <input type="number" value={genPrice} onChange={(e) => setGenPrice(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
+            </div>
+          </div>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#d4af37', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', cursor: 'pointer' }}>
+            {loading ? 'CREATING...' : '✓ CREATE EVENT + TICKETS'}
+          </button>
+        </form>
+      )}
+
+      {/* 3. POLL SONGS TAB */}
+      {activeTab === 'poll' && (
+        <form onSubmit={handleAddPollSong} className="panel" style={{ border: '1px solid #00f2fe' }}>
+          <h2 style={{ color: '#00f2fe', fontSize: '12px', fontFamily: 'monospace', marginTop: 0 }}>// ADD SONG TO TOP 10 POLL</h2>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>SONG TITLE *</label>
+            <input type="text" value={songTitle} onChange={(e) => setSongTitle(e.target.value)} required placeholder="e.g. Mnike" style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
+          </div>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>ARTIST NAME *</label>
+            <input type="text" value={artistName} onChange={(e) => setArtistName(e.target.value)} required placeholder="e.g. Tyler ICU" style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
+          </div>
+          <div style={{ marginBottom: '15px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <input type="checkbox" checked={pollConfirmed} onChange={(e) => setPollConfirmed(e.target.checked)} id="pollCheck" />
+            <label htmlFor="pollCheck" style={{ color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace' }}>Confirm fan-voting editorial commentary use only.</label>
+          </div>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#00f2fe', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', cursor: 'pointer' }}>
+            {loading ? 'ADDING...' : '+ ADD TO POLL'}
+          </button>
+        </form>
+      )}
+
+      {/* 4. ANNOUNCEMENT TAB */}
+      {activeTab === 'announcement' && (
+        <form onSubmit={handleTransmitAnnouncement} className="panel" style={{ border: '1px solid #d4af37' }}>
+          <h2 style={{ color: '#d4af37', fontSize: '12px', fontFamily: 'monospace', marginTop: 0 }}>// BROADCAST NETWORK ANNOUNCEMENT</h2>
+          <div style={{ marginBottom: '12px' }}>
+            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>MESSAGE TO ALL OPERATIVES *</label>
+            <textarea value={announcementMsg} onChange={(e) => setAnnouncementMsg(e.target.value)} required rows={4} placeholder="Type your broadcast message here..." style={{ width: '100%', padding: '8px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '12px' }} />
+          </div>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#d4af37', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', cursor: 'pointer' }}>
+            {loading ? 'TRANSMITTING...' : '📡 TRANSMIT TO ALL OPERATIVES'}
+          </button>
+        </form>
+      )}
 
       <AudioPlayer />
     </div>
