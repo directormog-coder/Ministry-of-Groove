@@ -5,10 +5,15 @@ export default function Navbar() {
 
   const navItems = [
     { label: 'DIRECTORATE', path: '/directorate', icon: '👑' },
+    { label: 'STORIES', path: '/stories', icon: '📸' },
     { label: 'TICKETS', path: '/tickets', icon: '🎟️' },
     { label: 'DISPATCH', path: '/dispatch', icon: '💬' },
+    { label: 'CHANNELS', path: '/channels', icon: '🛡️' },
+    { label: 'MUSIC VAULT', path: '/music', icon: '🎧' },
     { label: 'LIVE STUDIO', path: '/live', icon: '📡' },
     { label: 'PODCAST', path: '/podcast', icon: '🎙️' },
+    { label: 'RADAR', path: '/radar', icon: '🗺️' },
+    { label: 'WALLET', path: '/wallet', icon: '💳' },
     { label: 'SCANNER', path: '/scanner', icon: '🔍' },
     { label: 'DEMO DROP', path: '/lineup', icon: '🎵' },
   ];
