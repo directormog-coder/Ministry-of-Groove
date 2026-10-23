@@ -1,67 +1,58 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-interface EventItem {
-  id: string;
-  title: string;
-  event_date: string;
-  status: string;
-  tickets_sold: number;
-}
-
-interface LogItem {
-  id: string;
-  message: string;
-  created_at: string;
-}
-
-export default function DirectorateCommand() {
+export default function Directorate() {
   const router = useRouter();
-  const [time, setTime] = useState<string>('');
-  const [events, setEvents] = useState<EventItem[]>([]);
-  const [logs, setLogs] = useState<LogItem[]>([]);
-  const [vipCode, setVipCode] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('OPERATIVE');
+  const [logs, setLogs] = useState<any[]>([]);
 
   useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      setTime(now.toTimeString().split(' ')[0]);
+    fetchUserData();
+    fetchLogs();
+
+    const channel = supabase
+      .channel('public:transmission_logs')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'transmission_logs' }, (payload) => {
+        setLogs((prev) => [payload.new, ...prev]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
-    updateClock();
-    const interval = setInterval(updateClock, 1000);
-    return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const fetchUserData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push('/login');
+      return;
+    }
 
-  const fetchData = async () => {
-    const { data: eventData } = await supabase.from('events').select('*');
-    if (eventData) setEvents(eventData);
+    const { data } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single();
 
-    const { data: logData } = await supabase.from('transmission_logs').select('*').order('created_at', { ascending: false }).limit(5);
-    if (logData) setLogs(logData);
+    if (data && data.name) {
+      setProfileName(data.name);
+    } else if (user.email) {
+      setProfileName(user.email.split('@')[0]);
+    }
   };
 
-  const triggerAction = async (actionName: string) => {
-    await supabase.from('transmission_logs').insert([{ message: `COMMAND EXECUTED: ${actionName}` }]);
-    
-    await supabase.from('messages').insert([{
-      sender: 'SYSTEM // BROADCAST',
-      content: `⚠️ ALERT: ${actionName} INITIATED BY DIRECTORATE.`
-    }]);
-
-    fetchData();
+  const fetchLogs = async () => {
+    const { data } = await supabase.from('transmission_logs').select('*').order('created_at', { ascending: false }).limit(5);
+    if (data) setLogs(data);
   };
 
-  const generateVipPass = () => {
-    const passId = `MOG-VIP-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    setVipCode(passId);
-    triggerAction(`GENERATED VIP PASS: ${passId}`);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
   };
 
   return (
@@ -70,96 +61,55 @@ export default function DirectorateCommand() {
         <title>M.O.G. | DIRECTORATE COMMAND</title>
       </Head>
 
-      <div className="command-header">
-        <div className="brand">
-          <img src="/logo.png" className="logo-small" alt="MOG" />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
+        <h1 style={{ fontSize: '15px', color: '#d4af37', fontFamily: 'monospace', margin: 0 }}>MINISTRY OF GROOVE</h1>
+        <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #ef4444', color: '#ef4444', padding: '4px 10px', fontSize: '10px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
+          → EXIT
+        </button>
+      </div>
+
+      {/* Operative Hub Card */}
+      <div className="panel" style={{ border: '1px solid #00f2fe' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <h1>DIRECTORATE COMMAND</h1>
-            <p className="uplink-status">UPLINK: SECURE // {time || '11:50:26'}</p>
+            <div style={{ fontSize: '10px', color: '#8e9bae', fontFamily: 'monospace' }}>OPERATIVE HUB</div>
+            <div style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold', fontFamily: 'monospace', margin: '4px 0' }}>
+              {profileName}
+            </div>
+            <div style={{ fontSize: '11px', color: '#00f2fe', fontFamily: 'monospace' }}>● GROOVE DIVISION · RECRUIT</div>
           </div>
-        </div>
-
-        <div className="header-actions">
-          <span className="badge-director">👑 DIRECTOR</span>
-          <button className="btn-exit" onClick={() => router.push('/login')}>EXIT</button>
+          <button onClick={() => router.push('/profile')} style={{ background: 'none', border: '1px solid #1e293b', padding: '8px', cursor: 'pointer', borderRadius: '4px' }}>
+            ✏️
+          </button>
         </div>
       </div>
 
-      <div className="quick-actions-grid">
-        <button className="card-btn red" onClick={() => router.push('/live')}>
-          📡 GO LIVE STUDIO
-        </button>
-        <button className="card-btn gold" onClick={() => router.push('/podcast')}>
-          🎙️ PODCAST HUB
-        </button>
-        <button className="card-btn purple" onClick={() => router.push('/scanner')}>
-          🔍 GATE SCANNER
-        </button>
-        <button className="card-btn cyan" onClick={generateVipPass}>
-          🎫 ISSUE VIP PASS
-        </button>
-      </div>
-
-      {vipCode && (
-        <div className="panel vip-panel">
-          <h3>// GENERATED OPERATIVE CLEARANCE PASS</h3>
-          <div className="vip-code">{vipCode}</div>
-          <p className="vip-sub">PRESENT CIPHER TOKEN AT GATE CHECKPOINT</p>
-        </div>
-      )}
-
-      <div className="panel">
+      {/* Command Centre Grid */}
+      <div className="panel" style={{ marginTop: '20px' }}>
         <div className="panel-hdr">
-          <h2>// MANAGE EVENTS</h2>
-          <button className="btn-sub" onClick={() => triggerAction('NEW EVENT DRAFT')}>+ NEW EVENT</button>
+          <h2>// COMMAND CENTRE</h2>
         </div>
-        <div className="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>EVENT</th>
-                <th>DATE</th>
-                <th>STATUS</th>
-                <th>SOLD</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="center-text">OFFLINE</td>
-                </tr>
-              ) : (
-                events.map((e) => (
-                  <tr key={e.id}>
-                    <td>{e.title}</td>
-                    <td>{e.event_date}</td>
-                    <td>{e.status}</td>
-                    <td>{e.tickets_sold}</td>
-                    <td><button className="btn-sm">EDIT</button></td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+          <button onClick={() => router.push('/stories')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>📸 STORIES</button>
+          <button onClick={() => router.push('/live')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>📡 LIVE</button>
+          <button onClick={() => router.push('/dispatch')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>💬 DISPATCH</button>
+          <button onClick={() => router.push('/music')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🎧 VAULT</button>
+          <button onClick={() => router.push('/tickets')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🎟️ TICKETS</button>
+          <button onClick={() => router.push('/channels')} className="card-btn cyan" style={{ padding: '16px 8px', textAlign: 'center' }}>🛡️ CHANNELS</button>
         </div>
       </div>
 
-      <div className="panel">
+      {/* Transmissions Intel Feed */}
+      <div className="panel" style={{ marginTop: '20px' }}>
         <div className="panel-hdr">
-          <h2>// TRANSMISSION LOGS</h2>
-          <button className="btn-icon" onClick={fetchData}>🔄</button>
+          <h2>// INTEL FEED</h2>
         </div>
-        <div className="log-list">
-          {logs.length === 0 ? (
-            <p className="center-text">NO LOGS YET</p>
-          ) : (
-            logs.map((log) => (
-              <div key={log.id} className="log-entry">
-                <span className="log-time">[{new Date(log.created_at).toLocaleTimeString()}]</span> {log.message}
-              </div>
-            ))
-          )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {logs.map((log) => (
+            <div key={log.id || Math.random()} style={{ fontSize: '11px', fontFamily: 'monospace', color: '#8e9bae', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+              <span style={{ color: '#00f2fe' }}>[{new Date(log.created_at || Date.now()).toLocaleTimeString()}]:</span> {log.message}
+            </div>
+          ))}
         </div>
       </div>
 
