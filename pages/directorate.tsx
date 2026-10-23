@@ -86,8 +86,8 @@ export default function DirectorateCommand() {
       </div>
 
       <div className="quick-actions-grid">
-        <button className="card-btn red" onClick={() => triggerAction('GO LIVE')}>
-          📡 GO LIVE
+        <button className="card-btn red" onClick={() => router.push('/live')}>
+          📡 GO LIVE STUDIO
         </button>
         <button className="card-btn gold" onClick={() => router.push('/podcast')}>
           🎙️ PODCAST HUB
