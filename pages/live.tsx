@@ -13,11 +13,11 @@ interface LiveMessage {
 export default function LiveStudio() {
   const router = useRouter();
   const [isLive, setIsLive] = useState(false);
-  const [streamUrl, setStreamUrl] = useState('https://stream.zeno.fm/f3wvbb1428uvv');
-  const [inputUrl, setInputUrl] = useState('');
+  const [usePhoneCam, setUsePhoneCam] = useState(false);
   const [messages, setMessages] = useState<LiveMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [listenerCount, setListenerCount] = useState(142);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,27 +41,45 @@ export default function LiveStudio() {
     if (data) setMessages(data);
   };
 
-  const toggleLiveState = async () => {
-    const newState = !isLive;
-    setIsLive(newState);
+  const startPhoneBroadcast = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: true,
+      });
 
-    const alertMessage = newState
-      ? '🔴 DIRECTORATE HAS GONE LIVE! SYNCING BROADCAST STREAM.'
-      : '⏹ LIVE TRANSMISSION CONCLUDED BY DIRECTORATE.';
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setUsePhoneCam(true);
+      setIsLive(true);
 
+      const alertMessage = '🔴 DIRECTOR HAS STARTED A LIVE PHONE CAMERA BROADCAST!';
+      await supabase.from('transmission_logs').insert([{ message: alertMessage }]);
+      await supabase.from('messages').insert([{
+        sender: 'SYSTEM // BROADCAST',
+        content: alertMessage
+      }]);
+    } catch (err) {
+      alert('Camera/Microphone permission denied or unavailable.');
+    }
+  };
+
+  const stopPhoneBroadcast = async () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setUsePhoneCam(false);
+    setIsLive(false);
+
+    const alertMessage = '⏹ LIVE PHONE BROADCAST CONCLUDED.';
     await supabase.from('transmission_logs').insert([{ message: alertMessage }]);
     await supabase.from('messages').insert([{
       sender: 'SYSTEM // BROADCAST',
       content: alertMessage
     }]);
-  };
-
-  const updateStreamSource = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputUrl.trim()) {
-      setStreamUrl(inputUrl);
-      setInputUrl('');
-    }
   };
 
   const sendLiveChat = async (e: React.FormEvent) => {
@@ -94,68 +112,70 @@ export default function LiveStudio() {
 
       <div className="panel" style={{ marginTop: '20px', border: isLive ? '1px solid #ef4444' : '1px solid #1e293b' }}>
         <div className="panel-hdr">
-          <h2 style={{ color: isLive ? '#ef4444' : '#00f2fe' }}>// MAIN FEED FEEDBACK</h2>
+          <h2 style={{ color: isLive ? '#ef4444' : '#00f2fe' }}>// LIVE TRANSMISSION FEED</h2>
           <span style={{ color: '#d4af37', fontFamily: 'monospace', fontSize: '12px' }}>
             👥 OPERATIVES TUNED IN: {isLive ? listenerCount : 0}
           </span>
         </div>
 
-        <div className="stream-player-box" style={{ padding: '20px', backgroundColor: '#050811', textAlign: 'center', marginBottom: '15px' }}>
-          {streamUrl.includes('youtube') || streamUrl.includes('embed') ? (
-            <iframe 
-              src={streamUrl} 
-              style={{ width: '100%', height: '220px', border: 'none' }}
-              allow="autoplay; encrypted-media" 
-              allowFullScreen
-            />
-          ) : (
-            <div style={{ padding: '20px 0' }}>
-              <div style={{ fontSize: '14px', color: '#d4af37', fontFamily: 'monospace', marginBottom: '10px' }}>
-                AUDIO STREAM SOURCE: {streamUrl}
-              </div>
-              <audio controls src={streamUrl} style={{ width: '100%', accentColor: '#d4af37' }} />
-            </div>
+        <div className="stream-player-box" style={{ padding: '10px', backgroundColor: '#050811', textAlign: 'center', marginBottom: '15px' }}>
+          <video 
+            ref={videoRef} 
+            autoPlay 
+            playsInline 
+            muted 
+            style={{
+              width: '100%',
+              maxHeight: '280px',
+              backgroundColor: '#000',
+              border: usePhoneCam ? '1px solid #ef4444' : '1px solid #1e293b',
+              objectFit: 'cover'
+            }}
+          />
+          {!usePhoneCam && (
+            <p style={{ color: '#8e9bae', fontSize: '12px', marginTop: '8px', fontFamily: 'monospace' }}>
+              CAMERA OFFLINE // TAP BELOW TO TRANSMIT FROM PHONE
+            </p>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button 
-            onClick={toggleLiveState}
-            style={{
-              flex: 1,
-              padding: '12px',
-              backgroundColor: isLive ? '#ef4444' : '#0a101d',
-              border: isLive ? '1px solid #ef4444' : '1px solid #00f2fe',
-              color: isLive ? '#fff' : '#00f2fe',
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}
-          >
-            {isLive ? '⏹ TERMINATE LIVE TRANSMISSION' : '📡 START BROADCAST & ALERT OPERATIVES'}
-          </button>
+        <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+          {!isLive ? (
+            <button 
+              onClick={startPhoneBroadcast}
+              style={{
+                width: '100%',
+                padding: '14px',
+                backgroundColor: '#ef4444',
+                border: 'none',
+                color: '#fff',
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                borderRadius: '4px'
+              }}
+            >
+              📹 START PHONE CAMERA / MIC BROADCAST
+            </button>
+          ) : (
+            <button 
+              onClick={stopPhoneBroadcast}
+              style={{
+                width: '100%',
+                padding: '14px',
+                backgroundColor: '#0a101d',
+                border: '1px solid #ef4444',
+                color: '#ef4444',
+                fontFamily: 'monospace',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                borderRadius: '4px'
+              }}
+            >
+              ⏹ STOP BROADCAST & DISCONNECT PHONE
+            </button>
+          )}
         </div>
-
-        <form onSubmit={updateStreamSource} style={{ marginTop: '15px', display: 'flex', gap: '8px' }}>
-          <input 
-            type="url" 
-            placeholder="PASTE CUSTOM HLS / YOUTUBE EMBED URL..." 
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              backgroundColor: '#0a101d',
-              border: '1px solid #1e293b',
-              color: '#fff',
-              fontSize: '12px',
-              fontFamily: 'monospace'
-            }}
-          />
-          <button type="submit" className="btn-sm" style={{ padding: '8px 12px' }}>
-            UPDATE SOURCE
-          </button>
-        </form>
       </div>
 
       <div className="panel" style={{ marginTop: '20px' }}>
