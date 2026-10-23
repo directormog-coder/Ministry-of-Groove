@@ -5,6 +5,7 @@ export default function Navbar() {
 
   const navItems = [
     { label: 'DIRECTORATE', path: '/directorate', icon: '👑' },
+    { label: 'TICKETS', path: '/tickets', icon: '🎟️' },
     { label: 'DISPATCH', path: '/dispatch', icon: '💬' },
     { label: 'LIVE STUDIO', path: '/live', icon: '📡' },
     { label: 'PODCAST', path: '/podcast', icon: '🎙️' },
