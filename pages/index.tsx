@@ -1,92 +1,122 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-export default function Home() {
+export default function OperativeHub() {
   const router = useRouter();
-  const [votedTrack, setVotedTrack] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('RECRUIT');
+  const [userEmail, setUserEmail] = useState('');
+  const [rank, setRank] = useState('RECRUIT');
+  const [intelFeed, setIntelFeed] = useState<any[]>([]);
 
-  const nominees = [
-    { id: '1', title: 'Mnike', artist: 'Tyler ICU & Dj Maphorisa' },
-    { id: '2', title: 'Tshwala Bam', artist: 'TitoM & Yuppe' },
-    { id: '3', title: 'Imithandazo', artist: 'Nkosazana Daughter & Kabza De Small' },
-    { id: '4', title: 'Amapiano Ke Life', artist: 'Focalistic & Mellow & Sleazy' },
-    { id: '5', title: 'Waka', artist: 'Mellow & Sleazy & SjavasDaDeejay' }
-  ];
+  useEffect(() => {
+    fetchProfile();
+    fetchIntelFeed();
+  }, []);
 
-  const handleVote = async (title: string) => {
-    setVotedTrack(title);
-    await supabase.from('transmission_logs').insert([{
-      message: `TOP 10 VOTE CAST: Operative voted for "${title}"`
-    }]);
-    alert(`✓ VOTE RECORDED FOR: "${title}" (Fan-voting editorial commentary recorded).`);
+  const fetchProfile = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUserEmail(user.email || '');
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (data && data.name) {
+        setProfileName(data.name);
+        setRank(data.rank || 'RECRUIT');
+      } else {
+        setProfileName(user.email ? user.email.split('@')[0].toUpperCase() : 'RECRUIT');
+      }
+    }
+  };
+
+  const fetchIntelFeed = async () => {
+    const { data } = await supabase
+      .from('transmission_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (data && data.length > 0) {
+      setIntelFeed(data);
+    } else {
+      setIntelFeed([
+        { id: '1', message: 'Welcome to the Ministry of Groove Command Network.', created_at: new Date().toISOString() }
+      ]);
+    }
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '90px' }}>
+    <div className="container" style={{ paddingBottom: '90px', backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace' }}>
       <Head>
-        <title>M.O.G. | TOP 10 AMAPIANO VOTE</title>
+        <title>M.O.G. | OPERATIVE HUB</title>
       </Head>
 
-      <div className="dispatch-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header Bar */}
+      <div style={{ padding: '16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="header-title" style={{ margin: 0 }}>TOP 10 AMAPIANO — WEEK 14</h1>
-          <span style={{ fontSize: '10px', color: '#00f2fe', fontFamily: 'monospace' }}>CLASSIFIED MUSIC INTELLIGENCE // FAN VOTE ONLY</span>
+          <h1 style={{ fontSize: '15px', color: '#d4af37', margin: 0 }}>MINISTRY OF GROOVE</h1>
+          <span style={{ fontSize: '9px', color: '#00f2fe' }}>DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</span>
         </div>
-        <button onClick={() => router.push('/directorate')} style={{ background: 'none', border: '1px solid #d4af37', color: '#d4af37', padding: '6px 12px', fontSize: '11px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
-          👑 DIRECTORATE
+        <button 
+          onClick={() => router.push('/directorate')} 
+          style={{ backgroundColor: '#0a101d', border: '1px solid #d4af37', color: '#d4af37', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}
+        >
+          👑 DIRECTOR
         </button>
       </div>
 
-      {/* Legal Disclaimer Box */}
-      <div className="panel" style={{ marginTop: '15px', border: '1px solid #d4af37', fontSize: '11px', color: '#8e9bae', lineHeight: '1.4' }}>
-        <div style={{ color: '#d4af37', fontFamily: 'monospace', fontWeight: 'bold', marginBottom: '6px' }}>
-          ⚖️ MUSIC RIGHTS NOTICE
-        </div>
-        Fan voting poll only. No audio streamed or hosted. All rights belong to original artists & labels.<br/><br/>
-        <strong style={{ color: '#fff' }}>✓ THIS POLL IS:</strong> A fan vote listing song titles & artist names only. Protected as <strong>editorial commentary</strong> under SA Copyright Act 98 of 1978.<br/><br/>
-        <strong style={{ color: '#fff' }}>🚫 NOT:</strong> A streaming service, download platform, or claim of ownership.<br/><br/>
-        <strong style={{ color: '#fff' }}>🎵 STREAMING LINKS</strong> direct you to <strong>licensed third-party platforms</strong> (Spotify, Apple Music, YouTube Music). M.O.G. earns no revenue from those platforms and does not host any audio.<br/><br/>
-        <strong style={{ color: '#fff' }}>📬 TAKEDOWN:</strong> director.mog@gmail.com · +27 81 387 4921 — actioned within 24hrs.<br/><br/>
-        <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-          <span style={{ border: '1px solid #1e293b', padding: '2px 6px', fontSize: '10px' }}>SAMRO</span>
-          <span style={{ border: '1px solid #1e293b', padding: '2px 6px', fontSize: '10px' }}>CAPASSO</span>
-          <span style={{ border: '1px solid #1e293b', padding: '2px 6px', fontSize: '10px'<span>RISA</span></span>
-          <span style={{ border: '1px solid #1e293b', padding: '2px 6px', fontSize: '10px' }}>CIPC</span>
+      {/* Operative Dossier Banner */}
+      <div style={{ margin: '16px', padding: '16px', backgroundColor: '#0a101d', border: '1px solid #00f2fe', borderRadius: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#050811', border: '1px solid #d4af37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+            🪖
+          </div>
+          <div>
+            <div style={{ fontSize: '9px', color: '#8e9bae' }}>OPERATIVE HUB</div>
+            <div style={{ fontSize: '16px', color: '#fff', fontWeight: 'bold' }}>{profileName}</div>
+            <div style={{ fontSize: '10px', color: '#00f2fe', marginTop: '2px' }}>● GROOVE DIVISION · {rank}</div>
+          </div>
         </div>
       </div>
 
-      {/* Voting List */}
-      <div className="panel" style={{ marginTop: '20px' }}>
-        <div className="panel-hdr">
-          <h2>// ACTIVE NOMINEES — CAST YOUR VOTE</h2>
+      {/* Command Centre Grid */}
+      <div style={{ padding: '0 16px', marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '11px', color: '#8e9bae', marginBottom: '10px' }}>// COMMAND CENTRE</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          <button onClick={() => router.push('/gallery')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
+            🎬 GALLERY
+          </button>
+          <button onClick={() => router.push('/live')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
+            📡 LIVE
+          </button>
+          <button onClick={() => router.push('/dispatch')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
+            💬 DISPATCH
+          </button>
+          <button onClick={() => router.push('/vote')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #00f2fe', color: '#00f2fe', fontSize: '10px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+            🗳️ VOTING
+          </button>
+          <button onClick={() => router.push('/tickets')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
+            🎟️ TICKETS
+          </button>
+          <button onClick={() => router.push('/profile')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #d4af37', color: '#d4af37', fontSize: '10px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
+            👤 PROFILE
+          </button>
         </div>
+      </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {nominees.map((n) => (
-            <div key={n.id} style={{ padding: '12px', backgroundColor: '#0a101d', border: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: '4px' }}>
-              <div>
-                <div style={{ color: '#fff', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '13px' }}>{n.title}</div>
-                <div style={{ color: '#00f2fe', fontSize: '11px', marginTop: '2px' }}>{n.artist}</div>
-              </div>
-              <button 
-                onClick={() => handleVote(n.title)}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: votedTrack === n.title ? '#00f2fe' : '#0a101d',
-                  border: '1px solid #00f2fe',
-                  color: votedTrack === n.title ? '#050811' : '#00f2fe',
-                  fontFamily: 'monospace',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  borderRadius: '4px'
-                }}
-              >
-                {votedTrack === n.title ? '✓ VOTED' : 'VOTE'}
-              </button>
+      {/* Live Intel Feed */}
+      <div style={{ padding: '0 16px' }}>
+        <h2 style={{ fontSize: '11px', color: '#d4af37', marginBottom: '10px' }}>// TRANSMISSIONS & INTEL FEED</h2>
+        <div style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', borderRadius: '6px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {intelFeed.map((item) => (
+            <div key={item.id} style={{ fontSize: '11px', color: '#8e9bae', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
+              <span style={{ color: '#00f2fe' }}>●</span> {item.message}
             </div>
           ))}
         </div>
