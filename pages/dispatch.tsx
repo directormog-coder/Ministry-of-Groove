@@ -1,146 +1,96 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-interface Message {
-  id: string;
-  sender: string;
-  content: string;
-  media_url?: string;
-  created_at: string;
-}
-
-export default function ChatDispatch() {
+export default function DispatchHub() {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [inputText, setInputText] = useState('');
-  const [connected, setConnected] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      setConnected(true);
-    }, 800);
-
     fetchMessages();
-
-    const channel = supabase
+    const subscription = supabase
       .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        setMessages((prev) => [...prev, payload.new as Message]);
-        scrollToBottom();
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        setMessages(prev => [...prev, payload.new]);
       })
       .subscribe();
 
     return () => {
-      clearTimeout(timeout);
-      supabase.removeChannel(channel);
+      supabase.removeChannel(subscription);
     };
   }, []);
 
   const fetchMessages = async () => {
-    try {
-      const { data } = await supabase
-        .from('messages')
-        .select('*')
-        .order('created_at', { ascending: true });
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true });
 
-      if (data && data.length > 0) {
-        setMessages(data);
-      } else {
-        setMessages([
-          {
-            id: 'welcome_1',
-            sender: 'DIRECTORATE COMMAND',
-            content: 'WELCOME TO DISPATCH CHAT. GRID ENCRYPTION ACTIVE.',
-            created_at: new Date().toISOString()
-          }
-        ]);
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-    } finally {
-      setConnected(true);
-      scrollToBottom();
+    if (data && data.length > 0) {
+      setMessages(data);
+    } else {
+      setMessages([
+        { id: '1', sender: 'DIRECTORATE', content: 'Secure uplink active. Transmit intelligence.' }
+      ]);
     }
+    setLoading(false);
   };
 
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-  };
-
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const currentText = inputText;
-    setInputText('');
+    const { data: { user } } = await supabase.auth.getUser();
+    const senderName = user?.email ? user.email.split('@')[0].toUpperCase() : 'OPERATIVE';
 
-    const tempMsg: Message = {
-      id: Math.random().toString(),
-      sender: 'Operative',
-      content: currentText,
-      created_at: new Date().toISOString()
-    };
+    const newMsg = { sender: senderName, content: inputText };
+    const { error } = await supabase.from('messages').insert([newMsg]);
 
-    setMessages((prev) => [...prev, tempMsg]);
-    scrollToBottom();
-
-    try {
-      await supabase.from('messages').insert([{
-        sender: 'Operative',
-        content: currentText
-      }]);
-    } catch (err) {
-      console.error('Send error:', err);
+    if (!error) {
+      setMessages(prev => [...prev, newMsg]);
+      setInputText('');
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#050811' }}>
+    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace', paddingBottom: '90px' }}>
       <Head>
-        <title>M.O.G. — DISPATCH CHAT</title>
+        <title>M.O.G. | DISPATCH</title>
       </Head>
 
-      <div style={{ padding: '12px 16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button onClick={() => router.push('/directorate')} style={{ background: 'none', border: 'none', color: '#00f2fe', fontSize: '18px', cursor: 'pointer' }}>←</button>
-          <div>
-            <h1 style={{ fontSize: '15px', color: '#fff', margin: 0, fontFamily: 'monospace' }}>DISPATCH COMMAND</h1>
-            <span style={{ fontSize: '11px', color: '#00f2fe', fontFamily: 'monospace' }}>
-              {connected ? '● ONLINE // ENCRYPTED' : '⚡ CONNECTING...'}
-            </span>
-          </div>
-        </div>
+      <div style={{ padding: '16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: '#00f2fe', cursor: 'pointer', fontSize: '14px' }}>← BACK</button>
+        <h1 style={{ fontSize: '14px', color: '#d4af37', margin: 0 }}>DISPATCH UPLINK</h1>
+        <span style={{ fontSize: '10px', color: '#00f2fe' }}>● ONLINE</span>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '90px' }}>
-        {messages.map((msg) => {
-          const isMine = msg.sender === 'Operative';
-          return (
-            <div key={msg.id} style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: isMine ? '#0d2238' : '#0a101d', border: isMine ? '1px solid #00f2fe' : '1px solid #1e293b', borderRadius: '10px', padding: '10px 12px', color: '#fff' }}>
-              <div style={{ fontSize: '10px', color: isMine ? '#d4af37' : '#00f2fe', fontWeight: 'bold', marginBottom: '4px', fontFamily: 'monospace' }}>{msg.sender}</div>
-              <div style={{ fontSize: '13px', lineHeight: '1.4', fontFamily: 'monospace' }}>{msg.content}</div>
-              <div style={{ textAlign: 'right', fontSize: '9px', color: '#8e9bae', marginTop: '4px' }}>✓✓</div>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '600px', margin: '0 auto' }}>
+        {loading && messages.length === 0 ? (
+          <div style={{ textAlign: 'center', color: '#8e9bae', marginTop: '40px' }}>ESTABLISHING UPLINK...</div>
+        ) : (
+          messages.map((msg, index) => (
+            <div key={msg.id || index} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '10px 14px', borderRadius: '6px' }}>
+              <div style={{ fontSize: '10px', color: '#00f2fe', marginBottom: '4px' }}>{msg.sender || 'OPERATIVE'}</div>
+              <div style={{ fontSize: '13px', color: '#fff' }}>{msg.content}</div>
             </div>
-          );
-        })}
-        <div ref={chatEndRef} />
+          ))
+        )}
       </div>
 
-      <form onSubmit={handleSendMessage} style={{ padding: '10px 16px', backgroundColor: '#0a101d', borderTop: '1px solid #1e293b', display: 'flex', gap: '10px', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 950 }}>
+      <form onSubmit={sendMessage} style={{ position: 'fixed', bottom: '60px', left: 0, right: 0, padding: '10px 16px', backgroundColor: '#0a101d', borderTop: '1px solid #1e293b', display: 'flex', gap: '8px', maxWidth: '600px', margin: '0 auto' }}>
         <input 
           type="text" 
-          placeholder="Transmit message..." 
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          style={{ flex: 1, padding: '10px 14px', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '20px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'monospace' }}
+          value={inputText} 
+          onChange={e => setInputText(e.target.value)} 
+          placeholder="TRANSMIT MESSAGE..." 
+          style={{ flex: 1, backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', padding: '8px 12px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '12px' }} 
         />
-        <button type="submit" style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', width: '38px', height: '38px', borderRadius: '50%', fontWeight: 'bold', cursor: 'pointer' }}>➤</button>
+        <button type="submit" style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', padding: '8px 16px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>TRANSMIT</button>
       </form>
 
       <AudioPlayer />

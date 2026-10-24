@@ -4,131 +4,83 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-interface PollSong {
-  id: string;
-  song_title: string;
-  artist_name: string;
-  votes_count: number;
-}
-
-export default function VotePortal() {
+export default function VoteHub() {
   const router = useRouter();
-  const [songs, setSongs] = useState<PollSong[]>([]);
-  const [votedSongId, setVotedSongId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [songs, setSongs] = useState<any[]>([]);
+  const [voted, setVoted] = useState(false);
 
   useEffect(() => {
     fetchSongs();
   }, []);
 
   const fetchSongs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('poll_songs')
-        .select('*')
-        .order('votes_count', { ascending: false });
+    const { data } = await supabase
+      .from('poll_songs')
+      .select('*')
+      .order('votes_count', { ascending: false });
 
-      if (data && data.length > 0) {
-        setSongs(data);
-      } else {
-        // Fallback default list if database table is initializing
-        setSongs([
-          { id: '1', song_title: 'Mnike', artist_name: 'Tyler ICU & DJ Maphorisa', votes_count: 120 },
-          { id: '2', song_title: 'Tshwala Bam', artist_name: 'TitoM & Yuppe', votes_count: 98 },
-          { id: '3', song_title: 'Imithandazo', artist_name: 'Nkosazana Daughter & Kabza De Small', votes_count: 85 },
-          { id: '4', song_title: 'Amapiano Ke Life', artist_name: 'Focalistic & Mellow & Sleazy', votes_count: 64 },
-          { id: '5', song_title: 'Waka', artist_name: 'Mellow & Sleazy & SjavasDaDeejay', votes_count: 52 }
-        ]);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (data && data.length > 0) {
+      setSongs(data);
+    } else {
+      // Fallback data so voting is never empty
+      setSongs([
+        { id: '1', song_title: 'Mnike', artist_name: 'Tyler ICU & DJ Maphorisa', votes_count: 145 },
+        { id: '2', song_title: 'Tshwala Bam', artist_name: 'Bllaze, EBEN & Sjava', votes_count: 132 },
+        { id: '3', song_title: 'Imithandazo', artist_name: 'Kabza De Small & Young Stunna', votes_count: 210 }
+      ]);
     }
   };
 
-  const handleCastVote = async (song: PollSong) => {
-    if (votedSongId === song.id) return;
-    setVotedSongId(song.id);
+  const handleVote = async (id: string) => {
+    if (voted) return;
+    const target = songs.find(s => s.id === id);
+    if (!target) return;
 
-    // Increment local state UI
-    setSongs(prev => prev.map(s => s.id === song.id ? { ...s, votes_count: s.votes_count + 1 } : s));
+    const newVotes = (target.votes_count || 0) + 1;
+    await supabase
+      .from('poll_songs')
+      .update({ votes_count: newVotes })
+      .eq('id', id);
 
-    // Persist vote increment to Supabase
-    try {
-      await supabase.from('poll_songs').update({ votes_count: song.votes_count + 1 }).eq('id', song.id);
-      await supabase.from('transmission_logs').insert([{ message: `VOTE CAST: "${song.song_title}" by ${song.artist_name}` }]);
-      alert(`✓ VOTE RECORDED FOR "${song.song_title.toUpperCase()}"!`);
-    } catch (err) {
-      console.error(err);
-    }
+    setSongs(songs.map(s => s.id === id ? { ...s, votes_count: newVotes } : s));
+    setVoted(true);
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '90px', backgroundColor: '#050811', minHeight: '100vh', color: '#fff' }}>
+    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace', paddingBottom: '90px' }}>
       <Head>
-        <title>M.O.G. | TOP 10 AMAPIANO VOTING</title>
+        <title>M.O.G. | TOP 10 VOTE</title>
       </Head>
 
-      {/* Header */}
       <div style={{ padding: '16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '15px', color: '#d4af37', margin: 0, fontFamily: 'monospace' }}>TOP 10 AMAPIANO — WEEK 14</h1>
-          <span style={{ fontSize: '10px', color: '#00f2fe', fontFamily: 'monospace' }}>CLASSIFIED MUSIC INTELLIGENCE // FAN VOTE ONLY</span>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: '#00f2fe', cursor: 'pointer', fontSize: '14px' }}>← BACK</button>
+        <h1 style={{ fontSize: '14px', color: '#d4af37', margin: 0 }}>TOP 10 AMAPIANO VOTE</h1>
+        <span style={{ fontSize: '10px', color: '#00f2fe' }}>WEEK 14</span>
+      </div>
+
+      <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto' }}>
+        <div style={{ fontSize: '11px', color: '#8e9bae', marginBottom: '16px' }}>
+          // CAST YOUR VOTE. DECIPHER THE CULTURE.
         </div>
-        <button onClick={() => router.push('/directorate')} style={{ background: 'none', border: '1px solid #d4af37', color: '#d4af37', padding: '4px 8px', fontSize: '10px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
-          👑 DIRECTORATE
-        </button>
-      </div>
 
-      {/* Music Rights Notice */}
-      <div style={{ margin: '16px', padding: '12px', backgroundColor: '#0a101d', border: '1px solid #d4af37', borderRadius: '6px', fontSize: '11px', color: '#8e9bae', fontFamily: 'monospace', lineHeight: '1.4' }}>
-        <div style={{ color: '#d4af37', fontWeight: 'bold', marginBottom: '4px' }}>⚖️ MUSIC RIGHTS NOTICE</div>
-        Fan voting poll only. No audio hosted. Listing protected as editorial commentary under SA Copyright Act 98 of 1978.
-      </div>
-
-      {/* Nominees Voting List */}
-      <div style={{ padding: '0 16px' }}>
-        <h2 style={{ fontSize: '12px', color: '#00f2fe', fontFamily: 'monospace', marginBottom: '12px' }}>// ACTIVE HITLIST NOMINEES</h2>
-
-        {loading ? (
-          <div style={{ color: '#8e9bae', fontFamily: 'monospace', fontSize: '12px', textAlign: 'center', padding: '20px' }}>FETCHING LIVE NOMINEES...</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {songs.map((song, idx) => {
-              const isVoted = votedSongId === song.id;
-              return (
-                <div key={song.id} style={{ padding: '12px', backgroundColor: '#0a101d', border: isVoted ? '1px solid #00f2fe' : '1px solid #1e293b', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '16px', color: '#d4af37', fontWeight: 'bold', fontFamily: 'monospace', width: '20px' }}>#{idx + 1}</span>
-                    <div>
-                      <div style={{ color: '#fff', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '13px' }}>{song.song_title}</div>
-                      <div style={{ color: '#00f2fe', fontSize: '11px', marginTop: '2px', fontFamily: 'monospace' }}>{song.artist_name}</div>
-                      <div style={{ color: '#8e9bae', fontSize: '9px', marginTop: '2px', fontFamily: 'monospace' }}>📊 {song.votes_count} VOTES RECORDED</div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleCastVote(song)}
-                    style={{
-                      padding: '8px 14px',
-                      backgroundColor: isVoted ? '#00f2fe' : '#050811',
-                      border: '1px solid #00f2fe',
-                      color: isVoted ? '#050811' : '#00f2fe',
-                      fontFamily: 'monospace',
-                      fontSize: '11px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      borderRadius: '4px'
-                    }}
-                  >
-                    {isVoted ? '✓ VOTED' : 'VOTE'}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {songs.map((song, index) => (
+            <div key={song.id || index} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '14px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: '14px', color: '#fff', fontWeight: 'bold' }}>{index + 1}. {song.song_title}</div>
+                <div style={{ fontSize: '11px', color: '#00f2fe', marginTop: '2px' }}>{song.artist_name}</div>
+                <div style={{ fontSize: '10px', color: '#8e9bae', marginTop: '4px' }}>Votes: {song.votes_count || 0}</div>
+              </div>
+              <button 
+                onClick={() => handleVote(song.id)}
+                disabled={voted}
+                style={{ backgroundColor: voted ? '#1e293b' : '#00f2fe', border: 'none', color: voted ? '#8e9bae' : '#050811', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold', fontSize: '11px', cursor: voted ? 'default' : 'pointer' }}
+              >
+                {voted ? 'VOTED' : 'CAST VOTE'}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <AudioPlayer />
