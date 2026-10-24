@@ -6,45 +6,54 @@ import AudioPlayer from '../components/AudioPlayer';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // Profile Form State
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [bio, setBio] = useState('');
-  const [favoriteArtist, setFavoriteArtist] = useState('');
-  const [rank, setRank] = useState('RECRUIT');
+  
+  const [formData, setFormData] = useState({
+    name: 'POGISO_JAN_MOLOTO',
+    email: '',
+    phone: '',
+    bio: '',
+    favorite_artist: ''
+  });
 
   useEffect(() => {
-    fetchProfile();
+    loadUserData();
   }, []);
 
-  const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/login');
+  const loadUserData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // If not logged in, use local state or default test user
+      setUser({ id: 'local-test-user', email: 'pgmoloto9098@gmail.com' });
       return;
     }
 
-    setEmail(user.email || '');
+    const currentUser = session.user;
+    setUser(currentUser);
 
+    // Fetch from profiles table
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.id)
+      .eq('id', currentUser.id)
       .single();
 
     if (data) {
-      setName(data.name || user.email?.split('@')[0] || '');
-      setPhone(data.phone || '');
-      setBio(data.bio || '');
-      setFavoriteArtist(data.favorite_artist || '');
-      setRank(data.rank || 'RECRUIT');
+      setFormData({
+        name: data.name || currentUser.email?.split('@')[0].toUpperCase() || 'OPERATIVE',
+        email: data.email || currentUser.email || '',
+        phone: data.phone || '',
+        bio: data.bio || '',
+        favorite_artist: data.favorite_artist || ''
+      });
     } else {
-      // Initialize default if not found
-      setName(user.email?.split('@')[0] || '');
+      setFormData(prev => ({
+        ...prev,
+        email: currentUser.email || '',
+        name: currentUser.email?.split('@')[0].toUpperCase() || 'OPERATIVE'
+      }));
     }
   };
 
@@ -52,116 +61,184 @@ export default function ProfilePage() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('No authenticated operative found.');
+    const userId = user?.id || 'local-test-user';
 
-      const updates = {
-        id: user.id,
-        name,
-        email: user.email,
-        phone,
-        bio,
-        favorite_artist: favoriteArtist,
-        updated_at: new Date()
-      };
+    const profilePayload = {
+      id: userId,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      bio: formData.bio,
+      favorite_artist: formData.favorite_artist,
+      updated_at: new Date()
+    };
 
-      const { error } = await supabase.from('profiles').upsert(updates);
-      if (error) throw error;
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(profilePayload);
 
-      await supabase.from('transmission_logs').insert([{
-        message: `DOSSIER UPDATED: Operative alias saved as "${name}"`
-      }]);
-
+    if (error) {
+      console.error('Error saving profile:', error.message);
+      alert('Error saving dossier: ' + error.message);
+    } else {
       alert('✓ DOSSIER SAVED & SYNCHRONIZED SUCCESSFULLY!');
       setIsEditing(false);
-    } catch (err: any) {
-      alert('Save failed: ' + err.message);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
   };
 
   return (
-    <div className="container" style={{ paddingBottom: '90px', backgroundColor: '#050811', minHeight: '100vh', color: '#fff' }}>
+    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace', paddingBottom: '90px' }}>
       <Head>
         <title>M.O.G. | OPERATIVE DOSSIER</title>
       </Head>
 
-      {/* Header */}
       <div style={{ padding: '16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '15px', color: '#d4af37', margin: 0, fontFamily: 'monospace' }}>OPERATIVE DOSSIER</h1>
-        <button onClick={() => router.push('/')} style={{ background: 'none', border: '1px solid #00f2fe', color: '#00f2fe', padding: '4px 8px', fontSize: '10px', fontFamily: 'monospace', cursor: 'pointer', borderRadius: '4px' }}>
-          ← HUB
-        </button>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: '#00f2fe', cursor: 'pointer', fontSize: '14px' }}>← HUB</button>
+        <h1 style={{ fontSize: '14px', color: '#d4af37', margin: 0 }}>OPERATIVE DOSSIER</h1>
+        <span style={{ fontSize: '10px', color: '#00f2fe' }}>● ACTIVE</span>
       </div>
 
-      {!isEditing ? (
-        /* Profile View Card */
-        <div className="panel" style={{ margin: '16px', border: '1px solid #00f2fe', textAlign: 'center', padding: '24px 16px' }}>
-          <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#0a101d', border: '2px solid #d4af37', margin: '0 auto 12px auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
-            🪖
-          </div>
-          <h2 style={{ color: '#fff', fontSize: '18px', fontFamily: 'monospace', margin: '4px 0' }}>{name || 'OPERATIVE'}</h2>
-          <div style={{ color: '#00f2fe', fontSize: '11px', fontFamily: 'monospace', marginBottom: '8px' }}>{email}</div>
-          <div style={{ display: 'inline-block', padding: '3px 10px', backgroundColor: '#0d2238', border: '1px solid #00f2fe', color: '#00f2fe', fontSize: '10px', fontFamily: 'monospace', borderRadius: '4px', marginBottom: '16px' }}>
-            GROOVE DIVISION // {rank}
-          </div>
+      <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
+        {!isEditing ? (
+          <div style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '24px', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #d4af37', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#d4af37', backgroundColor: '#050811' }}>
+              👤
+            </div>
+            
+            <h2 style={{ fontSize: '18px', color: '#fff', margin: '0 0 4px 0', letterSpacing: '1px' }}>{formData.name}</h2>
+            <div style={{ fontSize: '12px', color: '#00f2fe', marginBottom: '16px' }}>{formData.email}</div>
+            
+            <div style={{ display: 'inline-block', padding: '4px 12px', backgroundColor: '#050811', border: '1px solid #d4af37', borderRadius: '4px', fontSize: '11px', color: '#d4af37', marginBottom: '20px' }}>
+              GROOVE DIVISION // RECRUIT
+            </div>
 
-          {bio && <div style={{ color: '#8e9bae', fontSize: '12px', fontFamily: 'monospace', marginBottom: '16px', fontStyle: 'italic' }}>"{bio}"</div>}
-          {favoriteArtist && <div style={{ color: '#d4af37', fontSize: '11px', fontFamily: 'monospace', marginBottom: '20px' }}>🎵 FAVOURITE ARTIST: {favoriteArtist}</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px', backgroundColor: '#050811', padding: '12px', borderRadius: '6px', border: '1px solid #1e293b' }}>
+              <div>
+                <div style={{ fontSize: '10px', color: '#8e9bae' }}>SESSIONS</div>
+                <div style={{ fontSize: '16px', color: '#fff', fontWeight: 'bold' }}>2</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: '#8e9bae' }}>LIKES</div>
+                <div style={{ fontSize: '16px', color: '#fff', fontWeight: 'bold' }}>0</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '10px', color: '#8e9bae' }}>LOYALTY</div>
+                <div style={{ fontSize: '16px', color: '#d4af37', fontWeight: 'bold' }}>100%</div>
+              </div>
+            </div>
 
-          <button 
-            onClick={() => setIsEditing(true)}
-            style={{ width: '100%', padding: '12px', backgroundColor: '#00f2fe', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '12px', cursor: 'pointer', borderRadius: '4px', marginBottom: '10px' }}
-          >
-            ✏️ EDIT OPERATIVE FILE
-          </button>
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); router.push('/login'); }}
-            style={{ width: '100%', padding: '10px', backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#ef4444', fontFamily: 'monospace', fontSize: '11px', cursor: 'pointer', borderRadius: '4px' }}
-          >
-            → TERMINATE SESSION
-          </button>
-        </div>
-      ) : (
-        /* Edit Dossier Form */
-        <form onSubmit={handleSave} className="panel" style={{ margin: '16px', border: '1px solid #d4af37' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-            <h2 style={{ color: '#d4af37', fontSize: '14px', fontFamily: 'monospace', margin: 0 }}>// EDIT DOSSIER</h2>
-            <button type="button" onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: '#8e9bae', fontSize: '12px', fontFamily: 'monospace', cursor: 'pointer' }}>✕ CLOSE</button>
-          </div>
+            {formData.bio && (
+              <div style={{ textAlign: 'left', marginBottom: '16px', padding: '10px', backgroundColor: '#050811', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '12px' }}>
+                <span style={{ color: '#8e9bae', display: 'block', fontSize: '10px', marginBottom: '2px' }}>BIO / STATUS:</span>
+                {formData.bio}
+              </div>
+            )}
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>OPERATIVE NAME *</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={{ width: '100%', padding: '10px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', fontSize: '13px', fontFamily: 'monospace', borderRadius: '4px' }} />
-          </div>
+            {formData.favorite_artist && (
+              <div style={{ textAlign: 'left', marginBottom: '20px', padding: '10px', backgroundColor: '#050811', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '12px' }}>
+                <span style={{ color: '#8e9bae', display: 'block', fontSize: '10px', marginBottom: '2px' }}>FAVORITE ARTIST:</span>
+                {formData.favorite_artist}
+              </div>
+            )}
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>PHONE NUMBER (OPTIONAL)</label>
-            <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0813874921" style={{ width: '100%', padding: '10px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', fontSize: '13px', fontFamily: 'monospace', borderRadius: '4px' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                onClick={() => setIsEditing(true)} 
+                style={{ backgroundColor: '#00f2fe', border: 'none', color: '#050811', padding: '10px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              >
+                ✏️ EDIT OPERATIVE FILE
+              </button>
+              <button 
+                onClick={handleSignOut} 
+                style={{ backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '10px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              >
+                TERMINATE SESSION
+              </button>
+            </div>
           </div>
+        ) : (
+          <form onSubmit={handleSave} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <h3 style={{ fontSize: '13px', color: '#d4af37', margin: 0 }}>// EDIT DOSSIER</h3>
+              <button type="button" onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', color: '#8e9bae', cursor: 'pointer', fontSize: '12px' }}>✕ CLOSE</button>
+            </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>BIO / STATUS (OPTIONAL)</label>
-            <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} placeholder="Amapiano lover" style={{ width: '100%', padding: '10px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', fontSize: '13px', fontFamily: 'monospace', borderRadius: '4px' }} />
-          </div>
+            <div>
+              <label style={{ fontSize: '10px', color: '#8e9bae', display: 'block', marginBottom: '4px' }}>OPERATIVE NAME *</label>
+              <input 
+                type="text" 
+                value={formData.name} 
+                onChange={e => setFormData({ ...formData, name: e.target.value })} 
+                style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', padding: '10px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px' }} 
+                required
+              />
+            </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', color: '#8e9bae', fontSize: '10px', fontFamily: 'monospace', marginBottom: '4px' }}>FAVOURITE ARTIST (OPTIONAL)</label>
-            <input type="text" value={favoriteArtist} onChange={(e) => setFavoriteArtist(e.target.value)} placeholder="Kabza De Small" style={{ width: '100%', padding: '10px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', fontSize: '13px', fontFamily: 'monospace', borderRadius: '4px' }} />
-          </div>
+            <div>
+              <label style={{ fontSize: '10px', color: '#8e9bae', display: 'block', marginBottom: '4px' }}>EMAIL ADDRESS</label>
+              <input 
+                type="email" 
+                value={formData.email} 
+                disabled 
+                style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#8e9bae', padding: '10px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px' }} 
+              />
+            </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <button type="button" onClick={() => setIsEditing(false)} style={{ padding: '12px', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#8e9bae', fontFamily: 'monospace', fontSize: '11px', cursor: 'pointer', borderRadius: '4px' }}>
-              CANCEL
-            </button>
-            <button type="submit" disabled={loading} style={{ padding: '12px', backgroundColor: '#00f2fe', border: 'none', color: '#050811', fontWeight: 'bold', fontFamily: 'monospace', fontSize: '11px', cursor: 'pointer', borderRadius: '4px' }}>
-              {loading ? 'SAVING...' : '✓ SAVE'}
-            </button>
-          </div>
-        </form>
-      )}
+            <div>
+              <label style={{ fontSize: '10px', color: '#8e9bae', display: 'block', marginBottom: '4px' }}>PHONE NUMBER (OPTIONAL)</label>
+              <input 
+                type="text" 
+                value={formData.phone} 
+                onChange={e => setFormData({ ...formData, phone: e.target.value })} 
+                style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', padding: '10px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px' }} 
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '10px', color: '#8e9bae', display: 'block', marginBottom: '4px' }}>BIO / STATUS (OPTIONAL)</label>
+              <textarea 
+                value={formData.bio} 
+                onChange={e => setFormData({ ...formData, bio: e.target.value })} 
+                rows={3}
+                style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', padding: '10px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px', resize: 'vertical' }} 
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: '10px', color: '#8e9bae', display: 'block', marginBottom: '4px' }}>FAVORITE ARTIST (OPTIONAL)</label>
+              <input 
+                type="text" 
+                value={formData.favorite_artist} 
+                onChange={e => setFormData({ ...formData, favorite_artist: e.target.value })} 
+                style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', color: '#fff', padding: '10px', borderRadius: '4px', fontFamily: 'monospace', fontSize: '13px' }} 
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsEditing(false)} 
+                style={{ flex: 1, backgroundColor: 'transparent', border: '1px solid #1e293b', color: '#8e9bae', padding: '10px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              >
+                CANCEL
+              </button>
+              <button 
+                type="submit" 
+                disabled={loading}
+                style={{ flex: 1, backgroundColor: '#00f2fe', border: 'none', color: '#050811', padding: '10px', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              >
+                {loading ? 'SAVING...' : '✓ SAVE'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
       <AudioPlayer />
     </div>
