@@ -12,7 +12,7 @@ interface Message {
   created_at: string;
 }
 
-export default function DispatchWhatsApp() {
+export default function ChatDispatch() {
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
@@ -20,22 +20,51 @@ export default function DispatchWhatsApp() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      setConnected(true);
+    }, 800);
+
     fetchMessages();
 
-    const timer = setTimeout(() => {
-      setConnected(true);
-    }, 1000);
+    const channel = supabase
+      .channel('public:messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        setMessages((prev) => [...prev, payload.new as Message]);
+        scrollToBottom();
+      })
+      .subscribe();
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timeout);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchMessages = async () => {
-    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
-    if (data) {
-      setMessages(data);
+    try {
+      const { data } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (data && data.length > 0) {
+        setMessages(data);
+      } else {
+        setMessages([
+          {
+            id: 'welcome_1',
+            sender: 'DIRECTORATE COMMAND',
+            content: 'WELCOME TO DISPATCH CHAT. GRID ENCRYPTION ACTIVE.',
+            created_at: new Date().toISOString()
+          }
+        ]);
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+    } finally {
+      setConnected(true);
       scrollToBottom();
     }
-    setConnected(true);
   };
 
   const scrollToBottom = () => {
@@ -48,20 +77,33 @@ export default function DispatchWhatsApp() {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const newMessage = {
-      sender: 'Director',
-      content: inputText,
+    const currentText = inputText;
+    setInputText('');
+
+    const tempMsg: Message = {
+      id: Math.random().toString(),
+      sender: 'Operative',
+      content: currentText,
+      created_at: new Date().toISOString()
     };
 
-    setInputText('');
-    await supabase.from('messages').insert([newMessage]);
-    fetchMessages();
+    setMessages((prev) => [...prev, tempMsg]);
+    scrollToBottom();
+
+    try {
+      await supabase.from('messages').insert([{
+        sender: 'Operative',
+        content: currentText
+      }]);
+    } catch (err) {
+      console.error('Send error:', err);
+    }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#050811' }}>
       <Head>
-        <title>M.O.G. — Dispatch</title>
+        <title>M.O.G. — DISPATCH CHAT</title>
       </Head>
 
       <div style={{ padding: '12px 16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -70,7 +112,7 @@ export default function DispatchWhatsApp() {
           <div>
             <h1 style={{ fontSize: '15px', color: '#fff', margin: 0, fontFamily: 'monospace' }}>DISPATCH COMMAND</h1>
             <span style={{ fontSize: '11px', color: '#00f2fe', fontFamily: 'monospace' }}>
-              {connected ? '● ONLINE // ENCRYPTED' : '⚡ ESTABLISHING UPLINK...'}
+              {connected ? '● ONLINE // ENCRYPTED' : '⚡ CONNECTING...'}
             </span>
           </div>
         </div>
@@ -78,11 +120,11 @@ export default function DispatchWhatsApp() {
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '90px' }}>
         {messages.map((msg) => {
-          const isMine = msg.sender === 'Director';
+          const isMine = msg.sender === 'Operative';
           return (
-            <div key={msg.id || Math.random()} style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '80%', backgroundColor: isMine ? '#0d2238' : '#0a101d', border: isMine ? '1px solid #00f2fe' : '1px solid #1e293b', borderRadius: '12px', padding: '10px 14px', color: '#fff' }}>
+            <div key={msg.id} style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '82%', backgroundColor: isMine ? '#0d2238' : '#0a101d', border: isMine ? '1px solid #00f2fe' : '1px solid #1e293b', borderRadius: '10px', padding: '10px 12px', color: '#fff' }}>
               <div style={{ fontSize: '10px', color: isMine ? '#d4af37' : '#00f2fe', fontWeight: 'bold', marginBottom: '4px', fontFamily: 'monospace' }}>{msg.sender}</div>
-              <div style={{ fontSize: '13px', lineHeight: '1.4' }}>{msg.content}</div>
+              <div style={{ fontSize: '13px', lineHeight: '1.4', fontFamily: 'monospace' }}>{msg.content}</div>
               <div style={{ textAlign: 'right', fontSize: '9px', color: '#8e9bae', marginTop: '4px' }}>✓✓</div>
             </div>
           );
@@ -96,7 +138,7 @@ export default function DispatchWhatsApp() {
           placeholder="Transmit message..." 
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          style={{ flex: 1, padding: '10px 14px', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '20px', color: '#fff', fontSize: '13px', outline: 'none' }}
+          style={{ flex: 1, padding: '10px 14px', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '20px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'monospace' }}
         />
         <button type="submit" style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', width: '38px', height: '38px', borderRadius: '50%', fontWeight: 'bold', cursor: 'pointer' }}>➤</button>
       </form>
