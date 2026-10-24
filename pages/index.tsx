@@ -4,122 +4,110 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import AudioPlayer from '../components/AudioPlayer';
 
-export default function OperativeHub() {
+export default function Hub() {
   const router = useRouter();
-  const [profileName, setProfileName] = useState('RECRUIT');
-  const [userEmail, setUserEmail] = useState('');
-  const [rank, setRank] = useState('RECRUIT');
-  const [intelFeed, setIntelFeed] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>({ name: 'OPERATIVE', email: '' });
 
   useEffect(() => {
-    fetchProfile();
-    fetchIntelFeed();
+    loadProfile();
   }, []);
 
-  const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUserEmail(user.email || '');
+  const loadProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
       const { data } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
-
-      if (data && data.name) {
-        setProfileName(data.name);
-        setRank(data.rank || 'RECRUIT');
+      
+      if (data) {
+        setProfile(data);
       } else {
-        setProfileName(user.email ? user.email.split('@')[0].toUpperCase() : 'RECRUIT');
+        setProfile({
+          name: session.user.email?.split('@')[0].toUpperCase() || 'OPERATIVE',
+          email: session.user.email
+        });
       }
     }
   };
 
-  const fetchIntelFeed = async () => {
-    const { data } = await supabase
-      .from('transmission_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    if (data && data.length > 0) {
-      setIntelFeed(data);
-    } else {
-      setIntelFeed([
-        { id: '1', message: 'Welcome to the Ministry of Groove Command Network.', created_at: new Date().toISOString() }
-      ]);
-    }
-  };
-
   return (
-    <div className="container" style={{ paddingBottom: '90px', backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace' }}>
+    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace', paddingBottom: '90px' }}>
       <Head>
-        <title>M.O.G. | OPERATIVE HUB</title>
+        <title>M.O.G. // OPERATIVE HUB</title>
       </Head>
 
-      {/* Header Bar */}
       <div style={{ padding: '16px', backgroundColor: '#0a101d', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '15px', color: '#d4af37', margin: 0 }}>MINISTRY OF GROOVE</h1>
-          <span style={{ fontSize: '9px', color: '#00f2fe' }}>DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</span>
-        </div>
-        <button 
-          onClick={() => router.push('/directorate')} 
-          style={{ backgroundColor: '#0a101d', border: '1px solid #d4af37', color: '#d4af37', padding: '4px 8px', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}
-        >
-          👑 DIRECTOR
-        </button>
-      </div>
-
-      {/* Operative Dossier Banner */}
-      <div style={{ margin: '16px', padding: '16px', backgroundColor: '#0a101d', border: '1px solid #00f2fe', borderRadius: '6px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#050811', border: '1px solid #d4af37', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
-            🪖
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#d4af37', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#050811', fontWeight: 'bold' }}>M</div>
           <div>
-            <div style={{ fontSize: '9px', color: '#8e9bae' }}>OPERATIVE HUB</div>
-            <div style={{ fontSize: '16px', color: '#fff', fontWeight: 'bold' }}>{profileName}</div>
-            <div style={{ fontSize: '10px', color: '#00f2fe', marginTop: '2px' }}>● GROOVE DIVISION · {rank}</div>
+            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#d4af37' }}>MINISTRY OF GROOVE</div>
+            <div style={{ fontSize: '9px', color: '#8e9bae' }}>DECRYPTING THE CULTURE. SYNCHRONIZING THE GRID.</div>
           </div>
         </div>
+        <button onClick={() => router.push('/profile')} style={{ background: 'none', border: 'none', color: '#00f2fe', cursor: 'pointer', fontSize: '12px' }}>DOSSIER →</button>
       </div>
 
-      {/* Command Centre Grid */}
-      <div style={{ padding: '0 16px', marginBottom: '20px' }}>
-        <h2 style={{ fontSize: '11px', color: '#8e9bae', marginBottom: '10px' }}>// COMMAND CENTRE</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-          <button onClick={() => router.push('/gallery')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
-            🎬 GALLERY
-          </button>
-          <button onClick={() => router.push('/live')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
-            📡 LIVE
-          </button>
-          <button onClick={() => router.push('/dispatch')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
-            💬 DISPATCH
-          </button>
-          <button onClick={() => router.push('/vote')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #00f2fe', color: '#00f2fe', fontSize: '10px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
-            🗳️ VOTING
-          </button>
-          <button onClick={() => router.push('/tickets')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #1e293b', color: '#fff', fontSize: '10px', cursor: 'pointer', borderRadius: '4px' }}>
-            🎟️ TICKETS
-          </button>
-          <button onClick={() => router.push('/profile')} style={{ padding: '12px 6px', backgroundColor: '#0a101d', border: '1px solid #d4af37', color: '#d4af37', fontSize: '10px', cursor: 'pointer', borderRadius: '4px', fontWeight: 'bold' }}>
-            👤 PROFILE
-          </button>
+      <div style={{ padding: '16px', maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        
+        {/* Operative Card */}
+        <div style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px', borderRadius: '8px' }}>
+          <div style={{ fontSize: '10px', color: '#8e9bae', marginBottom: '4px' }}>OPERATIVE HUB</div>
+          <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#fff' }}>{profile.name}</div>
+          <div style={{ fontSize: '11px', color: '#00f2fe', marginTop: '2px' }}>GROOVE DIVISION // RECRUIT</div>
         </div>
+
+        {/* Command Centre Grid */}
+        <div>
+          <div style={{ fontSize: '11px', color: '#8e9bae', marginBottom: '10px', letterSpacing: '1px' }}>// COMMAND CENTRE</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+            <button onClick={() => router.push('/gallery')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>🎬</div>
+              <div style={{ fontSize: '11px' }}>GALLERY</div>
+            </button>
+            <button onClick={() => router.push('/live')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>📡</div>
+              <div style={{ fontSize: '11px' }}>LIVE</div>
+            </button>
+            <button onClick={() => router.push('/dispatch')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>💬</div>
+              <div style={{ fontSize: '11px' }}>DISPATCH</div>
+            </button>
+            <button onClick={() => router.push('/vote')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>🗳️</div>
+              <div style={{ fontSize: '11px' }}>VOTE</div>
+            </button>
+            <button onClick={() => router.push('/tickets')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>🎟️</div>
+              <div style={{ fontSize: '11px' }}>TICKETS</div>
+            </button>
+            <button onClick={() => router.push('/profile')} style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', padding: '16px 8px', borderRadius: '6px', color: '#fff', cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ fontSize: '20px', marginBottom: '4px' }}>👤</div>
+              <div style={{ fontSize: '11px' }}>DOSSIER</div>
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      {/* Live Intel Feed */}
-      <div style={{ padding: '0 16px' }}>
-        <h2 style={{ fontSize: '11px', color: '#d4af37', marginBottom: '10px' }}>// TRANSMISSIONS & INTEL FEED</h2>
-        <div style={{ backgroundColor: '#0a101d', border: '1px solid #1e293b', borderRadius: '6px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {intelFeed.map((item) => (
-            <div key={item.id} style={{ fontSize: '11px', color: '#8e9bae', borderBottom: '1px solid #1e293b', paddingBottom: '6px' }}>
-              <span style={{ color: '#00f2fe' }}>●</span> {item.message}
-            </div>
-          ))}
-        </div>
+      {/* Bottom Navigation Bar */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#0a101d', borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-around', padding: '10px 0', zIndex: 100 }}>
+        <button onClick={() => router.push('/')} style={{ background: 'none', border: 'none', color: '#d4af37', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <span>🏠</span> HUB
+        </button>
+        <button onClick={() => router.push('/gallery')} style={{ background: 'none', border: 'none', color: '#8e9bae', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <span>🎬</span> GALLERY
+        </button>
+        <button onClick={() => router.push('/live')} style={{ background: 'none', border: 'none', color: '#8e9bae', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <span>📡</span> LIVE
+        </button>
+        <button onClick={() => router.push('/dispatch')} style={{ background: 'none', border: 'none', color: '#8e9bae', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <span>💬</span> CHAT
+        </button>
+        <button onClick={() => router.push('/profile')} style={{ background: 'none', border: 'none', color: '#8e9bae', fontSize: '10px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+          <span>👤</span> PROFILE
+        </button>
       </div>
 
       <AudioPlayer />
