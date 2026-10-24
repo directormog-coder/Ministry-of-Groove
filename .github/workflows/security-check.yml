@@ -31,15 +31,6 @@ jobs:
       - name: Validate package.json
         run: node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('✓ package.json valid')"
 
-      - name: Generate lockfile if missing
-        run: |
-          if [ ! -f package-lock.json ]; then
-            echo "No lockfile found — generating..."
-            npm install --package-lock-only --ignore-scripts
-          else
-            echo "✓ Lockfile present"
-          fi
-
       - name: Run npm audit
         run: npm audit --audit-level=moderate
         continue-on-error: true
@@ -63,9 +54,9 @@ jobs:
           extra_args: --only-verified
         continue-on-error: true
 
-  # ── 3. STATIC ANALYSIS (ESLint) ─────────────────────────────────
+  # ── 3. STATIC ANALYSIS (Next.js Lint) ───────────────────────────
   lint:
-    name: ESLint Static Analysis
+    name: Next.js Static Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -75,12 +66,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-      - name: Install ESLint
-        run: npm install --save-dev eslint --ignore-scripts
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
 
-      - name: Run ESLint on js/ folder
-        run: npx eslint js/ --ext .js
+      - name: Run Next.js Lint
+        run: npm run lint
         continue-on-error: true
 
   # ── 4. OWASP DEPENDENCY CHECK ───────────────────────────────────
@@ -97,14 +89,8 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Generate lockfile if missing
-        run: |
-          if [ ! -f package-lock.json ]; then
-            npm install --package-lock-only --ignore-scripts
-          fi
-
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --legacy-peer-deps
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -122,3 +108,4 @@ jobs:
           name: dependency-check-report
           path: reports/
           retention-days: 7
+          
