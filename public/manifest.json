@@ -1,15 +1,20 @@
 {
   "name": "Ministry of Groove",
   "short_name": "M.O.G.",
-  "start_url": "/login",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#050811",
   "theme_color": "#d4af37",
-  "description": "Decrypting the Culture. Synchronizing the Grid.",
+  "description": "Official Web Hub for Ministry of Groove — The Cabinet (Pty) Ltd.",
   "icons": [
     {
       "src": "/logo.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
