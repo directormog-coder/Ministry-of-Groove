@@ -27,35 +27,35 @@ export default function CookieConsent() {
       backgroundColor: '#0a101d',
       border: '1px solid #d4af37',
       borderRadius: '6px',
-      padding: '12px',
+      padding: '14px',
       zIndex: 1000,
       fontFamily: 'monospace',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.8)'
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.6)'
     }}>
-      <div style={{ color: '#d4af37', fontSize: '11px', fontWeight: 'bold', marginBottom: '4px' }}>
-        🍪 COOKIE & POPIA CONSENT
+      <div style={{ color: '#d4af37', fontSize: '11px', fontWeight: 'bold', marginBottom: '6px' }}>
+        🍪 COOKIE & PRIVACY NOTICE
       </div>
-      <div style={{ color: '#8e9bae', fontSize: '10px', lineHeight: '1.4', marginBottom: '10px' }}>
-        M.O.G. uses essential local session tokens to keep your dossier authenticated and save preferences. Read our{' '}
+      <div style={{ color: '#94a3b8', fontSize: '10px', lineHeight: '1.4', marginBottom: '12px' }}>
+        Ministry of Groove uses essential cookies to save your preferences and keep your session secure. Read our{' '}
         <Link href="/privacy" style={{ color: '#00f2fe', textDecoration: 'underline' }}>Privacy Policy</Link> and{' '}
         <Link href="/cookies" style={{ color: '#00f2fe', textDecoration: 'underline' }}>Cookie Policy</Link>.
       </div>
-      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button
           onClick={handleAccept}
           style={{
-            backgroundColor: '#00f2fe',
+            backgroundColor: '#d4af37',
             border: 'none',
             color: '#050811',
-            padding: '6px 12px',
-            fontSize: '10px',
+            padding: '6px 14px',
+            fontSize: '11px',
             fontWeight: 'bold',
             fontFamily: 'monospace',
             cursor: 'pointer',
             borderRadius: '4px'
           }}
         >
-          ✓ ACCEPT & SYNCHRONIZE
+          ACCEPT & CONTINUE
         </button>
       </div>
     </div>

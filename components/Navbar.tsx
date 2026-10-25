@@ -4,18 +4,14 @@ export default function Navbar() {
   const router = useRouter();
 
   const navItems = [
-    { label: 'DIRECTORATE', path: '/directorate', icon: '👑' },
-    { label: 'STORIES', path: '/stories', icon: '📸' },
+    { label: 'HOME', path: '/', icon: '🏠' },
+    { label: 'PROFILE', path: '/profile', icon: '👤' },
+    { label: 'CHAT', path: '/chat', icon: '💬' },
+    { label: 'VOTE', path: '/vote', icon: '🗳️' },
+    { label: 'GALLERY', path: '/gallery', icon: '🖼️' },
+    { label: 'LIVE STREAM', path: '/livestream', icon: '📻' },
     { label: 'TICKETS', path: '/tickets', icon: '🎟️' },
-    { label: 'DISPATCH', path: '/dispatch', icon: '💬' },
-    { label: 'CHANNELS', path: '/channels', icon: '🛡️' },
     { label: 'MUSIC VAULT', path: '/music', icon: '🎧' },
-    { label: 'LIVE STUDIO', path: '/live', icon: '📡' },
-    { label: 'PODCAST', path: '/podcast', icon: '🎙️' },
-    { label: 'RADAR', path: '/radar', icon: '🗺️' },
-    { label: 'WALLET', path: '/wallet', icon: '💳' },
-    { label: 'SCANNER', path: '/scanner', icon: '🔍' },
-    { label: 'DEMO DROP', path: '/lineup', icon: '🎵' },
   ];
 
   return (
@@ -25,32 +21,35 @@ export default function Navbar() {
       backgroundColor: '#050811',
       borderBottom: '1px solid #1e293b',
       padding: '10px 16px',
-      gap: '12px',
+      gap: '10px',
       whiteSpace: 'nowrap',
       zIndex: 900
     }}>
-      {navItems.map((item) => (
-        <button
-          key={item.path}
-          onClick={() => router.push(item.path)}
-          style={{
-            backgroundColor: router.pathname === item.path ? 'rgba(0, 242, 254, 0.15)' : '#0a101d',
-            border: router.pathname === item.path ? '1px solid #00f2fe' : '1px solid #1e293b',
-            color: router.pathname === item.path ? '#00f2fe' : '#8e9bae',
-            padding: '6px 12px',
-            fontSize: '11px',
-            fontFamily: 'monospace',
-            cursor: 'pointer',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
-        >
-          <span>{item.icon}</span>
-          <span>{item.label}</span>
-        </button>
-      ))}
+      {navItems.map((item) => {
+        const isActive = router.pathname === item.path;
+        return (
+          <button
+            key={item.path}
+            onClick={() => router.push(item.path)}
+            style={{
+              backgroundColor: isActive ? 'rgba(212, 175, 55, 0.15)' : '#0a101d',
+              border: isActive ? '1px solid #d4af37' : '1px solid #1e293b',
+              color: isActive ? '#d4af37' : '#00f2fe',
+              padding: '6px 12px',
+              fontSize: '11px',
+              fontFamily: 'monospace',
+              cursor: 'pointer',
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            <span>{item.icon}</span>
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
     </nav>
   );
 }
