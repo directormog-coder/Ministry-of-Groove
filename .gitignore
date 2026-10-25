@@ -44,3 +44,4 @@ Thumbs.db
 *.temp
 *.bak
 .eslintcache
+.env.local
