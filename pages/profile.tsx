@@ -14,73 +14,103 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', padding: '20px' }}>
+    <div className="min-h-screen bg-black text-white font-sans pb-24 selection:bg-[#D4AF37] selection:text-black">
       <Head>
-        <title>M.O.G. | USER PROFILE</title>
+        <title>User Profile — The Ministry of Groove</title>
       </Head>
 
-      {/* Top Bar Navigation */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
-        <Link href="/" style={{ color: '#00f2fe', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold' }}>
-          ← HOME
-        </Link>
-        <div style={{ color: '#d4af37', fontSize: '12px', letterSpacing: '2px', fontWeight: 'bold' }}>
-          USER PROFILE
+      {/* Top Navigation Bar */}
+      <nav className="border-b border-[#D4AF37]/30 bg-black/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between overflow-x-auto">
+        <div className="flex space-x-2 text-xs font-mono">
+          <Link href="/" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            🏠 HOME
+          </Link>
+          <Link href="/profile" className="px-3 py-1.5 rounded bg-[#D4AF37] text-black font-bold flex items-center gap-1">
+            👤 PROFILE
+          </Link>
+          <Link href="/chat" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            💬 CHAT
+          </Link>
+          <Link href="/vote" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            🗳️ VOTE
+          </Link>
+          <Link href="/gallery" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            🖼️ GALLERY
+          </Link>
+        </div>
+      </nav>
+
+      <div className="max-w-md mx-auto px-6 pt-6">
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/" className="text-xs font-mono text-[#D4AF37] hover:underline">
+            ← HOME
+          </Link>
+          <span className="text-xs font-mono text-gray-400">USER PROFILE</span>
+        </div>
+
+        {/* Profile Card Container */}
+        <div className="p-6 rounded-2xl bg-neutral-950 border border-[#D4AF37]/40 shadow-[0_0_30px_rgba(212,175,55,0.15)] space-y-6">
+          <div className="text-center space-y-3">
+            <img 
+              src="/assets/images/logo.png" 
+              alt="M.O.G. Crest" 
+              className="w-20 h-20 mx-auto rounded-full border border-[#D4AF37] object-cover shadow-[0_0_15px_rgba(212,175,55,0.3)]"
+            />
+            <div>
+              <h2 className="text-sm font-bold tracking-widest text-[#D4AF37]">THE CABINET MEMBER</h2>
+              <p className="text-[10px] text-cyan-400 font-mono mt-0.5">EST. 2026 // CLEARANCE: DIRECTOR</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSave} className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-mono text-gray-400 tracking-wider mb-1.5">FULL NAME</label>
+              <input 
+                type="text" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white font-mono focus:border-[#D4AF37] focus:outline-none transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-mono text-gray-400 tracking-wider mb-1.5">HANDLE</label>
+              <input 
+                type="text" 
+                value={handle}
+                onChange={(e) => setHandle(e.target.value)}
+                className="w-full bg-black border border-neutral-800 rounded-xl px-4 py-3 text-sm text-white font-mono focus:border-[#D4AF37] focus:outline-none transition"
+              />
+            </div>
+
+            {saved && (
+              <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-emerald-400 text-xs font-mono text-center">
+                ✓ Cabinet Credentials Synchronized Successfully
+              </div>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-600 text-black font-extrabold text-xs tracking-widest hover:opacity-95 transition shadow-[0_0_20px_rgba(212,175,55,0.3)] mt-2"
+            >
+              SAVE CHANGES
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Profile Card Container */}
-      <div style={{ maxWidth: '400px', margin: '0 auto', backgroundColor: '#0a101d', border: '1px solid #d4af37', borderRadius: '8px', padding: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-        
-        {/* User Crest / Avatar Header */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ width: '80px', height: '80px', margin: '0 auto 10px auto', borderRadius: '50%', overflow: 'hidden', border: '2px solid #d4af37' }}>
-            <img src="/logo.png" alt="Profile Crest" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {/* Persistent Audio Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-neutral-950 border-t border-[#D4AF37]/30 px-4 py-3 flex items-center justify-between z-40 backdrop-blur-md">
+        <div className="flex items-center space-x-3">
+          <span className="text-xl">🎵</span>
+          <div>
+            <p className="text-xs font-bold text-white tracking-wider">LIVE STREAM AUDIO</p>
+            <p className="text-[10px] text-gray-400 font-mono">MINISTRY OF GROOVE RADIO</p>
           </div>
-          <div style={{ fontSize: '11px', color: '#d4af37', letterSpacing: '1px' }}>THE CABINET MEMBER</div>
-          <div style={{ fontSize: '9px', color: '#00f2fe', marginTop: '2px' }}>EST. 2026</div>
         </div>
-
-        {/* Edit Profile Form */}
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '10px', color: '#d4af37', marginBottom: '6px', letterSpacing: '1px' }}>
-              FULL NAME
-            </label>
-            <input 
-              type="text" 
-              value={fullName} 
-              onChange={(e) => setFullName(e.target.value)}
-              style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '4px', padding: '10px', color: '#ffffff', fontSize: '12px', fontFamily: 'monospace' }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '10px', color: '#d4af37', marginBottom: '6px', letterSpacing: '1px' }}>
-              HANDLE
-            </label>
-            <input 
-              type="text" 
-              value={handle} 
-              onChange={(e) => setHandle(e.target.value)}
-              style={{ width: '100%', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '4px', padding: '10px', color: '#ffffff', fontSize: '12px', fontFamily: 'monospace' }}
-            />
-          </div>
-
-          {saved && (
-            <div style={{ textAlign: 'center', fontSize: '10px', color: '#10b981', fontWeight: 'bold' }}>
-              ✓ PROFILE UPDATED SUCCESSFULLY
-            </div>
-          )}
-
-          <button 
-            type="submit"
-            style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', padding: '12px', fontWeight: 'bold', fontSize: '12px', fontFamily: 'monospace', borderRadius: '4px', cursor: 'pointer', letterSpacing: '1px', marginTop: '5px' }}
-          >
-            SAVE CHANGES
-          </button>
-        </form>
-
+        <button className="px-5 py-2 rounded-lg bg-[#D4AF37] text-black font-extrabold text-xs tracking-widest hover:opacity-95 transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+          PLAY
+        </button>
       </div>
     </div>
   );
