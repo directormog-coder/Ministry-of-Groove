@@ -1,3 +1,4 @@
+/* M.O.G. Global Stylesheet */
 html,
 body {
   padding: 0;
@@ -5,8 +6,33 @@ body {
   background-color: #050811;
   color: #ffffff;
   font-family: monospace, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  overflow-x: hidden;
 }
 
 * {
   box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Scrollbar Styling for M.O.G. Cyan/Gold aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050811;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
 }
