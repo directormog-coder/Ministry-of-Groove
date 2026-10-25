@@ -1,51 +1,29 @@
 import Head from 'next/head';
-import Link from 'next/link';
-import { useState } from 'react';
+import Layout from '../components/Layout';
 
 export default function Vote() {
-  const [votes, setVotes] = useState([
-    { id: 1, title: 'AMAPIANO TRACK OF THE MONTH', count: 142 },
-    { id: 2, title: 'DJ SET OF THE WEEK', count: 89 },
-  ]);
-
-  const handleVote = (id: number) => {
-    setVotes((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, count: item.count + 1 } : item))
-    );
-  };
-
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', padding: '20px' }}>
+    <Layout current="vote">
       <Head>
-        <title>M.O.G. | VOTE</title>
+        <title>Voting Cabinet — The Ministry of Groove</title>
       </Head>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
-        <Link href="/" style={{ color: '#00f2fe', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold' }}>
-          ← HOME
-        </Link>
-        <div style={{ color: '#d4af37', fontSize: '12px', letterSpacing: '2px', fontWeight: 'bold' }}>
-          COMMUNITY VOTING
+      <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono text-[#D4AF37]">🗳️ CABINET POLLS</span>
+          <span className="text-[10px] font-mono text-cyan-400">ACTIVE SESSION</span>
         </div>
-      </div>
-
-      <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {votes.map((item) => (
-          <div key={item.id} style={{ backgroundColor: '#0a101d', border: '1px solid #d4af37', borderRadius: '8px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold', marginBottom: '4px' }}>{item.title}</div>
-              <div style={{ fontSize: '10px', color: '#00f2fe' }}>{item.count} VOTES</div>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleVote(item.id)}
-              style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', padding: '8px 16px', fontSize: '11px', fontWeight: 'bold', borderRadius: '4px', cursor: 'pointer', fontFamily: 'monospace' }}
-            >
-              VOTE
+        <div className="p-6 rounded-2xl bg-[#121418] border border-[#D4AF37]/30 space-y-4">
+          <h2 className="text-sm font-bold tracking-widest text-white">SELECT THE NEXT SOUND POLICY</h2>
+          <div className="space-y-2 pt-2">
+            <button className="w-full text-left p-3.5 rounded-xl bg-black border border-neutral-800 hover:border-[#D4AF37] text-xs font-mono text-gray-300 transition">
+              01. Deep Tech & Private School Piano Mix
+            </button>
+            <button className="w-full text-left p-3.5 rounded-xl bg-black border border-neutral-800 hover:border-[#D4AF37] text-xs font-mono text-gray-300 transition">
+              02. Quantum Sgidongo Heavyweight Session
             </button>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }

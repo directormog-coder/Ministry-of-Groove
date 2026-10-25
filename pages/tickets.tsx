@@ -1,43 +1,28 @@
 import Head from 'next/head';
-import Link from 'next/link';
+import Layout from '../components/Layout';
 
 export default function Tickets() {
-  const events = [
-    { name: 'THE CABINET LAUNCH SESSION', price: 'R 150', status: 'AVAILABLE' },
-    { name: 'VIP GROOVE PASS', price: 'R 350', status: 'LIMITED' },
-  ];
-
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', padding: '20px' }}>
+    <Layout current="home">
       <Head>
-        <title>M.O.G. | TICKETS</title>
+        <title>Tickets — The Ministry of Groove</title>
       </Head>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
-        <Link href="/" style={{ color: '#00f2fe', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold' }}>
-          ← HOME
-        </Link>
-        <div style={{ color: '#d4af37', fontSize: '12px', letterSpacing: '2px', fontWeight: 'bold' }}>
-          EVENT TICKETS
+      <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono text-[#D4AF37]">🎟️ EVENT ACCESS</span>
+          <span className="text-[10px] font-mono text-cyan-400">CABINET SECURED</span>
         </div>
-      </div>
-
-      <div style={{ maxWidth: '500px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        {events.map((evt, idx) => (
-          <div key={idx} style={{ backgroundColor: '#0a101d', border: '1px solid #d4af37', borderRadius: '8px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#ffffff', fontWeight: 'bold', marginBottom: '4px' }}>{evt.name}</div>
-              <div style={{ fontSize: '10px', color: '#00f2fe' }}>{evt.price} • {evt.status}</div>
-            </div>
-            <button
-              type="button"
-              style={{ backgroundColor: '#d4af37', border: 'none', color: '#050811', padding: '8px 16px', fontSize: '11px', fontWeight: 'bold', borderRadius: '4px', cursor: 'pointer', fontFamily: 'monospace' }}
-            >
-              RESERVE
+        <div className="p-6 rounded-2xl bg-[#121418] border border-[#D4AF37]/30 space-y-4">
+          <h2 className="text-sm font-bold tracking-widest text-white">THE CABINET SESSION #01</h2>
+          <p className="text-xs text-gray-400 font-mono">Exclusive access pass for members and verified stakeholders.</p>
+          <div className="pt-2 flex items-center justify-between border-t border-neutral-800 text-xs font-mono">
+            <span className="text-[#D4AF37]">R250.00 / PASS</span>
+            <button className="px-4 py-2 rounded-lg bg-[#D4AF37] text-black font-bold tracking-wider hover:opacity-95 transition">
+              ACQUIRE
             </button>
           </div>
-        ))}
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 }

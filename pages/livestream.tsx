@@ -1,30 +1,28 @@
 import Head from 'next/head';
-import Link from 'next/link';
+import Layout from '../components/Layout';
 
 export default function LiveStream() {
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', padding: '20px' }}>
+    <Layout current="home">
       <Head>
-        <title>M.O.G. | LIVE STREAM</title>
+        <title>Live Stream — The Ministry of Groove</title>
       </Head>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '12px' }}>
-        <Link href="/" style={{ color: '#00f2fe', textDecoration: 'none', fontSize: '12px', fontWeight: 'bold' }}>
-          ← HOME
-        </Link>
-        <div style={{ color: '#d4af37', fontSize: '12px', letterSpacing: '2px', fontWeight: 'bold' }}>
-          LIVE STREAM STUDIO
+      <div className="max-w-md mx-auto px-5 pt-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-mono text-[#D4AF37]">🔴 LIVE BROADCAST</span>
+          <span className="text-[10px] font-mono text-cyan-400">STATUS: STREAMING</span>
+        </div>
+        <div className="p-6 rounded-2xl bg-[#121418] border border-[#D4AF37]/30 text-center space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[#D4AF37]/10 border border-[#D4AF37] flex items-center justify-center text-2xl animate-pulse">
+            🎙️
+          </div>
+          <h2 className="text-sm font-bold tracking-widest text-white">M.O.G. EXECUTIVE RADIO</h2>
+          <p className="text-xs text-gray-400 font-mono">Broadcasting authentic Amapiano frequencies live from the grid.</p>
+          <button className="w-full py-3 rounded-xl bg-cyan-400 text-black font-extrabold text-xs tracking-widest shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+            CONNECT FEED
+          </button>
         </div>
       </div>
-
-      <div style={{ maxWidth: '500px', margin: '0 auto', backgroundColor: '#0a101d', border: '1px solid #d4af37', borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
-        <div style={{ width: '100%', height: '180px', backgroundColor: '#050811', border: '1px solid #1e293b', borderRadius: '6px', marginBottom: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '32px' }}>📻</span>
-          <span style={{ fontSize: '11px', color: '#00f2fe', fontWeight: 'bold' }}>BROADCAST OFFLINE</span>
-        </div>
-        <h3 style={{ fontSize: '13px', color: '#d4af37', margin: '0 0 6px 0' }}>MINISTRY OF GROOVE RADIO</h3>
-        <p style={{ fontSize: '10px', color: '#94a3b8', margin: 0 }}>Tune in for live Amapiano DJ sessions & commentary.</p>
-      </div>
-    </div>
+    </Layout>
   );
 }
