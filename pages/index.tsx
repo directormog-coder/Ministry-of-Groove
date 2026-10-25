@@ -19,11 +19,11 @@ export default function Home() {
 
       {/* Official Crest Logo Display */}
       <div style={{ textAlign: 'center', marginBottom: '25px' }}>
-        <div style={{ width: '110px', height: '110px', margin: '0 auto 15px auto', borderRadius: '50%', overflow: 'hidden', border: '2px solid #d4af37', boxShadow: '0 0 20px rgba(212, 175, 55, 0.3)' }}>
+        <div style={{ width: '120px', height: '120px', margin: '0 auto 15px auto', borderRadius: '50%', overflow: 'hidden', border: '2px solid #d4af37', boxShadow: '0 0 20px rgba(212, 175, 55, 0.35)', backgroundColor: '#0a101d' }}>
           <img 
             src="/logo.png" 
             alt="The Ministry of Groove Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         </div>
         <h1 style={{ fontSize: '18px', color: '#d4af37', letterSpacing: '2px', marginBottom: '6px', fontWeight: 'bold' }}>
