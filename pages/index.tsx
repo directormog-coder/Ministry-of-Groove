@@ -1,37 +1,55 @@
 import Head from 'next/head';
-import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 export default function Home() {
-  const router = useRouter();
+  const menuItems = [
+    { label: 'PROFILE', path: '/profile' },
+    { label: 'CHAT & MESSAGES', path: '/chat' },
+    { label: 'VOTE', path: '/vote' },
+    { label: 'GALLERY', path: '/gallery' },
+    { label: 'LIVE STREAM', path: '/livestream' },
+    { label: 'TICKETS', path: '/tickets' },
+  ];
+
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#fff', fontFamily: 'monospace', padding: '20px' }}>
+    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '40px 20px' }}>
       <Head>
-        <title>M.O.G. | MINISTRY OF GROOVE</title>
+        <title>M.O.G. | THE CABINET</title>
       </Head>
-      <div style={{ textAlign: 'center', marginTop: '40px' }}>
-        <h1 style={{ color: '#d4af37', fontSize: '24px', marginBottom: '10px' }}>MINISTRY OF GROOVE</h1>
-        <p style={{ color: '#8e9bae', fontSize: '12px', marginBottom: '30px' }}>AMAPIANO COMMUNITY HUB</p>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '300px', margin: '0 auto' }}>
-          <button onClick={() => router.push('/profile')} style={btnStyle}>PROFILE</button>
-          <button onClick={() => router.push('/dispatch')} style={btnStyle}>CHAT & MESSAGES</button>
-          <button onClick={() => router.push('/vote')} style={btnStyle}>VOTE</button>
-          <button onClick={() => router.push('/gallery')} style={btnStyle}>GALLERY</button>
-          <button onClick={() => router.push('/live')} style={btnStyle}>LIVE STREAM</button>
-          <button onClick={() => router.push('/tickets')} style={btnStyle}>TICKETS</button>
-        </div>
+
+      {/* Brand Header & Crest Placeholder / Title */}
+      <div style={{ textAlign: 'center', marginBottom: '35px' }}>
+        <h1 style={{ fontSize: '20px', color: '#d4af37', letterSpacing: '2px', marginBottom: '8px', fontWeight: 'bold' }}>
+          MINISTRY OF GROOVE
+        </h1>
+        <p style={{ fontSize: '11px', color: '#00f2fe', letterSpacing: '3px', margin: 0 }}>
+          THE CABINET [PTY] LTD • EST. 2026
+        </p>
+      </div>
+
+      {/* Navigation Grid */}
+      <div style={{ width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        {menuItems.map((item, index) => (
+          <Link key={index} href={item.path} style={{ textDecoration: 'none' }}>
+            <div style={{
+              backgroundColor: '#0a101d',
+              border: '1px solid #1e293b',
+              borderRadius: '6px',
+              padding: '16px',
+              textAlign: 'center',
+              color: '#00f2fe',
+              fontWeight: 'bold',
+              fontSize: '13px',
+              letterSpacing: '1px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.2s ease',
+              cursor: 'pointer'
+            }}>
+              {item.label}
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
 }
-
-const btnStyle = {
-  backgroundColor: '#0a101d',
-  border: '1px solid #1e293b',
-  color: '#00f2fe',
-  padding: '12px',
-  borderRadius: '4px',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  fontSize: '12px'
-};
