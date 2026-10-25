@@ -2,59 +2,95 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 export default function Home() {
-  const menuItems = [
-    { label: 'PROFILE', path: '/profile' },
-    { label: 'CHAT & MESSAGES', path: '/chat' },
-    { label: 'VOTE', path: '/vote' },
-    { label: 'GALLERY', path: '/gallery' },
-    { label: 'LIVE STREAM', path: '/livestream' },
-    { label: 'TICKETS', path: '/tickets' },
-  ];
-
   return (
-    <div style={{ backgroundColor: '#050811', minHeight: '100vh', color: '#ffffff', fontFamily: 'monospace', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', padding: '30px 20px' }}>
+    <div className="min-h-screen bg-black text-white font-sans pb-24 selection:bg-[#D4AF37] selection:text-black">
       <Head>
-        <title>M.O.G. | THE CABINET</title>
+        <title>The Ministry of Groove — The Cabinet (Pty) Ltd</title>
+        <meta name="description" content="Decrypting the Culture. Synchronizing the Grid." />
+        <link rel="icon" href="/assets/images/logo.png" />
       </Head>
 
-      {/* Official Crest Logo Display */}
-      <div style={{ textAlign: 'center', marginBottom: '25px' }}>
-        <div style={{ width: '120px', height: '120px', margin: '0 auto 15px auto', borderRadius: '50%', overflow: 'hidden', border: '2px solid #d4af37', boxShadow: '0 0 20px rgba(212, 175, 55, 0.35)', backgroundColor: '#0a101d' }}>
+      {/* Top Navigation Bar */}
+      <nav className="border-b border-[#D4AF37]/30 bg-black/90 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between overflow-x-auto">
+        <div className="flex space-x-2 text-xs font-mono">
+          <Link href="/" className="px-3 py-1.5 rounded bg-[#D4AF37] text-black font-bold flex items-center gap-1">
+            🏠 HOME
+          </Link>
+          <Link href="/profile" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            👤 PROFILE
+          </Link>
+          <Link href="/chat" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            💬 CHAT
+          </Link>
+          <Link href="/vote" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            🗳️ VOTE
+          </Link>
+          <Link href="/gallery" className="px-3 py-1.5 rounded hover:bg-neutral-900 text-gray-300 flex items-center gap-1">
+            🖼️ GALLERY
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="max-w-md mx-auto px-6 pt-8 text-center space-y-6">
+        <div className="relative inline-block">
+          <div className="absolute inset-0 bg-[#D4AF37] blur-xl opacity-20 rounded-full"></div>
           <img 
-            src="/logo.png" 
-            alt="The Ministry of Groove Logo" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            src="/assets/images/logo.png" 
+            alt="M.O.G. Logo" 
+            className="w-24 h-24 mx-auto rounded-full border-2 border-[#D4AF37] object-cover relative z-10 shadow-[0_0_25px_rgba(212,175,55,0.3)]"
           />
         </div>
-        <h1 style={{ fontSize: '18px', color: '#d4af37', letterSpacing: '2px', marginBottom: '6px', fontWeight: 'bold' }}>
-          MINISTRY OF GROOVE
-        </h1>
-        <p style={{ fontSize: '10px', color: '#00f2fe', letterSpacing: '2px', margin: 0 }}>
-          THE CABINET [PTY] LTD • EST. 2026
-        </p>
+
+        <div>
+          <h1 className="text-xl font-black tracking-widest text-white">MINISTRY OF GROOVE</h1>
+          <p className="text-xs text-[#D4AF37] font-mono tracking-wider mt-1">THE CABINET [PTY] LTD • EST. 2026</p>
+        </div>
+
+        {/* Live System Status Badge */}
+        <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 text-xs font-mono flex items-center justify-between text-gray-400">
+          <span className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            UPLINK ACTIVE
+          </span>
+          <span className="text-cyan-400">EMALAHLENI SECURE</span>
+        </div>
+
+        {/* Navigation Action Buttons */}
+        <div className="space-y-3 pt-2">
+          <Link href="/profile" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-[#D4AF37]/40 text-[#D4AF37] font-bold tracking-widest text-sm hover:bg-[#D4AF37]/10 transition shadow-lg text-center">
+            PROFILE
+          </Link>
+          <Link href="/chat" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-bold tracking-widest text-sm hover:border-cyan-500/50 hover:text-cyan-400 transition text-center">
+            CHAT & MESSAGES
+          </Link>
+          <Link href="/vote" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-bold tracking-widest text-sm hover:border-[#D4AF37]/50 hover:text-[#D4AF37] transition text-center">
+            VOTE
+          </Link>
+          <Link href="/gallery" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-bold tracking-widest text-sm hover:border-cyan-500/50 hover:text-cyan-400 transition text-center">
+            GALLERY
+          </Link>
+          <Link href="/livestream" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-bold tracking-widest text-sm hover:border-[#D4AF37]/50 hover:text-[#D4AF37] transition text-center">
+            LIVE STREAM
+          </Link>
+          <Link href="/tickets" className="block w-full py-4 px-6 rounded-xl bg-neutral-950 border border-neutral-800 text-white font-bold tracking-widest text-sm hover:border-cyan-500/50 hover:text-cyan-400 transition text-center">
+            TICKETS
+          </Link>
+        </div>
       </div>
 
-      {/* Navigation Grid */}
-      <div style={{ width: '100%', maxWidth: '380px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {menuItems.map((item, index) => (
-          <Link key={index} href={item.path} style={{ textDecoration: 'none' }}>
-            <div style={{
-              backgroundColor: '#0a101d',
-              border: '1px solid #1e293b',
-              borderRadius: '6px',
-              padding: '15px',
-              textAlign: 'center',
-              color: '#00f2fe',
-              fontWeight: 'bold',
-              fontSize: '13px',
-              letterSpacing: '1px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-              cursor: 'pointer'
-            }}>
-              {item.label}
-            </div>
-          </Link>
-        ))}
+      {/* Persistent Audio Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-neutral-950 border-t border-[#D4AF37]/30 px-4 py-3 flex items-center justify-between z-40 backdrop-blur-md">
+        <div className="flex items-center space-x-3">
+          <span className="text-xl">🎵</span>
+          <div>
+            <p className="text-xs font-bold text-white tracking-wider">LIVE STREAM AUDIO</p>
+            <p className="text-[10px] text-gray-400 font-mono">MINISTRY OF GROOVE RADIO</p>
+          </div>
+        </div>
+        <button className="px-5 py-2 rounded-lg bg-[#D4AF37] text-black font-extrabold text-xs tracking-widest hover:opacity-95 transition shadow-[0_0_15px_rgba(212,175,55,0.4)]">
+          PLAY
+        </button>
       </div>
     </div>
   );
