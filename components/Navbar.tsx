@@ -30,6 +30,7 @@ export default function Navbar() {
         return (
           <button
             key={item.path}
+            type="button"
             onClick={() => router.push(item.path)}
             style={{
               backgroundColor: isActive ? 'rgba(212, 175, 55, 0.15)' : '#0a101d',

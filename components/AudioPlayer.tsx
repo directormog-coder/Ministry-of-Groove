@@ -14,7 +14,7 @@ export default function AudioPlayer() {
       padding: '8px 16px',
       display: 'flex',
       alignItems: 'center',
-      justify: 'space-between',
+      justifyContent: 'space-between',
       zIndex: 900,
       fontFamily: 'monospace'
     }}>
@@ -26,7 +26,8 @@ export default function AudioPlayer() {
         </div>
       </div>
       <button
-        onClick={() => setIsPlaying(!isPlaying)}
+        type="button"
+        onClick={() => setIsPlaying((prev) => !prev)}
         style={{
           backgroundColor: isPlaying ? '#ef4444' : '#00f2fe',
           border: 'none',

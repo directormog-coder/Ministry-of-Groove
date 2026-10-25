@@ -36,12 +36,14 @@ export default function CookieConsent() {
         🍪 COOKIE & PRIVACY NOTICE
       </div>
       <div style={{ color: '#94a3b8', fontSize: '10px', lineHeight: '1.4', marginBottom: '12px' }}>
-        Ministry of Groove uses essential cookies to save your preferences and keep your session secure. Read our{' '}
-        <Link href="/privacy" style={{ color: '#00f2fe', textDecoration: 'underline' }}>Privacy Policy</Link> and{' '}
+        {"Ministry of Groove uses essential cookies to save your preferences and keep your session secure. Read our "}
+        <Link href="/privacy" style={{ color: '#00f2fe', textDecoration: 'underline' }}>Privacy Policy</Link>
+        {" and "}
         <Link href="/cookies" style={{ color: '#00f2fe', textDecoration: 'underline' }}>Cookie Policy</Link>.
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button
+          type="button"
           onClick={handleAccept}
           style={{
             backgroundColor: '#d4af37',
