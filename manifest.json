@@ -1,15 +1,25 @@
 {
-  "name": "Ministry of Groove",
+  "name": "The Ministry of Groove — The Cabinet (Pty) Ltd",
   "short_name": "M.O.G.",
-  "description": "Decrypting the Culture. Synchronizing the Grid.",
-  "start_url": "/index.html",
+  "description": "The elite digital web application and community hub for Amapiano culture. Decrypting the Culture. Synchronizing the Grid.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#d4af37",
+  "theme_color": "#D4AF37",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "/assets/images/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "/assets/images/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "/assets/images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
   "screenshots": [],
   "categories": ["entertainment", "music", "social"],
