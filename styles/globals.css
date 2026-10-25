@@ -2,8 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  background-color: #07080A !important;
+:root {
+  --bg-obsidian: #07080A;
+  --card-obsidian: #0D0F13;
+  --border-gold: rgba(212, 175, 55, 0.35);
+  --accent-gold: #D4AF37;
+  --accent-cyan: #00F0FF;
+}
+
+body {
+  background-color: var(--bg-obsidian) !important;
   color: #ffffff !important;
   font-family: ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #07080A;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 2px;
 }

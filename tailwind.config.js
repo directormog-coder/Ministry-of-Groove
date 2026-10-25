@@ -8,12 +8,12 @@ module.exports = {
     extend: {
       colors: {
         mog: {
+          obsidian: '#07080A',
+          card: '#0D0F13',
+          border: '#1F242C',
           gold: '#D4AF37',
           goldLight: '#F3E5AB',
           cyan: '#00F0FF',
-          dark: '#07080A',
-          card: '#0D0F13',
-          border: '#1F242C',
         }
       },
       boxShadow: {
