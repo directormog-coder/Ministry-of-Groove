@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 export default function Layout({ children, current }: { children: ReactNode; current?: string }) {
   return (
     <div className="min-h-screen bg-[#07080A] text-white font-sans pb-32 selection:bg-[#D4AF37] selection:text-black">
-      {/* Top Header with Gold Circuit Border */}
+      {/* Top Header */}
       <header className="border-b border-[#D4AF37]/30 bg-[#07080A]/95 backdrop-blur-md sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
         <div className="flex items-center space-x-3">
           <div className="relative">
@@ -47,7 +47,7 @@ export default function Layout({ children, current }: { children: ReactNode; cur
       {/* Main Content */}
       <main>{children}</main>
 
-      {/* Persistent Audio Bar with Gold & Cyan Theme */}
+      {/* Persistent Audio Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-[#0D0F13] border-t border-[#D4AF37]/40 px-4 py-3.5 flex items-center justify-between z-40 backdrop-blur-md shadow-[0_-10px_30px_rgba(0,0,0,0.9)]">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-xl bg-[#00F0FF]/10 border border-[#00F0FF]/40 flex items-center justify-center text-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.2)]">
