@@ -10,14 +10,14 @@ export default function Home() {
       </Head>
       <div style={{ textAlign: 'center', marginTop: '40px' }}>
         <h1 style={{ color: '#d4af37', fontSize: '24px', marginBottom: '10px' }}>MINISTRY OF GROOVE</h1>
-        <p style={{ color: '#8e9bae', fontSize: '12px', marginBottom: '30px' }}>SECURE AMAPIANO COMMUNITY HUB</p>
+        <p style={{ color: '#8e9bae', fontSize: '12px', marginBottom: '30px' }}>AMAPIANO COMMUNITY HUB</p>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '300px', margin: '0 auto' }}>
-          <button onClick={() => router.push('/profile')} style={btnStyle}>DOSSIER // PROFILE</button>
-          <button onClick={() => router.push('/dispatch')} style={btnStyle}>DISPATCH</button>
+          <button onClick={() => router.push('/profile')} style={btnStyle}>PROFILE</button>
+          <button onClick={() => router.push('/dispatch')} style={btnStyle}>CHAT & MESSAGES</button>
           <button onClick={() => router.push('/vote')} style={btnStyle}>VOTE</button>
           <button onClick={() => router.push('/gallery')} style={btnStyle}>GALLERY</button>
-          <button onClick={() => router.push('/live')} style={btnStyle}>LIVE FREQUENCY</button>
+          <button onClick={() => router.push('/live')} style={btnStyle}>LIVE STREAM</button>
           <button onClick={() => router.push('/tickets')} style={btnStyle}>TICKETS</button>
         </div>
       </div>
